@@ -221,8 +221,10 @@ async function getPrice(asset) {
   const cacheKey = `price:${asset.symbol}`;
   return cachedFetch(cacheKey, 60, async () => {
     if (asset.source === 'binance') {
-      const res  = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${asset.symbol}`);
-      const data = await res.json();
+      const res  = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${asset.symbol}`);
+      const ticker = await res.json();
+      const res2 = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${asset.symbol}`);
+      const data = await res2.json();
       return {
         symbol:  asset.symbol,
         name:    asset.name,
