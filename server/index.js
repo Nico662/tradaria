@@ -221,27 +221,32 @@ async function getPrice(asset) {
   const cacheKey = `price:${asset.symbol}`;
   return cachedFetch(cacheKey, 60, async () => {
     if (asset.source === 'binance') {
-      const res  = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${asset.symbol}`);
-      const ticker = await res.json();
-      const res2 = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${asset.symbol}`);
-      const data = await res2.json();
+      const coinMap = {
+        'BTCUSDT': 'bitcoin',
+        'ETHUSDT': 'ethereum',
+        'XRPUSDT': 'ripple',
+      };
+      const coinId = coinMap[asset.symbol];
+      const res  = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true`);
+      const data = await res.json();
+      const coin = data[coinId];
       return {
-        symbol:  asset.symbol,
-        name:    asset.name,
-        type:    asset.type,
-        price:   parseFloat(data.lastPrice),
-        change:  parseFloat(data.priceChangePercent),
-        prevClose: parseFloat(data.prevClosePrice),
+        symbol:    asset.symbol,
+        name:      asset.name,
+        type:      asset.type,
+        price:     coin.usd,
+        change:    coin.usd_24h_change,
+        prevClose: coin.usd / (1 + coin.usd_24h_change / 100),
       };
     } else {
       const res  = await fetch(`https://finnhub.io/api/v1/quote?symbol=${asset.symbol}&token=${FINNHUB_KEY}`);
       const data = await res.json();
       return {
-        symbol:   asset.symbol,
-        name:     asset.name,
-        type:     asset.type,
-        price:    data.c,
-        change:   data.dp,
+        symbol:    asset.symbol,
+        name:      asset.name,
+        type:      asset.type,
+        price:     data.c,
+        change:    data.dp,
         prevClose: data.pc,
       };
     }
