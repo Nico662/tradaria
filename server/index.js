@@ -76,7 +76,30 @@ const StatsSchema = new mongoose.Schema({
   _id:   String,
   daily: { type: Number, default: 0 },
 });
+const PortfolioSchema = new mongoose.Schema({
+  userId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
+  cash:      { type: Number, default: 50000 },
+  positions: [{
+    symbol:    { type: String, required: true },
+    name:      { type: String, required: true },
+    qty:       { type: Number, required: true },
+    avgPrice:  { type: Number, required: true },
+    type:      { type: String, enum: ['stock', 'crypto', 'commodity', 'index'], required: true },
+  }],
+  transactions: [{
+    symbol:    String,
+    name:      String,
+    type:      String,
+    action:    { type: String, enum: ['buy', 'sell'] },
+    qty:       Number,
+    price:     Number,
+    total:     Number,
+    date:      { type: Date, default: Date.now },
+  }],
+  createdAt: { type: Date, default: Date.now },
+});
 
+const Portfolio = mongoose.model('Portfolio', PortfolioSchema);
 const User       = mongoose.model('User', UserSchema);
 const Tournament = mongoose.model('Tournament', TournamentSchema);
 const Score      = mongoose.model('Score', ScoreSchema);
@@ -151,7 +174,77 @@ const SHOP_ITEMS = {
   effect_explosion: { name: 'Explosion',     price: 299 },
   effect_stars:     { name: 'Stars',         price: 199 },
 };
+const FINNHUB_KEY = 'd7pqi41r01qosaapiuugd7pqi41r01qosaapiuv0';
 
+const PORTFOLIO_ASSETS = [
+  // Acciones
+  { symbol: 'AAPL',  name: 'Apple',           type: 'stock',     source: 'finnhub' },
+  { symbol: 'MSFT',  name: 'Microsoft',        type: 'stock',     source: 'finnhub' },
+  { symbol: 'NVDA',  name: 'NVIDIA',           type: 'stock',     source: 'finnhub' },
+  { symbol: 'GOOGL', name: 'Alphabet',         type: 'stock',     source: 'finnhub' },
+  { symbol: 'AMZN',  name: 'Amazon',           type: 'stock',     source: 'finnhub' },
+  { symbol: 'META',  name: 'Meta',             type: 'stock',     source: 'finnhub' },
+  { symbol: 'TSLA',  name: 'Tesla',            type: 'stock',     source: 'finnhub' },
+  { symbol: 'BRK.B', name: 'Berkshire',        type: 'stock',     source: 'finnhub' },
+  { symbol: 'JPM',   name: 'JPMorgan',         type: 'stock',     source: 'finnhub' },
+  { symbol: 'V',     name: 'Visa',             type: 'stock',     source: 'finnhub' },
+  { symbol: 'UNH',   name: 'UnitedHealth',     type: 'stock',     source: 'finnhub' },
+  { symbol: 'MA',    name: 'Mastercard',       type: 'stock',     source: 'finnhub' },
+  { symbol: 'XOM',   name: 'ExxonMobil',       type: 'stock',     source: 'finnhub' },
+  { symbol: 'JNJ',   name: 'Johnson & Johnson',type: 'stock',     source: 'finnhub' },
+  { symbol: 'PG',    name: 'Procter & Gamble', type: 'stock',     source: 'finnhub' },
+  { symbol: 'HD',    name: 'Home Depot',       type: 'stock',     source: 'finnhub' },
+  { symbol: 'BAC',   name: 'Bank of America',  type: 'stock',     source: 'finnhub' },
+  { symbol: 'COST',  name: 'Costco',           type: 'stock',     source: 'finnhub' },
+  { symbol: 'NFLX',  name: 'Netflix',          type: 'stock',     source: 'finnhub' },
+  { symbol: 'ADBE',  name: 'Adobe',            type: 'stock',     source: 'finnhub' },
+  { symbol: 'CRM',   name: 'Salesforce',       type: 'stock',     source: 'finnhub' },
+  { symbol: 'AMD',   name: 'AMD',              type: 'stock',     source: 'finnhub' },
+  { symbol: 'PYPL',  name: 'PayPal',           type: 'stock',     source: 'finnhub' },
+  { symbol: 'INTC',  name: 'Intel',            type: 'stock',     source: 'finnhub' },
+  { symbol: 'UBER',  name: 'Uber',             type: 'stock',     source: 'finnhub' },
+  // Índices
+  { symbol: 'SPY',   name: 'S&P 500',          type: 'index',     source: 'finnhub' },
+  { symbol: 'QQQ',   name: 'NASDAQ',           type: 'index',     source: 'finnhub' },
+  { symbol: 'DIA',   name: 'Dow Jones',        type: 'index',     source: 'finnhub' },
+  // Cripto
+  { symbol: 'BTCUSDT', name: 'Bitcoin',        type: 'crypto',    source: 'binance' },
+  { symbol: 'ETHUSDT', name: 'Ethereum',       type: 'crypto',    source: 'binance' },
+  { symbol: 'XRPUSDT', name: 'XRP',           type: 'crypto',    source: 'binance' },
+  // Materias primas
+  { symbol: 'GLD',   name: 'Gold',             type: 'commodity', source: 'finnhub' },
+  { symbol: 'SLV',   name: 'Silver',           type: 'commodity', source: 'finnhub' },
+  { symbol: 'USO',   name: 'Oil',              type: 'commodity', source: 'finnhub' },
+];
+
+async function getPrice(asset) {
+  const cacheKey = `price:${asset.symbol}`;
+  return cachedFetch(cacheKey, 60, async () => {
+    if (asset.source === 'binance') {
+      const res  = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${asset.symbol}`);
+      const data = await res.json();
+      return {
+        symbol:  asset.symbol,
+        name:    asset.name,
+        type:    asset.type,
+        price:   parseFloat(data.lastPrice),
+        change:  parseFloat(data.priceChangePercent),
+        prevClose: parseFloat(data.prevClosePrice),
+      };
+    } else {
+      const res  = await fetch(`https://finnhub.io/api/v1/quote?symbol=${asset.symbol}&token=${FINNHUB_KEY}`);
+      const data = await res.json();
+      return {
+        symbol:   asset.symbol,
+        name:     asset.name,
+        type:     asset.type,
+        price:    data.c,
+        change:   data.dp,
+        prevClose: data.pc,
+      };
+    }
+  });
+}
 // ── Middlewares ───────────────────────────────────────────────────
 app.use(cors({
   origin: ['https://tradara.dev', 'https://www.tradara.dev'],
@@ -876,6 +969,93 @@ cron.schedule('0 8 * * *', async () => {
       { $group: { _id: null, total: { $sum: '$count' } } }
     ]);
     res.json({ users, scores, purchases, totalUsers, totalScores, totalPurchases: totalPurchases[0]?.total || 0 });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+// ── Portfolio routes ──────────────────────────────────────────────
+
+// Obtener todos los precios
+app.get('/portfolio/prices', async (req, res) => {
+  try {
+    const prices = await Promise.all(PORTFOLIO_ASSETS.map(a => getPrice(a).catch(() => null)));
+    res.json(prices.filter(Boolean));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Obtener portfolio del usuario
+app.get('/portfolio', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    let portfolio = await Portfolio.findOne({ userId: decoded.id });
+    if (!portfolio) {
+      portfolio = await Portfolio.create({ userId: decoded.id, cash: 50000, positions: [], transactions: [] });
+    }
+    res.json(portfolio);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Comprar
+app.post('/portfolio/buy', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded  = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const { symbol, qty } = req.body;
+    const asset    = PORTFOLIO_ASSETS.find(a => a.symbol === symbol);
+    if (!asset) return res.status(400).json({ error: 'Asset not found' });
+    const priceData = await getPrice(asset);
+    const price     = priceData.price;
+    const total     = price * qty;
+    let portfolio   = await Portfolio.findOne({ userId: decoded.id });
+    if (!portfolio) portfolio = await Portfolio.create({ userId: decoded.id, cash: 50000, positions: [], transactions: [] });
+    if (portfolio.cash < total) return res.status(400).json({ error: 'Insufficient funds' });
+    portfolio.cash -= total;
+    const existing = portfolio.positions.find(p => p.symbol === symbol);
+    if (existing) {
+      existing.avgPrice = (existing.avgPrice * existing.qty + price * qty) / (existing.qty + qty);
+      existing.qty += qty;
+    } else {
+      portfolio.positions.push({ symbol, name: asset.name, qty, avgPrice: price, type: asset.type });
+    }
+    portfolio.transactions.push({ symbol, name: asset.name, type: asset.type, action: 'buy', qty, price, total });
+    await portfolio.save();
+    res.json({ ok: true, cash: portfolio.cash });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Vender
+app.post('/portfolio/sell', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded  = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const { symbol, qty } = req.body;
+    const asset    = PORTFOLIO_ASSETS.find(a => a.symbol === symbol);
+    if (!asset) return res.status(400).json({ error: 'Asset not found' });
+    const priceData = await getPrice(asset);
+    const price     = priceData.price;
+    const total     = price * qty;
+    const portfolio = await Portfolio.findOne({ userId: decoded.id });
+    if (!portfolio) return res.status(404).json({ error: 'Portfolio not found' });
+    const position  = portfolio.positions.find(p => p.symbol === symbol);
+    if (!position || position.qty < qty) return res.status(400).json({ error: 'Insufficient position' });
+    portfolio.cash += total;
+    position.qty   -= qty;
+    if (position.qty === 0) {
+      portfolio.positions = portfolio.positions.filter(p => p.symbol !== symbol);
+    }
+    portfolio.transactions.push({ symbol, name: asset.name, type: asset.type, action: 'sell', qty, price, total });
+    await portfolio.save();
+    res.json({ ok: true, cash: portfolio.cash });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
