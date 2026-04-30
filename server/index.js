@@ -1067,5 +1067,11 @@ app.post('/portfolio/sell', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+app.get('/portfolio/clear-crypto-cache', async (req, res) => {
+  await redis.del('price:BTCUSDT');
+  await redis.del('price:ETHUSDT');
+  await redis.del('price:XRPUSDT');
+  res.json({ ok: true });
+});
 // ── Start ─────────────────────────────────────────────────────────
 httpServer.listen(PORT, () => console.log(`Server running on port ${PORT}`));
