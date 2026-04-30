@@ -51,7 +51,7 @@ export default function Home({ onSelect }) {
 
       <div style={{ padding: '48px 28px 32px', position: 'relative', zIndex: 2 }}>
 
-        {/* Top bar — Shop izquierda + Language derecha */}
+        {/* Top bar */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <button onClick={() => onSelect('shop')}
             style={{ background: 'transparent', border: '1px solid #1e2530', borderRadius: '8px', padding: '6px 12px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
@@ -129,6 +129,17 @@ export default function Home({ onSelect }) {
 
         {/* Mode cards */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+
+          <button className="mode-card active" onClick={() => onSelect('portfolio')} style={{ borderColor: '#378ADD', background: 'rgba(55,138,221,0.04)' }}>
+            <div className="mode-card-left">
+              <span className="mode-icon">💼</span>
+              <div>
+                <div className="mode-title" style={{ color: '#378ADD' }}>Portfolio Mode</div>
+                <div className="mode-sub">$50,000 virtuales · precios reales · aprende a invertir</div>
+              </div>
+            </div>
+            <span className="mode-arrow" style={{ color: '#378ADD' }}>→</span>
+          </button>
 
           <button className="mode-card active" onClick={() => onSelect('daily')} style={{ borderColor: '#f5c842', background: 'rgba(245,200,66,0.04)' }}>
             <div className="mode-card-left">
