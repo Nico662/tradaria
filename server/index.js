@@ -253,7 +253,7 @@ const PORTFOLIO_ASSETS = [
 
 async function getPrice(asset) {
   const cacheKey = `price:${asset.symbol}`;
-  return cachedFetch(cacheKey, 60, async () => {
+  return cachedFetch(cacheKey, 300, async () => {
     if (asset.source === 'binance') {
       const coinMap = {
         'BTCUSDT': 'bitcoin',
@@ -1032,7 +1032,7 @@ cron.schedule('0 8 * * *', async () => {
 app.get('/portfolio/prices', async (req, res) => {
   try {
     const results = [];
-    const batchSize = 10;
+    const batchSize = 5;
     for (let i = 0; i < PORTFOLIO_ASSETS.length; i += batchSize) {
       const batch = PORTFOLIO_ASSETS.slice(i, i + batchSize);
       const batchResults = await Promise.all(
@@ -1040,7 +1040,7 @@ app.get('/portfolio/prices', async (req, res) => {
       );
       results.push(...batchResults);
       if (i + batchSize < PORTFOLIO_ASSETS.length) {
-        await new Promise(r => setTimeout(r, 1000));
+        await new Promise(r => setTimeout(r, 1200));
       }
     }
     res.json(results.filter(Boolean));
