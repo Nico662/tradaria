@@ -39,19 +39,20 @@ function formatCash(amount) {
 export default function Portfolio({ onBack }) {
   const { user } = useAuth();
   const { t } = useLang();
-  const [screen, setScreen]             = useState('loading');
-  const [prices, setPrices]             = useState([]);
-  const [portfolio, setPortfolio]       = useState(null);
-  const [selected, setSelected]         = useState(null);
-  const [action, setAction]             = useState('buy');
-  const [qty, setQty]                   = useState('');
-  const [loading, setLoading]           = useState(false);
-  const [error, setError]               = useState('');
-  const [filter, setFilter]             = useState('all');
-  const [tab, setTab]                   = useState('market');
-  const [tradeMsg, setTradeMsg]         = useState('');
-  const [assetCandles, setAssetCandles] = useState(null);
+  const [screen, setScreen]                 = useState('loading');
+  const [prices, setPrices]                 = useState([]);
+  const [portfolio, setPortfolio]           = useState(null);
+  const [selected, setSelected]             = useState(null);
+  const [action, setAction]                 = useState('buy');
+  const [qty, setQty]                       = useState('');
+  const [loading, setLoading]               = useState(false);
+  const [error, setError]                   = useState('');
+  const [filter, setFilter]                 = useState('all');
+  const [tab, setTab]                       = useState('market');
+  const [tradeMsg, setTradeMsg]             = useState('');
+  const [assetCandles, setAssetCandles]     = useState(null);
   const [loadingCandles, setLoadingCandles] = useState(false);
+  const [portfolioHistory, setPortfolioHistory] = useState([]);
   const chartRef = useRef(null);
 
   const token = localStorage.getItem('tradara_token');
@@ -67,6 +68,25 @@ export default function Portfolio({ onBack }) {
       setPrices(pricesData);
       setPortfolio(portfolioData);
       setScreen('main');
+
+      // Guardar snapshot del día
+      const tv = portfolioData.cash + (portfolioData.positions || []).reduce((s, pos) => {
+        const p = pricesData.find(p => p.symbol === pos.symbol);
+        return s + (p?.price || pos.avgPrice) * pos.qty;
+      }, 0);
+      fetch(`${SERVER}/portfolio/snapshot`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ totalValue: tv }),
+      }).catch(() => {});
+
+      // Cargar historial
+      fetch(`${SERVER}/portfolio/history`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }).then(r => r.json()).then(data => {
+        if (Array.isArray(data)) setPortfolioHistory(data);
+      }).catch(() => {});
+
     } catch {
       setScreen('error');
     }
@@ -171,10 +191,10 @@ export default function Portfolio({ onBack }) {
   const totalValue    = (portfolio?.cash || 0) + positionsWithValue.reduce((s, p) => s + p.value, 0);
 
   const filterMap = {
-    all:       null,
-    stocks:    'stock',
-    indices:   'index',
-    crypto:    'crypto',
+    all:         null,
+    stocks:      'stock',
+    indices:     'index',
+    crypto:      'crypto',
     commodities: 'commodity',
   };
 
@@ -309,6 +329,7 @@ export default function Portfolio({ onBack }) {
         </div>
       </div>
 
+      {/* Summary */}
       <div style={{ padding: '16px 20px', borderBottom: '1px solid #1e2530', position: 'relative', zIndex: 2 }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
           {[
@@ -324,7 +345,48 @@ export default function Portfolio({ onBack }) {
         </div>
       </div>
 
-      <div style={{ display: 'flex', borderBottom: '1px solid #1e2530', position: 'relative', zIndex: 2 }}>
+      {/* Gráfico histórico */}
+      {portfolioHistory.length > 1 && (
+        <div style={{ padding: '16px 20px 0', position: 'relative', zIndex: 2 }}>
+          <div style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px', padding: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <div style={{ fontSize: '9px', color: '#6b7a8d', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                Valor total
+              </div>
+              <div style={{ fontSize: '9px', color: portfolioHistory[portfolioHistory.length - 1].totalValue >= 50000 ? '#22d3a5' : '#f05454', fontWeight: 700 }}>
+                {portfolioHistory[portfolioHistory.length - 1].totalValue >= 50000 ? '+' : ''}
+                {((portfolioHistory[portfolioHistory.length - 1].totalValue - 50000) / 50000 * 100).toFixed(2)}% vs inicio
+              </div>
+            </div>
+            <svg width="100%" height="80" viewBox={`0 0 ${portfolioHistory.length * 20} 80`} preserveAspectRatio="none">
+              {(() => {
+                const values = portfolioHistory.map(h => h.totalValue);
+                const min    = Math.min(...values) * 0.998;
+                const max    = Math.max(...values) * 1.002;
+                const range  = max - min || 1;
+                const w      = portfolioHistory.length * 20;
+                const points = values.map((v, i) => `${i * 20},${80 - ((v - min) / range) * 72}`).join(' ');
+                const isUp   = values[values.length - 1] >= values[0];
+                const color  = isUp ? '#22d3a5' : '#f05454';
+                const fillPoints = `0,80 ${points} ${w},80`;
+                return (
+                  <>
+                    <polygon points={fillPoints} fill={isUp ? 'rgba(34,211,165,0.08)' : 'rgba(240,84,84,0.08)'} />
+                    <polyline points={points} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </>
+                );
+              })()}
+            </svg>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px' }}>
+              <div style={{ fontSize: '8px', color: '#3a4455' }}>{portfolioHistory[0]?.date}</div>
+              <div style={{ fontSize: '8px', color: '#3a4455' }}>{portfolioHistory[portfolioHistory.length - 1]?.date}</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tabs */}
+      <div style={{ display: 'flex', borderBottom: '1px solid #1e2530', position: 'relative', zIndex: 2, marginTop: '16px' }}>
         {[['market', t.portfolio.market], ['portfolio', t.portfolio.positions], ['history', t.portfolio.history]].map(([id, label]) => (
           <button key={id} onClick={() => setTab(id)}
             style={{ flex: 1, padding: '12px 8px', background: 'transparent', border: 'none', borderBottom: `2px solid ${tab === id ? '#22d3a5' : 'transparent'}`, color: tab === id ? '#22d3a5' : '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.15s' }}>
@@ -333,6 +395,7 @@ export default function Portfolio({ onBack }) {
         ))}
       </div>
 
+      {/* ── Mercado ── */}
       {tab === 'market' && (
         <div style={{ position: 'relative', zIndex: 2 }}>
           <div style={{ display: 'flex', gap: '6px', padding: '12px 20px', overflowX: 'auto' }}>
@@ -374,6 +437,7 @@ export default function Portfolio({ onBack }) {
         </div>
       )}
 
+      {/* ── Posiciones ── */}
       {tab === 'portfolio' && (
         <div style={{ padding: '16px 20px 40px', position: 'relative', zIndex: 2 }}>
           {positionsWithValue.length === 0 ? (
@@ -409,6 +473,7 @@ export default function Portfolio({ onBack }) {
         </div>
       )}
 
+      {/* ── Historial ── */}
       {tab === 'history' && (
         <div style={{ padding: '16px 20px 40px', position: 'relative', zIndex: 2 }}>
           {(!portfolio?.transactions || portfolio.transactions.length === 0) ? (

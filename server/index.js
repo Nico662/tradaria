@@ -100,7 +100,13 @@ const PortfolioSchema = new mongoose.Schema({
  }],
   createdAt: { type: Date, default: Date.now },
 });
-
+const PortfolioHistorySchema = new mongoose.Schema({
+  userId:     { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  date:       { type: String, required: true },
+  totalValue: { type: Number, required: true },
+});
+PortfolioHistorySchema.index({ userId: 1, date: 1 }, { unique: true });
+const PortfolioHistory = mongoose.model('PortfolioHistory', PortfolioHistorySchema);
 const Portfolio = mongoose.model('Portfolio', PortfolioSchema);
 const User       = mongoose.model('User', UserSchema);
 const Tournament = mongoose.model('Tournament', TournamentSchema);
@@ -1108,6 +1114,35 @@ app.get('/portfolio/candles/:symbol', async (req, res) => {
       }));
     }
     res.json(candles);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+app.post('/portfolio/snapshot', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded   = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const { totalValue } = req.body;
+    const date = new Date().toISOString().split('T')[0];
+    await PortfolioHistory.findOneAndUpdate(
+      { userId: decoded.id, date },
+      { totalValue },
+      { upsert: true }
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/portfolio/history', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const history = await PortfolioHistory.find({ userId: decoded.id }).sort({ date: 1 });
+    res.json(history);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
