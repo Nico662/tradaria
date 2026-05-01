@@ -992,6 +992,45 @@ cron.schedule('0 8 * * *', async () => {
   await Promise.all(promises);
   console.log(`Sent to ${pushSubscriptions.length} subscribers`);
  });
+ // Notificación apertura mercado — 15:30 hora española = 13:30 UTC (horario verano)
+cron.schedule('30 13 * * 1-5', async () => {
+  pushSubscriptions = await loadSubscriptions();
+  console.log('Sending market open notification...');
+  const payload = JSON.stringify({
+    title: '📈 El mercado acaba de abrir',
+    body:  'NYSE y NASDAQ abiertos. Revisa tu portfolio.',
+    url:   'https://tradara.dev',
+  });
+  const promises = pushSubscriptions.map(sub =>
+    webpush.sendNotification(sub, payload).catch(async err => {
+      if (err.statusCode === 410) {
+        pushSubscriptions = pushSubscriptions.filter(s => s.endpoint !== sub.endpoint);
+        await saveSubscriptions(pushSubscriptions);
+      }
+    })
+  );
+  await Promise.all(promises);
+  console.log(`Market open notification sent to ${pushSubscriptions.length} subscribers`);
+});
+
+// Notificación cierre mercado — 22:00 hora española = 20:00 UTC (horario verano)
+cron.schedule('0 20 * * 1-5', async () => {
+  pushSubscriptions = await loadSubscriptions();
+  const payload = JSON.stringify({
+    title: '🔔 El mercado ha cerrado',
+    body:  'Revisa cómo ha ido tu portfolio hoy.',
+    url:   'https://tradara.dev',
+  });
+  const promises = pushSubscriptions.map(sub =>
+    webpush.sendNotification(sub, payload).catch(async err => {
+      if (err.statusCode === 410) {
+        pushSubscriptions = pushSubscriptions.filter(s => s.endpoint !== sub.endpoint);
+        await saveSubscriptions(pushSubscriptions);
+      }
+    })
+  );
+  await Promise.all(promises);
+ });
  app.get('/stats/dashboard', async (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
   try {
