@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from './AuthContext';
+import { useLang } from './LangContext.jsx';
 import Chart from './Chart.jsx';
 
 const SERVER = 'https://tradara-production.up.railway.app';
@@ -9,13 +10,6 @@ const TYPE_COLORS = {
   crypto:    '#f5c842',
   index:     '#22d3a5',
   commodity: '#f05454',
-};
-
-const TYPE_LABELS = {
-  stock:     'Acción',
-  crypto:    'Cripto',
-  index:     'Índice',
-  commodity: 'Materia prima',
 };
 
 const TYPE_EMOJIS = {
@@ -44,17 +38,18 @@ function formatCash(amount) {
 
 export default function Portfolio({ onBack }) {
   const { user } = useAuth();
-  const [screen, setScreen]         = useState('loading');
-  const [prices, setPrices]         = useState([]);
-  const [portfolio, setPortfolio]   = useState(null);
-  const [selected, setSelected]     = useState(null);
-  const [action, setAction]         = useState('buy');
-  const [qty, setQty]               = useState('');
-  const [loading, setLoading]       = useState(false);
-  const [error, setError]           = useState('');
-  const [filter, setFilter]         = useState('all');
-  const [tab, setTab]               = useState('market');
-  const [tradeMsg, setTradeMsg]     = useState('');
+  const { t } = useLang();
+  const [screen, setScreen]             = useState('loading');
+  const [prices, setPrices]             = useState([]);
+  const [portfolio, setPortfolio]       = useState(null);
+  const [selected, setSelected]         = useState(null);
+  const [action, setAction]             = useState('buy');
+  const [qty, setQty]                   = useState('');
+  const [loading, setLoading]           = useState(false);
+  const [error, setError]               = useState('');
+  const [filter, setFilter]             = useState('all');
+  const [tab, setTab]                   = useState('market');
+  const [tradeMsg, setTradeMsg]         = useState('');
   const [assetCandles, setAssetCandles] = useState(null);
   const [loadingCandles, setLoadingCandles] = useState(false);
   const chartRef = useRef(null);
@@ -72,7 +67,7 @@ export default function Portfolio({ onBack }) {
       setPrices(pricesData);
       setPortfolio(portfolioData);
       setScreen('main');
-    } catch (err) {
+    } catch {
       setScreen('error');
     }
   }, [token]);
@@ -115,11 +110,11 @@ export default function Portfolio({ onBack }) {
       });
       const data = await res.json();
       if (!data.ok) { setError(data.error); setLoading(false); return; }
-      setTradeMsg(action === 'buy' ? '✓ Compra ejecutada' : '✓ Venta ejecutada');
+      setTradeMsg(action === 'buy' ? '✓ ' + t.portfolio.purchase : '✓ ' + t.portfolio.sale);
       setTimeout(() => setTradeMsg(''), 2000);
       setQty('');
       await loadAll();
-    } catch (err) {
+    } catch {
       setError('Error de conexión');
     }
     setLoading(false);
@@ -132,8 +127,8 @@ export default function Portfolio({ onBack }) {
       <div style={{ padding: '48px 28px', textAlign: 'center', position: 'relative', zIndex: 2 }}>
         <button onClick={onBack} style={{ position: 'absolute', top: '20px', left: '16px', background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}>← menu</button>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>💼</div>
-        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '24px', color: '#f0f0f0', marginBottom: '8px' }}>Portfolio Mode</div>
-        <div style={{ fontSize: '11px', color: '#4a5568', marginBottom: '32px' }}>Sign in to start with $50,000</div>
+        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '24px', color: '#f0f0f0', marginBottom: '8px' }}>{t.portfolio.title}</div>
+        <div style={{ fontSize: '11px', color: '#4a5568', marginBottom: '32px' }}>{t.portfolio.signIn}</div>
         <a href={`${SERVER}/auth/google`} style={{ display: 'inline-block', padding: '12px 24px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '8px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', textDecoration: 'none', fontWeight: 700 }}>
           Sign in with Google
         </a>
@@ -145,7 +140,7 @@ export default function Portfolio({ onBack }) {
     <div id="gtm-root" style={{ position: 'relative' }}>
       <div className="scanlines" />
       <div style={{ padding: '48px 28px', textAlign: 'center', position: 'relative', zIndex: 2 }}>
-        <div style={{ fontSize: '11px', color: '#4a5568', fontFamily: "'Space Mono', monospace" }}>loading portfolio...</div>
+        <div style={{ fontSize: '11px', color: '#4a5568', fontFamily: "'Space Mono', monospace" }}>{t.portfolio.loading}</div>
       </div>
     </div>
   );
@@ -175,10 +170,18 @@ export default function Portfolio({ onBack }) {
   const totalPnl      = positionsWithValue.reduce((s, p) => s + p.pnl, 0);
   const totalValue    = (portfolio?.cash || 0) + positionsWithValue.reduce((s, p) => s + p.value, 0);
 
-  const filteredPrices  = filter === 'all' ? prices : prices.filter(p => p.type === filter);
-  const selectedPrice   = selected ? prices.find(p => p.symbol === selected.symbol) : null;
-  const selectedPos     = selected ? positionsWithValue.find(p => p.symbol === selected.symbol) : null;
-  const tradeTotal      = selectedPrice && qty ? selectedPrice.price * parseFloat(qty) : 0;
+  const filterMap = {
+    all:       null,
+    stocks:    'stock',
+    indices:   'index',
+    crypto:    'crypto',
+    commodities: 'commodity',
+  };
+
+  const filteredPrices = filter === 'all' ? prices : prices.filter(p => p.type === filterMap[filter]);
+  const selectedPrice  = selected ? prices.find(p => p.symbol === selected.symbol) : null;
+  const selectedPos    = selected ? positionsWithValue.find(p => p.symbol === selected.symbol) : null;
+  const tradeTotal     = selectedPrice && qty ? selectedPrice.price * parseFloat(qty) : 0;
 
   const stableAsset = selected ? {
     name:         selected.symbol,
@@ -196,7 +199,6 @@ export default function Portfolio({ onBack }) {
     <div id="gtm-root" style={{ position: 'relative' }}>
       <div className="scanlines" />
 
-      {/* Header */}
       <div style={{ padding: '14px 20px', borderBottom: '1px solid #1e2530', display: 'flex', alignItems: 'center', gap: '12px', position: 'relative', zIndex: 2 }}>
         <button onClick={() => { setSelected(null); setAssetCandles(null); }}
           style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}
@@ -205,7 +207,7 @@ export default function Portfolio({ onBack }) {
         >← back</button>
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#f0f0f0' }}>{selected.name}</div>
-          <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.06em' }}>{selected.symbol} · {TYPE_LABELS[selected.type]}</div>
+          <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.06em' }}>{selected.symbol} · {t.portfolio.types[selected.type]}</div>
         </div>
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: '#f0f0f0' }}>{formatPrice(selectedPrice?.price, selected.type)}</div>
@@ -213,7 +215,6 @@ export default function Portfolio({ onBack }) {
         </div>
       </div>
 
-      {/* Chart */}
       <div style={{ position: 'relative', zIndex: 2 }}>
         {loadingCandles ? (
           <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#3a4455', fontFamily: "'Space Mono', monospace" }}>
@@ -228,14 +229,13 @@ export default function Portfolio({ onBack }) {
         )}
       </div>
 
-      {/* Posición actual */}
       {selectedPos && (
         <div style={{ margin: '0 20px 12px', padding: '12px', background: '#0f141b', border: `1px solid ${selectedPos.pnl >= 0 ? 'rgba(34,211,165,0.3)' : 'rgba(240,84,84,0.3)'}`, borderRadius: '8px', position: 'relative', zIndex: 2 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '2px' }}>Tu posición</div>
-              <div style={{ fontSize: '12px', color: '#f0f0f0', fontFamily: "'Syne', sans-serif", fontWeight: 700 }}>{selectedPos.qty} unidades</div>
-              <div style={{ fontSize: '9px', color: '#4a5568' }}>precio medio {formatPrice(selectedPos.avgPrice, selected.type)}</div>
+              <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '2px' }}>{t.portfolio.yourPosition}</div>
+              <div style={{ fontSize: '12px', color: '#f0f0f0', fontFamily: "'Syne', sans-serif", fontWeight: 700 }}>{selectedPos.qty} {t.portfolio.units}</div>
+              <div style={{ fontSize: '9px', color: '#4a5568' }}>{t.portfolio.avgPrice} {formatPrice(selectedPos.avgPrice, selected.type)}</div>
             </div>
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontSize: '14px', fontFamily: "'Syne', sans-serif", fontWeight: 800, color: '#f0f0f0' }}>{formatCash(selectedPos.value)}</div>
@@ -247,17 +247,16 @@ export default function Portfolio({ onBack }) {
         </div>
       )}
 
-      {/* Panel compra/venta */}
       <div style={{ margin: '0 20px', padding: '16px', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px', position: 'relative', zIndex: 2 }}>
         <div style={{ display: 'flex', gap: '6px', marginBottom: '14px' }}>
-          <button onClick={() => setAction('buy')} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: `1px solid ${action === 'buy' ? '#22d3a5' : '#2a3345'}`, background: action === 'buy' ? 'rgba(34,211,165,0.08)' : 'transparent', color: action === 'buy' ? '#22d3a5' : '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>Comprar</button>
-          <button onClick={() => setAction('sell')} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: `1px solid ${action === 'sell' ? '#f05454' : '#2a3345'}`, background: action === 'sell' ? 'rgba(240,84,84,0.08)' : 'transparent', color: action === 'sell' ? '#f05454' : '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>Vender</button>
+          <button onClick={() => setAction('buy')} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: `1px solid ${action === 'buy' ? '#22d3a5' : '#2a3345'}`, background: action === 'buy' ? 'rgba(34,211,165,0.08)' : 'transparent', color: action === 'buy' ? '#22d3a5' : '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>{t.portfolio.buy}</button>
+          <button onClick={() => setAction('sell')} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: `1px solid ${action === 'sell' ? '#f05454' : '#2a3345'}`, background: action === 'sell' ? 'rgba(240,84,84,0.08)' : 'transparent', color: action === 'sell' ? '#f05454' : '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>{t.portfolio.sell}</button>
         </div>
 
         <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
           <input
             type="number" value={qty} onChange={e => setQty(e.target.value)}
-            placeholder="Cantidad" min="0" step="0.01"
+            placeholder="0.00" min="0" step="0.01"
             style={{ flex: 1, background: '#0a0c0f', border: '1px solid #2a3345', borderRadius: '6px', padding: '10px 12px', color: '#e2e8f0', fontFamily: "'Space Mono', monospace", fontSize: '12px', outline: 'none' }}
           />
           <button onClick={() => {
@@ -267,19 +266,19 @@ export default function Portfolio({ onBack }) {
               setQty(selectedPos.qty.toString());
             }
           }} style={{ padding: '10px 14px', background: '#0a0c0f', border: '1px solid #2a3345', borderRadius: '6px', color: '#8899b0', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-            Max
+            {t.portfolio.max}
           </button>
         </div>
 
         {qty && parseFloat(qty) > 0 && (
           <div style={{ fontSize: '10px', color: '#6b7a8d', marginBottom: '10px' }}>
-            Total: <span style={{ color: '#f0f0f0', fontWeight: 700 }}>{formatCash(tradeTotal)}</span>
-            {action === 'buy' && <span style={{ color: '#4a5568', marginLeft: '8px' }}>Cash restante: {formatCash((portfolio?.cash || 0) - tradeTotal)}</span>}
+            {t.portfolio.total}: <span style={{ color: '#f0f0f0', fontWeight: 700 }}>{formatCash(tradeTotal)}</span>
+            {action === 'buy' && <span style={{ color: '#4a5568', marginLeft: '8px' }}>{t.portfolio.cashLeft}: {formatCash((portfolio?.cash || 0) - tradeTotal)}</span>}
           </div>
         )}
 
         <div style={{ fontSize: '10px', color: '#4a5568', marginBottom: '10px' }}>
-          Cash disponible: <span style={{ color: '#f0f0f0' }}>{formatCash(portfolio?.cash || 0)}</span>
+          {t.portfolio.cashAvailable}: <span style={{ color: '#f0f0f0' }}>{formatCash(portfolio?.cash || 0)}</span>
         </div>
 
         {error && <div style={{ fontSize: '10px', color: '#f05454', marginBottom: '10px' }}>{error}</div>}
@@ -287,7 +286,7 @@ export default function Portfolio({ onBack }) {
 
         <button onClick={handleTrade} disabled={loading || !qty || parseFloat(qty) <= 0}
           style={{ width: '100%', padding: '14px', background: loading ? '#0f141b' : action === 'buy' ? 'rgba(34,211,165,0.08)' : 'rgba(240,84,84,0.08)', border: `1px solid ${action === 'buy' ? '#22d3a5' : '#f05454'}`, borderRadius: '6px', color: action === 'buy' ? '#22d3a5' : '#f05454', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading || !qty || parseFloat(qty) <= 0 ? 0.4 : 1 }}>
-          {loading ? '...' : action === 'buy' ? `Comprar ${selected.name}` : `Vender ${selected.name}`}
+          {loading ? '...' : `${action === 'buy' ? t.portfolio.buy : t.portfolio.sell} ${selected.name}`}
         </button>
       </div>
     </div>
@@ -298,42 +297,35 @@ export default function Portfolio({ onBack }) {
     <div id="gtm-root" style={{ position: 'relative' }}>
       <div className="scanlines" />
 
-      {/* Header */}
       <div style={{ padding: '14px 20px', borderBottom: '1px solid #1e2530', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', zIndex: 2 }}>
         <button onClick={onBack}
           style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em' }}
           onMouseEnter={e => e.target.style.color = '#e2e8f0'}
           onMouseLeave={e => e.target.style.color = '#3a4455'}
         >← menu</button>
-        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: '#f0f0f0' }}>💼 Portfolio</div>
+        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: '#f0f0f0' }}>💼 {t.portfolio.title}</div>
         <div style={{ fontSize: '10px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>
           {formatCash(totalValue)}
         </div>
       </div>
 
-      {/* Summary */}
       <div style={{ padding: '16px 20px', borderBottom: '1px solid #1e2530', position: 'relative', zIndex: 2 }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
-          <div style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
-            <div style={{ fontSize: '8px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>Cash</div>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: '#f0f0f0' }}>{formatCash(portfolio?.cash || 0)}</div>
-          </div>
-          <div style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
-            <div style={{ fontSize: '8px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>Invertido</div>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: '#f0f0f0' }}>{formatCash(totalInvested)}</div>
-          </div>
-          <div style={{ background: '#0f141b', border: `1px solid ${totalPnl >= 0 ? 'rgba(34,211,165,0.3)' : 'rgba(240,84,84,0.3)'}`, borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
-            <div style={{ fontSize: '8px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>P&L</div>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: totalPnl >= 0 ? '#22d3a5' : '#f05454' }}>
-              {totalPnl >= 0 ? '+' : ''}{formatCash(totalPnl)}
+          {[
+            { label: t.portfolio.cash,     value: formatCash(portfolio?.cash || 0), color: '#f0f0f0', border: '#1e2530' },
+            { label: t.portfolio.invested, value: formatCash(totalInvested),         color: '#f0f0f0', border: '#1e2530' },
+            { label: 'P&L',                value: (totalPnl >= 0 ? '+' : '') + formatCash(totalPnl), color: totalPnl >= 0 ? '#22d3a5' : '#f05454', border: totalPnl >= 0 ? 'rgba(34,211,165,0.3)' : 'rgba(240,84,84,0.3)' },
+          ].map(s => (
+            <div key={s.label} style={{ background: '#0f141b', border: `1px solid ${s.border}`, borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
+              <div style={{ fontSize: '8px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>{s.label}</div>
+              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: s.color }}>{s.value}</div>
             </div>
-          </div>
+          ))}
         </div>
       </div>
 
-      {/* Tabs */}
       <div style={{ display: 'flex', borderBottom: '1px solid #1e2530', position: 'relative', zIndex: 2 }}>
-        {[['market', '📈 Mercado'], ['portfolio', '💼 Posiciones'], ['history', '📋 Historial']].map(([id, label]) => (
+        {[['market', t.portfolio.market], ['portfolio', t.portfolio.positions], ['history', t.portfolio.history]].map(([id, label]) => (
           <button key={id} onClick={() => setTab(id)}
             style={{ flex: 1, padding: '12px 8px', background: 'transparent', border: 'none', borderBottom: `2px solid ${tab === id ? '#22d3a5' : 'transparent'}`, color: tab === id ? '#22d3a5' : '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.15s' }}>
             {label}
@@ -341,11 +333,16 @@ export default function Portfolio({ onBack }) {
         ))}
       </div>
 
-      {/* ── Mercado ── */}
       {tab === 'market' && (
         <div style={{ position: 'relative', zIndex: 2 }}>
           <div style={{ display: 'flex', gap: '6px', padding: '12px 20px', overflowX: 'auto' }}>
-            {[['all','Todo'],['stock','Acciones'],['index','Índices'],['crypto','Cripto'],['commodity','Materias']].map(([id, label]) => (
+            {[
+              ['all', t.portfolio.all],
+              ['stocks', t.portfolio.stocks],
+              ['indices', t.portfolio.indices],
+              ['crypto', t.portfolio.crypto],
+              ['commodities', t.portfolio.commodities],
+            ].map(([id, label]) => (
               <button key={id} onClick={() => setFilter(id)}
                 style={{ padding: '5px 12px', borderRadius: '20px', whiteSpace: 'nowrap', border: `1px solid ${filter === id ? '#22d3a5' : '#2a3345'}`, background: filter === id ? 'rgba(34,211,165,0.08)' : 'transparent', color: filter === id ? '#22d3a5' : '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, cursor: 'pointer' }}>
                 {label}
@@ -365,7 +362,7 @@ export default function Portfolio({ onBack }) {
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '12px', color: '#f0f0f0' }}>{asset.name}</div>
-                  <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.06em' }}>{asset.symbol} · {TYPE_LABELS[asset.type]}</div>
+                  <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.06em' }}>{asset.symbol} · {t.portfolio.types[asset.type]}</div>
                 </div>
                 <div style={{ textAlign: 'right', flexShrink: 0 }}>
                   <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: '#f0f0f0' }}>{formatPrice(asset.price, asset.type)}</div>
@@ -377,15 +374,14 @@ export default function Portfolio({ onBack }) {
         </div>
       )}
 
-      {/* ── Posiciones ── */}
       {tab === 'portfolio' && (
         <div style={{ padding: '16px 20px 40px', position: 'relative', zIndex: 2 }}>
           {positionsWithValue.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '60px 20px' }}>
               <div style={{ fontSize: '32px', marginBottom: '12px' }}>📭</div>
-              <div style={{ fontSize: '11px', color: '#4a5568', fontFamily: "'Space Mono', monospace" }}>no tienes posiciones abiertas</div>
+              <div style={{ fontSize: '11px', color: '#4a5568', fontFamily: "'Space Mono', monospace" }}>{t.portfolio.noPositions}</div>
               <button onClick={() => setTab('market')} style={{ marginTop: '16px', padding: '10px 20px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer' }}>
-                Ir al mercado →
+                {t.portfolio.goToMarket}
               </button>
             </div>
           ) : (
@@ -395,7 +391,7 @@ export default function Portfolio({ onBack }) {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <div>
                     <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: '#f0f0f0' }}>{pos.name}</div>
-                    <div style={{ fontSize: '9px', color: '#4a5568' }}>{pos.qty} unidades · precio medio {formatPrice(pos.avgPrice, pos.type)}</div>
+                    <div style={{ fontSize: '9px', color: '#4a5568' }}>{pos.qty} {t.portfolio.units} · {t.portfolio.avgPrice} {formatPrice(pos.avgPrice, pos.type)}</div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: '#f0f0f0' }}>{formatCash(pos.value)}</div>
@@ -413,13 +409,12 @@ export default function Portfolio({ onBack }) {
         </div>
       )}
 
-      {/* ── Historial ── */}
       {tab === 'history' && (
         <div style={{ padding: '16px 20px 40px', position: 'relative', zIndex: 2 }}>
           {(!portfolio?.transactions || portfolio.transactions.length === 0) ? (
             <div style={{ textAlign: 'center', padding: '60px 20px' }}>
               <div style={{ fontSize: '32px', marginBottom: '12px' }}>📋</div>
-              <div style={{ fontSize: '11px', color: '#4a5568', fontFamily: "'Space Mono', monospace" }}>sin transacciones aún</div>
+              <div style={{ fontSize: '11px', color: '#4a5568', fontFamily: "'Space Mono', monospace" }}>{t.portfolio.noHistory}</div>
             </div>
           ) : (
             [...portfolio.transactions].reverse().map((tx, i) => (
@@ -430,7 +425,7 @@ export default function Portfolio({ onBack }) {
                 <div style={{ flex: 1 }}>
                   <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '11px', color: '#f0f0f0' }}>{tx.name}</div>
                   <div style={{ fontSize: '9px', color: '#4a5568' }}>
-                    {tx.qty} × {formatPrice(tx.price, tx.type)} · {new Date(tx.date).toLocaleDateString('es-ES')}
+                    {tx.qty} × {formatPrice(tx.price, tx.type)} · {new Date(tx.date).toLocaleDateString()}
                   </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
@@ -438,7 +433,7 @@ export default function Portfolio({ onBack }) {
                     {tx.action === 'buy' ? '-' : '+'}{formatCash(tx.total)}
                   </div>
                   <div style={{ fontSize: '9px', color: tx.action === 'buy' ? '#22d3a5' : '#f05454', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                    {tx.action === 'buy' ? 'compra' : 'venta'}
+                    {tx.action === 'buy' ? t.portfolio.purchase : t.portfolio.sale}
                   </div>
                 </div>
               </div>

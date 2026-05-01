@@ -134,8 +134,8 @@ export default function Home({ onSelect }) {
             <div className="mode-card-left">
               <span className="mode-icon">💼</span>
               <div>
-                <div className="mode-title" style={{ color: '#378ADD' }}>Portfolio Mode</div>
-                <div className="mode-sub">$50,000 virtuales · precios reales · aprende a invertir</div>
+                <div className="mode-title" style={{ color: '#378ADD' }}>{t.portfolio?.title ?? 'Portfolio Mode'}</div>
+                <div className="mode-sub">{t.portfolio?.sub ?? '$50,000 virtual · real prices'}</div>
               </div>
             </div>
             <span className="mode-arrow" style={{ color: '#378ADD' }}>→</span>
