@@ -1031,6 +1031,26 @@ cron.schedule('0 8 * * *', async () => {
 // Obtener todos los precios
 app.get('/portfolio/prices', async (req, res) => {
   try {
+    // Intentar obtener desde caché primero — respuesta rápida
+    const cachedResults = await Promise.all(
+      PORTFOLIO_ASSETS.map(async a => {
+        try {
+          const cached = await redis.get(`price_v2:${a.symbol}`);
+          if (cached) return typeof cached === 'string' ? JSON.parse(cached) : cached;
+          return null;
+        } catch { return null; }
+      })
+    );
+
+    const cached = cachedResults.filter(Boolean);
+
+    // Si hay suficientes en caché, responde ya
+    if (cached.length >= PORTFOLIO_ASSETS.length * 0.7) {
+      res.json(cached);
+      return;
+    }
+
+    // Si no hay caché suficiente, carga en batches y responde
     const results = [];
     const batchSize = 5;
     for (let i = 0; i < PORTFOLIO_ASSETS.length; i += batchSize) {
@@ -1048,7 +1068,6 @@ app.get('/portfolio/prices', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 // Obtener portfolio del usuario
 app.get('/portfolio', async (req, res) => {
   const auth = req.headers.authorization;
