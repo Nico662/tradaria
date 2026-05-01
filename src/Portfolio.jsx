@@ -72,9 +72,16 @@ export default function Portfolio({ onBack }) {
   const [assetCandles, setAssetCandles]     = useState(null);
   const [loadingCandles, setLoadingCandles] = useState(false);
   const [portfolioHistory, setPortfolioHistory] = useState([]);
+  const [leaderboard, setLeaderboard]       = useState([]);
+  const [showWelcome, setShowWelcome]       = useState(() => !localStorage.getItem('tradara_portfolio_welcomed'));
   const chartRef = useRef(null);
 
   const token = localStorage.getItem('tradara_token');
+
+  function dismissWelcome() {
+    localStorage.setItem('tradara_portfolio_welcomed', 'true');
+    setShowWelcome(false);
+  }
 
   const loadAll = useCallback(async () => {
     try {
@@ -104,6 +111,11 @@ export default function Portfolio({ onBack }) {
         if (Array.isArray(data)) setPortfolioHistory(data);
       }).catch(() => {});
 
+      fetch(`${SERVER}/portfolio/leaderboard`)
+        .then(r => r.json())
+        .then(data => { if (Array.isArray(data)) setLeaderboard(data); })
+        .catch(() => {});
+
     } catch {
       setScreen('error');
     }
@@ -115,14 +127,7 @@ export default function Portfolio({ onBack }) {
     const interval = setInterval(loadAll, 30000);
     return () => clearInterval(interval);
   }, [user, loadAll]);
- const [showWelcome, setShowWelcome] = useState(() => {
-   return !localStorage.getItem('tradara_portfolio_welcomed');
- });
 
- function dismissWelcome() {
-   localStorage.setItem('tradara_portfolio_welcomed', 'true');
-   setShowWelcome(false);
- }
   async function loadCandles(symbol) {
     setLoadingCandles(true);
     setAssetCandles(null);
@@ -164,50 +169,49 @@ export default function Portfolio({ onBack }) {
     setLoading(false);
   }
 
-  // ── Login ────────────────────────────────────────────────────────
- if (showWelcome) return (
-  <div id="gtm-root" style={{ position: 'relative' }}>
-    <div className="scanlines" />
-    <div style={{ padding: '48px 28px', position: 'relative', zIndex: 2 }}>
-      <button onClick={onBack}
-        style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', marginBottom: '32px', display: 'block' }}>
-        ← menu
-      </button>
-
-      <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-        <div style={{ fontSize: '56px', marginBottom: '16px' }}>💼</div>
-        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px', color: '#f0f0f0', marginBottom: '8px' }}>
-          Portfolio Mode
-        </div>
-        <div style={{ fontSize: '11px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-          {t.portfolio.sub}
-        </div>
-      </div>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '40px' }}>
-        {[
-          { emoji: '💵', title: '$50,000', desc: t.portfolio.welcomePoint1 },
-          { emoji: '📊', title: t.portfolio.welcomePoint2title, desc: t.portfolio.welcomePoint2 },
-          { emoji: '📈', title: t.portfolio.welcomePoint3title, desc: t.portfolio.welcomePoint3 },
-          { emoji: '🎓', title: t.portfolio.welcomePoint4title, desc: t.portfolio.welcomePoint4 },
-        ].map((item, i) => (
-          <div key={i} style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', padding: '16px', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px' }}>
-            <div style={{ fontSize: '24px', flexShrink: 0 }}>{item.emoji}</div>
-            <div>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: '#f0f0f0', marginBottom: '4px' }}>{item.title}</div>
-              <div style={{ fontSize: '10px', color: '#4a5568', lineHeight: 1.6 }}>{item.desc}</div>
-            </div>
+  // ── Welcome ──────────────────────────────────────────────────────
+  if (showWelcome) return (
+    <div id="gtm-root" style={{ position: 'relative' }}>
+      <div className="scanlines" />
+      <div style={{ padding: '48px 28px', position: 'relative', zIndex: 2 }}>
+        <button onClick={onBack}
+          style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', marginBottom: '32px', display: 'block' }}>
+          ← menu
+        </button>
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <div style={{ fontSize: '56px', marginBottom: '16px' }}>💼</div>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px', color: '#f0f0f0', marginBottom: '8px' }}>
+            Portfolio Mode
           </div>
-        ))}
+          <div style={{ fontSize: '11px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            {t.portfolio.sub}
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '40px' }}>
+          {[
+            { emoji: '💵', title: '$50,000', desc: t.portfolio.welcomePoint1 },
+            { emoji: '📊', title: t.portfolio.welcomePoint2title, desc: t.portfolio.welcomePoint2 },
+            { emoji: '📈', title: t.portfolio.welcomePoint3title, desc: t.portfolio.welcomePoint3 },
+            { emoji: '🎓', title: t.portfolio.welcomePoint4title, desc: t.portfolio.welcomePoint4 },
+          ].map((item, i) => (
+            <div key={i} style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', padding: '16px', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px' }}>
+              <div style={{ fontSize: '24px', flexShrink: 0 }}>{item.emoji}</div>
+              <div>
+                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: '#f0f0f0', marginBottom: '4px' }}>{item.title}</div>
+                <div style={{ fontSize: '10px', color: '#4a5568', lineHeight: 1.6 }}>{item.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <button onClick={dismissWelcome}
+          style={{ width: '100%', padding: '16px', background: 'rgba(55,138,221,0.08)', border: '1px solid #378ADD', borderRadius: '8px', color: '#378ADD', fontFamily: "'Space Mono', monospace", fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer' }}>
+          {t.portfolio.welcomeStart} →
+        </button>
       </div>
-
-      <button onClick={dismissWelcome}
-        style={{ width: '100%', padding: '16px', background: 'rgba(55,138,221,0.08)', border: '1px solid #378ADD', borderRadius: '8px', color: '#378ADD', fontFamily: "'Space Mono', monospace", fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer' }}>
-        {t.portfolio.welcomeStart} →
-      </button>
     </div>
-  </div>
- );
+  );
+
+  // ── Login ────────────────────────────────────────────────────────
   if (screen === 'login') return (
     <div id="gtm-root" style={{ position: 'relative' }}>
       <div className="scanlines" />
@@ -298,12 +302,7 @@ export default function Portfolio({ onBack }) {
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#f0f0f0' }}>{selected.name}</div>
             <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: '6px' }}>
               {selected.symbol} · {t.portfolio.types[selected.type]}
-              <span style={{
-                fontSize: '8px',
-                color: marketStatus.open ? '#22d3a5' : '#f05454',
-                background: marketStatus.open ? 'rgba(34,211,165,0.1)' : 'rgba(240,84,84,0.1)',
-                padding: '1px 5px', borderRadius: '4px', letterSpacing: '0.04em',
-              }}>
+              <span style={{ fontSize: '8px', color: marketStatus.open ? '#22d3a5' : '#f05454', background: marketStatus.open ? 'rgba(34,211,165,0.1)' : 'rgba(240,84,84,0.1)', padding: '1px 5px', borderRadius: '4px', letterSpacing: '0.04em' }}>
                 {marketStatus.label}
               </span>
             </div>
@@ -430,9 +429,7 @@ export default function Portfolio({ onBack }) {
         <div style={{ padding: '16px 20px 0', position: 'relative', zIndex: 2 }}>
           <div style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px', padding: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <div style={{ fontSize: '9px', color: '#6b7a8d', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                Valor total
-              </div>
+              <div style={{ fontSize: '9px', color: '#6b7a8d', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Valor total</div>
               <div style={{ fontSize: '9px', color: portfolioHistory[portfolioHistory.length - 1].totalValue >= 50000 ? '#22d3a5' : '#f05454', fontWeight: 700 }}>
                 {portfolioHistory[portfolioHistory.length - 1].totalValue >= 50000 ? '+' : ''}
                 {((portfolioHistory[portfolioHistory.length - 1].totalValue - 50000) / 50000 * 100).toFixed(2)}% vs inicio
@@ -467,9 +464,14 @@ export default function Portfolio({ onBack }) {
 
       {/* Tabs */}
       <div style={{ display: 'flex', borderBottom: '1px solid #1e2530', position: 'relative', zIndex: 2, marginTop: '16px' }}>
-        {[['market', t.portfolio.market], ['portfolio', t.portfolio.positions], ['history', t.portfolio.history]].map(([id, label]) => (
+        {[
+          ['market',     t.portfolio.market],
+          ['portfolio',  t.portfolio.positions],
+          ['leaderboard','🏆 Ranking'],
+          ['history',    t.portfolio.history],
+        ].map(([id, label]) => (
           <button key={id} onClick={() => setTab(id)}
-            style={{ flex: 1, padding: '12px 8px', background: 'transparent', border: 'none', borderBottom: `2px solid ${tab === id ? '#22d3a5' : 'transparent'}`, color: tab === id ? '#22d3a5' : '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.15s' }}>
+            style={{ flex: 1, padding: '12px 4px', background: 'transparent', border: 'none', borderBottom: `2px solid ${tab === id ? '#22d3a5' : 'transparent'}`, color: tab === id ? '#22d3a5' : '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '8px', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.15s' }}>
             {label}
           </button>
         ))}
@@ -509,12 +511,7 @@ export default function Portfolio({ onBack }) {
                     <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '12px', color: '#f0f0f0' }}>{asset.name}</div>
                     <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: '6px' }}>
                       {asset.symbol} · {t.portfolio.types[asset.type]}
-                      <span style={{
-                        fontSize: '8px',
-                        color: status.open ? '#22d3a5' : '#f05454',
-                        background: status.open ? 'rgba(34,211,165,0.1)' : 'rgba(240,84,84,0.1)',
-                        padding: '1px 5px', borderRadius: '4px', letterSpacing: '0.04em',
-                      }}>
+                      <span style={{ fontSize: '8px', color: status.open ? '#22d3a5' : '#f05454', background: status.open ? 'rgba(34,211,165,0.1)' : 'rgba(240,84,84,0.1)', padding: '1px 5px', borderRadius: '4px', letterSpacing: '0.04em' }}>
                         {status.label}
                       </span>
                     </div>
@@ -559,6 +556,48 @@ export default function Portfolio({ onBack }) {
                 </div>
                 <div style={{ height: '3px', background: '#1e2530', borderRadius: '2px', overflow: 'hidden' }}>
                   <div style={{ height: '100%', width: `${Math.min(100, Math.abs(pos.pnlPct) * 5)}%`, background: pos.pnl >= 0 ? '#22d3a5' : '#f05454', borderRadius: '2px' }} />
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* ── Leaderboard ── */}
+      {tab === 'leaderboard' && (
+        <div style={{ padding: '16px 20px 40px', position: 'relative', zIndex: 2 }}>
+          {leaderboard.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+              <div style={{ fontSize: '32px', marginBottom: '12px' }}>🏆</div>
+              <div style={{ fontSize: '11px', color: '#4a5568', fontFamily: "'Space Mono', monospace" }}>
+                aún no hay datos
+              </div>
+            </div>
+          ) : (
+            leaderboard.map((entry, i) => (
+              <div key={i} style={{
+                display: 'flex', alignItems: 'center', gap: '12px',
+                padding: '10px 12px',
+                background: '#0f141b',
+                border: `1px solid ${i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#1e2530'}`,
+                borderRadius: '8px', marginBottom: '8px',
+              }}>
+                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#3a4455', width: '24px', flexShrink: 0 }}>
+                  {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
+                </div>
+                {entry.avatar ? (
+                  <img src={entry.avatar} style={{ width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0 }} />
+                ) : (
+                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#1e2530', flexShrink: 0 }} />
+                )}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0' }}>{entry.name}</div>
+                  <div style={{ fontSize: '9px', color: '#4a5568' }}>{formatCash(entry.totalValue)}</div>
+                </div>
+                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                  <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: entry.returnPct >= 0 ? '#22d3a5' : '#f05454' }}>
+                    {entry.returnPct >= 0 ? '+' : ''}{entry.returnPct.toFixed(2)}%
+                  </div>
                 </div>
               </div>
             ))

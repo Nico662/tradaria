@@ -1268,5 +1268,37 @@ app.get('/portfolio/debug/:symbol', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+app.get('/portfolio/leaderboard', async (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  try {
+    const portfolios = await Portfolio.find({}).populate('userId', 'name avatar');
+    const prices     = await Promise.all(PORTFOLIO_ASSETS.map(a => getPrice(a).catch(() => null)));
+    const priceMap   = {};
+    prices.filter(Boolean).forEach(p => { priceMap[p.symbol] = p.price; });
+
+    const leaderboard = portfolios.map(p => {
+      const invested = p.positions.reduce((s, pos) => {
+        const price = priceMap[pos.symbol] || pos.avgPrice;
+        return s + price * pos.qty;
+      }, 0);
+      const totalValue = p.cash + invested;
+      const returnPct  = ((totalValue - 50000) / 50000) * 100;
+      return {
+        name:      p.userId?.name || 'Anonymous',
+        avatar:    p.userId?.avatar || null,
+        totalValue,
+        returnPct,
+        cash:      p.cash,
+      };
+    })
+    .filter(p => p.totalValue !== 50000) // solo los que han operado
+    .sort((a, b) => b.returnPct - a.returnPct)
+    .slice(0, 20);
+
+    res.json(leaderboard);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 // ── Start ─────────────────────────────────────────────────────────
 httpServer.listen(PORT, () => console.log(`Server running on port ${PORT}`));
