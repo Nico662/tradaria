@@ -1183,5 +1183,16 @@ app.get('/portfolio/clear-cache', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+app.get('/portfolio/debug/:symbol', async (req, res) => {
+  try {
+    const { symbol } = req.params;
+    const url  = `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_KEY}`;
+    const r    = await fetch(url);
+    const data = await r.json();
+    res.json({ symbol, data, url });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 // ── Start ─────────────────────────────────────────────────────────
 httpServer.listen(PORT, () => console.log(`Server running on port ${PORT}`));
