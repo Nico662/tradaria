@@ -71,56 +71,72 @@ export default function Daily({ onBack }) {
       .catch(() => setPhase('error'));
   }, []);
 
-  const makeChoice = (choice) => {
-    if (phase !== 'choose' || !future || future.length === 0) return;
-    setPhase('reveal');
-    setRevealing(true);
-    chartRef.current?.revealFuture(future, () => setRevealing(false));
+ const makeChoice = (choice) => {
+  if (phase !== 'choose' || !future || future.length === 0) return;
+  setPhase('reveal');
+  setRevealing(true);
+  chartRef.current?.revealFuture(future, () => setRevealing(false));
 
-    const lastClose  = chartRef.current?.getCandles?.()?.slice(-1)[0]?.close ?? future[0].close;
-    const lastFuture = future[future.length - 1].close;
-    const pctMove    = (lastFuture - lastClose) / lastClose * 100;
-    const direction  = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
-    const win        = (choice === 'long'  && direction === 'up')
-                    || (choice === 'short' && direction === 'down')
-                    || (choice === 'skip'  && direction === 'flat');
+  const lastClose  = chartRef.current?.getCandles?.()?.slice(-1)[0]?.close ?? future[0].close;
+  const lastFuture = future[future.length - 1].close;
+  const pctMove    = (lastFuture - lastClose) / lastClose * 100;
+  const direction  = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
+  const win        = (choice === 'long'  && direction === 'up')
+                  || (choice === 'short' && direction === 'down')
+                  || (choice === 'skip'  && direction === 'flat');
 
-    const res = { choice, direction, pctMove, win };
-    setResult(res);
+  const res = { choice, direction, pctMove, win };
+  setResult(res);
 
-    const today = new Date().toISOString().split('T')[0];
-    localStorage.setItem('tradara_daily_played', today);
-    localStorage.setItem('tradara_daily_result', JSON.stringify(res));
+  const today = new Date().toISOString().split('T')[0];
+  localStorage.setItem('tradara_daily_played', today);
+  localStorage.setItem('tradara_daily_result', JSON.stringify(res));
 
-    if (win) {
-      addXP(15);
-      setFloatingXP(15);
-      setTimeout(() => setFloatingXP(null), 2000);
-    }
+  if (win) {
+    addXP(15);
+    setFloatingXP(15);
+    setTimeout(() => setFloatingXP(null), 2000);
+  }
 
-    const lastDaily = localStorage.getItem('tradara_daily_last');
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-    const current = parseInt(localStorage.getItem('tradara_daily_streak') || '0');
-    const newStreak = lastDaily === yesterday ? current + 1 : 1;
-    localStorage.setItem('tradara_daily_streak', String(newStreak));
-    localStorage.setItem('tradara_daily_last', today);
-    if (newStreak >= 3)  tryUnlockDailyBadge('daily_streak_3');
-    if (newStreak >= 7)  tryUnlockDailyBadge('daily_streak_7');
-    if (newStreak >= 30) tryUnlockDailyBadge('daily_streak_30');
+  const lastDaily = localStorage.getItem('tradara_daily_last');
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  const current   = parseInt(localStorage.getItem('tradara_daily_streak') || '0');
+  const newStreak = lastDaily === yesterday ? current + 1 : 1;
+  localStorage.setItem('tradara_daily_streak', String(newStreak));
+  localStorage.setItem('tradara_daily_last', today);
 
-    const weekKey  = `tradara_daily_week_${new Date().toISOString().slice(0, 7)}`;
-    const weekDays = JSON.parse(localStorage.getItem(weekKey) || '[]');
-    const todayDay = new Date().getDay();
-    if (!weekDays.includes(todayDay)) {
-      weekDays.push(todayDay);
-      localStorage.setItem(weekKey, JSON.stringify(weekDays));
-    }
-    if (weekDays.length >= 7) tryUnlockDailyBadge('perfect_week');
+  if (newStreak >= 3)  tryUnlockDailyBadge('daily_streak_3');
+  if (newStreak >= 7)  tryUnlockDailyBadge('daily_streak_7');
+  if (newStreak >= 30) tryUnlockDailyBadge('daily_streak_30');
 
-    const hour = new Date().getHours();
-    if (hour < 9) tryUnlockDailyBadge('early_bird');
-    if (hour === 3) tryUnlockDailyBadge('ghost');
-  };
+  const weekKey  = `tradara_daily_week_${new Date().toISOString().slice(0, 7)}`;
+  const weekDays = JSON.parse(localStorage.getItem(weekKey) || '[]');
+  const todayDay = new Date().getDay();
+  if (!weekDays.includes(todayDay)) {
+    weekDays.push(todayDay);
+    localStorage.setItem(weekKey, JSON.stringify(weekDays));
+  }
+  if (weekDays.length >= 7) tryUnlockDailyBadge('perfect_week');
+
+  const hour = new Date().getHours();
+  if (hour < 9) tryUnlockDailyBadge('early_bird');
+  if (hour === 3) tryUnlockDailyBadge('ghost');
+
+  // Sincronizar streak con servidor
+  const token = localStorage.getItem('tradara_token');
+  if (token) {
+    fetch('https://tradara-production.up.railway.app/auth/sync', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        xp:          parseInt(localStorage.getItem('tradara_xp') || '0'),
+        badges:      JSON.parse(localStorage.getItem('tradara_badges') || '[]'),
+        dailyStreak: newStreak,
+        lastPlayed:  today,
+      }),
+    }).catch(() => {});
+   }
+ };
 
   const shareResult = (res) => {
     const asset    = dailyAsset?.name ?? '?';

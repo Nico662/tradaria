@@ -53,45 +53,67 @@ export function AuthProvider({ children }) {
   }
 
   async function fetchUser(token) {
-    try {
-      const res = await fetch(`${SERVER}/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setUser(data);
-        const localXP = parseInt(localStorage.getItem('tradara_xp') || '0');
-        if (data.xp > localXP) {
-          localStorage.setItem('tradara_xp', String(data.xp));
-        }
-        const localBadges = JSON.parse(localStorage.getItem('tradara_badges') || '[]');
-        const merged = [...new Set([...data.badges, ...localBadges])];
-        localStorage.setItem('tradara_badges', JSON.stringify(merged));
-        if (merged.length > data.badges.length) {
-          await fetch(`${SERVER}/auth/sync`, {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ xp: Math.max(data.xp, localXP), badges: merged }),
-          });
-        }
-      } else {
-        localStorage.removeItem('tradara_token');
-      }
-    } catch (e) {}
-    setLoading(false);
-  }
+  try {
+    const res = await fetch(`${SERVER}/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setUser(data);
 
-  async function syncProgress(xp, badges) {
-    const token = localStorage.getItem('tradara_token');
-    if (!token) return;
-    try {
-      await fetch(`${SERVER}/auth/sync`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ xp, badges }),
-      });
-    } catch (e) {}
-  }
+      // Sincronizar XP
+      const localXP = parseInt(localStorage.getItem('tradara_xp') || '0');
+      if (data.xp > localXP) {
+        localStorage.setItem('tradara_xp', String(data.xp));
+      }
+
+      // Sincronizar badges
+      const localBadges = JSON.parse(localStorage.getItem('tradara_badges') || '[]');
+      const merged = [...new Set([...data.badges, ...localBadges])];
+      localStorage.setItem('tradara_badges', JSON.stringify(merged));
+
+      // Sincronizar streak
+      const serverStreak    = data.dailyStreak || 0;
+      const serverLastPlayed = data.lastPlayed || null;
+      const localStreak     = parseInt(localStorage.getItem('tradara_daily_streak') || '0');
+      const bestStreak      = Math.max(serverStreak, localStreak);
+      localStorage.setItem('tradara_daily_streak', String(bestStreak));
+      if (serverLastPlayed) localStorage.setItem('tradara_daily_last', serverLastPlayed);
+
+      // Sincronizar con servidor si hay diferencias
+      const needsSync = merged.length > data.badges.length || bestStreak > serverStreak;
+      if (needsSync) {
+        await fetch(`${SERVER}/auth/sync`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            xp:          Math.max(data.xp, localXP),
+            badges:      merged,
+            dailyStreak: bestStreak,
+            lastPlayed:  localStorage.getItem('tradara_daily_last') || null,
+          }),
+        });
+      }
+    } else {
+      localStorage.removeItem('tradara_token');
+    }
+  } catch (e) {}
+  setLoading(false);
+ }
+
+ async function syncProgress(xp, badges) {
+  const token = localStorage.getItem('tradara_token');
+  if (!token) return;
+  try {
+    const dailyStreak = parseInt(localStorage.getItem('tradara_daily_streak') || '0');
+    const lastPlayed  = localStorage.getItem('tradara_daily_last') || null;
+    await fetch(`${SERVER}/auth/sync`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ xp, badges, dailyStreak, lastPlayed }),
+    });
+  } catch (e) {}
+ } 
 
   function login() {
     window.location.href = `${SERVER}/auth/google`;

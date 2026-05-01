@@ -50,6 +50,8 @@ const UserSchema = new mongoose.Schema({
   xp:        { type: Number, default: 0 },
   badges:    { type: [String], default: [] },
   purchases: { type: [String], default: [] },
+  dailyStreak: { type: Number, default: 0 },
+  lastPlayed:  { type: String, default: null },
   createdAt: { type: Date, default: Date.now },
   lastLogin: { type: Date, default: Date.now },
 });
@@ -353,6 +355,8 @@ app.get('/auth/me', async (req, res) => {
       avatar: user.avatar,
       xp:     user.xp,
       badges: user.badges,
+      dailyStreak: user.dailyStreak || 0,
+      lastPlayed: user.lastPlayed || null,
     });
   } catch (err) {
     res.status(401).json({ error: 'Invalid token' });
@@ -364,8 +368,11 @@ app.post('/auth/sync', async (req, res) => {
   if (!auth) return res.status(401).json({ error: 'No token' });
   try {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const { xp, badges } = req.body;
-    await User.findByIdAndUpdate(decoded.id, { xp, badges });
+    const { xp, badges, dailyStreak, lastPlayed } = req.body;
+    const update = { xp, badges };
+    if (dailyStreak !== undefined) update.dailyStreak = dailyStreak;
+    if (lastPlayed !== undefined) update.lastPlayed = lastPlayed;
+    await User.findByIdAndUpdate(decoded.id, update);
     res.json({ ok: true });
   } catch (err) {
     res.status(401).json({ error: 'Invalid token' });
