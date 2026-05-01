@@ -1188,5 +1188,16 @@ app.get('/portfolio/history', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+app.get('/portfolio/clear-cache', async (req, res) => {
+  try {
+    const keys = PORTFOLIO_ASSETS
+      .filter(a => a.source === 'finnhub')
+      .map(a => `price:${a.symbol}`);
+    await Promise.all(keys.map(k => redis.del(k)));
+    res.json({ ok: true, cleared: keys.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 // ── Start ─────────────────────────────────────────────────────────
 httpServer.listen(PORT, () => console.log(`Server running on port ${PORT}`));
