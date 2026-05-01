@@ -98,12 +98,10 @@ export function AuthProvider({ children }) {
   }
 
   function logout() {
-    localStorage.removeItem('tradara_token');
-    localStorage.removeItem('tradara_cosmetics');
-    setUser(null);
-    setPurchases([]);
-    setActiveCosmetics({});
-  }
+   localStorage.removeItem('tradara_token');
+   setUser(null);
+   setPurchases([]);
+ }
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout, syncProgress, purchases, activeCosmetics, equipCosmetic, unequipCosmetic }}>
