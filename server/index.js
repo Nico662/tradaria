@@ -163,69 +163,92 @@ async function cachedFetch(key, ttlSeconds, fetchFn) {
   return data;
 }
 
-// ── Shop items ────────────────────────────────────────────────────
-const SHOP_ITEMS = {
-  frame_gold:       { name: 'Gold Frame',    price: 299 },
-  frame_neon:       { name: 'Neon Frame',    price: 199 },
-  frame_fire:       { name: 'Fire Frame',    price: 399 },
-  frame_diamond:    { name: 'Diamond Frame', price: 499 },
-  theme_matrix:     { name: 'Matrix',        price: 199 },
-  theme_blood:      { name: 'Blood Market',  price: 199 },
-  theme_gold:       { name: 'Gold Rush',     price: 299 },
-  theme_midnight:   { name: 'Midnight',      price: 199 },
-  avatar_bull:      { name: 'Bull',          price: 99  },
-  avatar_bear:      { name: 'Bear',          price: 99  },
-  avatar_whale:     { name: 'Whale',         price: 199 },
-  avatar_robot:     { name: 'AlgoBot',       price: 199 },
-  effect_confetti:  { name: 'Confetti',      price: 199 },
-  effect_lightning: { name: 'Lightning',     price: 299 },
-  effect_explosion: { name: 'Explosion',     price: 299 },
-  effect_stars:     { name: 'Stars',         price: 199 },
-};
-const FINNHUB_KEY = 'd7pqi41r01qosaapiuugd7pqi41r01qosaapiuv0';
-
 const PORTFOLIO_ASSETS = [
-  // Acciones
-  { symbol: 'AAPL',  name: 'Apple',            type: 'stock',     source: 'finnhub' },
-  { symbol: 'MSFT',  name: 'Microsoft',         type: 'stock',     source: 'finnhub' },
-  { symbol: 'NVDA',  name: 'NVIDIA',            type: 'stock',     source: 'finnhub' },
-  { symbol: 'GOOGL', name: 'Alphabet',          type: 'stock',     source: 'finnhub' },
-  { symbol: 'AMZN',  name: 'Amazon',            type: 'stock',     source: 'finnhub' },
-  { symbol: 'META',  name: 'Meta',              type: 'stock',     source: 'finnhub' },
-  { symbol: 'TSLA',  name: 'Tesla',             type: 'stock',     source: 'finnhub' },
-  { symbol: 'BRK.B', name: 'Berkshire',         type: 'stock',     source: 'finnhub' },
-  { symbol: 'JPM',   name: 'JPMorgan',          type: 'stock',     source: 'finnhub' },
-  { symbol: 'V',     name: 'Visa',              type: 'stock',     source: 'finnhub' },
-  { symbol: 'UNH',   name: 'UnitedHealth',      type: 'stock',     source: 'finnhub' },
-  { symbol: 'MA',    name: 'Mastercard',        type: 'stock',     source: 'finnhub' },
-  { symbol: 'JNJ',   name: 'Johnson & Johnson', type: 'stock',     source: 'finnhub' },
-  { symbol: 'PG',    name: 'Procter & Gamble',  type: 'stock',     source: 'finnhub' },
-  { symbol: 'HD',    name: 'Home Depot',        type: 'stock',     source: 'finnhub' },
-  { symbol: 'BAC',   name: 'Bank of America',   type: 'stock',     source: 'finnhub' },
-  { symbol: 'COST',  name: 'Costco',            type: 'stock',     source: 'finnhub' },
-  { symbol: 'NFLX',  name: 'Netflix',           type: 'stock',     source: 'finnhub' },
-  { symbol: 'ADBE',  name: 'Adobe',             type: 'stock',     source: 'finnhub' },
-  { symbol: 'CRM',   name: 'Salesforce',        type: 'stock',     source: 'finnhub' },
-  { symbol: 'AMD',   name: 'AMD',               type: 'stock',     source: 'finnhub' },
-  { symbol: 'ORCL',  name: 'Oracle',            type: 'stock',     source: 'finnhub' },
-  { symbol: 'UBER',  name: 'Uber',              type: 'stock',     source: 'finnhub' },
-  { symbol: 'PYPL',  name: 'PayPal',            type: 'stock',     source: 'finnhub' },
-  { symbol: 'INTC',  name: 'Intel',             type: 'stock',     source: 'finnhub' },
-  // Índices — renta variable a largo plazo
-  { symbol: 'SPY',   name: 'S&P 500',           type: 'index',     source: 'finnhub' },
-  { symbol: 'QQQ',   name: 'NASDAQ 100',        type: 'index',     source: 'finnhub' },
-  { symbol: 'DIA',   name: 'Dow Jones',         type: 'index',     source: 'finnhub' },
-  { symbol: 'VTI',   name: 'Total US Market',   type: 'index',     source: 'finnhub' },
-  { symbol: 'IWM',   name: 'Russell 2000',      type: 'index',     source: 'finnhub' },
-  { symbol: 'VEA',   name: 'Europe & Asia',     type: 'index',     source: 'finnhub' },
-  { symbol: 'VWO',   name: 'Emerging Markets',  type: 'index',     source: 'finnhub' },
-  // Cripto
-  { symbol: 'BTCUSDT', name: 'Bitcoin',         type: 'crypto',    source: 'binance' },
-  { symbol: 'ETHUSDT', name: 'Ethereum',        type: 'crypto',    source: 'binance' },
-  { symbol: 'XRPUSDT', name: 'XRP',            type: 'crypto',    source: 'binance' },
-  // Materias primas
-  { symbol: 'GLD',   name: 'Gold',              type: 'commodity', source: 'finnhub' },
-  { symbol: 'SLV',   name: 'Silver',            type: 'commodity', source: 'finnhub' },
+  // ── Acciones US ──────────────────────────────────────────────────
+  { symbol: 'AAPL',  name: 'Apple',             type: 'stock', source: 'finnhub' },
+  { symbol: 'MSFT',  name: 'Microsoft',          type: 'stock', source: 'finnhub' },
+  { symbol: 'NVDA',  name: 'NVIDIA',             type: 'stock', source: 'finnhub' },
+  { symbol: 'GOOGL', name: 'Alphabet',           type: 'stock', source: 'finnhub' },
+  { symbol: 'AMZN',  name: 'Amazon',             type: 'stock', source: 'finnhub' },
+  { symbol: 'META',  name: 'Meta',               type: 'stock', source: 'finnhub' },
+  { symbol: 'TSLA',  name: 'Tesla',              type: 'stock', source: 'finnhub' },
+  { symbol: 'BRK.B', name: 'Berkshire',          type: 'stock', source: 'finnhub' },
+  { symbol: 'JPM',   name: 'JPMorgan',           type: 'stock', source: 'finnhub' },
+  { symbol: 'V',     name: 'Visa',               type: 'stock', source: 'finnhub' },
+  { symbol: 'UNH',   name: 'UnitedHealth',       type: 'stock', source: 'finnhub' },
+  { symbol: 'MA',    name: 'Mastercard',         type: 'stock', source: 'finnhub' },
+  { symbol: 'JNJ',   name: 'Johnson & Johnson',  type: 'stock', source: 'finnhub' },
+  { symbol: 'PG',    name: 'Procter & Gamble',   type: 'stock', source: 'finnhub' },
+  { symbol: 'HD',    name: 'Home Depot',         type: 'stock', source: 'finnhub' },
+  { symbol: 'BAC',   name: 'Bank of America',    type: 'stock', source: 'finnhub' },
+  { symbol: 'COST',  name: 'Costco',             type: 'stock', source: 'finnhub' },
+  { symbol: 'NFLX',  name: 'Netflix',            type: 'stock', source: 'finnhub' },
+  { symbol: 'ADBE',  name: 'Adobe',              type: 'stock', source: 'finnhub' },
+  { symbol: 'CRM',   name: 'Salesforce',         type: 'stock', source: 'finnhub' },
+  { symbol: 'AMD',   name: 'AMD',                type: 'stock', source: 'finnhub' },
+  { symbol: 'ORCL',  name: 'Oracle',             type: 'stock', source: 'finnhub' },
+  { symbol: 'UBER',  name: 'Uber',               type: 'stock', source: 'finnhub' },
+  { symbol: 'PYPL',  name: 'PayPal',             type: 'stock', source: 'finnhub' },
+  { symbol: 'INTC',  name: 'Intel',              type: 'stock', source: 'finnhub' },
+  { symbol: 'SPOT',  name: 'Spotify',            type: 'stock', source: 'finnhub' },
+  { symbol: 'ABNB',  name: 'Airbnb',             type: 'stock', source: 'finnhub' },
+  { symbol: 'SHOP',  name: 'Shopify',            type: 'stock', source: 'finnhub' },
+  { symbol: 'PLTR',  name: 'Palantir',           type: 'stock', source: 'finnhub' },
+  { symbol: 'SNOW',  name: 'Snowflake',          type: 'stock', source: 'finnhub' },
+  { symbol: 'COIN',  name: 'Coinbase',           type: 'stock', source: 'finnhub' },
+  { symbol: 'HOOD',  name: 'Robinhood',          type: 'stock', source: 'finnhub' },
+  { symbol: 'RBLX',  name: 'Roblox',             type: 'stock', source: 'finnhub' },
+  { symbol: 'NET',   name: 'Cloudflare',         type: 'stock', source: 'finnhub' },
+  { symbol: 'DDOG',  name: 'Datadog',            type: 'stock', source: 'finnhub' },
+  // ── Acciones europeas ─────────────────────────────────────────────
+  { symbol: 'ASML',  name: 'ASML',               type: 'stock', source: 'finnhub' },
+  { symbol: 'SAP',   name: 'SAP',                type: 'stock', source: 'finnhub' },
+  { symbol: 'LVMUY', name: 'LVMH',               type: 'stock', source: 'finnhub' },
+  { symbol: 'NSRGY', name: 'Nestlé',             type: 'stock', source: 'finnhub' },
+  { symbol: 'SIEGY', name: 'Siemens',            type: 'stock', source: 'finnhub' },
+  { symbol: 'IDEXY', name: 'Inditex',            type: 'stock', source: 'finnhub' },
+  { symbol: 'ALIZF', name: 'Allianz',            type: 'stock', source: 'finnhub' },
+  { symbol: 'BAYZF', name: 'Bayer',              type: 'stock', source: 'finnhub' },
+  { symbol: 'RACE', name: 'Ferrari', type: 'stock', source: 'finnhub' },
+  // ── Índices y ETFs ────────────────────────────────────────────────
+  { symbol: 'SPY',   name: 'S&P 500',            type: 'index', source: 'finnhub' },
+  { symbol: 'QQQ',   name: 'NASDAQ 100',         type: 'index', source: 'finnhub' },
+  { symbol: 'DIA',   name: 'Dow Jones',          type: 'index', source: 'finnhub' },
+  { symbol: 'VTI',   name: 'Total US Market',    type: 'index', source: 'finnhub' },
+  { symbol: 'VOO',   name: 'Vanguard S&P 500',   type: 'index', source: 'finnhub' },
+  { symbol: 'IWM',   name: 'Russell 2000',       type: 'index', source: 'finnhub' },
+  { symbol: 'VEA',   name: 'Europe & Asia',      type: 'index', source: 'finnhub' },
+  { symbol: 'VWO',   name: 'Emerging Markets',   type: 'index', source: 'finnhub' },
+  { symbol: 'EWG',   name: 'Germany ETF',        type: 'index', source: 'finnhub' },
+  { symbol: 'EWQ',   name: 'France ETF',         type: 'index', source: 'finnhub' },
+  { symbol: 'EWP',   name: 'Spain ETF',          type: 'index', source: 'finnhub' },
+  { symbol: 'ARKK',  name: 'ARK Innovation',     type: 'index', source: 'finnhub' },
+  { symbol: 'XLK',   name: 'Tech Sector',        type: 'index', source: 'finnhub' },
+  { symbol: 'XLF',   name: 'Financial Sector',   type: 'index', source: 'finnhub' },
+  { symbol: 'XLE',   name: 'Energy Sector',      type: 'index', source: 'finnhub' },
+  { symbol: 'XLV',   name: 'Health Sector',      type: 'index', source: 'finnhub' },
+  // ── Bonos ─────────────────────────────────────────────────────────
+  { symbol: 'TLT',   name: 'US Bonds 20Y',       type: 'index', source: 'finnhub' },
+  { symbol: 'AGG',   name: 'US Bonds Aggregate', type: 'index', source: 'finnhub' },
+  { symbol: 'HYG',   name: 'High Yield Bonds',   type: 'index', source: 'finnhub' },
+  // ── Cripto ────────────────────────────────────────────────────────
+  { symbol: 'BTCUSDT',  name: 'Bitcoin',         type: 'crypto', source: 'binance' },
+  { symbol: 'ETHUSDT',  name: 'Ethereum',        type: 'crypto', source: 'binance' },
+  { symbol: 'XRPUSDT',  name: 'XRP',            type: 'crypto', source: 'binance' },
+  { symbol: 'SOLUSDT',  name: 'Solana',          type: 'crypto', source: 'binance' },
+  { symbol: 'DOGEUSDT', name: 'Dogecoin',        type: 'crypto', source: 'binance' },
+  { symbol: 'BNBUSDT',  name: 'BNB',            type: 'crypto', source: 'binance' },
+  { symbol: 'AVAXUSDT', name: 'Avalanche',       type: 'crypto', source: 'binance' },
+  { symbol: 'ADAUSDT',  name: 'Cardano',         type: 'crypto', source: 'binance' },
+  { symbol: 'DOTUSDT',  name: 'Polkadot',        type: 'crypto', source: 'binance' },
+  { symbol: 'LINKUSDT', name: 'Chainlink',       type: 'crypto', source: 'binance' },
+  // ── Materias primas ───────────────────────────────────────────────
+  { symbol: 'GLD',   name: 'Gold',               type: 'commodity', source: 'finnhub' },
+  { symbol: 'SLV',   name: 'Silver',             type: 'commodity', source: 'finnhub' },
+  { symbol: 'PDBC',  name: 'Commodities',        type: 'commodity', source: 'finnhub' },
+  { symbol: 'WEAT',  name: 'Wheat',              type: 'commodity', source: 'finnhub' },
+  { symbol: 'CORN',  name: 'Corn',               type: 'commodity', source: 'finnhub' },
+  { symbol: 'PPLT',  name: 'Platinum',           type: 'commodity', source: 'finnhub' },
 ];
 
 async function getPrice(asset) {
@@ -236,6 +259,13 @@ async function getPrice(asset) {
         'BTCUSDT': 'bitcoin',
         'ETHUSDT': 'ethereum',
         'XRPUSDT': 'ripple',
+        'SOLUSDT':  'solana',
+        'DOGEUSDT': 'dogecoin',
+        'BNBUSDT':  'binancecoin',
+        'AVAXUSDT': 'avalanche-2',
+        'ADAUSDT':  'cardano',
+        'DOTUSDT':  'polkadot',
+        'LINKUSDT': 'chainlink',
       };
       const coinId = coinMap[asset.symbol];
       const res  = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true`);
@@ -1097,7 +1127,7 @@ app.get('/portfolio/candles/:symbol', async (req, res) => {
   try {
     let candles;
     if (asset.source === 'binance') {
-      const coinMap = { 'BTCUSDT': 'BTC-USD', 'ETHUSDT': 'ETH-USD', 'XRPUSDT': 'XRP-USD' };
+      const coinMap = { 'BTCUSDT': 'BTC-USD', 'ETHUSDT': 'ETH-USD', 'XRPUSDT': 'XRP-USD' ,'SOLUSDT':  'SOL-USD', 'DOGEUSDT': 'DOGE-USD', 'BNBUSDT': 'BNB-USD', 'AVAXUSDT': 'AVAX-USD', 'ADAUSDT': 'ADA-USD', 'DOTUSDT': 'DOT-USD', 'LINKUSDT': 'LINK-USD' };
       const yahooSymbol = coinMap[symbol];
       const d = new Date(); d.setFullYear(d.getFullYear() - 1);
       const result = await yf.chart(yahooSymbol, { interval: '1d', period1: d.toISOString().split('T')[0] });
