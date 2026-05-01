@@ -1080,5 +1080,34 @@ app.get('/portfolio/clear-crypto-cache', async (req, res) => {
   await redis.del('price:XRPUSDT');
   res.json({ ok: true });
 });
+app.get('/portfolio/candles/:symbol', async (req, res) => {
+  const { symbol } = req.params;
+  const asset = PORTFOLIO_ASSETS.find(a => a.symbol === symbol);
+  if (!asset) return res.status(404).json({ error: 'Asset not found' });
+
+  try {
+    let candles;
+    if (asset.source === 'binance') {
+      const coinMap = { 'BTCUSDT': 'BTC-USD', 'ETHUSDT': 'ETH-USD', 'XRPUSDT': 'XRP-USD' };
+      const yahooSymbol = coinMap[symbol];
+      const d = new Date(); d.setFullYear(d.getFullYear() - 1);
+      const result = await yf.chart(yahooSymbol, { interval: '1d', period1: d.toISOString().split('T')[0] });
+      candles = result.quotes.filter(q => q.open && q.high && q.low && q.close).map(q => ({
+        time:  Math.floor(new Date(q.date).getTime() / 1000),
+        open:  q.open, high: q.high, low: q.low, close: q.close,
+      }));
+    } else {
+      const d = new Date(); d.setFullYear(d.getFullYear() - 1);
+      const result = await yf.chart(symbol, { interval: '1d', period1: d.toISOString().split('T')[0] });
+      candles = result.quotes.filter(q => q.open && q.high && q.low && q.close).map(q => ({
+        time:  Math.floor(new Date(q.date).getTime() / 1000),
+        open:  q.open, high: q.high, low: q.low, close: q.close,
+      }));
+    }
+    res.json(candles);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 // ── Start ─────────────────────────────────────────────────────────
 httpServer.listen(PORT, () => console.log(`Server running on port ${PORT}`));
