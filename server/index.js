@@ -956,7 +956,22 @@ io.on('connection', (socket) => {
     console.log('Disconnected:', socket.id);
   });
 });
+// Precargar precios cada 5 minutos
+async function warmPriceCache() {
+  console.log('Warming price cache...');
+  for (let i = 0; i < PORTFOLIO_ASSETS.length; i += 5) {
+    const batch = PORTFOLIO_ASSETS.slice(i, i + 5);
+    await Promise.all(batch.map(a => getPrice(a).catch(() => null)));
+    if (i + 5 < PORTFOLIO_ASSETS.length) {
+      await new Promise(r => setTimeout(r, 1200));
+    }
+  }
+  console.log('Price cache warmed');
+}
 
+// Ejecutar al arrancar y cada 5 minutos
+warmPriceCache();
+cron.schedule('*/5 * * * *', warmPriceCache);
 // ── Cron ──────────────────────────────────────────────────────────
 cron.schedule('0 8 * * *', async () => {
   pushSubscriptions = await loadSubscriptions();
