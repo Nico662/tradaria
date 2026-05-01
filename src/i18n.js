@@ -206,6 +206,9 @@ export const LANGS = {
        index: 'Index',
        commodity: 'Commodity',
      },
+     marketOpen: 'Open',
+     marketClosed: 'Closed',
+     market247: '24/7',
     }, 
    },
 
@@ -416,6 +419,9 @@ export const LANGS = {
     index: 'Índice',
     commodity: 'Materia prima',
   },
+  marketOpen: 'Abierto',
+ marketClosed: 'Cerrado',
+ market247: '24/7',
  },
   },
 
@@ -626,6 +632,9 @@ export const LANGS = {
     index: 'Index',
     commodity: 'Rohstoff',
   },
+  marketOpen: 'Geöffnet',
+  marketClosed: 'Geschlossen',
+  market247: '24/7',
  }, 
   },
 };

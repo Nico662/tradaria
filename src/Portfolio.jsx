@@ -44,15 +44,15 @@ function isMarketOpen() {
   return time >= 13 * 60 + 30 && time < 20 * 60;
 }
 
-function getMarketStatus(type) {
-  if (type === 'crypto') return { open: true, label: '24/7' };
+function getMarketStatus(type, t) {
+  if (type === 'crypto') return { open: true, label: t.portfolio.market247 };
   if (type === 'commodity') {
     const day = new Date().getUTCDay();
-    if (day === 0 || day === 6) return { open: false, label: 'Cerrado' };
-    return { open: true, label: 'Abierto' };
+    if (day === 0 || day === 6) return { open: false, label: t.portfolio.marketClosed };
+    return { open: true, label: t.portfolio.marketOpen };
   }
   const open = isMarketOpen();
-  return { open, label: open ? 'Abierto' : 'Cerrado' };
+  return { open, label: open ? t.portfolio.marketOpen : t.portfolio.marketClosed };
 }
 
 export default function Portfolio({ onBack }) {
@@ -233,7 +233,7 @@ export default function Portfolio({ onBack }) {
 
   // ── Asset screen ─────────────────────────────────────────────────
   if (selected) {
-    const marketStatus = getMarketStatus(selected.type);
+    const marketStatus = getMarketStatus(selected.type, t);
     return (
       <div id="gtm-root" style={{ position: 'relative' }}>
         <div className="scanlines" />
@@ -445,7 +445,7 @@ export default function Portfolio({ onBack }) {
 
           <div style={{ padding: '0 20px 40px' }}>
             {filteredPrices.map(asset => {
-              const status = getMarketStatus(asset.type);
+              const status = getMarketStatus(asset.type, t);
               return (
                 <div key={asset.symbol} onClick={() => openAsset(asset)}
                   style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px', marginBottom: '6px', cursor: 'pointer', transition: 'all 0.15s' }}
