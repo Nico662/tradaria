@@ -177,9 +177,6 @@ const PORTFOLIO_ASSETS = [
   { symbol: 'V',     name: 'Visa',               type: 'stock', source: 'finnhub' },
   { symbol: 'UNH',   name: 'UnitedHealth',       type: 'stock', source: 'finnhub' },
   { symbol: 'MA',    name: 'Mastercard',         type: 'stock', source: 'finnhub' },
-  { symbol: 'JNJ',   name: 'Johnson & Johnson',  type: 'stock', source: 'finnhub' },
-  { symbol: 'PG',    name: 'Procter & Gamble',   type: 'stock', source: 'finnhub' },
-  { symbol: 'HD',    name: 'Home Depot',         type: 'stock', source: 'finnhub' },
   { symbol: 'BAC',   name: 'Bank of America',    type: 'stock', source: 'finnhub' },
   { symbol: 'COST',  name: 'Costco',             type: 'stock', source: 'finnhub' },
   { symbol: 'NFLX',  name: 'Netflix',            type: 'stock', source: 'finnhub' },
@@ -194,12 +191,10 @@ const PORTFOLIO_ASSETS = [
   { symbol: 'ABNB',  name: 'Airbnb',             type: 'stock', source: 'finnhub' },
   { symbol: 'SHOP',  name: 'Shopify',            type: 'stock', source: 'finnhub' },
   { symbol: 'PLTR',  name: 'Palantir',           type: 'stock', source: 'finnhub' },
-  { symbol: 'SNOW',  name: 'Snowflake',          type: 'stock', source: 'finnhub' },
   { symbol: 'COIN',  name: 'Coinbase',           type: 'stock', source: 'finnhub' },
   { symbol: 'HOOD',  name: 'Robinhood',          type: 'stock', source: 'finnhub' },
-  { symbol: 'RBLX',  name: 'Roblox',             type: 'stock', source: 'finnhub' },
   { symbol: 'NET',   name: 'Cloudflare',         type: 'stock', source: 'finnhub' },
-  { symbol: 'DDOG',  name: 'Datadog',            type: 'stock', source: 'finnhub' },
+  
   // ── Acciones europeas ─────────────────────────────────────────────
   { symbol: 'ASML',  name: 'ASML',               type: 'stock', source: 'finnhub' },
   { symbol: 'SAP',   name: 'SAP',                type: 'stock', source: 'finnhub' },
@@ -215,14 +210,11 @@ const PORTFOLIO_ASSETS = [
   { symbol: 'QQQ',   name: 'NASDAQ 100',         type: 'index', source: 'finnhub' },
   { symbol: 'DIA',   name: 'Dow Jones',          type: 'index', source: 'finnhub' },
   { symbol: 'VTI',   name: 'Total US Market',    type: 'index', source: 'finnhub' },
-  { symbol: 'VOO',   name: 'Vanguard S&P 500',   type: 'index', source: 'finnhub' },
-  { symbol: 'IWM',   name: 'Russell 2000',       type: 'index', source: 'finnhub' },
   { symbol: 'VEA',   name: 'Europe & Asia',      type: 'index', source: 'finnhub' },
   { symbol: 'VWO',   name: 'Emerging Markets',   type: 'index', source: 'finnhub' },
   { symbol: 'EWG',   name: 'Germany ETF',        type: 'index', source: 'finnhub' },
   { symbol: 'EWQ',   name: 'France ETF',         type: 'index', source: 'finnhub' },
   { symbol: 'EWP',   name: 'Spain ETF',          type: 'index', source: 'finnhub' },
-  { symbol: 'ARKK',  name: 'ARK Innovation',     type: 'index', source: 'finnhub' },
   { symbol: 'XLK',   name: 'Tech Sector',        type: 'index', source: 'finnhub' },
   { symbol: 'XLF',   name: 'Financial Sector',   type: 'index', source: 'finnhub' },
   { symbol: 'XLE',   name: 'Energy Sector',      type: 'index', source: 'finnhub' },
@@ -236,23 +228,15 @@ const PORTFOLIO_ASSETS = [
   { symbol: 'ETHUSDT',  name: 'Ethereum',        type: 'crypto', source: 'binance' },
   { symbol: 'XRPUSDT',  name: 'XRP',            type: 'crypto', source: 'binance' },
   { symbol: 'SOLUSDT',  name: 'Solana',          type: 'crypto', source: 'binance' },
-  { symbol: 'DOGEUSDT', name: 'Dogecoin',        type: 'crypto', source: 'binance' },
-  { symbol: 'BNBUSDT',  name: 'BNB',            type: 'crypto', source: 'binance' },
-  { symbol: 'AVAXUSDT', name: 'Avalanche',       type: 'crypto', source: 'binance' },
-  { symbol: 'ADAUSDT',  name: 'Cardano',         type: 'crypto', source: 'binance' },
-  { symbol: 'DOTUSDT',  name: 'Polkadot',        type: 'crypto', source: 'binance' },
-  { symbol: 'LINKUSDT', name: 'Chainlink',       type: 'crypto', source: 'binance' },
   // ── Materias primas ───────────────────────────────────────────────
   { symbol: 'GLD',   name: 'Gold',               type: 'commodity', source: 'finnhub' },
   { symbol: 'SLV',   name: 'Silver',             type: 'commodity', source: 'finnhub' },
   { symbol: 'PDBC',  name: 'Commodities',        type: 'commodity', source: 'finnhub' },
-  { symbol: 'WEAT',  name: 'Wheat',              type: 'commodity', source: 'finnhub' },
-  { symbol: 'CORN',  name: 'Corn',               type: 'commodity', source: 'finnhub' },
   { symbol: 'PPLT',  name: 'Platinum',           type: 'commodity', source: 'finnhub' },
 ];
 
 async function getPrice(asset) {
-  const cacheKey = `price:${asset.symbol}`;
+  const cacheKey = `price_v2:${asset.symbol}`;
   return cachedFetch(cacheKey, 300, async () => {
     if (asset.source === 'binance') {
       const coinMap = {
