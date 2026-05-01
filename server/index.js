@@ -1031,8 +1031,19 @@ cron.schedule('0 8 * * *', async () => {
 // Obtener todos los precios
 app.get('/portfolio/prices', async (req, res) => {
   try {
-    const prices = await Promise.all(PORTFOLIO_ASSETS.map(a => getPrice(a).catch(() => null)));
-    res.json(prices.filter(Boolean));
+    const results = [];
+    const batchSize = 10;
+    for (let i = 0; i < PORTFOLIO_ASSETS.length; i += batchSize) {
+      const batch = PORTFOLIO_ASSETS.slice(i, i + batchSize);
+      const batchResults = await Promise.all(
+        batch.map(a => getPrice(a).catch(() => null))
+      );
+      results.push(...batchResults);
+      if (i + batchSize < PORTFOLIO_ASSETS.length) {
+        await new Promise(r => setTimeout(r, 1000));
+      }
+    }
+    res.json(results.filter(Boolean));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
