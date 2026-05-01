@@ -100,9 +100,9 @@ export default function Daily({ onBack }) {
 
     const lastDaily = localStorage.getItem('tradara_daily_last');
     const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-    const current   = parseInt(localStorage.getItem('tradara_daily_streak_count') || '0');
+    const current = parseInt(localStorage.getItem('tradara_daily_streak') || '0');
     const newStreak = lastDaily === yesterday ? current + 1 : 1;
-    localStorage.setItem('tradara_daily_streak_count', String(newStreak));
+    localStorage.setItem('tradara_daily_streak', String(newStreak));
     localStorage.setItem('tradara_daily_last', today);
     if (newStreak >= 3)  tryUnlockDailyBadge('daily_streak_3');
     if (newStreak >= 7)  tryUnlockDailyBadge('daily_streak_7');
