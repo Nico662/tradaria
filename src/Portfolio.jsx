@@ -409,20 +409,24 @@ export default function Portfolio({ onBack }) {
       </div>
 
       {/* Summary */}
-      <div style={{ padding: '16px 20px', borderBottom: '1px solid #1e2530', position: 'relative', zIndex: 2 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
-          {[
-            { label: t.portfolio.cash,     value: formatCash(portfolio?.cash || 0), color: '#f0f0f0', border: '#1e2530' },
-            { label: t.portfolio.invested, value: formatCash(totalInvested),         color: '#f0f0f0', border: '#1e2530' },
-            { label: 'P&L',                value: (totalPnl >= 0 ? '+' : '') + formatCash(totalPnl), color: totalPnl >= 0 ? '#22d3a5' : '#f05454', border: totalPnl >= 0 ? 'rgba(34,211,165,0.3)' : 'rgba(240,84,84,0.3)' },
-          ].map(s => (
-            <div key={s.label} style={{ background: '#0f141b', border: `1px solid ${s.border}`, borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
-              <div style={{ fontSize: '8px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>{s.label}</div>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: s.color }}>{s.value}</div>
-            </div>
-          ))}
+    <div style={{ padding: '16px 20px', borderBottom: '1px solid #1e2530', position: 'relative', zIndex: 2 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+        <div style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
+          <div style={{ fontSize: '8px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>{t.portfolio.cash}</div>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: '#f0f0f0' }}>{formatCash(portfolio?.cash || 0)}</div>
+        </div>
+        <div style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
+          <div style={{ fontSize: '8px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>{t.portfolio.invested}</div>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: '#f0f0f0' }}>{formatCash(totalInvested)}</div>
         </div>
       </div>
+      <div style={{ background: '#0f141b', border: `1px solid ${totalPnl >= 0 ? 'rgba(34,211,165,0.3)' : 'rgba(240,84,84,0.3)'}`, borderRadius: '8px', padding: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ fontSize: '8px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase' }}>P&L</div>
+        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '15px', color: totalPnl >= 0 ? '#22d3a5' : '#f05454' }}>
+          {totalPnl >= 0 ? '+' : ''}{formatCash(totalPnl)}
+        </div>
+      </div>
+    </div>
 
       {/* Gráfico histórico */}
       {portfolioHistory.length > 1 && (
