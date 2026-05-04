@@ -264,7 +264,7 @@ export default function Survival({ onBack }) {
 
   // ── Game ──────────────────────────────────────────────────────────
   return (
-    <div id="gtm-root" style={{ position: 'relative' }}>
+    <div id="gtm-root" style={{ position: 'relative', display: 'flex', flexDirection: 'column', height: '100dvh', overflow: 'hidden' }}>
       <div className="scanlines" />
 
       <button onClick={onBack}
@@ -309,8 +309,8 @@ export default function Survival({ onBack }) {
         <div className="timeframe-badge">{asset.tf}</div>
       </div>
 
-      <div className="chart-area">
-        <div className="chart-wrapper">
+      <div className="chart-area" style={{ flex: 1 }}>
+        <div className="chart-wrapper" style={{ height: '100%' }}>
           <Chart ref={chartRef} asset={asset} />
           <div className={`phase-label${phase === 'reveal' ? ' active' : ''}`}>
             {phase === 'choose' ? t.game.reading : result
@@ -328,7 +328,7 @@ export default function Survival({ onBack }) {
       </div>
 
       {phase === 'choose' && (
-        <div className="action-zone">
+        <div className="action-zone" style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '480px', background: '#0a0c0f', borderTop: '1px solid #1e2530', padding: '16px 20px', zIndex: 50, paddingBottom: 'calc(16px + env(safe-area-inset-bottom))' }}>
           <div className="prompt-text">{t.game.whatNext}</div>
           <div className="buttons-row">
             <button className={`trade-btn long${selected === 'long' ? ' selected' : ''}`} onClick={() => makeChoice('long')}>
@@ -381,7 +381,7 @@ export default function Survival({ onBack }) {
         </div>
       )}
 
-      <div style={{ padding: '12px 20px', borderTop: '1px solid #1e2530', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', position: 'relative', zIndex: 2 }}>
+      <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '480px', padding: '12px 20px', borderTop: '1px solid #1e2530', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', background: '#0a0c0f', zIndex: 50, paddingBottom: 'calc(12px + env(safe-area-inset-bottom))', gap: '8px', position: 'relative', zIndex: 2 }}>
         {[
           { label: 'CORRECT', value: history.filter(h => h === 'win').length,  color: '#22d3a5' },
           { label: 'WRONG',   value: history.filter(h => h === 'lose').length, color: '#f05454' },
