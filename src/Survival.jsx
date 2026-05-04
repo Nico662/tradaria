@@ -309,7 +309,7 @@ export default function Survival({ onBack }) {
         <div className="timeframe-badge">{asset.tf}</div>
       </div>
 
-      <div className="chart-area" style={{ flex: 1 }}>
+      <div className="chart-area" style={{ flex: 1, minHeight: 0 }}>
         <div className="chart-wrapper" style={{ height: '100%' }}>
           <Chart ref={chartRef} asset={asset} />
           <div className={`phase-label${phase === 'reveal' ? ' active' : ''}`}>
