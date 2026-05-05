@@ -81,8 +81,8 @@ html, body {
 .asset-price { font-size: 13px; color: #e2e8f0; }
 .timeframe-badge { margin-left: auto; background: #1a2030; border: 1px solid #2a3345; padding: 3px 10px; border-radius: 4px; font-size: 10px; color: #8899b0; }
 
-.chart-area { padding: 16px 20px 4px; position: relative; z-index: 2; }
-.chart-wrapper { position: relative; }
+.chart-area { padding: 16px 20px 4px; position: relative; z-index: 2; flex: 1; }
+.chart-wrapper { position: relative; height: 100%; }
 .phase-label { position: absolute; top: 8px; right: 8px; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #3a4455; }
 .phase-label.active { color: #f5c842; }
 
@@ -277,3 +277,10 @@ html, body {
 #gtm-root.theme_midnight .trade-btn.long.selected { border-color: #6b9fff; color: #6b9fff; background: rgba(107,159,255,0.06); }
 #gtm-root.theme_midnight .mode-card.active:hover { border-color: #6b9fff; background: rgba(107,159,255,0.04); }
 #gtm-root.theme_midnight .header { border-bottom-color: #1a2040; }
+
+/* ─── Chart fill fix ────────────────────────────── */
+.chart-area canvas,
+.chart-area iframe,
+.chart-area > div {
+  height: 100% !important;
+}
