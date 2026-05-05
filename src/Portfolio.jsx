@@ -175,22 +175,17 @@ export default function Portfolio({ onBack }) {
     <div id="gtm-root" style={{ position: 'relative' }}>
       <div className="scanlines" />
       <div style={{ padding: '48px 28px', position: 'relative', zIndex: 2 }}>
-        <button onClick={onBack}
-          style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', marginBottom: '32px', display: 'block' }}>
+        <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', marginBottom: '32px', display: 'block' }}>
           ← menu
         </button>
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <div style={{ fontSize: '56px', marginBottom: '16px' }}>💼</div>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px', color: '#f0f0f0', marginBottom: '8px' }}>
-            Portfolio Mode
-          </div>
-          <div style={{ fontSize: '11px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-            {t.portfolio.sub}
-          </div>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px', color: '#f0f0f0', marginBottom: '8px' }}>Portfolio Mode</div>
+          <div style={{ fontSize: '11px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{t.portfolio.sub}</div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '40px' }}>
           {[
-            { emoji: '💵', title: '$50,000', desc: t.portfolio.welcomePoint1 },
+            { emoji: '💵', title: '$50,000',                    desc: t.portfolio.welcomePoint1 },
             { emoji: '📊', title: t.portfolio.welcomePoint2title, desc: t.portfolio.welcomePoint2 },
             { emoji: '📈', title: t.portfolio.welcomePoint3title, desc: t.portfolio.welcomePoint3 },
             { emoji: '🎓', title: t.portfolio.welcomePoint4title, desc: t.portfolio.welcomePoint4 },
@@ -204,8 +199,7 @@ export default function Portfolio({ onBack }) {
             </div>
           ))}
         </div>
-        <button onClick={dismissWelcome}
-          style={{ width: '100%', padding: '16px', background: 'rgba(55,138,221,0.08)', border: '1px solid #378ADD', borderRadius: '8px', color: '#378ADD', fontFamily: "'Space Mono', monospace", fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer' }}>
+        <button onClick={dismissWelcome} style={{ width: '100%', padding: '16px', background: 'rgba(55,138,221,0.08)', border: '1px solid #378ADD', borderRadius: '8px', color: '#378ADD', fontFamily: "'Space Mono', monospace", fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer' }}>
           {t.portfolio.welcomeStart} →
         </button>
       </div>
@@ -289,10 +283,14 @@ export default function Portfolio({ onBack }) {
   // ── Asset screen ─────────────────────────────────────────────────
   if (selected) {
     const marketStatus = getMarketStatus(selected.type, t);
+    const info         = ASSET_INFO[selected.symbol];
+    const lang         = t.portfolio.buy === 'Buy' ? 'en' : t.portfolio.buy === 'Comprar' ? 'es' : 'de';
+
     return (
       <div id="gtm-root" style={{ position: 'relative' }}>
         <div className="scanlines" />
 
+        {/* Header */}
         <div style={{ padding: '14px 20px', borderBottom: '1px solid #1e2530', display: 'flex', alignItems: 'center', gap: '12px', position: 'relative', zIndex: 2 }}>
           <button onClick={() => { setSelected(null); setAssetCandles(null); }}
             style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}
@@ -314,45 +312,45 @@ export default function Portfolio({ onBack }) {
           </div>
         </div>
 
-        <div style={{ position: 'relative', zIndex: 2 , height: '280px'}}>
+        {/* Chart */}
+        <div style={{ position: 'relative', zIndex: 2, height: '260px' }}>
           {loadingCandles ? (
-            <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#3a4455', fontFamily: "'Space Mono', monospace" }}>
+            <div style={{ height: '260px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#3a4455', fontFamily: "'Space Mono', monospace" }}>
               loading chart...
             </div>
           ) : assetCandles && stableAsset ? (
             <Chart ref={chartRef} asset={stableAsset} externalCandles={assetCandles} />
           ) : (
-            <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#3a4455', fontFamily: "'Space Mono', monospace" }}>
+            <div style={{ height: '260px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#3a4455', fontFamily: "'Space Mono', monospace" }}>
               no chart data
             </div>
           )}
         </div>
-        {(() => {
-         const info = ASSET_INFO[selected.symbol];
-         const lang = t.portfolio.buy === 'Buy' ? 'en' : t.portfolio.buy === 'Comprar' ? 'es' : 'de';
-         if (!info) return null;
-         return (
-           <div style={{ margin: '12px 20px 0', padding: '12px', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px', position: 'relative', zIndex: 2 }}>
-             <div style={{ display: 'flex', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
-               <span style={{ fontSize: '9px', color: '#378ADD', background: 'rgba(55,138,221,0.1)', padding: '2px 8px', borderRadius: '4px', letterSpacing: '0.04em' }}>{info.sector}</span>
-               <span style={{ fontSize: '9px', color: '#4a5568', background: '#0a0c0f', padding: '2px 8px', borderRadius: '4px', letterSpacing: '0.04em' }}>{info.country}</span>
-               <span style={{ fontSize: '9px', color: '#f5c842', background: 'rgba(245,200,66,0.08)', padding: '2px 8px', borderRadius: '4px', letterSpacing: '0.04em' }}>{info.cap}</span>
-             </div>
-             <div style={{ fontSize: '10px', color: '#6b7a8d', lineHeight: 1.6 }}>{info[lang]}</div>
-           </div>
-         );
-       })()}
+
+        {/* Info del activo */}
+        {info && (
+          <div style={{ margin: '12px 20px 0', padding: '14px 16px', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px', position: 'relative', zIndex: 2 }}>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '9px', color: '#378ADD', background: 'rgba(55,138,221,0.1)', padding: '3px 10px', borderRadius: '4px', letterSpacing: '0.04em' }}>{info.sector}</span>
+              <span style={{ fontSize: '9px', color: '#4a5568', background: '#0a0c0f', padding: '3px 10px', borderRadius: '4px', letterSpacing: '0.04em' }}>{info.country}</span>
+              <span style={{ fontSize: '9px', color: '#f5c842', background: 'rgba(245,200,66,0.08)', padding: '3px 10px', borderRadius: '4px', letterSpacing: '0.04em' }}>{info.cap}</span>
+            </div>
+            <div style={{ fontSize: '11px', color: '#6b7a8d', lineHeight: 1.7 }}>{info[lang]}</div>
+          </div>
+        )}
+
+        {/* Posición actual */}
         {selectedPos && (
-          <div style={{ margin: '0 20px 12px', padding: '12px', background: '#0f141b', border: `1px solid ${selectedPos.pnl >= 0 ? 'rgba(34,211,165,0.3)' : 'rgba(240,84,84,0.3)'}`, borderRadius: '8px', position: 'relative', zIndex: 2 }}>
+          <div style={{ margin: '12px 20px 0', padding: '16px', background: '#0f141b', border: `1px solid ${selectedPos.pnl >= 0 ? 'rgba(34,211,165,0.3)' : 'rgba(240,84,84,0.3)'}`, borderRadius: '10px', position: 'relative', zIndex: 2 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '2px' }}>{t.portfolio.yourPosition}</div>
-                <div style={{ fontSize: '12px', color: '#f0f0f0', fontFamily: "'Syne', sans-serif", fontWeight: 700 }}>{selectedPos.qty} {t.portfolio.units}</div>
-                <div style={{ fontSize: '9px', color: '#4a5568' }}>{t.portfolio.avgPrice} {formatPrice(selectedPos.avgPrice, selected.type)}</div>
+                <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '6px' }}>{t.portfolio.yourPosition}</div>
+                <div style={{ fontSize: '16px', color: '#f0f0f0', fontFamily: "'Syne', sans-serif", fontWeight: 800 }}>{selectedPos.qty} {t.portfolio.units}</div>
+                <div style={{ fontSize: '10px', color: '#4a5568', marginTop: '4px' }}>{t.portfolio.avgPrice} {formatPrice(selectedPos.avgPrice, selected.type)}</div>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '14px', fontFamily: "'Syne', sans-serif", fontWeight: 800, color: '#f0f0f0' }}>{formatCash(selectedPos.value)}</div>
-                <div style={{ fontSize: '11px', color: selectedPos.pnl >= 0 ? '#22d3a5' : '#f05454', fontWeight: 700 }}>
+                <div style={{ fontSize: '20px', fontFamily: "'Syne', sans-serif", fontWeight: 800, color: '#f0f0f0' }}>{formatCash(selectedPos.value)}</div>
+                <div style={{ fontSize: '13px', color: selectedPos.pnl >= 0 ? '#22d3a5' : '#f05454', fontWeight: 700, marginTop: '4px' }}>
                   {selectedPos.pnl >= 0 ? '+' : ''}{formatCash(selectedPos.pnl)} ({formatChange(selectedPos.pnlPct)})
                 </div>
               </div>
@@ -360,7 +358,8 @@ export default function Portfolio({ onBack }) {
           </div>
         )}
 
-        <div style={{ margin: '0 20px', padding: '16px', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px', position: 'relative', zIndex: 2 }}>
+        {/* Panel compra/venta */}
+        <div style={{ margin: '12px 20px 20px', padding: '16px', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px', position: 'relative', zIndex: 2 }}>
           <div style={{ display: 'flex', gap: '6px', marginBottom: '14px' }}>
             <button onClick={() => setAction('buy')} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: `1px solid ${action === 'buy' ? '#22d3a5' : '#2a3345'}`, background: action === 'buy' ? 'rgba(34,211,165,0.08)' : 'transparent', color: action === 'buy' ? '#22d3a5' : '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>{t.portfolio.buy}</button>
             <button onClick={() => setAction('sell')} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: `1px solid ${action === 'sell' ? '#f05454' : '#2a3345'}`, background: action === 'sell' ? 'rgba(240,84,84,0.08)' : 'transparent', color: action === 'sell' ? '#f05454' : '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>{t.portfolio.sell}</button>
@@ -394,7 +393,7 @@ export default function Portfolio({ onBack }) {
             {t.portfolio.cashAvailable}: <span style={{ color: '#f0f0f0' }}>{formatCash(portfolio?.cash || 0)}</span>
           </div>
 
-          {error && <div style={{ fontSize: '10px', color: '#f05454', marginBottom: '10px' }}>{error}</div>}
+          {error    && <div style={{ fontSize: '10px', color: '#f05454', marginBottom: '10px' }}>{error}</div>}
           {tradeMsg && <div style={{ fontSize: '10px', color: '#22d3a5', marginBottom: '10px' }}>{tradeMsg}</div>}
 
           <button onClick={handleTrade} disabled={loading || !qty || parseFloat(qty) <= 0}
@@ -424,24 +423,24 @@ export default function Portfolio({ onBack }) {
       </div>
 
       {/* Summary */}
-    <div style={{ padding: '16px 20px', borderBottom: '1px solid #1e2530', position: 'relative', zIndex: 2 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-        <div style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
-          <div style={{ fontSize: '8px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>{t.portfolio.cash}</div>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: '#f0f0f0' }}>{formatCash(portfolio?.cash || 0)}</div>
+      <div style={{ padding: '16px 20px', borderBottom: '1px solid #1e2530', position: 'relative', zIndex: 2 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+          <div style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
+            <div style={{ fontSize: '8px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>{t.portfolio.cash}</div>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: '#f0f0f0' }}>{formatCash(portfolio?.cash || 0)}</div>
+          </div>
+          <div style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
+            <div style={{ fontSize: '8px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>{t.portfolio.invested}</div>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: '#f0f0f0' }}>{formatCash(totalInvested)}</div>
+          </div>
         </div>
-        <div style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
-          <div style={{ fontSize: '8px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>{t.portfolio.invested}</div>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: '#f0f0f0' }}>{formatCash(totalInvested)}</div>
+        <div style={{ background: '#0f141b', border: `1px solid ${totalPnl >= 0 ? 'rgba(34,211,165,0.3)' : 'rgba(240,84,84,0.3)'}`, borderRadius: '8px', padding: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ fontSize: '8px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase' }}>P&L</div>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '15px', color: totalPnl >= 0 ? '#22d3a5' : '#f05454' }}>
+            {totalPnl >= 0 ? '+' : ''}{formatCash(totalPnl)}
+          </div>
         </div>
       </div>
-      <div style={{ background: '#0f141b', border: `1px solid ${totalPnl >= 0 ? 'rgba(34,211,165,0.3)' : 'rgba(240,84,84,0.3)'}`, borderRadius: '8px', padding: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ fontSize: '8px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase' }}>P&L</div>
-        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '15px', color: totalPnl >= 0 ? '#22d3a5' : '#f05454' }}>
-          {totalPnl >= 0 ? '+' : ''}{formatCash(totalPnl)}
-        </div>
-      </div>
-    </div>
 
       {/* Gráfico histórico */}
       {portfolioHistory.length > 1 && (
@@ -484,10 +483,10 @@ export default function Portfolio({ onBack }) {
       {/* Tabs */}
       <div style={{ display: 'flex', borderBottom: '1px solid #1e2530', position: 'relative', zIndex: 2, marginTop: '16px' }}>
         {[
-          ['market',     t.portfolio.market],
-          ['portfolio',  t.portfolio.positions],
-          ['leaderboard','🏆 Ranking'],
-          ['history',    t.portfolio.history],
+          ['market',      t.portfolio.market],
+          ['portfolio',   t.portfolio.positions],
+          ['leaderboard', '🏆 Ranking'],
+          ['history',     t.portfolio.history],
         ].map(([id, label]) => (
           <button key={id} onClick={() => setTab(id)}
             style={{ flex: 1, padding: '12px 4px', background: 'transparent', border: 'none', borderBottom: `2px solid ${tab === id ? '#22d3a5' : 'transparent'}`, color: tab === id ? '#22d3a5' : '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '8px', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.15s' }}>
@@ -501,10 +500,10 @@ export default function Portfolio({ onBack }) {
         <div style={{ position: 'relative', zIndex: 2 }}>
           <div style={{ display: 'flex', gap: '6px', padding: '12px 20px', overflowX: 'auto' }}>
             {[
-              ['all', t.portfolio.all],
-              ['stocks', t.portfolio.stocks],
-              ['indices', t.portfolio.indices],
-              ['crypto', t.portfolio.crypto],
+              ['all',         t.portfolio.all],
+              ['stocks',      t.portfolio.stocks],
+              ['indices',     t.portfolio.indices],
+              ['crypto',      t.portfolio.crypto],
               ['commodities', t.portfolio.commodities],
             ].map(([id, label]) => (
               <button key={id} onClick={() => setFilter(id)}
@@ -588,19 +587,11 @@ export default function Portfolio({ onBack }) {
           {leaderboard.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '60px 20px' }}>
               <div style={{ fontSize: '32px', marginBottom: '12px' }}>🏆</div>
-              <div style={{ fontSize: '11px', color: '#4a5568', fontFamily: "'Space Mono', monospace" }}>
-                aún no hay datos
-              </div>
+              <div style={{ fontSize: '11px', color: '#4a5568', fontFamily: "'Space Mono', monospace" }}>aún no hay datos</div>
             </div>
           ) : (
             leaderboard.map((entry, i) => (
-              <div key={i} style={{
-                display: 'flex', alignItems: 'center', gap: '12px',
-                padding: '10px 12px',
-                background: '#0f141b',
-                border: `1px solid ${i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#1e2530'}`,
-                borderRadius: '8px', marginBottom: '8px',
-              }}>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: '#0f141b', border: `1px solid ${i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#1e2530'}`, borderRadius: '8px', marginBottom: '8px' }}>
                 <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#3a4455', width: '24px', flexShrink: 0 }}>
                   {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
                 </div>
