@@ -182,8 +182,6 @@ const PORTFOLIO_ASSETS = [
   { symbol: 'AMD',   name: 'AMD',                type: 'stock', source: 'finnhub' },
   { symbol: 'ORCL',  name: 'Oracle',             type: 'stock', source: 'finnhub' },
   { symbol: 'INTC',  name: 'Intel',              type: 'stock', source: 'finnhub' },
-  { symbol: 'SPOT',  name: 'Spotify',            type: 'stock', source: 'finnhub' },
-  { symbol: 'SHOP',  name: 'Shopify',            type: 'stock', source: 'finnhub' },
   { symbol: 'PLTR',  name: 'Palantir',           type: 'stock', source: 'finnhub' },
   { symbol: 'HOOD',  name: 'Robinhood',          type: 'stock', source: 'finnhub' },
   { symbol: 'MSTR',  name: 'MicroStrategy',      type: 'stock', source: 'finnhub' },
@@ -191,10 +189,8 @@ const PORTFOLIO_ASSETS = [
   
   // ── Acciones europeas ─────────────────────────────────────────────
   { symbol: 'ASML',  name: 'ASML',               type: 'stock', source: 'finnhub' },
-  { symbol: 'SAP',   name: 'SAP',                type: 'stock', source: 'finnhub' },
   { symbol: 'LVMUY', name: 'LVMH',               type: 'stock', source: 'finnhub' },
   { symbol: 'NSRGY', name: 'Nestlé',             type: 'stock', source: 'finnhub' },
-  { symbol: 'SIEGY', name: 'Siemens',            type: 'stock', source: 'finnhub' },
   { symbol: 'IDEXY', name: 'Inditex',            type: 'stock', source: 'finnhub' },
   { symbol: 'ALIZF', name: 'Allianz',            type: 'stock', source: 'finnhub' },
   { symbol: 'BAYZF', name: 'Bayer',              type: 'stock', source: 'finnhub' },
@@ -225,8 +221,6 @@ const PORTFOLIO_ASSETS = [
   // ── Materias primas ───────────────────────────────────────────────
   { symbol: 'GLD',   name: 'Gold',               type: 'commodity', source: 'finnhub' },
   { symbol: 'SLV',   name: 'Silver',             type: 'commodity', source: 'finnhub' },
-  { symbol: 'PDBC',  name: 'Commodities',        type: 'commodity', source: 'finnhub' },
-  { symbol: 'PPLT',  name: 'Platinum',           type: 'commodity', source: 'finnhub' },
 ];
 
 async function getPrice(asset) {

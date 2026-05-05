@@ -466,7 +466,7 @@ export default function Portfolio({ onBack }) {
         <div style={{ padding: '16px 20px 0', position: 'relative', zIndex: 2 }}>
           <div style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px', padding: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <div style={{ fontSize: '9px', color: '#6b7a8d', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Valor total</div>
+              <div style={{ fontSize: '9px', color: '#6b7a8d', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{t.portfolio.totalValue}</div>
               <div style={{ fontSize: '9px', color: portfolioHistory[portfolioHistory.length - 1].totalValue >= 50000 ? '#22d3a5' : '#f05454', fontWeight: 700 }}>
                 {portfolioHistory[portfolioHistory.length - 1].totalValue >= 50000 ? '+' : ''}
                 {((portfolioHistory[portfolioHistory.length - 1].totalValue - 50000) / 50000 * 100).toFixed(2)}% vs inicio
@@ -606,7 +606,7 @@ export default function Portfolio({ onBack }) {
           {leaderboard.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '60px 20px' }}>
               <div style={{ fontSize: '32px', marginBottom: '12px' }}>🏆</div>
-              <div style={{ fontSize: '11px', color: '#4a5568', fontFamily: "'Space Mono', monospace" }}>aún no hay datos</div>
+              <div style={{ fontSize: '11px', color: '#4a5568', fontFamily: "'Space Mono', monospace" }}>{t.portfolio.noLeaderboard}</div>
             </div>
           ) : (
             leaderboard.map((entry, i) => (

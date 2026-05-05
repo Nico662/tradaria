@@ -216,6 +216,8 @@ export const LANGS = {
       welcomePoint4title: 'Learn by doing',
       welcomePoint4:      'Practice investing before risking real money.',
       welcomeStart:       'Start investing',
+      totalValue: 'Total value',
+      noLeaderboard: 'no data yet',
     },
   },
 
@@ -436,6 +438,8 @@ export const LANGS = {
       welcomePoint4title: 'Aprende haciendo',
       welcomePoint4:      'Practica la inversión antes de arriesgar dinero real.',
       welcomeStart:       'Empezar a invertir',
+      totalValue: 'Valor total',
+      noLeaderboard: 'aún no hay datos',
     },
   },
 
@@ -656,6 +660,8 @@ export const LANGS = {
       welcomePoint4title: 'Lernen durch Tun',
       welcomePoint4:      'Übe das Investieren bevor du echtes Geld riskierst.',
       welcomeStart:       'Mit Investieren beginnen',
+      totalValue: 'Gesamtwert',
+      noLeaderboard: 'noch keine Daten',
     },
   },
 };
