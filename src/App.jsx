@@ -87,19 +87,18 @@ export default function App() {
 
   function analyzeCandles(candles) {
    if (!candles || candles.length < 5) return null;
-    const last5    = candles.slice(-5);
-    const green    = last5.filter(c => c.close > c.open).length;
-    const red      = last5.length - green;
-    const visible  = candles;
-    const first    = visible[0].close;
-    const last     = visible[visible.length - 1].close;
-    const change   = ((last - first) / first) * 100;
-    const trend    = change > 1 ? 'bullish' : change < -1 ? 'bearish' : 'neutral';
-    const ranges   = candles.map(c => (c.high - c.low) / c.close * 100);
-    const avgRange = ranges.reduce((a, b) => a + b, 0) / ranges.length;
-    const vol      = avgRange < 0.5 ? 'low' : avgRange < 1.5 ? 'medium' : 'high';
-    return { trend, green, red, change, vol };
-   }
+   const last5    = candles.slice(-5);
+   const green    = last5.filter(c => c.close > c.open).length;
+   const red      = last5.length - green;
+   const first    = candles[0].close;
+   const last     = candles[candles.length - 1].close;
+   const change   = ((last - first) / first) * 100;
+   const trend    = change > 0.5 ? 'bullish' : change < -0.5 ? 'bearish' : 'neutral';
+   const ranges   = candles.map(c => (c.high - c.low) / c.close * 100);
+   const avgRange = ranges.reduce((a, b) => a + b, 0) / ranges.length;
+   const vol      = avgRange < 0.5 ? 'low' : avgRange < 1.5 ? 'medium' : 'high';
+   return { trend, green, red, change, vol };
+ }
 
   function tryUnlockBadge(id) {
     const unlocked = unlockBadge(id);
