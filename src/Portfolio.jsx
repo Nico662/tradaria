@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { useLang } from './LangContext.jsx';
 import Chart from './Chart.jsx';
+import { ASSET_INFO } from './assetInfo.js';
 
 const SERVER = 'https://tradara-production.up.railway.app';
 
@@ -326,7 +327,21 @@ export default function Portfolio({ onBack }) {
             </div>
           )}
         </div>
-
+        {(() => {
+         const info = ASSET_INFO[selected.symbol];
+         const lang = t.portfolio.buy === 'Buy' ? 'en' : t.portfolio.buy === 'Comprar' ? 'es' : 'de';
+         if (!info) return null;
+         return (
+           <div style={{ margin: '12px 20px 0', padding: '12px', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px', position: 'relative', zIndex: 2 }}>
+             <div style={{ display: 'flex', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
+               <span style={{ fontSize: '9px', color: '#378ADD', background: 'rgba(55,138,221,0.1)', padding: '2px 8px', borderRadius: '4px', letterSpacing: '0.04em' }}>{info.sector}</span>
+               <span style={{ fontSize: '9px', color: '#4a5568', background: '#0a0c0f', padding: '2px 8px', borderRadius: '4px', letterSpacing: '0.04em' }}>{info.country}</span>
+               <span style={{ fontSize: '9px', color: '#f5c842', background: 'rgba(245,200,66,0.08)', padding: '2px 8px', borderRadius: '4px', letterSpacing: '0.04em' }}>{info.cap}</span>
+             </div>
+             <div style={{ fontSize: '10px', color: '#6b7a8d', lineHeight: 1.6 }}>{info[lang]}</div>
+           </div>
+         );
+       })()}
         {selectedPos && (
           <div style={{ margin: '0 20px 12px', padding: '12px', background: '#0f141b', border: `1px solid ${selectedPos.pnl >= 0 ? 'rgba(34,211,165,0.3)' : 'rgba(240,84,84,0.3)'}`, borderRadius: '8px', position: 'relative', zIndex: 2 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
