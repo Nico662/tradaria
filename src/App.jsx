@@ -90,7 +90,7 @@ export default function App() {
     const last5    = candles.slice(-5);
     const green    = last5.filter(c => c.close > c.open).length;
     const red      = last5.length - green;
-    const visible  = candles.slice(-20);
+    const visible  = candles;
     const first    = visible[0].close;
     const last     = visible[visible.length - 1].close;
     const change   = ((last - first) / first) * 100;
