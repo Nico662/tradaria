@@ -314,7 +314,7 @@ export default function Portfolio({ onBack }) {
           </div>
         </div>
 
-        <div style={{ position: 'relative', zIndex: 2 }}>
+        <div style={{ position: 'relative', zIndex: 2 , height: '280px'}}>
           {loadingCandles ? (
             <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#3a4455', fontFamily: "'Space Mono', monospace" }}>
               loading chart...

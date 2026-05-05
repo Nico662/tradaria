@@ -3,10 +3,10 @@ export const ASSET_INFO = {
   AAPL: {
     sector: 'Technology',
     country: 'USA',
-    cap: '$2.8T',
-    en: 'Apple is the world\'s most valuable company, known for the iPhone, Mac, and App Store ecosystem.',
-    es: 'Apple es la empresa más valiosa del mundo, conocida por el iPhone, Mac y el ecosistema App Store.',
-    de: 'Apple ist das wertvollste Unternehmen der Welt, bekannt für iPhone, Mac und das App Store-Ökosystem.',
+    cap: '$4.0T',
+    en: 'Apple is one of the world\'s most valuable companies, known for the iPhone, Mac, and App Store ecosystem.',
+    es: 'Apple es una de lasempresas más valiosas del mundo, conocida por el iPhone, Mac y el ecosistema App Store.',
+    de: 'Apple ist eine der wertvollsten Unternehmen der Welt, bekannt für iPhone, Mac und das App Store-Ökosystem.',
   },
   MSFT: {
     sector: 'Technology',
@@ -19,7 +19,7 @@ export const ASSET_INFO = {
   NVDA: {
     sector: 'Semiconductors',
     country: 'USA',
-    cap: '$2.2T',
+    cap: '$4.8T',
     en: 'NVIDIA leads the AI chip revolution with its GPUs powering data centers and AI models worldwide.',
     es: 'NVIDIA lidera la revolución de chips IA con sus GPUs que impulsan centros de datos y modelos de IA.',
     de: 'NVIDIA führt die KI-Chip-Revolution mit GPUs an, die Rechenzentren und KI-Modelle weltweit antreiben.',
@@ -35,7 +35,7 @@ export const ASSET_INFO = {
   AMZN: {
     sector: 'E-Commerce / Cloud',
     country: 'USA',
-    cap: '$2.1T',
+    cap: '$2.2T',
     en: 'Amazon is the world\'s largest online retailer and cloud provider through AWS.',
     es: 'Amazon es el mayor minorista online del mundo y proveedor de cloud a través de AWS.',
     de: 'Amazon ist der weltgrößte Online-Händler und Cloud-Anbieter durch AWS.',
@@ -43,7 +43,7 @@ export const ASSET_INFO = {
   META: {
     sector: 'Social Media',
     country: 'USA',
-    cap: '$1.4T',
+    cap: '$1.5T',
     en: 'Meta owns Facebook, Instagram, and WhatsApp, reaching over 3 billion people daily.',
     es: 'Meta es dueña de Facebook, Instagram y WhatsApp, llegando a más de 3.000 millones de personas al día.',
     de: 'Meta besitzt Facebook, Instagram und WhatsApp und erreicht täglich über 3 Milliarden Menschen.',
@@ -51,7 +51,7 @@ export const ASSET_INFO = {
   TSLA: {
     sector: 'Electric Vehicles',
     country: 'USA',
-    cap: '$800B',
+    cap: '$850B',
     en: 'Tesla is the world leader in electric vehicles and energy storage, led by Elon Musk.',
     es: 'Tesla es el líder mundial en vehículos eléctricos y almacenamiento de energía, liderada por Elon Musk.',
     de: 'Tesla ist der Weltmarktführer bei Elektrofahrzeugen und Energiespeicherung, geführt von Elon Musk.',
@@ -275,7 +275,7 @@ export const ASSET_INFO = {
   TSM: {
     sector: 'Semiconductors',
     country: 'Taiwan',
-    cap: '$900B',
+    cap: '$950B',
     en: 'TSMC manufactures chips for Apple, NVIDIA, and AMD — controlling over 50% of the global foundry market.',
     es: 'TSMC fabrica chips para Apple, NVIDIA y AMD — controlando más del 50% del mercado global de fundición.',
     de: 'TSMC stellt Chips für Apple, NVIDIA und AMD her und kontrolliert über 50% des globalen Foundry-Markts.',
