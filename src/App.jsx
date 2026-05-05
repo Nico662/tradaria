@@ -80,6 +80,7 @@ export default function App() {
   const [xp,          setXp]        = useState(() => getXP());
   const [floatingXP,  setFloatingXP]= useState(null);
   const [activeEffect,setActiveEffect] = useState(false);
+  const [chartReady, setChartReady] = useState(false);
   const { syncProgress, activeCosmetics = {} } = useAuth();
   const { lang, setLang, t } = useLang();
   const chartRef = useRef(null);
@@ -242,6 +243,7 @@ export default function App() {
   }, [phase, asset, streak, score, highscore]);
 
   const changeCategory = (cat) => {
+    setChartReady(false);
     setCategory(cat);
     setAsset(randomAsset(cat));
     setPhase('choose');
@@ -250,6 +252,7 @@ export default function App() {
   };
 
   const nextRound = () => {
+    setChartReady(false);
     if (round >= 25) {
       setGameOver(true);
       return;
@@ -263,6 +266,7 @@ export default function App() {
     setResult(null);
     setSelected(null);
     setRound(r => r + 1);
+    
   };
 
   const goHome = () => {
@@ -501,7 +505,7 @@ export default function App() {
 
       <div className="chart-area">
         <div className="chart-wrapper">
-          <Chart ref={chartRef} asset={asset} />
+          <Chart ref={chartRef} asset={asset} onReady={() => setChartReady(true)} />
           <div className={`phase-label${phase === 'reveal' ? ' active' : ''}`}>
             {phase === 'choose' ? t.game.reading : result
               ? (result.direction === 'up' ? t.game.bullish : result.direction === 'down' ? t.game.bearish : t.game.ranging)
@@ -516,7 +520,7 @@ export default function App() {
         ))}
         {streak > 1 && <span className="streak-label">{streak}x streak</span>}
       </div>
-         {phase === 'choose' && (() => {
+         {phase === 'choose' && chartReady && (() => {
           const candles  = chartRef.current?.getCandles?.();
           const analysis = analyzeCandles(candles);
            if (!analysis) return null;
