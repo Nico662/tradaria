@@ -80,10 +80,24 @@ export default function App() {
   const [xp,          setXp]        = useState(() => getXP());
   const [floatingXP,  setFloatingXP]= useState(null);
   const [activeEffect,setActiveEffect] = useState(false);
-
   const { syncProgress, activeCosmetics = {} } = useAuth();
   const { lang, setLang, t } = useLang();
   const chartRef = useRef(null);
+
+  function analyzeCandles(candles) {
+   if (!candles || candles.length < 5) return null;
+    const last5    = candles.slice(-5);
+    const green    = last5.filter(c => c.close > c.open).length;
+    const red      = last5.length - green;
+    const first    = candles[0].close;
+    const last     = candles[candles.length - 1].close;
+    const change   = ((last - first) / first) * 100;
+    const trend    = change > 1 ? 'bullish' : change < -1 ? 'bearish' : 'neutral';
+    const ranges   = candles.map(c => (c.high - c.low) / c.close * 100);
+    const avgRange = ranges.reduce((a, b) => a + b, 0) / ranges.length;
+    const vol      = avgRange < 0.5 ? 'low' : avgRange < 1.5 ? 'medium' : 'high';
+    return { trend, green, red, change, vol };
+   }
 
   function tryUnlockBadge(id) {
     const unlocked = unlockBadge(id);
@@ -501,7 +515,32 @@ export default function App() {
         ))}
         {streak > 1 && <span className="streak-label">{streak}x streak</span>}
       </div>
-
+         {phase === 'choose' && (() => {
+          const candles  = chartRef.current?.getCandles?.();
+          const analysis = analyzeCandles(candles);
+           if (!analysis) return null;
+            const trendColor = analysis.trend === 'bullish' ? '#22d3a5' : analysis.trend === 'bearish' ? '#f05454' : '#f5c842';
+            const trendLabel = analysis.trend === 'bullish' ? t.game.bullish : analysis.trend === 'bearish' ? t.game.bearish : t.game.ranging;
+            const volColor   = analysis.vol === 'low' ? '#22d3a5' : analysis.vol === 'medium' ? '#f5c842' : '#f05454';
+            const volLabel   = analysis.vol === 'low' ? 'low' : analysis.vol === 'medium' ? 'medium' : 'high';
+         return (
+          <div style={{ padding: '6px 20px 0', position: 'relative', zIndex: 2 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+        {[
+          { label: 'trend',      value: trendLabel,                                                          color: trendColor },
+          { label: 'last 5',     value: `${analysis.green}▲ ${analysis.red}▼`,                              color: analysis.green > analysis.red ? '#22d3a5' : '#f05454' },
+          { label: 'change',     value: `${analysis.change >= 0 ? '+' : ''}${analysis.change.toFixed(1)}%`, color: analysis.change >= 0 ? '#22d3a5' : '#f05454' },
+          { label: 'volatility', value: volLabel,                                                            color: volColor },
+        ].map(s => (
+          <div key={s.label} style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '6px', padding: '7px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '8px', color: '#4a5568', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{s.label}</span>
+            <span style={{ fontSize: '11px', color: s.color, fontWeight: 700 }}>{s.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+})()}
       {phase === 'choose' && (
         <div className="action-zone">
           <div className="prompt-text">{t.game.whatNext}</div>
