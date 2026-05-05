@@ -35,7 +35,6 @@ async function fetchYahooCandles(symbol, interval) {
   const res  = await fetch(`https://tradara-production.up.railway.app/candles?symbol=${encodeURIComponent(symbol)}&interval=${interval}`);
   const data = await res.json();
   if (data.error) throw new Error(data.error);
-  return data;
 }
 
 async function fetchAlphaVantageCandles(symbol, interval) {

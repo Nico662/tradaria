@@ -86,12 +86,13 @@ export default function App() {
   const chartRef = useRef(null);
 
   function analyzeCandles(candles) {
-   if (!candles || candles.length < 5) return null;
+  if (!candles || candles.length < 5) return null;
    const last5    = candles.slice(-5);
    const green    = last5.filter(c => c.close > c.open).length;
    const red      = last5.length - green;
-   const first    = candles[0].close;
-   const last     = candles[candles.length - 1].close;
+   const visible  = candles.slice(-20);
+   const first    = visible[0].close;
+   const last     = visible[visible.length - 1].close;
    const change   = ((last - first) / first) * 100;
    const trend    = change > 0.5 ? 'bullish' : change < -0.5 ? 'bearish' : 'neutral';
    const ranges   = candles.map(c => (c.high - c.low) / c.close * 100);
