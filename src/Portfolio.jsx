@@ -253,7 +253,26 @@ export default function Portfolio({ onBack }) {
   });
 
   const totalInvested = positionsWithValue.reduce((s, p) => s + p.cost, 0);
-  const totalPnl      = positionsWithValue.reduce((s, p) => s + p.pnl, 0);
+  // P&L no realizado (posiciones abiertas)
+ const unrealizedPnl = positionsWithValue.reduce((s, p) => s + p.pnl, 0);
+
+ // P&L realizado (ventas cerradas)
+ const realizedPnl = (portfolio?.transactions || [])
+  .filter(tx => tx.action === 'sell')
+  .reduce((s, tx) => {
+    // Buscar el precio medio de compra de esa posición en el momento de la venta
+    // Como no tenemos ese dato exacto, usamos precio venta - precio medio actual como aproximación
+    // Mejor: total recibido - coste original (qty * avgPrice en el momento)
+    // Usamos las compras previas para calcular el coste
+    const buys = (portfolio?.transactions || [])
+      .filter(t => t.action === 'buy' && t.symbol === tx.symbol);
+    const totalBought = buys.reduce((a, b) => a + b.qty, 0);
+    const totalCost   = buys.reduce((a, b) => a + b.total, 0);
+    const avgCost     = totalBought > 0 ? totalCost / totalBought : tx.price;
+    return s + (tx.price - avgCost) * tx.qty;
+  }, 0);
+
+ const totalPnl = unrealizedPnl + realizedPnl;
   const totalValue    = (portfolio?.cash || 0) + positionsWithValue.reduce((s, p) => s + p.value, 0);
 
   const filterMap = {
