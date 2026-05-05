@@ -369,7 +369,7 @@ export default function Portfolio({ onBack }) {
             <input
               type="number" value={qty} onChange={e => setQty(e.target.value)}
               placeholder="0.00" min="0" step="0.01"
-              style={{ flex: 1, background: '#0a0c0f', border: '1px solid #2a3345', borderRadius: '6px', padding: '10px 12px', color: '#e2e8f0', fontFamily: "'Space Mono', monospace", fontSize: '12px', outline: 'none' }}
+              style={{ flex: 1, background: '#0a0c0f', border: '1px solid #2a3345', borderRadius: '6px', padding: '10px 12px', color: '#e2e8f0', fontFamily: "'Space Mono', monospace", fontSize: '12px', outline: 'none' , position: 'relative', zIndex: 100, touchAction: 'auto', pointerEvents: 'all'}}
             />
             <button onClick={() => {
               if (action === 'buy' && selectedPrice?.price) {
