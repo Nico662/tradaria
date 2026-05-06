@@ -131,13 +131,13 @@ export default function App() {
 
   function updateDailyStreak() {
     const today      = new Date().toDateString();
-    const lastPlayed = localStorage.getItem('tradara_last_played');
+    const lastPlayed = localStorage.getItem('tradara_daily_last');
     const yesterday  = new Date(Date.now() - 86400000).toDateString();
     if (lastPlayed === today) return;
     const current   = parseInt(localStorage.getItem('tradara_daily_streak') || '0');
     const newStreak = lastPlayed === yesterday ? current + 1 : 1;
     localStorage.setItem('tradara_daily_streak', String(newStreak));
-    localStorage.setItem('tradara_last_played', today);
+    localStorage.setItem('tradara_daily_last', today);
     if (newStreak >= 3)  tryUnlockBadge('consistent');
     if (newStreak >= 7)  tryUnlockBadge('dedicated');
     if (newStreak >= 30) tryUnlockBadge('legend');

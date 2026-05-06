@@ -238,7 +238,7 @@ export default function Daily({ onBack }) {
 
             {phase === 'reveal' && result && !revealing && (
               <div style={{ margin: '12px 20px 0', background: result.win ? 'rgba(34,211,165,0.05)' : 'rgba(240,84,84,0.05)', border: `1px solid ${resultColor}`, borderRadius: '8px', padding: '20px', textAlign: 'center' }}>
-                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px', color: resultColor, marginBottom: '8px' }}>
+                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: resultColor, marginBottom: '8px' }}>
                   {result.win ? t.daily.correct : t.daily.wrong}
                 </div>
                 <div style={{ fontSize: '11px', color: '#6b7a8d' }}>
@@ -256,7 +256,7 @@ export default function Daily({ onBack }) {
         {phase === 'already' && result && (
           <div style={{ background: result.win ? 'rgba(34,211,165,0.05)' : 'rgba(240,84,84,0.05)', border: `1px solid ${result.win ? '#22d3a5' : '#f05454'}`, borderRadius: '8px', padding: '28px', textAlign: 'center' }}>
             <div style={{ fontSize: '13px', color: '#4a5568', marginBottom: '12px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{t.daily.result}</div>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px', color: result.win ? '#22d3a5' : '#f05454', marginBottom: '8px' }}>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: result.win ? '#22d3a5' : '#f05454', marginBottom: '8px' }}>
               {result.win ? t.daily.correct : t.daily.wrong}
             </div>
             <div style={{ fontSize: '11px', color: '#6b7a8d', marginBottom: '16px' }}>
