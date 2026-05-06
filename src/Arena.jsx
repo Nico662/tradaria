@@ -8,7 +8,6 @@ import BadgeNotification from './BadgeNotification.jsx';
 
 const SOCKET_URL = 'https://tradara-production.up.railway.app';
 
-
 const BOT_NAMES = ['AlgoBot', 'TradeAI', 'MarketBot', 'CryptoBot', 'NeuralBot'];
 
 function generateBotCandles(count = 60) {
@@ -16,11 +15,11 @@ function generateBotCandles(count = 60) {
   let price = 100 + Math.random() * 900;
   let time = Math.floor(Date.now() / 1000) - count * 3600;
   for (let i = 0; i < count; i++) {
-    const open = price;
+    const open   = price;
     const change = (Math.random() - 0.48) * price * 0.02;
-    const close = open + change;
-    const high = Math.max(open, close) + Math.random() * price * 0.005;
-    const low  = Math.min(open, close) - Math.random() * price * 0.005;
+    const close  = open + change;
+    const high   = Math.max(open, close) + Math.random() * price * 0.005;
+    const low    = Math.min(open, close) - Math.random() * price * 0.005;
     candles.push({ time, open: +open.toFixed(2), high: +high.toFixed(2), low: +low.toFixed(2), close: +close.toFixed(2) });
     price = close;
     time += 3600;
@@ -29,22 +28,19 @@ function generateBotCandles(count = 60) {
 }
 
 function generateBotRound() {
-  const allCandles = generateBotCandles(70);
-  const visible = allCandles.slice(0, 60);
-  const future  = allCandles.slice(60);
+  const allCandles  = generateBotCandles(70);
+  const visible     = allCandles.slice(0, 60);
+  const future      = allCandles.slice(60);
   const lastVisible = visible[visible.length - 1].close;
   const lastFuture  = future[future.length - 1]?.close ?? lastVisible;
-  const pctMove = ((lastFuture - lastVisible) / lastVisible) * 100;
-  const direction = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
-  const assets = ['BTC/USD', 'ETH/USD', 'EUR/USD', 'GBP/USD', 'XAU/USD'];
+  const pctMove     = ((lastFuture - lastVisible) / lastVisible) * 100;
+  const direction   = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
+  const assets      = ['BTC/USD', 'ETH/USD', 'EUR/USD', 'GBP/USD', 'XAU/USD'];
   return {
     asset: assets[Math.floor(Math.random() * assets.length)],
-    visible,
-    future,
+    visible, future,
     pctMove: +pctMove.toFixed(2),
-    direction,
-    round: 1,
-    total: 10,
+    direction, round: 1, total: 10,
   };
 }
 
@@ -55,8 +51,7 @@ function botMakeChoice(direction) {
     if (direction === 'down') return 'short';
     return 'skip';
   }
-  const choices = ['long', 'short', 'skip'];
-  return choices[Math.floor(Math.random() * choices.length)];
+  return ['long', 'short', 'skip'][Math.floor(Math.random() * 3)];
 }
 
 export default function Arena({ onBack }) {
@@ -75,25 +70,23 @@ export default function Arena({ onBack }) {
   const [opponent,  setOpponent] = useState('');
   const [finalData, setFinalData]= useState(null);
   const [timeLeft,  setTimeLeft] = useState(15);
-  const [lobbyMode, setLobbyMode] = useState('select');
   const [roomCode,  setRoomCode] = useState('');
   const [joinCode,  setJoinCode] = useState('');
   const [chatMsg,   setChatMsg]  = useState(null);
   const [showChat,  setShowChat] = useState(false);
   const [newBadge,  setNewBadge] = useState(null);
-  const socketRef = useRef(null);
-  const timerRef  = useRef(null);
-  const [rematchState, setRematchState] = useState(null);
+  const socketRef       = useRef(null);
+  const timerRef        = useRef(null);
+  const [rematchState,     setRematchState]     = useState(null);
   const [rematchCountdown, setRematchCountdown] = useState(10);
   const rematchTimerRef = useRef(null);
 
-  // Bot state
-  const [isBotGame,   setIsBotGame]   = useState(false);
-  const [botName,     setBotName]     = useState('');
-  const [myBotScore,  setMyBotScore]  = useState(0);
-  const [botScore,    setBotScore]    = useState(0);
-  const [botRounds,   setBotRounds]   = useState([]);
-  const [currentBotRound, setCurrentBotRound] = useState(null);
+  const [isBotGame,        setIsBotGame]        = useState(false);
+  const [botName,          setBotName]           = useState('');
+  const [myBotScore,       setMyBotScore]        = useState(0);
+  const [botScore,         setBotScore]          = useState(0);
+  const [botRounds,        setBotRounds]         = useState([]);
+  const [currentBotRound,  setCurrentBotRound]   = useState(null);
   const BOT_TOTAL = 10;
 
   function tryUnlockArenaBadge(id) {
@@ -127,7 +120,6 @@ export default function Arena({ onBack }) {
     }, 1000);
   }
 
-  // ── Bot game logic ────────────────────────────────────────────────
   function startBotGame() {
     if (!name.trim()) return;
     socketRef.current?.disconnect();
@@ -166,13 +158,11 @@ export default function Arena({ onBack }) {
       const correctChoice = roundData.direction === 'up' ? 'long' : roundData.direction === 'down' ? 'short' : 'skip';
       const playerWins = choice === correctChoice;
       const botWins    = botChoice === correctChoice;
-
-      const newMyScore  = myBotScore  + (playerWins ? 100 : 0);
-      const newBotScore = botScore + (botWins    ? 100 : 0);
+      const newMyScore  = myBotScore + (playerWins ? 100 : 0);
+      const newBotScore = botScore   + (botWins    ? 100 : 0);
       setMyBotScore(newMyScore);
       setBotScore(newBotScore);
       setScores({ player: newMyScore, bot: newBotScore });
-
       setResult({
         direction: roundData.direction,
         pctMove:   roundData.pctMove,
@@ -184,17 +174,12 @@ export default function Arena({ onBack }) {
       });
       setPhase('result');
 
-      // avanzar ronda
       setTimeout(() => {
-        const nextRoundIndex = round; // round es 1-based, índice = round (siguiente)
+        const nextRoundIndex = round;
         if (nextRoundIndex >= BOT_TOTAL) {
-          // fin
-          const iWon  = newMyScore > newBotScore;
+          const iWon   = newMyScore > newBotScore;
           const isDraw = newMyScore === newBotScore;
-          setFinalData({
-            scores: { player: newMyScore, bot: newBotScore },
-            winner: iWon ? 'player' : isDraw ? 'draw' : 'bot',
-          });
+          setFinalData({ scores: { player: newMyScore, bot: newBotScore }, winner: iWon ? 'player' : isDraw ? 'draw' : 'bot' });
           if (iWon) {
             const wins = parseInt(localStorage.getItem('tradara_arena_wins') || '0') + 1;
             localStorage.setItem('tradara_arena_wins', String(wins));
@@ -226,78 +211,30 @@ export default function Arena({ onBack }) {
     setCurrentBotRound(null);
   }
 
-  // ── Socket ────────────────────────────────────────────────────────
   function initSocket(name) {
     if (socketRef.current) {
       if (socketRef.current.connected) return socketRef.current;
       socketRef.current.disconnect();
       socketRef.current = null;
     }
-
     const socket = io(SOCKET_URL, { reconnection: false });
     socketRef.current = socket;
 
-    socket.on('connect_error', () => {
-      setStatus('Error de conexión. ¿Está el servidor corriendo?');
-    });
-
-    socket.on('matchmaking:waiting', () => {
-      setScreen('waiting');
-      setStatus('Buscando oponente aleatorio...');
-    });
-
-    socket.on('room:created', (data) => {
-      setRoomCode(data.code);
-      setScreen('waiting');
-      setStatus('waiting_for_friend');
-    });
-
-    socket.on('room:error', (data) => {
-      setStatus(data.message);
-    });
-
-    socket.on('game:start', (data) => {
-      setGameData(data);
-      setRound(data.round);
-      setTotal(data.total);
-      setOpponent(data.opponent);
-      setScreen('game');
-      setPhase('choose');
-      setResult(null);
-      startTimer();
-    });
-
-    socket.on('game:opponent_chose', () => {
-      setStatus('Oponente ya eligió — esperando...');
-    });
-
-    socket.on('game:round_result', (data) => {
-      clearInterval(timerRef.current);
-      setScores(data.scores);
-      setNames(data.names);
-      setResult(data);
-      setPhase('result');
-    });
-
-    socket.on('game:next_round', (data) => {
-      setGameData(data);
-      setRound(data.round);
-      setResult(null);
-      setPhase('choose');
-      setStatus('');
-      startTimer();
-    });
-
-    socket.on('game:over', (data) => {
-      setFinalData(data);
+    socket.on('connect_error',             () => setStatus(t.arena.connError));
+    socket.on('matchmaking:waiting',       () => { setScreen('waiting'); setStatus(t.arena.searching); });
+    socket.on('room:created',         (d) => { setRoomCode(d.code); setScreen('waiting'); setStatus('waiting_for_friend'); });
+    socket.on('room:error',           (d) => setStatus(d.message));
+    socket.on('game:start',           (d) => { setGameData(d); setRound(d.round); setTotal(d.total); setOpponent(d.opponent); setScreen('game'); setPhase('choose'); setResult(null); startTimer(); });
+    socket.on('game:opponent_chose',       () => setStatus(t.arena.opponentChose));
+    socket.on('game:round_result',    (d) => { clearInterval(timerRef.current); setScores(d.scores); setNames(d.names); setResult(d); setPhase('result'); });
+    socket.on('game:next_round',      (d) => { setGameData(d); setRound(d.round); setResult(null); setPhase('choose'); setStatus(''); startTimer(); });
+    socket.on('game:over',            (d) => {
+      setFinalData(d);
       setScreen('gameover');
-
-      const myScore  = data.scores?.[socket.id] ?? 0;
-      const oppId    = Object.keys(data.scores ?? {}).find(id => id !== socket.id);
-      const oppScore = data.scores?.[oppId] ?? 0;
-      const iWon     = myScore > oppScore;
-
-      if (iWon) {
+      const myScore  = d.scores?.[socket.id] ?? 0;
+      const oppId    = Object.keys(d.scores ?? {}).find(id => id !== socket.id);
+      const oppScore = d.scores?.[oppId] ?? 0;
+      if (myScore > oppScore) {
         const wins = parseInt(localStorage.getItem('tradara_arena_wins') || '0') + 1;
         localStorage.setItem('tradara_arena_wins', String(wins));
         if (wins === 1) tryUnlockArenaBadge('first_blood');
@@ -305,42 +242,21 @@ export default function Arena({ onBack }) {
         if (myScore >= 1000) tryUnlockArenaBadge('unbeatable');
       }
     });
-
-    socket.on('game:error', (data) => {
-      setStatus(data.message);
-      setScreen('lobby');
-    });
-
-    socket.on('game:opponent_disconnected', () => {
-      setStatus('El oponente se desconectó');
-      setScreen('lobby');
-      socket.disconnect();
-    });
-
-    socket.on('game:opponent_forfeited', (data) => {
+    socket.on('game:error',           (d) => { setStatus(d.message); setScreen('lobby'); });
+    socket.on('game:opponent_disconnected', () => { setStatus(t.arena.oppDisconnected); setScreen('lobby'); socket.disconnect(); });
+    socket.on('game:opponent_forfeited', (d) => {
       clearInterval(timerRef.current);
-      setFinalData({ forfeited: true, winner: data.winner });
+      setFinalData({ forfeited: true, winner: d.winner });
       setScreen('gameover');
       const wins = parseInt(localStorage.getItem('tradara_arena_wins') || '0') + 1;
       localStorage.setItem('tradara_arena_wins', String(wins));
       if (wins === 1) tryUnlockArenaBadge('first_blood');
       if (wins >= 5)  tryUnlockArenaBadge('dominator');
     });
-
-    socket.on('connect', () => {
-      setMyId(socket.id);
-    });
-
-    socket.on('chat:message', (data) => {
-      setChatMsg(data);
-      setTimeout(() => setChatMsg(null), 3000);
-    });
-
-    socket.on('rematch:requested', () => {
-      setRematchState('requested');
-    });
-
-    socket.on('rematch:countdown', () => {
+    socket.on('connect',                   () => setMyId(socket.id));
+    socket.on('chat:message',         (d) => { setChatMsg(d); setTimeout(() => setChatMsg(null), 3000); });
+    socket.on('rematch:requested',         () => setRematchState('requested'));
+    socket.on('rematch:countdown',         () => {
       setRematchState('countdown');
       setRematchCountdown(10);
       rematchTimerRef.current = setInterval(() => {
@@ -350,63 +266,42 @@ export default function Arena({ onBack }) {
         });
       }, 1000);
     });
-
-    socket.on('rematch:start', (data) => {
+    socket.on('rematch:start', (d) => {
       clearInterval(rematchTimerRef.current);
       setRematchState(null);
       setRematchCountdown(10);
-      setGameData(data);
-      setRound(data.round);
-      setTotal(data.total);
-      setOpponent(data.opponent);
-      setScreen('game');
-      setPhase('choose');
-      setResult(null);
-      setScores({});
-      setFinalData(null);
+      setGameData(d); setRound(d.round); setTotal(d.total); setOpponent(d.opponent);
+      setScreen('game'); setPhase('choose'); setResult(null); setScores({}); setFinalData(null);
       startTimer();
     });
-
     return socket;
   }
 
   function findRandom() {
     if (!name.trim()) return;
     const socket = initSocket(name.trim());
-    socket.on('connect', () => {
-      socket.emit('matchmaking:join', { name: name.trim() });
-    });
-    if (socket.connected) {
-      socket.emit('matchmaking:join', { name: name.trim() });
-    }
+    socket.on('connect', () => socket.emit('matchmaking:join', { name: name.trim() }));
+    if (socket.connected) socket.emit('matchmaking:join', { name: name.trim() });
   }
 
   function createRoom() {
-  if (!name.trim()) return;
-  const socket = initSocket(name.trim());
-  socket.on('connect', () => {
-    socket.emit('room:create', { name: name.trim() });
-  });
-  if (socket.connected) {
-    socket.emit('room:create', { name: name.trim() });
+    if (!name.trim()) return;
+    const socket = initSocket(name.trim());
+    socket.on('connect', () => socket.emit('room:create', { name: name.trim() }));
+    if (socket.connected) socket.emit('room:create', { name: name.trim() });
+    tryUnlockArenaBadge('recruiter');
   }
-  tryUnlockArenaBadge('recruiter');
- }
 
   function joinRoom() {
     if (!name.trim() || !joinCode.trim()) return;
     const socket = initSocket(name.trim());
-    socket.on('connect', () => {
-      socket.emit('room:join', { name: name.trim(), code: joinCode.trim().toUpperCase() });
-    });
-    if (socket.connected) {
-      socket.emit('room:join', { name: name.trim(), code: joinCode.trim().toUpperCase() });
-    }
+    socket.on('connect', () => socket.emit('room:join', { name: name.trim(), code: joinCode.trim().toUpperCase() }));
+    if (socket.connected) socket.emit('room:join', { name: name.trim(), code: joinCode.trim().toUpperCase() });
   }
 
   function sendChat(msg) {
     socketRef.current?.emit('chat:message', { msg });
-    setChatMsg({ msg, from: 'tú' });
+    setChatMsg({ msg, from: t.arena.you });
     setTimeout(() => setChatMsg(null), 3000);
     setShowChat(false);
   }
@@ -416,14 +311,12 @@ export default function Arena({ onBack }) {
     if (isBotGame) { makeBotChoice(choice); return; }
     clearInterval(timerRef.current);
     setPhase('waiting_opponent');
-    setStatus('Esperando al oponente...');
+    setStatus(t.arena.waitingOpp);
     socketRef.current?.emit('game:choice', { choice });
   }
 
   function goBack() {
-    if (screen === 'game' && !isBotGame) {
-      socketRef.current?.emit('game:forfeit');
-    }
+    if (screen === 'game' && !isBotGame) socketRef.current?.emit('game:forfeit');
     socketRef.current?.disconnect();
     clearInterval(timerRef.current);
     resetBotState();
@@ -452,55 +345,41 @@ export default function Arena({ onBack }) {
         </div>
 
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px', color: '#f0f0f0', marginBottom: '8px' }}>
-            {t.arena.title}
-          </div>
-          <div style={{ fontSize: '10px', color: '#3a4455', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
-            {t.arena.sub}
-          </div>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px', color: '#f0f0f0', marginBottom: '8px' }}>{t.arena.title}</div>
+          <div style={{ fontSize: '10px', color: '#3a4455', letterSpacing: '0.15em', textTransform: 'uppercase' }}>{t.arena.sub}</div>
         </div>
 
         <div style={{ marginBottom: '20px' }}>
           <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>{t.arena.yourName}</div>
-          <input
-            type="text" value={name} onChange={e => setName(e.target.value)}
-            placeholder="..." maxLength={16}
-            style={{ width: '100%', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '6px', padding: '12px 14px', color: '#e2e8f0', fontFamily: "'Space Mono', monospace", fontSize: '13px', outline: 'none' }}
-          />
+          <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="..." maxLength={16}
+            style={{ width: '100%', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '6px', padding: '12px 14px', color: '#e2e8f0', fontFamily: "'Space Mono', monospace", fontSize: '13px', outline: 'none' }} />
         </div>
 
         {status && <div style={{ fontSize: '10px', color: '#f05454', marginBottom: '12px' }}>{status}</div>}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <button onClick={findRandom} disabled={!name.trim()}
-            style={{ width: '100%', padding: '14px', background: name.trim() ? 'rgba(34,211,165,0.08)' : '#0f141b', border: `1px solid ${name.trim() ? '#22d3a5' : '#2a3345'}`, borderRadius: '6px', color: name.trim() ? '#22d3a5' : '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: name.trim() ? 'pointer' : 'not-allowed' }}
-          >⚡ {t.arena.findMatch}</button>
-
+            style={{ width: '100%', padding: '14px', background: name.trim() ? 'rgba(34,211,165,0.08)' : '#0f141b', border: `1px solid ${name.trim() ? '#22d3a5' : '#2a3345'}`, borderRadius: '6px', color: name.trim() ? '#22d3a5' : '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: name.trim() ? 'pointer' : 'not-allowed' }}>
+            ⚡ {t.arena.findMatch}
+          </button>
           <button onClick={createRoom} disabled={!name.trim()}
-            style={{ width: '100%', padding: '14px', background: '#0f141b', border: `1px solid ${name.trim() ? '#2a3345' : '#1e2530'}`, borderRadius: '6px', color: name.trim() ? '#8899b0' : '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: name.trim() ? 'pointer' : 'not-allowed' }}
-          >🔒 {t.arena.createRoom}</button>
-
+            style={{ width: '100%', padding: '14px', background: '#0f141b', border: `1px solid ${name.trim() ? '#2a3345' : '#1e2530'}`, borderRadius: '6px', color: name.trim() ? '#8899b0' : '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: name.trim() ? 'pointer' : 'not-allowed' }}>
+            🔒 {t.arena.createRoom}
+          </button>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <input
-              type="text" value={joinCode}
-              onChange={e => setJoinCode(e.target.value.toUpperCase())}
-              onKeyDown={e => e.key === 'Enter' && joinRoom()}
-              placeholder="XKQZ" maxLength={4}
-              style={{ flex: 1, background: '#0f141b', border: '1px solid #2a3345', borderRadius: '6px', padding: '12px 14px', color: '#e2e8f0', fontFamily: "'Space Mono', monospace", fontSize: '16px', outline: 'none', letterSpacing: '0.2em', textAlign: 'center', textTransform: 'uppercase' }}
-            />
+            <input type="text" value={joinCode} onChange={e => setJoinCode(e.target.value.toUpperCase())} onKeyDown={e => e.key === 'Enter' && joinRoom()} placeholder="XKQZ" maxLength={4}
+              style={{ flex: 1, background: '#0f141b', border: '1px solid #2a3345', borderRadius: '6px', padding: '12px 14px', color: '#e2e8f0', fontFamily: "'Space Mono', monospace", fontSize: '16px', outline: 'none', letterSpacing: '0.2em', textAlign: 'center', textTransform: 'uppercase' }} />
             <button onClick={joinRoom} disabled={!name.trim() || joinCode.length < 4}
-              style={{ padding: '12px 20px', background: name.trim() && joinCode.length >= 4 ? 'rgba(245,200,66,0.08)' : '#0f141b', border: `1px solid ${name.trim() && joinCode.length >= 4 ? '#f5c842' : '#2a3345'}`, borderRadius: '6px', color: name.trim() && joinCode.length >= 4 ? '#f5c842' : '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, cursor: name.trim() && joinCode.length >= 4 ? 'pointer' : 'not-allowed', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}
-            >{t.arena.joinRoom}</button>
+              style={{ padding: '12px 20px', background: name.trim() && joinCode.length >= 4 ? 'rgba(245,200,66,0.08)' : '#0f141b', border: `1px solid ${name.trim() && joinCode.length >= 4 ? '#f5c842' : '#2a3345'}`, borderRadius: '6px', color: name.trim() && joinCode.length >= 4 ? '#f5c842' : '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, cursor: name.trim() && joinCode.length >= 4 ? 'pointer' : 'not-allowed', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>
+              {t.arena.joinRoom}
+            </button>
           </div>
         </div>
 
         <div style={{ marginTop: '20px', padding: '16px', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px' }}>
           <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px' }}>{t.arena.howTitle}</div>
           <div style={{ fontSize: '11px', color: '#4a5568', lineHeight: 1.8 }}>
-            {t.arena.how1}<br/>
-            {t.arena.how2}<br/>
-            {t.arena.how3}<br/>
-            {t.arena.how4}
+            {t.arena.how1}<br/>{t.arena.how2}<br/>{t.arena.how3}<br/>{t.arena.how4}
           </div>
         </div>
       </div>
@@ -513,7 +392,7 @@ export default function Arena({ onBack }) {
       <div className="scanlines" />
       <div style={{ padding: '40px 28px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
         <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '24px', color: '#f0f0f0', marginBottom: '16px' }}>
-          {status === 'waiting_for_friend' ? 'Sala creada' : t.arena.searching}
+          {status === 'waiting_for_friend' ? t.arena.roomCreated : t.arena.searching}
         </div>
         <div style={{ fontSize: '32px', marginBottom: '24px' }}>
           {status === 'waiting_for_friend' ? '🔒' : '⚔️'}
@@ -521,37 +400,26 @@ export default function Arena({ onBack }) {
 
         {status === 'waiting_for_friend' && roomCode ? (
           <div style={{ marginBottom: '24px' }}>
-            <div style={{ fontSize: '10px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '12px' }}>
-              comparte este código con tu amigo
-            </div>
+            <div style={{ fontSize: '10px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '12px' }}>{t.arena.shareCode}</div>
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '48px', color: '#22d3a5', letterSpacing: '0.3em', background: '#0f141b', border: '1px solid #22d3a5', borderRadius: '10px', padding: '16px 24px', display: 'inline-block' }}>
               {roomCode}
             </div>
-            <div style={{ marginTop: '12px', fontSize: '10px', color: '#3a4455', letterSpacing: '0.06em' }}>
-              esperando que alguien se una...
-            </div>
+            <div style={{ marginTop: '12px', fontSize: '10px', color: '#3a4455', letterSpacing: '0.06em' }}>{t.arena.waitingFriend}</div>
           </div>
         ) : (
           <>
             <div style={{ fontSize: '10px', color: '#3a4455', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '32px' }}>
               {t.arena.playingAs} <span style={{ color: '#22d3a5' }}>{name}</span>
             </div>
-
-            {/* ── Botón jugar vs bot ── */}
             <div style={{ marginBottom: '24px', padding: '20px', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '10px' }}>
-              <div style={{ fontSize: '10px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '12px' }}>
-                no hay oponentes disponibles ahora
-              </div>
+              <div style={{ fontSize: '10px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '12px' }}>{t.arena.noOpponents}</div>
               <button onClick={startBotGame}
                 style={{ width: '100%', padding: '14px', background: 'rgba(245,200,66,0.08)', border: '1px solid #f5c842', borderRadius: '6px', color: '#f5c842', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer' }}
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(245,200,66,0.15)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'rgba(245,200,66,0.08)'}
-              >
-                🤖 jugar vs bot
+                onMouseLeave={e => e.currentTarget.style.background = 'rgba(245,200,66,0.08)'}>
+                🤖 {t.arena.vsBot}
               </button>
-              <div style={{ marginTop: '10px', fontSize: '10px', color: '#3a4455', lineHeight: 1.6 }}>
-                practica mientras esperas un rival real
-              </div>
+              <div style={{ marginTop: '10px', fontSize: '10px', color: '#3a4455', lineHeight: 1.6 }}>{t.arena.vsBotSub}</div>
             </div>
           </>
         )}
@@ -566,8 +434,8 @@ export default function Arena({ onBack }) {
 
   // ── Game ──────────────────────────────────────────────────────────
   if (screen === 'game' && gameData) {
-    const myScore  = isBotGame ? myBotScore : (scores[myId] ?? 0);
-    const oppScore = isBotGame ? botScore   : (scores[Object.keys(scores).find(id => id !== myId)] ?? 0);
+    const myScore   = isBotGame ? myBotScore : (scores[myId] ?? 0);
+    const oppScore  = isBotGame ? botScore   : (scores[Object.keys(scores).find(id => id !== myId)] ?? 0);
     const myResult  = result?.results?.[isBotGame ? 'player' : myId];
     const oppResult = result?.results?.[isBotGame ? 'bot'    : Object.keys(scores).find(id => id !== myId)];
 
@@ -575,17 +443,18 @@ export default function Arena({ onBack }) {
       <div id="gtm-root" style={{ position: 'relative' }}>
         <div className="scanlines" />
 
-        <button onClick={goBack}
-          style={{ position: 'absolute', top: '14px', left: '16px', background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', zIndex: 10, padding: '4px 0', transition: 'color 0.15s' }}
-          onMouseEnter={e => e.target.style.color = '#f05454'}
-          onMouseLeave={e => e.target.style.color = '#3a4455'}
-        >{t.arena.forfeit}</button>
-
-        <div style={{ padding: '12px 16px', borderBottom: '1px solid #1e2530', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', zIndex: 2 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+        {/* Header con scores + botón abandonar integrado */}
+        <div style={{ padding: '10px 16px', borderBottom: '1px solid #1e2530', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', zIndex: 2 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', minWidth: '70px' }}>
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#22d3a5' }}>{myScore}</div>
             <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.06em' }}>{name.toUpperCase()}</div>
+            <button onClick={goBack}
+              style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.06em', padding: '2px 0', marginTop: '2px', minHeight: '24px', minWidth: '44px' }}
+              onMouseEnter={e => e.target.style.color = '#f05454'}
+              onMouseLeave={e => e.target.style.color = '#3a4455'}
+            >{t.arena.forfeit}</button>
           </div>
+
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
             <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase' }}>round {round}/{total}</div>
             {phase === 'choose' && (
@@ -594,7 +463,8 @@ export default function Arena({ onBack }) {
               </div>
             )}
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', minWidth: '70px' }}>
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#f05454' }}>{oppScore}</div>
             <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.06em' }}>
               {opponent.toUpperCase()}
@@ -634,7 +504,7 @@ export default function Arena({ onBack }) {
 
         {phase === 'waiting_opponent' && (
           <div style={{ padding: '16px 20px', textAlign: 'center', fontSize: '10px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-            {isBotGame ? 'el bot está pensando...' : status}
+            {isBotGame ? t.arena.botThinking : status}
           </div>
         )}
 
@@ -655,7 +525,7 @@ export default function Arena({ onBack }) {
                 </div>
               </div>
               <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.06em' }}>
-                precio {result.direction === 'up' ? t.arena.priceUp : result.direction === 'down' ? t.arena.priceDown : t.arena.priceFlat} {result.pctMove > 0 ? '+' : ''}{result.pctMove.toFixed(2)}%
+                {t.game.price} {result.direction === 'up' ? t.arena.priceUp : result.direction === 'down' ? t.arena.priceDown : t.arena.priceFlat} {result.pctMove > 0 ? '+' : ''}{result.pctMove.toFixed(2)}%
               </div>
               {!isBotGame && (
                 <div style={{ marginTop: '8px', fontSize: '9px', color: '#3a4455', textAlign: 'center', letterSpacing: '0.06em' }}>
@@ -686,8 +556,9 @@ export default function Arena({ onBack }) {
 
         {!isBotGame && (
           <button onClick={() => setShowChat(s => !s)}
-            style={{ position: 'absolute', bottom: '36px', right: '16px', zIndex: 20, background: '#1a2030', border: '1px solid #2a3345', borderRadius: '50%', width: '36px', height: '36px', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          >💬</button>
+            style={{ position: 'absolute', bottom: '36px', right: '16px', zIndex: 20, background: '#1a2030', border: '1px solid #2a3345', borderRadius: '50%', width: '36px', height: '36px', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            💬
+          </button>
         )}
 
         <div className="ticker-tape">
@@ -747,7 +618,7 @@ export default function Arena({ onBack }) {
 
           {isBotGame && (
             <div style={{ fontSize: '10px', color: '#f5c842', letterSpacing: '0.08em', marginBottom: '16px' }}>
-              🤖 partida vs bot — no cuenta para el ranking
+              🤖 {t.arena.botGameNote}
             </div>
           )}
 
@@ -768,7 +639,7 @@ export default function Arena({ onBack }) {
             {isBotGame ? (
               <button onClick={startBotGame}
                 style={{ flex: 1, padding: '14px', background: 'rgba(245,200,66,0.08)', border: '1px solid #f5c842', borderRadius: '6px', color: '#f5c842', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-                🤖 otra vs bot
+                🤖 {t.arena.anotherVsBot}
               </button>
             ) : (
               <button onClick={() => { socketRef.current?.emit('rematch:request'); setRematchState('waiting'); }}
@@ -785,7 +656,7 @@ export default function Arena({ onBack }) {
           {!isBotGame && rematchState === 'waiting' && (
             <div style={{ padding: '16px', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '8px', marginBottom: '10px' }}>
               <div style={{ fontSize: '10px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                waiting for opponent to accept...
+                {t.arena.waitingRematch}
               </div>
             </div>
           )}
@@ -793,16 +664,16 @@ export default function Arena({ onBack }) {
           {!isBotGame && rematchState === 'requested' && (
             <div style={{ marginBottom: '10px' }}>
               <div style={{ fontSize: '10px', color: '#f5c842', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '12px' }}>
-                opponent wants a rematch!
+                {t.arena.oppWantsRematch}
               </div>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button onClick={() => { socketRef.current?.emit('rematch:accept'); setRematchState('countdown'); }}
                   style={{ flex: 1, padding: '14px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-                  ✓ accept
+                  ✓ {t.arena.accept}
                 </button>
                 <button onClick={goBack}
                   style={{ flex: 1, padding: '14px', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '6px', color: '#8899b0', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-                  decline
+                  {t.arena.decline}
                 </button>
               </div>
             </div>
@@ -811,7 +682,7 @@ export default function Arena({ onBack }) {
           {!isBotGame && rematchState === 'countdown' && (
             <div style={{ padding: '20px', background: '#0f141b', border: '1px solid #22d3a5', borderRadius: '8px', marginBottom: '10px' }}>
               <div style={{ fontSize: '10px', color: '#22d3a5', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
-                rematch starting in
+                {t.arena.rematchStarting}
               </div>
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '48px', color: '#22d3a5' }}>
                 {rematchCountdown}
@@ -841,66 +712,47 @@ function ArenaChart({ candles, future, assetName }) {
 
   useEffect(() => {
     if (!containerRef.current || !candles) return;
-
     let chart;
     let ro;
-
     const timer = setTimeout(() => {
       if (!containerRef.current) return;
-
       chart = createChart(containerRef.current, {
         width:  containerRef.current.clientWidth,
         height: getChartHeight(),
         layout: { background: { color: 'transparent' }, textColor: '#3a4455' },
-        grid: {
-          vertLines: { color: 'rgba(255,255,255,0.03)' },
-          horzLines: { color: 'rgba(255,255,255,0.04)' },
-        },
+        grid: { vertLines: { color: 'rgba(255,255,255,0.03)' }, horzLines: { color: 'rgba(255,255,255,0.04)' } },
         rightPriceScale: { borderColor: 'transparent' },
         timeScale: { borderColor: 'transparent', barSpacing: 14, rightOffset: 3, visible: false },
-        crosshair:    { mode: 1 },
+        crosshair: { mode: 1 },
         handleScroll: true,
         handleScale:  true,
       });
-
       const series = chart.addSeries(CandlestickSeries, {
-        upColor:         '#22d3a5', downColor:       '#f05454',
-        borderUpColor:   '#22d3a5', borderDownColor: '#f05454',
-        wickUpColor:     '#22d3a5', wickDownColor:   '#f05454',
+        upColor: '#22d3a5', downColor: '#f05454',
+        borderUpColor: '#22d3a5', borderDownColor: '#f05454',
+        wickUpColor: '#22d3a5', wickDownColor: '#f05454',
         priceFormat: { type: 'price', precision: 2, minMove: 0.01 },
       });
-
       series.setData(candles);
       chart.timeScale().applyOptions({ fixLeftEdge: true, fixRightEdge: false });
       chartRef2.current = chart;
       seriesRef.current = series;
-
       ro = new ResizeObserver(() => {
         if (containerRef.current) chart.applyOptions({ width: containerRef.current.clientWidth });
       });
       ro.observe(containerRef.current);
     }, 10);
-
-    return () => {
-      clearTimeout(timer);
-      if (ro) ro.disconnect();
-      if (chart) chart.remove();
-    };
+    return () => { clearTimeout(timer); if (ro) ro.disconnect(); if (chart) chart.remove(); };
   }, [candles]);
 
   useEffect(() => {
     if (!future || !seriesRef.current || !candles) return;
-
     let i = 0;
     const interval = setInterval(() => {
-      if (!seriesRef.current || i >= future.length) {
-        clearInterval(interval);
-        return;
-      }
-      const next = future.slice(0, i + 1);
+      if (!seriesRef.current || i >= future.length) { clearInterval(interval); return; }
       seriesRef.current.setData([
         ...candles,
-        ...next.map(c => ({
+        ...future.slice(0, i + 1).map(c => ({
           ...c,
           color:       c.close >= c.open ? 'rgba(34,211,165,0.5)' : 'rgba(240,84,84,0.5)',
           wickColor:   c.close >= c.open ? 'rgba(34,211,165,0.5)' : 'rgba(240,84,84,0.5)',
@@ -909,7 +761,6 @@ function ArenaChart({ candles, future, assetName }) {
       ]);
       i++;
     }, 120);
-
     return () => clearInterval(interval);
   }, [future]);
 
