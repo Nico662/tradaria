@@ -52,6 +52,13 @@ export function AuthProvider({ children }) {
     localStorage.setItem('tradara_cosmetics', JSON.stringify(updated));
   }
 
+  function normalizeDateStr(d) {
+    if (!d) return null;
+    const parsed = new Date(d);
+    if (!isNaN(parsed)) return parsed.toISOString().split('T')[0];
+    return d;
+  }
+
   async function fetchUser(token) {
     try {
       const res = await fetch(`${SERVER}/auth/me`, {
@@ -72,41 +79,26 @@ export function AuthProvider({ children }) {
         const merged = [...new Set([...data.badges, ...localBadges])];
         localStorage.setItem('tradara_badges', JSON.stringify(merged));
 
-        // Sincronizar streak — tomar el valor más alto y unificar en tradara_daily_last
-        const serverStreak    = data.dailyStreak || 0;
+        // Sincronizar streak
+        const serverStreak     = data.dailyStreak || 0;
         const serverLastPlayed = data.lastPlayed || null;
-        const localStreak     = parseInt(localStorage.getItem('tradara_daily_streak') || '0');
-        const bestStreak      = Math.max(serverStreak, localStreak);
+        const localStreak      = parseInt(localStorage.getItem('tradara_daily_streak') || '0');
+        const bestStreak       = Math.max(serverStreak, localStreak);
         localStorage.setItem('tradara_daily_streak', String(bestStreak));
 
-        // Unificar las dos claves de fecha en una sola: tradara_daily_last
-        const localLast1 = localStorage.getItem('tradara_daily_last');
-        const localLast2 = localStorage.getItem('tradara_last_played');
-        const bestLast   = serverLastPlayed || localLast1 || localLast2 || null;
+        // Normalizar y unificar fechas
+        const localLast1 = normalizeDateStr(localStorage.getItem('tradara_daily_last'));
+        const localLast2 = normalizeDateStr(localStorage.getItem('tradara_last_played'));
+        const bestLast   = normalizeDateStr(serverLastPlayed) || localLast1 || localLast2 || null;
         if (bestLast) {
           localStorage.setItem('tradara_daily_last', bestLast);
           localStorage.setItem('tradara_last_played', bestLast);
+          const todayISO = new Date().toISOString().split('T')[0];
+          if (bestLast === todayISO) {
+            localStorage.setItem('tradara_daily_played', todayISO);
+          }
         }
-        const normalizeDateStr = (d) => {
-        if (!d) return null;
-         // Si es formato "Wed May 07 2026" convertir a ISO
-          const parsed = new Date(d);
-           if (!isNaN(parsed)) return parsed.toISOString().split('T')[0];
-            return d;
-           };
 
-           const localLast1 = normalizeDateStr(localStorage.getItem('tradara_daily_last'));
-           const localLast2 = normalizeDateStr(localStorage.getItem('tradara_last_played'));
-           const bestLast   = normalizeDateStr(serverLastPlayed) || localLast1 || localLast2 || null;
-            if (bestLast) {
-              localStorage.setItem('tradara_daily_last', bestLast);
-              localStorage.setItem('tradara_last_played', bestLast);
-             // Si lastPlayed es hoy, marcar como ya jugado
-              const todayISO = new Date().toISOString().split('T')[0];
-              if (bestLast === todayISO) {
-               localStorage.setItem('tradara_daily_played', todayISO);
-             }
-            }
         // Sincronizar con servidor si hay diferencias
         const needsSync = merged.length > data.badges.length || bestStreak > serverStreak;
         if (needsSync) {
