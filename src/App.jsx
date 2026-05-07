@@ -130,9 +130,9 @@ export default function App() {
   }
 
   function updateDailyStreak() {
-    const today      = new Date().toDateString();
+    const today      = new Date().toISOString().split('T')[0];
     const lastPlayed = localStorage.getItem('tradara_daily_last');
-    const yesterday  = new Date(Date.now() - 86400000).toDateString();
+    const yesterday  = new Date(Date.now() - 86400000).toISOString().split('T')[0];
     if (lastPlayed === today) return;
     const current   = parseInt(localStorage.getItem('tradara_daily_streak') || '0');
     const newStreak = lastPlayed === yesterday ? current + 1 : 1;

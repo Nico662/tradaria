@@ -87,7 +87,26 @@ export function AuthProvider({ children }) {
           localStorage.setItem('tradara_daily_last', bestLast);
           localStorage.setItem('tradara_last_played', bestLast);
         }
+        const normalizeDateStr = (d) => {
+        if (!d) return null;
+         // Si es formato "Wed May 07 2026" convertir a ISO
+          const parsed = new Date(d);
+           if (!isNaN(parsed)) return parsed.toISOString().split('T')[0];
+            return d;
+           };
 
+           const localLast1 = normalizeDateStr(localStorage.getItem('tradara_daily_last'));
+           const localLast2 = normalizeDateStr(localStorage.getItem('tradara_last_played'));
+           const bestLast   = normalizeDateStr(serverLastPlayed) || localLast1 || localLast2 || null;
+            if (bestLast) {
+              localStorage.setItem('tradara_daily_last', bestLast);
+              localStorage.setItem('tradara_last_played', bestLast);
+             // Si lastPlayed es hoy, marcar como ya jugado
+              const todayISO = new Date().toISOString().split('T')[0];
+              if (bestLast === todayISO) {
+               localStorage.setItem('tradara_daily_played', todayISO);
+             }
+            }
         // Sincronizar con servidor si hay diferencias
         const needsSync = merged.length > data.badges.length || bestStreak > serverStreak;
         if (needsSync) {
