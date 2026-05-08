@@ -21,7 +21,7 @@ const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const MONGODB_URI          = process.env.MONGODB_URI;
 const CLIENT_URL           = 'https://tradara.dev';
 const PORT                 = process.env.PORT || 3001;
-const FINNHUB_KEY = 'd7pqi41r01qosaapiuugd7pqi41r01qosaapiuv0';
+const FINNHUB_KEY = process.env.FINNHUB_KEY;
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const yf     = new YahooFinance();
