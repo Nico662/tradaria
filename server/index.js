@@ -472,9 +472,12 @@ app.get('/shop/purchases', async (req, res) => {
 
 // ── Stats routes ──────────────────────────────────────────────────
 app.get('/stats', (req, res) => {
-  res.json({ online: io.engine.clientsCount, gamesPlayed: totalGamesPlayed });
+  try {
+    res.json({ online: io.engine?.clientsCount || 0, gamesPlayed: totalGamesPlayed || 0 });
+  } catch (e) {
+    res.json({ online: 0, gamesPlayed: 0 });
+  }
 });
-
 app.get('/stats/share', async (req, res) => {
   try {
     const doc = await Stats.findById('shares');
