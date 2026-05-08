@@ -478,7 +478,7 @@ export default function Arena({ onBack }) {
           <div className="timeframe-badge">{gameData.interval || '1H'}</div>
         </div>
 
-        <div className="chart-area" style={{ overflow: 'hidden', pointerEvents: 'none' }}>
+        <div className="chart-area" style={{ overflow: 'hidden', pointerEvents: 'none', flex: 1 }}>
           <ArenaChart candles={gameData.visible} future={phase === 'result' ? gameData.future : null} assetName={gameData.asset} />
         </div>
 
