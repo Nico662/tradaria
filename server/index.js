@@ -1135,6 +1135,7 @@ app.post('/portfolio/buy', async (req, res) => {
   try {
     const decoded  = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
     const { symbol, qty } = req.body;
+    if (!qty || qty <= 0 || !Number.isFinite(qty)) return res.status(400).json({ error: 'Invalid quantity' });
     const asset    = PORTFOLIO_ASSETS.find(a => a.symbol === symbol);
     if (!asset) return res.status(400).json({ error: 'Asset not found' });
     const priceData = await getPrice(asset);
@@ -1166,6 +1167,7 @@ app.post('/portfolio/sell', async (req, res) => {
   try {
     const decoded  = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
     const { symbol, qty } = req.body;
+    if (!qty || qty <= 0 || !Number.isFinite(qty)) return res.status(400).json({ error: 'Invalid quantity' });
     const asset    = PORTFOLIO_ASSETS.find(a => a.symbol === symbol);
     if (!asset) return res.status(400).json({ error: 'Asset not found' });
     const priceData = await getPrice(asset);
@@ -1252,6 +1254,10 @@ app.get('/portfolio/history', async (req, res) => {
   }
 });
 app.get('/portfolio/clear-cache', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try { jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET); } 
+  catch { return res.status(401).json({ error: 'Invalid token' }); }
   try {
     const keys = PORTFOLIO_ASSETS
       .filter(a => a.source === 'finnhub')
@@ -1263,6 +1269,10 @@ app.get('/portfolio/clear-cache', async (req, res) => {
   }
 });
 app.get('/portfolio/debug/:symbol', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try { jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET); } 
+  catch { return res.status(401).json({ error: 'Invalid token' }); }
   try {
     const { symbol } = req.params;
     const url  = `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_KEY}`;
