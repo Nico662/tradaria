@@ -15,7 +15,8 @@ const rateLimit      = require('express-rate-limit');
 const { Redis }      = require('@upstash/redis');
 
 // ── Config ────────────────────────────────────────────────────────
-const JWT_SECRET           = process.env.JWT_SECRET || 'tradara_secret_2024';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) throw new Error('JWT_SECRET not set');
 const GOOGLE_CLIENT_ID     = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const MONGODB_URI          = process.env.MONGODB_URI;
