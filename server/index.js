@@ -1315,5 +1315,6 @@ app.get('/portfolio/leaderboard', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+app.get('/', (req, res) => res.json({ status: 'ok' }));
 // ── Start ─────────────────────────────────────────────────────────
 httpServer.listen(PORT, () => console.log(`Server running on port ${PORT}`));
