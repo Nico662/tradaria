@@ -389,7 +389,24 @@ app.post('/auth/sync', async (req, res) => {
     res.status(401).json({ error: 'Invalid token' });
   }
 });
-
+const SHOP_ITEMS = {
+  frame_gold:    { name: 'Gold Frame',    price: 299 },
+  frame_neon:    { name: 'Neon Frame',    price: 199 },
+  frame_fire:    { name: 'Fire Frame',    price: 399 },
+  frame_diamond: { name: 'Diamond Frame', price: 499 },
+  theme_blood:   { name: 'Blood Theme',   price: 199 },
+  theme_matrix: { name: 'Matrix Theme', price: 199 },
+  theme_gold:    { name: 'Gold Theme',    price: 199 },
+  theme_midnight:{ name: 'Midnight Theme',price: 199 },
+  avatar_bull:   { name: 'Bull Avatar',   price: 99 },
+  avatar_bear:   { name: 'Bear Avatar',   price: 99 },
+  avatar_whale:  { name: 'Whale Avatar',  price: 199 },
+  avatar_robot:  { name: 'Robot Avatar',  price: 199 },
+  effect_confetti:  { name: 'Confetti Effect',  price: 199 },
+  effect_lightning: { name: 'Lightning Effect', price: 299 },
+  effect_explosion: { name: 'Explosion Effect', price: 299 },
+  effect_stars:     { name: 'Stars Effect',      price: 199 },
+};
 // ── Shop routes ───────────────────────────────────────────────────
 app.post('/shop/checkout', async (req, res) => {
   const auth = req.headers.authorization;
