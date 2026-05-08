@@ -118,8 +118,8 @@ const Stats      = mongoose.model('Stats', StatsSchema);
 // ── VAPID / Push ──────────────────────────────────────────────────
 webpush.setVapidDetails(
   'mailto:nicolasvidalcorrecher@tradara.dev',
-  'BEWPkbh1HeSsw08H0EsELp5TIPD2gcQ8Yfa1RsSW-9jER3uvoeVUTazcIqjlf4UNFKe7QeqQ8ZlVjGI72pinR0I',
-  'PCyRdLvdQswDzk0DlbImRKEgPbVLewsWGHCha07sXw8'
+  process.env.VAPID_PUBLIC_KEY,
+  process.env.VAPID_PRIVATE_KEY
 );
 
 // ── Push subscriptions ────────────────────────────────────────────
