@@ -34,8 +34,8 @@ app.set('trust proxy', 1);
 
 // ── Redis ─────────────────────────────────────────────────────────
 const redis = new Redis({
-  url:   process.env.UPSTASH_REDIS_URL,
-  token: process.env.UPSTASH_REDIS_TOKEN,
+  url:   'https://glad-teal-76856.upstash.io',
+  token: 'gQAAAAAAASw4AAIncDJmYmZjYzFlYWVkZTc0MWU5YTBjMmExYWE5NGEwODFjYnAyNzY4NTY',
 });
 
 // ── MongoDB ───────────────────────────────────────────────────────
@@ -117,8 +117,8 @@ const Stats      = mongoose.model('Stats', StatsSchema);
 // ── VAPID / Push ──────────────────────────────────────────────────
 webpush.setVapidDetails(
   'mailto:nicolasvidalcorrecher@tradara.dev',
-  process.env.VAPID_PUBLIC_KEY,
-  process.env.VAPID_PRIVATE_KEY
+  'BEWPkbh1HeSsw08H0EsELp5TIPD2gcQ8Yfa1RsSW-9jER3uvoeVUTazcIqjlf4UNFKe7QeqQ8ZlVjGI72pinR0I',
+  'PCyRdLvdQswDzk0DlbImRKEgPbVLewsWGHCha07sXw8'
 );
 
 // ── Push subscriptions ────────────────────────────────────────────
