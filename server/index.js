@@ -34,8 +34,8 @@ app.set('trust proxy', 1);
 
 // ── Redis ─────────────────────────────────────────────────────────
 const redis = new Redis({
-  url:   'https://glad-teal-76856.upstash.io',
-  token: 'gQAAAAAAASw4AAIncDJmYmZjYzFlYWVkZTc0MWU5YTBjMmExYWE5NGEwODFjYnAyNzY4NTY',
+  url:   process.env.UPSTASH_REDIS_URL,
+  token: process.env.UPSTASH_REDIS_TOKEN,
 });
 
 // ── MongoDB ───────────────────────────────────────────────────────
