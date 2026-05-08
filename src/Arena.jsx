@@ -481,7 +481,19 @@ export default function Arena({ onBack }) {
         <div className="chart-area" style={{ overflow: 'hidden', pointerEvents: 'none', flex: 1 }}>
           <ArenaChart candles={gameData.visible} future={phase === 'result' ? gameData.future : null} assetName={gameData.asset} />
         </div>
-
+       <div style={{ padding: '8px 16px', position: 'relative', zIndex: 2, display: 'flex', gap: '8px' }}>
+        <div style={{ flex: 1, background: '#0f141b', border: '1px solid #1e2530', borderRadius: '6px', padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: '8px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{name}</span>
+          <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: '#22d3a5' }}>{myScore}</span>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 8px' }}>
+          <span style={{ fontSize: '9px', color: '#2a3345', fontFamily: "'Space Mono', monospace" }}>vs</span>
+        </div>
+        <div style={{ flex: 1, background: '#0f141b', border: '1px solid #1e2530', borderRadius: '6px', padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: '8px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{opponent}</span>
+          <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: '#f05454' }}>{oppScore}</span>
+        </div>
+      </div>
         {phase === 'choose' && (
           <div className="action-zone">
             <div className="prompt-text">{t.game.whatNext}</div>
