@@ -332,7 +332,7 @@ export default function Portfolio({ onBack }) {
         </div>
 
         {/* Chart */}
-        <div style={{ position: 'relative', zIndex: 2, height: '220px', pointerEvents: 'none', overflow: 'hidden' }}>
+        <div style={{ position: 'relative', zIndex: 2, height: '220px', overflow: 'hidden' }}>
           {loadingCandles ? (
             <div style={{ height: '260px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#3a4455', fontFamily: "'Space Mono', monospace" }}>
               loading chart...
@@ -378,7 +378,7 @@ export default function Portfolio({ onBack }) {
         )}
 
         {/* Panel compra/venta */}
-        <div style={{ margin: '12px 20px 20px', padding: '16px', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px', position: 'relative', zIndex: 10 }}>
+        <div style={{ margin: '12px 20px 20px', padding: '16px', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px', position: 'relative', zIndex: 20 }}>
           <div style={{ display: 'flex', gap: '6px', marginBottom: '14px' }}>
             <button onClick={() => setAction('buy')} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: `1px solid ${action === 'buy' ? '#22d3a5' : '#2a3345'}`, background: action === 'buy' ? 'rgba(34,211,165,0.08)' : 'transparent', color: action === 'buy' ? '#22d3a5' : '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>{t.portfolio.buy}</button>
             <button onClick={() => setAction('sell')} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: `1px solid ${action === 'sell' ? '#f05454' : '#2a3345'}`, background: action === 'sell' ? 'rgba(240,84,84,0.08)' : 'transparent', color: action === 'sell' ? '#f05454' : '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>{t.portfolio.sell}</button>
