@@ -326,7 +326,20 @@ export default function Survival({ onBack }) {
         ))}
         {streak > 1 && <span className="streak-label">{streak}x streak</span>}
       </div>
-
+      <div style={{ padding: '6px 20px 0', position: 'relative', zIndex: 2, display: 'flex', gap: '6px' }}>
+        <div style={{ flex: 1, background: '#0f141b', border: '1px solid #1e2530', borderRadius: '6px', padding: '7px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: '8px', color: '#4a5568', textTransform: 'uppercase', letterSpacing: '0.06em' }}>round</span>
+          <span style={{ fontSize: '11px', color: '#f0f0f0', fontWeight: 700 }}>{round}</span>
+        </div>
+        <div style={{ flex: 1, background: '#0f141b', border: '1px solid #1e2530', borderRadius: '6px', padding: '7px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: '8px', color: '#4a5568', textTransform: 'uppercase', letterSpacing: '0.06em' }}>score</span>
+          <span style={{ fontSize: '11px', color: '#f5c842', fontWeight: 700 }}>{score}</span>
+        </div>
+        <div style={{ flex: 1, background: '#0f141b', border: '1px solid #1e2530', borderRadius: '6px', padding: '7px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: '8px', color: '#4a5568', textTransform: 'uppercase', letterSpacing: '0.06em' }}>best</span>
+          <span style={{ fontSize: '11px', color: '#22d3a5', fontWeight: 700 }}>{highscore}</span>
+        </div>
+      </div>
       {phase === 'choose' && (
         <div className="action-zone">
           <div className="prompt-text">{t.game.whatNext}</div>
