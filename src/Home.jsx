@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { getUnlocked } from './badges.js';
 import { getXP, getLevel } from './levels.js';
 import { useAuth } from './AuthContext';
+import UsernameModal from './UsernameModal.jsx';
 
 const AVATAR_EMOJIS = {
   avatar_bull:  '🐂',
@@ -31,6 +32,7 @@ export default function Home({ onSelect }) {
   const xp    = getXP();
   const level = getLevel(xp);
   const { user, login, logout, activeCosmetics } = useAuth();
+  const [showUsernameModal, setShowUsernameModal] = useState(false);
 
   const frameStyle = FRAME_STYLES[activeCosmetics.frame] || { border: '1px solid #22d3a5' };
 
@@ -45,9 +47,26 @@ export default function Home({ onSelect }) {
     return () => clearInterval(interval);
   }, []);
 
+  // Mostrar modal de username si el usuario está logueado y no tiene username
+  useEffect(() => {
+    if (user && !user.username) {
+      setShowUsernameModal(true);
+    }
+  }, [user]);
+
+  function handleUsernameDone(username) {
+    setShowUsernameModal(false);
+    // Actualizar el user en contexto
+    user.username = username;
+  }
+
   return (
     <div id="gtm-root">
       <div className="scanlines" />
+
+      {showUsernameModal && (
+        <UsernameModal onDone={handleUsernameDone} />
+      )}
 
       <div style={{ padding: '48px 28px 32px', position: 'relative', zIndex: 2 }}>
 
@@ -80,7 +99,22 @@ export default function Home({ onSelect }) {
               ) : (
                 user.avatar && <img src={user.avatar} style={{ width: '28px', height: '28px', borderRadius: '50%', ...frameStyle }} />
               )}
-              <span style={{ fontSize: '10px', color: '#8899b0', fontFamily: "'Space Mono', monospace" }}>{user.name}</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <span style={{ fontSize: '10px', color: '#8899b0', fontFamily: "'Space Mono', monospace" }}>
+                  {user.username ? `@${user.username}` : user.name}
+                </span>
+                {user.username && (
+                  <span style={{ fontSize: '8px', color: '#3a4455', fontFamily: "'Space Mono', monospace" }}>
+                    {user.name}
+                  </span>
+                )}
+              </div>
+              {!user.username && (
+                <button onClick={() => setShowUsernameModal(true)}
+                  style={{ background: 'rgba(55,138,221,0.08)', border: '1px solid #378ADD', borderRadius: '6px', padding: '3px 8px', color: '#378ADD', fontFamily: "'Space Mono', monospace", fontSize: '8px', cursor: 'pointer', letterSpacing: '0.06em' }}>
+                  + username
+                </button>
+              )}
               <button onClick={logout} style={{ background: 'transparent', border: '1px solid #2a3345', borderRadius: '6px', padding: '4px 10px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.06em' }}>
                 logout
               </button>
