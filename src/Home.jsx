@@ -1,5 +1,5 @@
 import { useLang } from './LangContext';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { SERVER } from './config.js';
 import { getUnlocked } from './badges.js';
 import { getXP, getLevel } from './levels.js';
@@ -34,6 +34,8 @@ export default function Home({ onSelect }) {
   const level = getLevel(xp);
   const { user, login, logout, activeCosmetics, updateUser } = useAuth();
   const [showUsernameModal, setShowUsernameModal] = useState(false);
+  const [avatarLoading, setAvatarLoading] = useState(false);
+  const fileInputRef = useRef(null);
 
   const frameStyle = FRAME_STYLES[activeCosmetics.frame] || { border: '1px solid #22d3a5' };
 
@@ -58,6 +60,46 @@ export default function Home({ onSelect }) {
   function handleUsernameDone(username) {
     setShowUsernameModal(false);
     updateUser({ username });
+  }
+
+  async function resizeImage(file) {
+    return new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = 200;
+          canvas.height = 200;
+          const ctx = canvas.getContext('2d');
+          const min = Math.min(img.width, img.height);
+          const sx  = (img.width  - min) / 2;
+          const sy  = (img.height - min) / 2;
+          ctx.drawImage(img, sx, sy, min, min, 0, 0, 200, 200);
+          resolve(canvas.toDataURL('image/jpeg', 0.8));
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function handleAvatarChange(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarLoading(true);
+    try {
+      const base64 = await resizeImage(file);
+      const token  = localStorage.getItem('tradara_token');
+      const res    = await fetch(`${SERVER}/auth/avatar`, {
+        method:  'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ avatar: base64 }),
+      });
+      if (res.ok) updateUser({ customAvatar: base64 });
+    } catch {}
+    setAvatarLoading(false);
+    e.target.value = '';
   }
 
   return (
@@ -99,13 +141,23 @@ export default function Home({ onSelect }) {
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
           {user ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              {activeCosmetics.avatar ? (
-                <div style={{ width: '28px', height: '28px', borderRadius: '50%', ...frameStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', background: '#0f141b' }}>
-                  {AVATAR_EMOJIS[activeCosmetics.avatar] || ''}
-                </div>
-              ) : (
-                user.avatar && <img src={user.avatar} style={{ width: '28px', height: '28px', borderRadius: '50%', ...frameStyle }} />
-              )}
+              <div style={{ position: 'relative', flexShrink: 0 }}>
+                {activeCosmetics.avatar ? (
+                  <div style={{ width: '28px', height: '28px', borderRadius: '50%', ...frameStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', background: '#0f141b' }}>
+                    {AVATAR_EMOJIS[activeCosmetics.avatar] || ''}
+                  </div>
+                ) : (user.customAvatar || user.avatar) ? (
+                  <img src={user.customAvatar || user.avatar} style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', ...frameStyle }} />
+                ) : null}
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={avatarLoading}
+                  style={{ position: 'absolute', top: '-5px', right: '-5px', width: '13px', height: '13px', borderRadius: '50%', background: '#0f141b', border: '1px solid #3a4455', fontSize: '7px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, lineHeight: 1 }}
+                >
+                  📷
+                </button>
+                <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarChange} />
+              </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                 <span style={{ fontSize: '10px', color: '#8899b0', fontFamily: "'Space Mono', monospace" }}>
                   {user.username ? `@${user.username}` : user.name}

@@ -64,7 +64,8 @@ const UserSchema = new mongoose.Schema({
   },
   createdAt: { type: Date, default: Date.now },
   lastLogin: { type: Date, default: Date.now },
-  username: { type: String, unique: true, sparse: true, default: null },
+  username:     { type: String, unique: true, sparse: true, default: null },
+  customAvatar: { type: String, default: null },
 });
 
 const TournamentSchema = new mongoose.Schema({
@@ -141,6 +142,7 @@ webpush.setVapidDetails(
 );
 // ── Push subscriptions ────────────────────────────────────────────
 let pushSubscriptions = [];
+let userPushSubscriptions = {};
 
 async function loadSubscriptions() {
   try {
@@ -160,9 +162,30 @@ async function saveSubscriptions(subs) {
   } catch (e) {}
 }
 
+async function loadUserSubscriptions() {
+  try {
+    const raw = await redis.get('push_user_subscriptions');
+    if (!raw) return {};
+    return typeof raw === 'string' ? JSON.parse(raw) : raw;
+  } catch (e) {
+    return {};
+  }
+}
+
+async function saveUserSubscriptions(map) {
+  try {
+    await redis.set('push_user_subscriptions', JSON.stringify(map));
+  } catch (e) {}
+}
+
 loadSubscriptions().then(subs => {
   pushSubscriptions = subs;
   console.log('Loaded', subs.length, 'subscriptions from Redis');
+});
+
+loadUserSubscriptions().then(map => {
+  userPushSubscriptions = map;
+  console.log('Loaded', Object.keys(map).length, 'user push subscriptions from Redis');
 });
 
 // ── Cache ─────────────────────────────────────────────────────────
@@ -387,7 +410,8 @@ app.get('/auth/me', async (req, res) => {
       dailyStreak: user.dailyStreak || 0,
       lastPlayed: user.lastPlayed || null,
       username: user.username || null,
-      dailyResult: user.dailyResult || null,
+      dailyResult:  user.dailyResult  || null,
+      customAvatar: user.customAvatar || null,
     });
   } catch (err) {
     res.status(401).json({ error: 'Invalid token' });
@@ -410,6 +434,21 @@ app.post('/auth/sync', async (req, res) => {
     res.status(401).json({ error: 'Invalid token' });
   }
 });
+app.post('/auth/avatar', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const { avatar } = req.body;
+    if (!avatar) return res.status(400).json({ error: 'No avatar' });
+    if (avatar.length > 700000) return res.status(400).json({ error: 'Image too large (max 500KB)' });
+    await User.findByIdAndUpdate(decoded.id, { customAvatar: avatar });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+});
+
 app.get('/auth/username/check/:username', async (req, res) => {
   try {
     const { username } = req.params;
@@ -718,13 +757,17 @@ app.get('/tournament/played', async (req, res) => {
 
 // ── Push routes ───────────────────────────────────────────────────
 app.post('/push/subscribe', async (req, res) => {
-  const sub = req.body;
+  const { username, ...sub } = req.body;
   if (!sub || !sub.endpoint) return res.status(400).json({ error: 'Invalid subscription' });
   pushSubscriptions = await loadSubscriptions();
   const exists = pushSubscriptions.find(s => s.endpoint === sub.endpoint);
   if (!exists) {
     pushSubscriptions.push(sub);
     await saveSubscriptions(pushSubscriptions);
+  }
+  if (username) {
+    userPushSubscriptions[username] = sub;
+    await saveUserSubscriptions(userPushSubscriptions);
   }
   res.json({ ok: true });
 });
@@ -1030,6 +1073,14 @@ io.on('connection', (socket) => {
     }, 30000);
     challengeRooms[code] = { challengerSocketId: socket.id, challengerUsername, targetUsername, timeoutId };
     targetSocket.emit('friend:challenged', { challengerUsername, roomCode: code });
+    const targetPushSub = userPushSubscriptions[targetUsername];
+    if (targetPushSub) {
+      webpush.sendNotification(targetPushSub, JSON.stringify({
+        title: `⚔️ ${socket.username} te reta`,
+        body:  'Acepta el reto en Tradara Arena',
+        url:   'https://tradara.dev',
+      })).catch(() => {});
+    }
   });
 
   socket.on('friend:challenge:accept', ({ roomCode }) => {
