@@ -19,7 +19,7 @@ function ShareButton({ res, copied, onShare, t }) {
 
 export default function Daily({ onBack }) {
   const { t, lang, setLang } = useLang();
-  const { activeCosmetics }  = useAuth();
+  const { activeCosmetics, user } = useAuth();
   const [activeEffect, setActiveEffect] = useState(false);
   function triggerEffect() { setActiveEffect(true); setTimeout(() => setActiveEffect(false), 1500); }
   const [phase, setPhase]           = useState('loading');
@@ -56,7 +56,8 @@ export default function Daily({ onBack }) {
   }, []);
 
   useEffect(() => {
-    const today  = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0];
+
     const played = localStorage.getItem('tradara_daily_played');
     if (played === today) {
       const saved = JSON.parse(localStorage.getItem('tradara_daily_result') || 'null');
@@ -66,6 +67,15 @@ export default function Daily({ onBack }) {
         setPhase('already');
         return;
       }
+    }
+
+    if (user?.dailyResult?.date === today) {
+      const res = { ...user.dailyResult };
+      res.win = res.win === true;
+      localStorage.setItem('tradara_daily_played', today);
+      localStorage.setItem('tradara_daily_result', JSON.stringify(res));
+      setResult(res);
+      setPhase('already');
       return;
     }
 
@@ -153,9 +163,10 @@ export default function Daily({ onBack }) {
         badges:      JSON.parse(localStorage.getItem('tradara_badges') || '[]'),
         dailyStreak: newStreak,
         lastPlayed:  today,
+        dailyResult: res,
       }),
     }).catch(() => {});
-   }
+  }
  };
 
   const shareResult = (res) => {

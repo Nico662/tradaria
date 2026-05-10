@@ -53,6 +53,15 @@ const UserSchema = new mongoose.Schema({
   purchases: { type: [String], default: [] },
   dailyStreak: { type: Number, default: 0 },
   lastPlayed:  { type: String, default: null },
+  dailyResult: {
+    date:      { type: String,  default: null },
+    win:       { type: Boolean, default: null },
+    choice:    { type: String,  default: null },
+    direction: { type: String,  default: null },
+    pctMove:   { type: Number,  default: null },
+    asset:     { type: String,  default: null },
+    interval:  { type: String,  default: null },
+  },
   createdAt: { type: Date, default: Date.now },
   lastLogin: { type: Date, default: Date.now },
   username: { type: String, unique: true, sparse: true, default: null },
@@ -378,6 +387,7 @@ app.get('/auth/me', async (req, res) => {
       dailyStreak: user.dailyStreak || 0,
       lastPlayed: user.lastPlayed || null,
       username: user.username || null,
+      dailyResult: user.dailyResult || null,
     });
   } catch (err) {
     res.status(401).json({ error: 'Invalid token' });
@@ -389,10 +399,11 @@ app.post('/auth/sync', async (req, res) => {
   if (!auth) return res.status(401).json({ error: 'No token' });
   try {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const { xp, badges, dailyStreak, lastPlayed } = req.body;
+    const { xp, badges, dailyStreak, lastPlayed, dailyResult } = req.body;
     const update = { xp, badges };
     if (dailyStreak !== undefined) update.dailyStreak = dailyStreak;
     if (lastPlayed !== undefined) update.lastPlayed = lastPlayed;
+    if (dailyResult !== undefined) update.dailyResult = dailyResult;
     await User.findByIdAndUpdate(decoded.id, update);
     res.json({ ok: true });
   } catch (err) {
