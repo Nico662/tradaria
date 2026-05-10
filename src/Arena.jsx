@@ -56,13 +56,13 @@ function botMakeChoice(direction) {
   return ['long', 'short', 'skip'][Math.floor(Math.random() * 3)];
 }
 
-export default function Arena({ onBack }) {
+export default function Arena({ onBack, challengeRoomCode }) {
   const { t, lang, setLang } = useLang();
-  const { activeCosmetics }  = useAuth();
+  const { activeCosmetics, user } = useAuth();
   const [activeEffect, setActiveEffect] = useState(false);
   function triggerEffect() { setActiveEffect(true); setTimeout(() => setActiveEffect(false), 1500); }
   const [screen,    setScreen]   = useState('lobby');
-  const [name,      setName]     = useState('');
+  const [name,      setName]     = useState(() => user?.username || user?.name || '');
   const [status,    setStatus]   = useState('');
   const [gameData,  setGameData] = useState(null);
   const [round,     setRound]    = useState(1);
@@ -108,6 +108,19 @@ export default function Arena({ onBack }) {
       clearInterval(timerRef.current);
     };
   }, []);
+
+  // Auto-join when coming from a friend challenge
+  useEffect(() => {
+    if (!challengeRoomCode) return;
+    const playerName = user?.username || user?.name || 'Player';
+    setName(playerName);
+    setStatus('Uniéndose al reto...');
+    setScreen('waiting');
+    const socket = initSocket(playerName);
+    const doJoin = () => socket.emit('challenge:join', { name: playerName, code: challengeRoomCode });
+    socket.on('connect', doJoin);
+    if (socket.connected) doJoin();
+  }, [challengeRoomCode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function startTimer() {
     clearInterval(timerRef.current);
@@ -398,11 +411,17 @@ export default function Arena({ onBack }) {
       <div className="scanlines" />
       <div style={{ padding: '40px 28px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
         <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '24px', color: '#f0f0f0', marginBottom: '16px' }}>
-          {status === 'waiting_for_friend' ? t.arena.roomCreated : t.arena.searching}
+          {status === 'waiting_for_friend' ? t.arena.roomCreated : status === 'Uniéndose al reto...' ? '⚔️ Reto de amigo' : t.arena.searching}
         </div>
         <div style={{ fontSize: '32px', marginBottom: '24px' }}>
-          {status === 'waiting_for_friend' ? '🔒' : '⚔️'}
+          {status === 'waiting_for_friend' ? '🔒' : status === 'Uniéndose al reto...' ? '🤝' : '⚔️'}
         </div>
+
+        {status === 'Uniéndose al reto...' && (
+          <div style={{ marginBottom: '24px', fontSize: '10px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            Esperando al rival...
+          </div>
+        )}
 
         {status === 'waiting_for_friend' && roomCode ? (
           <div style={{ marginBottom: '24px' }}>
@@ -412,7 +431,7 @@ export default function Arena({ onBack }) {
             </div>
             <div style={{ marginTop: '12px', fontSize: '10px', color: '#3a4455', letterSpacing: '0.06em' }}>{t.arena.waitingFriend}</div>
           </div>
-        ) : (
+        ) : status !== 'Uniéndose al reto...' ? (
           <>
             <div style={{ fontSize: '10px', color: '#3a4455', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '32px' }}>
               {t.arena.playingAs} <span style={{ color: '#22d3a5' }}>{name}</span>
@@ -428,7 +447,7 @@ export default function Arena({ onBack }) {
               <div style={{ marginTop: '10px', fontSize: '10px', color: '#3a4455', lineHeight: 1.6 }}>{t.arena.vsBotSub}</div>
             </div>
           </>
-        )}
+        ) : null}
 
         <button onClick={goBack}
           style={{ background: 'transparent', border: '1px solid #2a3345', borderRadius: '6px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '10px', padding: '8px 16px', cursor: 'pointer', letterSpacing: '0.06em' }}>

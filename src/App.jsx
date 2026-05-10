@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import { io } from 'socket.io-client';
 import Chart, { generateCandles } from "./Chart";
 import Home from "./Home";
 import { useLang } from './LangContext.jsx';
@@ -20,6 +21,7 @@ import Shop from './Shop.jsx';
 import Portfolio from './Portfolio.jsx';
 import Friends from './Friends.jsx';
 import EffectOverlay from './EffectOverlay.jsx';
+import ChallengeNotification from './ChallengeNotification.jsx';
 
 function randomTF() {
   const tfs = ['1m', '5m', '15m'];
@@ -84,9 +86,53 @@ export default function App() {
   const [activeEffect,setActiveEffect] = useState(false);
   const [chartReady, setChartReady] = useState(false);
 
-  const { syncProgress, activeCosmetics = {} } = useAuth();
+  const { syncProgress, activeCosmetics = {}, user } = useAuth();
   const { lang, setLang, t } = useLang();
   const chartRef = useRef(null);
+
+  // ── Challenge socket (global, lives while user is logged in) ──────
+  const challengeSocketRef          = useRef(null);
+  const [challengeSocket,     setChallengeSocket]     = useState(null);
+  const [pendingChallenge,    setPendingChallenge]    = useState(null); // incoming
+  const [challengeRoomCode,   setChallengeRoomCode]   = useState(null);
+
+  useEffect(() => {
+    if (!user?.username) return;
+    const socket = io('https://tradara-production.up.railway.app', { reconnection: true });
+    challengeSocketRef.current = socket;
+    setChallengeSocket(socket);
+    socket.on('connect', () => socket.emit('user:register', { username: user.username }));
+    socket.on('friend:challenged', ({ challengerUsername, roomCode }) => {
+      setPendingChallenge({ challengerUsername, roomCode });
+    });
+    socket.on('friend:challenge:ready', ({ roomCode }) => {
+      setPendingChallenge(null);
+      setChallengeRoomCode(roomCode);
+      setScreen('arena');
+    });
+    return () => { socket.disconnect(); challengeSocketRef.current = null; setChallengeSocket(null); };
+  }, [user?.username]);
+
+  function handleAcceptChallenge() {
+    if (!pendingChallenge) return;
+    challengeSocketRef.current?.emit('friend:challenge:accept', { roomCode: pendingChallenge.roomCode });
+    setPendingChallenge(null);
+  }
+
+  function handleRejectChallenge() {
+    if (!pendingChallenge) return;
+    challengeSocketRef.current?.emit('friend:challenge:reject', { roomCode: pendingChallenge.roomCode });
+    setPendingChallenge(null);
+  }
+
+  const challengeOverlay = pendingChallenge ? (
+    <ChallengeNotification
+      challenge={pendingChallenge}
+      onAccept={handleAcceptChallenge}
+      onReject={handleRejectChallenge}
+    />
+  ) : null;
+
  useEffect(() => {
      const root = document.getElementById('root');
      if (!root) return;
@@ -418,6 +464,7 @@ export default function App() {
           </div>
         </div>
         {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
+        {challengeOverlay}
       </div>
     );
   }
@@ -440,20 +487,34 @@ export default function App() {
           else setScreen('game');
         }} />
         <NotificationBanner />
+        {challengeOverlay}
       </>
     );
   }
 
-  if (screen === 'arena')      return <Arena      onBack={() => setScreen('home')} />;
-  if (screen === 'legal')      return <Legal      onBack={() => setScreen('home')} />;
-  if (screen === 'badges')     return <Badges     onBack={() => setScreen('home')} />;
-  if (screen === 'daily')      return <Daily      onBack={() => setScreen('home')} />;
-  if (screen === 'historical') return <Historical onBack={() => setScreen('home')} />;
-  if (screen === 'tournament') return <Tournament onBack={() => setScreen('home')} />;
-  if (screen === 'survival')   return <Survival   onBack={() => setScreen('home')} />;
-  if (screen === 'shop')       return <Shop       onBack={() => setScreen('home')} />;
-  if (screen === 'portfolio') return <Portfolio  onBack={() => setScreen('home')} />;
-  if (screen === 'friends')   return <Friends    onBack={() => setScreen('home')} onChallenge={() => setScreen('arena')} />;
+  if (screen === 'arena') return (
+    <>
+      <Arena onBack={() => { setScreen('home'); setChallengeRoomCode(null); }} challengeRoomCode={challengeRoomCode} />
+      {challengeOverlay}
+    </>
+  );
+  if (screen === 'legal')      return <><Legal      onBack={() => setScreen('home')} />{challengeOverlay}</>;
+  if (screen === 'badges')     return <><Badges     onBack={() => setScreen('home')} />{challengeOverlay}</>;
+  if (screen === 'daily')      return <><Daily      onBack={() => setScreen('home')} />{challengeOverlay}</>;
+  if (screen === 'historical') return <><Historical onBack={() => setScreen('home')} />{challengeOverlay}</>;
+  if (screen === 'tournament') return <><Tournament onBack={() => setScreen('home')} />{challengeOverlay}</>;
+  if (screen === 'survival')   return <><Survival   onBack={() => setScreen('home')} />{challengeOverlay}</>;
+  if (screen === 'shop')       return <><Shop       onBack={() => setScreen('home')} />{challengeOverlay}</>;
+  if (screen === 'portfolio')  return <><Portfolio  onBack={() => setScreen('home')} />{challengeOverlay}</>;
+  if (screen === 'friends') return (
+    <>
+      <Friends
+        onBack={() => setScreen('home')}
+        challengeSocket={challengeSocket}
+      />
+      {challengeOverlay}
+    </>
+  );
 
   // ── Game ──────────────────────────────────────────────────────────
   const cls      = result ? (result.win && !result.neutral ? 'win' : !result.win && !result.neutral ? 'lose' : 'neutral') : '';
@@ -634,6 +695,7 @@ export default function App() {
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
 
       <EffectOverlay effect={activeCosmetics.effect} active={activeEffect} />
+      {challengeOverlay}
     </div>
   );
 }

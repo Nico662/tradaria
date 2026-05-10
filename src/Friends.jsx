@@ -22,8 +22,17 @@ function Avatar({ user, size }) {
   );
 }
 
-function FriendCard({ f, onChallenge }) {
+function FriendCard({ f, onChallenge, isChallenging, challengeStatus }) {
   const level = getLevel(f.xp || 0);
+  const btnLabel = isChallenging
+    ? (challengeStatus === 'unavailable' ? '✗ No disponible' : '⏳ Esperando...')
+    : '⚔️ Retar';
+  const btnColor = isChallenging
+    ? (challengeStatus === 'unavailable' ? '#f05454' : '#f5c842')
+    : '#22d3a5';
+  const btnBg = isChallenging
+    ? (challengeStatus === 'unavailable' ? 'rgba(240,84,84,0.08)' : 'rgba(245,200,66,0.08)')
+    : 'rgba(34,211,165,0.08)';
   return (
     <div style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
       <Avatar user={f} size={38} />
@@ -36,12 +45,13 @@ function FriendCard({ f, onChallenge }) {
         </div>
       </div>
       <button
-        onClick={() => onChallenge && onChallenge(f.username || f.name)}
-        style={{ flexShrink: 0, padding: '7px 11px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}
-        onMouseEnter={e => e.currentTarget.style.background = 'rgba(34,211,165,0.18)'}
-        onMouseLeave={e => e.currentTarget.style.background = 'rgba(34,211,165,0.08)'}
+        onClick={() => !isChallenging && onChallenge && onChallenge(f.username || f.name)}
+        disabled={isChallenging}
+        style={{ flexShrink: 0, padding: '7px 11px', background: btnBg, border: `1px solid ${btnColor}`, borderRadius: '6px', color: btnColor, fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: isChallenging ? 'default' : 'pointer', letterSpacing: '0.04em', whiteSpace: 'nowrap', transition: 'all 0.2s', minWidth: '90px', textAlign: 'center' }}
+        onMouseEnter={e => { if (!isChallenging) e.currentTarget.style.background = 'rgba(34,211,165,0.18)'; }}
+        onMouseLeave={e => { if (!isChallenging) e.currentTarget.style.background = btnBg; }}
       >
-        ⚔️ Retar
+        {btnLabel}
       </button>
     </div>
   );
@@ -125,7 +135,7 @@ function SearchResultCard({ profile, onSendRequest }) {
   );
 }
 
-export default function Friends({ onBack, onChallenge }) {
+export default function Friends({ onBack, challengeSocket }) {
   const { user } = useAuth();
   const [friends, setFriends]           = useState([]);
   const [pending, setPending]           = useState([]);
@@ -135,11 +145,38 @@ export default function Friends({ onBack, onChallenge }) {
   const [loading, setLoading]           = useState(true);
   const [msg, setMsg]                   = useState(null);
   const debounceRef                     = useRef(null);
+  const [challengingFriend, setChallengingFriend] = useState(null);
+  const [challengeStatus, setChallengeStatus]     = useState(null);
 
   useEffect(() => {
     if (!user) { setLoading(false); return; }
     fetchAll();
   }, [user]);
+
+  useEffect(() => {
+    if (!challengeSocket) return;
+    function onExpired() {
+      setChallengeStatus('unavailable');
+      setTimeout(() => { setChallengingFriend(null); setChallengeStatus(null); }, 2000);
+    }
+    function onRejected() {
+      setChallengeStatus('unavailable');
+      setTimeout(() => { setChallengingFriend(null); setChallengeStatus(null); }, 2000);
+    }
+    challengeSocket.on('friend:challenge:expired', onExpired);
+    challengeSocket.on('friend:challenge:rejected', onRejected);
+    return () => {
+      challengeSocket.off('friend:challenge:expired', onExpired);
+      challengeSocket.off('friend:challenge:rejected', onRejected);
+    };
+  }, [challengeSocket]);
+
+  function challengeFriend(username) {
+    if (!challengeSocket || challengingFriend) return;
+    setChallengingFriend(username);
+    setChallengeStatus('waiting');
+    challengeSocket.emit('friend:challenge', { targetUsername: username });
+  }
 
   async function fetchAll() {
     setLoading(true);
@@ -313,7 +350,13 @@ export default function Friends({ onBack, onChallenge }) {
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {friends.map(f => (
-                    <FriendCard key={String(f.friendshipId)} f={f} onChallenge={onChallenge} />
+                    <FriendCard
+                      key={String(f.friendshipId)}
+                      f={f}
+                      onChallenge={challengeFriend}
+                      isChallenging={challengingFriend === (f.username || f.name)}
+                      challengeStatus={challengingFriend === (f.username || f.name) ? challengeStatus : null}
+                    />
                   ))}
                 </div>
               )}

@@ -881,7 +881,9 @@ function resolveRound(roomId) {
   });
 }
 
-const privateLobby = {};
+const privateLobby   = {};
+const userSockets    = {}; // username → socket (for challenge targeting)
+const challengeRooms = {}; // roomCode → challenge state
 
 function generateCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
@@ -993,7 +995,76 @@ io.on('connection', (socket) => {
     }, 10000);
   });
 
+  // ── Challenge system ────────────────────────────────────────────────
+  socket.on('user:register', ({ username }) => {
+    if (!username) return;
+    socket.username = username;
+    userSockets[username] = socket;
+  });
+
+  socket.on('friend:challenge', ({ targetUsername }) => {
+    const challengerUsername = socket.username;
+    if (!challengerUsername || !targetUsername) return;
+    const targetSocket = userSockets[targetUsername];
+    if (!targetSocket?.connected) {
+      socket.emit('friend:challenge:expired');
+      return;
+    }
+    const code = generateCode();
+    const timeoutId = setTimeout(() => {
+      if (challengeRooms[code]) {
+        socket.emit('friend:challenge:expired');
+        delete challengeRooms[code];
+      }
+    }, 30000);
+    challengeRooms[code] = { challengerSocketId: socket.id, challengerUsername, targetUsername, timeoutId };
+    targetSocket.emit('friend:challenged', { challengerUsername, roomCode: code });
+  });
+
+  socket.on('friend:challenge:accept', ({ roomCode }) => {
+    const challenge = challengeRooms[roomCode];
+    if (!challenge) return;
+    clearTimeout(challenge.timeoutId);
+    challengeRooms[roomCode] = { ...challenge, accepted: true };
+    socket.emit('friend:challenge:ready', { roomCode });
+    io.to(challenge.challengerSocketId).emit('friend:challenge:ready', { roomCode });
+  });
+
+  socket.on('friend:challenge:reject', ({ roomCode }) => {
+    const challenge = challengeRooms[roomCode];
+    if (!challenge) return;
+    clearTimeout(challenge.timeoutId);
+    io.to(challenge.challengerSocketId).emit('friend:challenge:rejected');
+    delete challengeRooms[roomCode];
+  });
+
+  socket.on('challenge:join', ({ name, code }) => {
+    socket.playerName = name || 'Player';
+    const challenge = challengeRooms[code];
+    if (!challenge?.accepted) {
+      socket.emit('room:error', { message: 'Reto no encontrado o expirado' });
+      return;
+    }
+    if (!challenge.waitingSocket) {
+      const cleanupId = setTimeout(() => { delete challengeRooms[code]; }, 60000);
+      challengeRooms[code] = { ...challenge, waitingSocket: socket, cleanupId };
+    } else {
+      clearTimeout(challenge.cleanupId);
+      const host = challenge.waitingSocket;
+      delete challengeRooms[code];
+      startRoom(host, socket);
+    }
+  });
+
   socket.on('disconnect', () => {
+    if (socket.username && userSockets[socket.username] === socket) delete userSockets[socket.username];
+    for (const [code, ch] of Object.entries(challengeRooms)) {
+      if (ch.challengerSocketId === socket.id || ch.waitingSocket?.id === socket.id) {
+        clearTimeout(ch.timeoutId);
+        clearTimeout(ch.cleanupId);
+        delete challengeRooms[code];
+      }
+    }
     if (socket.roomCode && privateLobby[socket.roomCode]) delete privateLobby[socket.roomCode];
     if (socket.roomId && rooms[socket.roomId]) {
       socket.to(socket.roomId).emit('game:opponent_disconnected');
