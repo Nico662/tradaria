@@ -55,6 +55,7 @@ const UserSchema = new mongoose.Schema({
   lastPlayed:  { type: String, default: null },
   createdAt: { type: Date, default: Date.now },
   lastLogin: { type: Date, default: Date.now },
+  username: { type: String, unique: true, sparse: true, default: null },
 });
 
 const TournamentSchema = new mongoose.Schema({
@@ -367,6 +368,7 @@ app.get('/auth/me', async (req, res) => {
       badges: user.badges,
       dailyStreak: user.dailyStreak || 0,
       lastPlayed: user.lastPlayed || null,
+      username: user.username || null,
     });
   } catch (err) {
     res.status(401).json({ error: 'Invalid token' });
@@ -386,6 +388,36 @@ app.post('/auth/sync', async (req, res) => {
     res.json({ ok: true });
   } catch (err) {
     res.status(401).json({ error: 'Invalid token' });
+  }
+});
+app.get('/auth/username/check/:username', async (req, res) => {
+  try {
+    const { username } = req.params;
+    if (!/^[a-zA-Z0-9_]{3,16}$/.test(username)) {
+      return res.json({ available: false, error: 'Solo letras, números y _ (3-16 caracteres)' });
+    }
+    const existing = await User.findOne({ username: username.toLowerCase() });
+    res.json({ available: !existing });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/auth/username/set', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const { username } = req.body;
+    if (!/^[a-zA-Z0-9_]{3,16}$/.test(username)) {
+      return res.status(400).json({ error: 'Solo letras, números y _ (3-16 caracteres)' });
+    }
+    const existing = await User.findOne({ username: username.toLowerCase() });
+    if (existing) return res.status(400).json({ error: 'Username ya en uso' });
+    await User.findByIdAndUpdate(decoded.id, { username: username.toLowerCase() });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 const SHOP_ITEMS = {
