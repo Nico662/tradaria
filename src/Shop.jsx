@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useLang } from './LangContext.jsx';
 import { useAuth } from './AuthContext.jsx';
+import { SERVER } from './config.js';
 
 const SHOP_ITEMS = {
   frames: [
@@ -326,7 +327,7 @@ export default function Shop({ onBack }) {
     }
     setLoading(itemId);
     try {
-      const res = await fetch('https://tradara-production.up.railway.app/shop/checkout', {
+      const res = await fetch(`${SERVER}/shop/checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('tradara_token')}` },
         body: JSON.stringify({ itemId }),

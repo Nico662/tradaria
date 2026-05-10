@@ -1,6 +1,5 @@
 import { useState } from 'react';
-
-const SERVER = 'https://tradara-production.up.railway.app';
+import { SERVER } from './config.js';
 
 export default function UsernameModal({ onDone }) {
   const [username, setUsername]   = useState('');

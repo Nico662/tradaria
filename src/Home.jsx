@@ -1,5 +1,6 @@
 import { useLang } from './LangContext';
 import { useState, useEffect } from 'react';
+import { SERVER } from './config.js';
 import { getUnlocked } from './badges.js';
 import { getXP, getLevel } from './levels.js';
 import { useAuth } from './AuthContext';
@@ -31,7 +32,7 @@ export default function Home({ onSelect }) {
   const unlockedCount = getUnlocked().length;
   const xp    = getXP();
   const level = getLevel(xp);
-  const { user, login, logout, activeCosmetics } = useAuth();
+  const { user, login, logout, activeCosmetics, updateUser } = useAuth();
   const [showUsernameModal, setShowUsernameModal] = useState(false);
 
   const frameStyle = FRAME_STYLES[activeCosmetics.frame] || { border: '1px solid #22d3a5' };
@@ -39,7 +40,7 @@ export default function Home({ onSelect }) {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        await fetch('https://tradara-production.up.railway.app/stats');
+        await fetch(`${SERVER}/stats`);
       } catch {}
     };
     fetchStats();
@@ -56,8 +57,7 @@ export default function Home({ onSelect }) {
 
   function handleUsernameDone(username) {
     setShowUsernameModal(false);
-    // Actualizar el user en contexto
-    user.username = username;
+    updateUser({ username });
   }
 
   return (

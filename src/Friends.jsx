@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { getLevel } from './levels.js';
-
-const SERVER = 'https://tradara-production.up.railway.app';
+import { SERVER } from './config.js';
 
 function authHeaders() {
   return {

@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { SERVER } from './config.js';
 import { useLang } from './LangContext.jsx';
 import { HISTORICAL_EVENTS } from './historical.js';
 import Chart from './Chart.jsx';
@@ -36,7 +37,7 @@ export default function Historical({ onBack }) {
     setEvent(ev);
     setPhase('loading');
     try {
-      const res  = await fetch(`https://tradara-production.up.railway.app/candles?symbol=${encodeURIComponent(ev.symbol)}&interval=${ev.interval}&from=${ev.from}&to=${ev.to}`);
+      const res  = await fetch(`${SERVER}/candles?symbol=${encodeURIComponent(ev.symbol)}&interval=${ev.interval}&from=${ev.from}&to=${ev.to}`);
       const data = await res.json();
       if (data.error || !data.length) throw new Error('No data');
       const total    = data.length;

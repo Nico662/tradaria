@@ -8,7 +8,8 @@ import BadgeNotification from './BadgeNotification.jsx';
 import { useAuth } from './AuthContext';
 import EffectOverlay from './EffectOverlay.jsx';
 
-const SOCKET_URL = 'https://tradara-production.up.railway.app';
+import { SERVER } from './config.js';
+const SOCKET_URL = SERVER;
 
 const BOT_NAMES = ['AlgoBot', 'TradeAI', 'MarketBot', 'CryptoBot', 'NeuralBot'];
 

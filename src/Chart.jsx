@@ -1,5 +1,6 @@
 import { createChart, CandlestickSeries } from "lightweight-charts";
 import { useEffect, useRef, useImperativeHandle, forwardRef } from "react";
+import { SERVER, ALPHA_VANTAGE_KEY } from './config.js';
 
 const FOREX = ['EUR/USD','GBP/USD','AUD/USD','USD/JPY','USD/CHF','USD/CAD'];
 
@@ -32,13 +33,14 @@ async function fetchBinanceCandles(symbol, interval, limit) {
 }
 
 async function fetchYahooCandles(symbol, interval) {
-  const res  = await fetch(`https://tradara-production.up.railway.app/candles?symbol=${encodeURIComponent(symbol)}&interval=${interval}`);
+  const res  = await fetch(`${SERVER}/candles?symbol=${encodeURIComponent(symbol)}&interval=${interval}`);
   const data = await res.json();
   if (data.error) throw new Error(data.error);
+  return data;
 }
 
 async function fetchAlphaVantageCandles(symbol, interval) {
-  const apiKey = 'ZCWXVK6SON5D524K';
+  const apiKey = ALPHA_VANTAGE_KEY;
   const url = `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${symbol}&interval=${interval}&outputsize=full&apikey=${apiKey}`;
   const res  = await fetch(url);
   const data = await res.json();

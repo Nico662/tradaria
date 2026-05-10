@@ -7,7 +7,7 @@ import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
 import EffectOverlay from './EffectOverlay.jsx';
 
-const SERVER = 'https://tradara-production.up.railway.app';
+import { SERVER } from './config.js';
 
 const AVATAR_EMOJIS = {
   avatar_bull:  '🐂',

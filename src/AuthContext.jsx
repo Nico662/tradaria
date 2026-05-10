@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { SERVER } from './config.js';
 
 const AuthContext = createContext();
-const SERVER = 'https://tradara-production.up.railway.app';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -144,8 +144,12 @@ export function AuthProvider({ children }) {
     setPurchases([]);
   }
 
+  function updateUser(updates) {
+    setUser(prev => prev ? { ...prev, ...updates } : prev);
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, syncProgress, purchases, activeCosmetics, equipCosmetic, unequipCosmetic }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, syncProgress, purchases, activeCosmetics, equipCosmetic, unequipCosmetic, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

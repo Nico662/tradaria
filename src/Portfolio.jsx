@@ -4,7 +4,7 @@ import { useLang } from './LangContext.jsx';
 import Chart from './Chart.jsx';
 import { ASSET_INFO } from './assetInfo.js';
 
-const SERVER = 'https://tradara-production.up.railway.app';
+import { SERVER } from './config.js';
 
 const TYPE_COLORS = {
   stock:     '#378ADD',

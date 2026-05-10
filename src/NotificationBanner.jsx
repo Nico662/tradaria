@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { SERVER } from './config.js';
 
 export default function NotificationBanner() {
   const [show, setShow] = useState(false);
@@ -16,7 +17,7 @@ export default function NotificationBanner() {
       applicationServerKey: 'BEWPkbh1HeSsw08H0EsELp5TIPD2gcQ8Yfa1RsSW-9jER3uvoeVUTazcIqjlf4UNFKe7QeqQ8ZlVjGI72pinR0I',
     });
     console.log('New subscription created:', sub.endpoint?.slice(0, 50));
-    const response = await fetch('https://tradara-production.up.railway.app/push/subscribe', {
+    const response = await fetch(`${SERVER}/push/subscribe`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(sub),

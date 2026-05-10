@@ -1,11 +1,21 @@
 import { useState, useEffect, useRef } from 'react';
 import Chart from './Chart.jsx';
+import { SERVER } from './config.js';
 import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
 import { addXP } from './levels.js';
 import { useLang } from './LangContext.jsx';
 import { useAuth } from './AuthContext';
 import EffectOverlay from './EffectOverlay.jsx';
+
+function ShareButton({ res, copied, onShare, t }) {
+  return (
+    <button onClick={() => onShare(res)}
+      style={{ marginTop: '12px', width: '100%', padding: '12px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+      {copied ? t.daily.copied : t.daily.share}
+    </button>
+  );
+}
 
 export default function Daily({ onBack }) {
   const { t, lang, setLang } = useLang();
@@ -55,7 +65,7 @@ export default function Daily({ onBack }) {
       return;
     }
 
-    fetch('https://tradara-production.up.railway.app/daily')
+    fetch(`${SERVER}/daily`)
       .then(r => r.json())
       .then(data => {
         setDailyAsset({
@@ -131,7 +141,7 @@ export default function Daily({ onBack }) {
   // Sincronizar streak con servidor
   const token = localStorage.getItem('tradara_token');
   if (token) {
-    fetch('https://tradara-production.up.railway.app/auth/sync', {
+    fetch(`${SERVER}/auth/sync`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -152,7 +162,7 @@ export default function Daily({ onBack }) {
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-      fetch('https://tradara-production.up.railway.app/stats/share', { method: 'POST' }).catch(() => {});
+      fetch(`${SERVER}/stats/share`, { method: 'POST' }).catch(() => {});
       const shares = parseInt(localStorage.getItem('tradara_share_count') || '0') + 1;
       localStorage.setItem('tradara_share_count', String(shares));
       if (shares >= 3) tryUnlockDailyBadge('screenshot_ready');
@@ -160,13 +170,6 @@ export default function Daily({ onBack }) {
   };
 
   const resultColor = result?.win ? '#22d3a5' : '#f05454';
-
-  const ShareButton = ({ res }) => (
-    <button onClick={() => shareResult(res)}
-      style={{ marginTop: '12px', width: '100%', padding: '12px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-      {copied ? t.daily.copied : t.daily.share}
-    </button>
-  );
 
   return (
     <div id="gtm-root" style={{ position: 'relative' }}>
@@ -253,7 +256,7 @@ export default function Daily({ onBack }) {
                 <div style={{ marginTop: '16px', fontSize: '9px', color: '#3a4455', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                   {t.daily.comeback}
                 </div>
-                <ShareButton res={result} />
+                <ShareButton res={result} copied={copied} onShare={shareResult} t={t} />
               </div>
             )}
           </>
@@ -271,7 +274,7 @@ export default function Daily({ onBack }) {
             <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
               {t.daily.next} {timeLeft}
             </div>
-            <ShareButton res={result} />
+            <ShareButton res={result} copied={copied} onShare={shareResult} t={t} />
           </div>
         )}
 

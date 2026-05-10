@@ -3,6 +3,7 @@ import './index.css'
 import App from './App.jsx'
 import { LangProvider } from './LangContext.jsx';
 import { AuthProvider } from './AuthContext.jsx';
+import { SERVER } from './config.js';
 import { inject } from '@vercel/analytics';
 inject();
 
@@ -23,7 +24,7 @@ if ('serviceWorker' in navigator) {
         applicationServerKey: 'BEWPkbh1HeSsw08H0EsELp5TIPD2gcQ8Yfa1RsSW-9jER3uvoeVUTazcIqjlf4UNFKe7QeqQ8ZlVjGI72pinR0I',
       });
 
-      await fetch('https://tradara-production.up.railway.app/push/subscribe', {
+      await fetch(`${SERVER}/push/subscribe`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify(sub),
