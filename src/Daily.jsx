@@ -60,8 +60,12 @@ export default function Daily({ onBack }) {
     const played = localStorage.getItem('tradara_daily_played');
     if (played === today) {
       const saved = JSON.parse(localStorage.getItem('tradara_daily_result') || 'null');
-      setResult(saved);
-      setPhase('already');
+      if (saved) {
+        saved.win = saved.win === true || saved.win === 'true';
+        setResult(saved);
+        setPhase('already');
+        return;
+      }
       return;
     }
 
@@ -100,7 +104,7 @@ export default function Daily({ onBack }) {
                   || (choice === 'short' && direction === 'down')
                   || (choice === 'skip'  && direction === 'flat');
 
-  const res = { choice, direction, pctMove, win };
+  const res = { choice, direction, pctMove, win, asset: dailyAsset.name, interval: dailyAsset.tf };
   setResult(res);
 
   const today = new Date().toISOString().split('T')[0];
@@ -155,8 +159,8 @@ export default function Daily({ onBack }) {
  };
 
   const shareResult = (res) => {
-    const asset    = dailyAsset?.name ?? '?';
-    const interval = dailyAsset?.tf   ?? '?';
+    const asset    = res.asset    ?? dailyAsset?.name ?? '?';
+    const interval = res.interval ?? dailyAsset?.tf   ?? '?';
     const today    = new Date().toISOString().split('T')[0];
     const text     = `⚡ Tradara Daily Challenge\n📅 ${today}\n📈 ${asset} · ${interval}\n\n${res.win ? '✅ CORRECT' : '❌ WRONG'} — price ${res.direction === 'up' ? '▲' : res.direction === 'down' ? '▼' : '—'} ${res.pctMove > 0 ? '+' : ''}${res.pctMove.toFixed(2)}%\n\ntradara.dev`;
     navigator.clipboard.writeText(text).then(() => {
