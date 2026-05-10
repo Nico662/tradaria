@@ -230,58 +230,141 @@ html, body {
   }
 }
 /* ─── Themes ────────────────────────────────────── */
-#root.theme_blood #gtm-root {
-  background: #0f0808 !important;
+
+/* ══════════════════════════════════════════════════
+   BLOOD MARKET
+══════════════════════════════════════════════════ */
+#root.theme_blood { background: #0d0000; }
+#root.theme_blood #gtm-root { background: #0d0000 !important; }
+#root.theme_blood #gtm-root .scanlines {
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(120,0,0,0.13) 2px, rgba(120,0,0,0.13) 4px);
 }
+#root.theme_blood #gtm-root .header      { border-bottom-color: #3a0000; }
+#root.theme_blood #gtm-root .asset-bar   { border-bottom-color: #3a0000; }
+#root.theme_blood #gtm-root .cat-bar     { border-bottom-color: #3a0000; }
+#root.theme_blood #gtm-root .ticker-tape { border-top-color: #3a0000; color: #6b2020; }
+#root.theme_blood #gtm-root .mode-card   { background: #0f0404; border-color: #2a0000; }
+#root.theme_blood #gtm-root .mode-card.active:hover { border-color: #f05454; background: rgba(240,84,84,0.08); }
+#root.theme_blood #gtm-root .trade-btn   { background: #0f0404; border-color: #2a0000; }
 #root.theme_blood #gtm-root .trade-btn.long:hover,
-#root.theme_blood #gtm-root .trade-btn.long.selected { border-color: #f05454; color: #f05454; background: rgba(240,84,84,0.06); }
-#root.theme_blood #gtm-root .logo span,
-#root.theme_blood #gtm-root .stat-val.green,
-#root.theme_blood #gtm-root .streak-dot.win,
-#root.theme_blood #gtm-root .result-verdict.win,
-#root.theme_blood #gtm-root .result-pnl.pos,
-#root.theme_blood #gtm-root .cat-btn.active { color: #f05454; border-color: #f05454; background: rgba(240,84,84,0.06); }
-#root.theme_blood #gtm-root .mode-card.active:hover { border-color: #f05454; background: rgba(240,84,84,0.04); }
+#root.theme_blood #gtm-root .trade-btn.long.selected { border-color: #f05454; color: #f05454; background: rgba(240,84,84,0.10); }
+#root.theme_blood #gtm-root .logo span           { color: #f05454; }
+#root.theme_blood #gtm-root .stat-val.green      { color: #f05454; }
+#root.theme_blood #gtm-root .streak-dot.win      { background: #f05454; border-color: #f05454; box-shadow: 0 0 5px rgba(240,84,84,0.6); }
+#root.theme_blood #gtm-root .result-verdict.win  { color: #f05454; }
+#root.theme_blood #gtm-root .result-pnl.pos      { color: #f05454; }
+#root.theme_blood #gtm-root .result-card.win     { border-color: #f05454; background: rgba(240,84,84,0.06); box-shadow: 0 0 20px rgba(240,84,84,0.10); }
+#root.theme_blood #gtm-root .cat-btn.active      { border-color: #f05454; color: #f05454; background: rgba(240,84,84,0.08); }
+#root.theme_blood #gtm-root .lang-btn.active     { border-color: #3a0000; color: #e8d0d0; }
+#root.theme_blood #gtm-root .next-btn:hover      { border-color: #f05454; color: #f05454; }
+#root.theme_blood #gtm-root .timeframe-badge     { background: #0f0404; border-color: #2a0000; color: #7a3535; }
+#root.theme_blood #gtm-root .stat-label          { color: #6b2020; }
+#root.theme_blood #gtm-root .result-detail       { color: #6b2020; }
+#root.theme_blood #gtm-root .mode-sub            { color: #6b2020; }
+#root.theme_blood #gtm-root .streak-label        { color: #6b2020; }
 
-#root.theme_gold #gtm-root {
-  background: #0c0a05 !important;
+/* ══════════════════════════════════════════════════
+   GOLD RUSH
+══════════════════════════════════════════════════ */
+#root.theme_gold { background: #0d0a00; }
+#root.theme_gold #gtm-root { background: #0d0a00 !important; }
+#root.theme_gold #gtm-root .scanlines {
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(100,80,0,0.08) 2px, rgba(100,80,0,0.08) 4px);
 }
-#root.theme_gold #gtm-root .logo span,
-#root.theme_gold #gtm-root .stat-val.green,
-#root.theme_gold #gtm-root .streak-dot.win,
-#root.theme_gold #gtm-root .result-verdict.win,
-#root.theme_gold #gtm-root .result-pnl.pos,
-#root.theme_gold #gtm-root .cat-btn.active { color: #f5c842; border-color: #f5c842; background: rgba(245,200,66,0.06); }
+#root.theme_gold #gtm-root .header      { border-bottom-color: #3a2e00; }
+#root.theme_gold #gtm-root .asset-bar   { border-bottom-color: #3a2e00; }
+#root.theme_gold #gtm-root .cat-bar     { border-bottom-color: #3a2e00; }
+#root.theme_gold #gtm-root .ticker-tape { border-top-color: #3a2e00; color: #6b5a00; }
+#root.theme_gold #gtm-root .mode-card   { background: #0f0c04; border-color: #2a2000; }
+#root.theme_gold #gtm-root .mode-card.active:hover { border-color: #f5c842; background: rgba(245,200,66,0.08); }
+#root.theme_gold #gtm-root .trade-btn   { background: #0f0c04; border-color: #2a2000; }
 #root.theme_gold #gtm-root .trade-btn.long:hover,
-#root.theme_gold #gtm-root .trade-btn.long.selected { border-color: #f5c842; color: #f5c842; background: rgba(245,200,66,0.06); }
-#root.theme_gold #gtm-root .mode-card.active:hover { border-color: #f5c842; background: rgba(245,200,66,0.04); }
+#root.theme_gold #gtm-root .trade-btn.long.selected { border-color: #f5c842; color: #f5c842; background: rgba(245,200,66,0.10); }
+#root.theme_gold #gtm-root .logo span           { color: #f5c842; }
+#root.theme_gold #gtm-root .stat-val.green      { color: #f5c842; }
+#root.theme_gold #gtm-root .stat-val.yellow     { color: #ffd700; }
+#root.theme_gold #gtm-root .streak-dot.win      { background: #f5c842; border-color: #f5c842; box-shadow: 0 0 5px rgba(245,200,66,0.6); }
+#root.theme_gold #gtm-root .result-verdict.win  { color: #f5c842; }
+#root.theme_gold #gtm-root .result-pnl.pos      { color: #f5c842; }
+#root.theme_gold #gtm-root .result-card.win     { border-color: #f5c842; background: rgba(245,200,66,0.06); box-shadow: 0 0 20px rgba(245,200,66,0.10); }
+#root.theme_gold #gtm-root .cat-btn.active      { border-color: #f5c842; color: #f5c842; background: rgba(245,200,66,0.08); }
+#root.theme_gold #gtm-root .lang-btn.active     { border-color: #3a2e00; color: #f0e8d0; }
+#root.theme_gold #gtm-root .next-btn:hover      { border-color: #f5c842; color: #f5c842; }
+#root.theme_gold #gtm-root .timeframe-badge     { background: #0f0c04; border-color: #2a2000; color: #7a6520; }
+#root.theme_gold #gtm-root .stat-label          { color: #6b5a00; }
+#root.theme_gold #gtm-root .result-detail       { color: #6b5a00; }
+#root.theme_gold #gtm-root .mode-sub            { color: #6b5a00; }
+#root.theme_gold #gtm-root .streak-label        { color: #6b5a00; }
 
-#root.theme_midnight #gtm-root {
-  background: #050810 !important;
+/* ══════════════════════════════════════════════════
+   MIDNIGHT
+══════════════════════════════════════════════════ */
+#root.theme_midnight { background: #020510; }
+#root.theme_midnight #gtm-root { background: #020510 !important; }
+#root.theme_midnight #gtm-root .scanlines {
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,20,90,0.11) 2px, rgba(0,20,90,0.11) 4px);
 }
-#root.theme_midnight #gtm-root .logo span,
-#root.theme_midnight #gtm-root .stat-val.green,
-#root.theme_midnight #gtm-root .streak-dot.win,
-#root.theme_midnight #gtm-root .result-verdict.win,
-#root.theme_midnight #gtm-root .result-pnl.pos,
-#root.theme_midnight #gtm-root .cat-btn.active { color: #6b9fff; border-color: #6b9fff; background: rgba(107,159,255,0.06); }
+#root.theme_midnight #gtm-root .header      { border-bottom-color: #0a1535; }
+#root.theme_midnight #gtm-root .asset-bar   { border-bottom-color: #0a1535; }
+#root.theme_midnight #gtm-root .cat-bar     { border-bottom-color: #0a1535; }
+#root.theme_midnight #gtm-root .ticker-tape { border-top-color: #0a1535; color: #2a3a6b; }
+#root.theme_midnight #gtm-root .mode-card   { background: #030815; border-color: #0a1535; }
+#root.theme_midnight #gtm-root .mode-card.active:hover { border-color: #6b9fff; background: rgba(107,159,255,0.08); }
+#root.theme_midnight #gtm-root .trade-btn   { background: #030815; border-color: #0a1535; }
 #root.theme_midnight #gtm-root .trade-btn.long:hover,
-#root.theme_midnight #gtm-root .trade-btn.long.selected { border-color: #6b9fff; color: #6b9fff; background: rgba(107,159,255,0.06); }
-#root.theme_midnight #gtm-root .mode-card.active:hover { border-color: #6b9fff; background: rgba(107,159,255,0.04); }
-#root.theme_midnight #gtm-root .header { border-bottom-color: #1a2040; }
+#root.theme_midnight #gtm-root .trade-btn.long.selected { border-color: #6b9fff; color: #6b9fff; background: rgba(107,159,255,0.10); }
+#root.theme_midnight #gtm-root .logo span           { color: #6b9fff; }
+#root.theme_midnight #gtm-root .stat-val.green      { color: #6b9fff; }
+#root.theme_midnight #gtm-root .streak-dot.win      { background: #6b9fff; border-color: #6b9fff; box-shadow: 0 0 5px rgba(107,159,255,0.6); }
+#root.theme_midnight #gtm-root .result-verdict.win  { color: #6b9fff; }
+#root.theme_midnight #gtm-root .result-pnl.pos      { color: #6b9fff; }
+#root.theme_midnight #gtm-root .result-card.win     { border-color: #6b9fff; background: rgba(107,159,255,0.06); box-shadow: 0 0 20px rgba(107,159,255,0.12); }
+#root.theme_midnight #gtm-root .cat-btn.active      { border-color: #6b9fff; color: #6b9fff; background: rgba(107,159,255,0.08); }
+#root.theme_midnight #gtm-root .lang-btn.active     { border-color: #0a1535; color: #d0d8f0; }
+#root.theme_midnight #gtm-root .next-btn:hover      { border-color: #6b9fff; color: #6b9fff; }
+#root.theme_midnight #gtm-root .timeframe-badge     { background: #030815; border-color: #0a1535; color: #3a5090; }
+#root.theme_midnight #gtm-root .stat-label          { color: #2a3a6b; }
+#root.theme_midnight #gtm-root .result-detail       { color: #2a3a6b; }
+#root.theme_midnight #gtm-root .mode-sub            { color: #2a3a6b; }
+#root.theme_midnight #gtm-root .streak-label        { color: #2a3a6b; }
 
-#root.theme_matrix #gtm-root {
-  background: #001a00 !important;
+/* ══════════════════════════════════════════════════
+   MATRIX
+══════════════════════════════════════════════════ */
+#root.theme_matrix { background: #000000; }
+#root.theme_matrix #gtm-root { background: #000000 !important; color: #00cc33; }
+#root.theme_matrix #gtm-root .scanlines {
+  background: repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(0,100,0,0.20) 1px, rgba(0,100,0,0.20) 2px);
 }
-#root.theme_matrix #gtm-root .logo span,
-#root.theme_matrix #gtm-root .stat-val.green,
-#root.theme_matrix #gtm-root .streak-dot.win,
-#root.theme_matrix #gtm-root .result-verdict.win,
-#root.theme_matrix #gtm-root .result-pnl.pos,
-#root.theme_matrix #gtm-root .cat-btn.active { color: #00ff41; border-color: #00ff41; background: rgba(0,255,65,0.06); }
+#root.theme_matrix #gtm-root .header      { border-bottom-color: #003300; }
+#root.theme_matrix #gtm-root .asset-bar   { border-bottom-color: #003300; }
+#root.theme_matrix #gtm-root .cat-bar     { border-bottom-color: #003300; }
+#root.theme_matrix #gtm-root .ticker-tape { border-top-color: #003300; color: #004400; }
+#root.theme_matrix #gtm-root .mode-card   { background: #020802; border-color: #003300; }
+#root.theme_matrix #gtm-root .mode-card.active:hover { border-color: #00ff41; background: rgba(0,255,65,0.06); }
+#root.theme_matrix #gtm-root .trade-btn   { background: #020802; border-color: #003300; color: #005500; }
 #root.theme_matrix #gtm-root .trade-btn.long:hover,
-#root.theme_matrix #gtm-root .trade-btn.long.selected { border-color: #00ff41; color: #00ff41; background: rgba(0,255,65,0.06); }
-#root.theme_matrix #gtm-root .mode-card.active:hover { border-color: #00ff41; background: rgba(0,255,65,0.04); }
+#root.theme_matrix #gtm-root .trade-btn.long.selected { border-color: #00ff41; color: #00ff41; background: rgba(0,255,65,0.10); }
+#root.theme_matrix #gtm-root .logo        { color: #00ff41; }
+#root.theme_matrix #gtm-root .logo span   { color: #00ff41; }
+#root.theme_matrix #gtm-root .asset-name  { color: #00ff41; }
+#root.theme_matrix #gtm-root .mode-title  { color: #00ff41; }
+#root.theme_matrix #gtm-root .stat-val    { color: #00cc33; font-family: 'Courier New', 'Space Mono', monospace; }
+#root.theme_matrix #gtm-root .stat-val.green  { color: #00ff41; }
+#root.theme_matrix #gtm-root .stat-val.yellow { color: #aaff00; }
+#root.theme_matrix #gtm-root .streak-dot.win  { background: #00ff41; border-color: #00ff41; box-shadow: 0 0 6px rgba(0,255,65,0.8); }
+#root.theme_matrix #gtm-root .result-verdict.win  { color: #00ff41; }
+#root.theme_matrix #gtm-root .result-pnl.pos      { color: #00ff41; }
+#root.theme_matrix #gtm-root .result-card.win     { border-color: #00ff41; background: rgba(0,255,65,0.05); box-shadow: 0 0 20px rgba(0,255,65,0.12); }
+#root.theme_matrix #gtm-root .cat-btn.active      { border-color: #00ff41; color: #00ff41; background: rgba(0,255,65,0.08); }
+#root.theme_matrix #gtm-root .lang-btn.active     { border-color: #003300; color: #00ff41; }
+#root.theme_matrix #gtm-root .next-btn:hover      { border-color: #00ff41; color: #00ff41; }
+#root.theme_matrix #gtm-root .timeframe-badge     { background: #020802; border-color: #003300; color: #005500; }
+#root.theme_matrix #gtm-root .phase-label.active  { color: #aaff00; }
+#root.theme_matrix #gtm-root .stat-label          { color: #004400; }
+#root.theme_matrix #gtm-root .result-detail       { color: #004400; }
+#root.theme_matrix #gtm-root .mode-sub            { color: #004400; }
+#root.theme_matrix #gtm-root .streak-label        { color: #004400; }
 
 /* ─── Chart fill fix ────────────────────────────── */
 .chart-area canvas,
