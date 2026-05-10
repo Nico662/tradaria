@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import Chart, { generateCandles } from "./Chart";
 import Home from "./Home";
 import { useLang } from './LangContext.jsx';
@@ -81,10 +81,16 @@ export default function App() {
   const [floatingXP,  setFloatingXP]= useState(null);
   const [activeEffect,setActiveEffect] = useState(false);
   const [chartReady, setChartReady] = useState(false);
+
   const { syncProgress, activeCosmetics = {} } = useAuth();
   const { lang, setLang, t } = useLang();
   const chartRef = useRef(null);
-
+ useEffect(() => {
+     const root = document.getElementById('root');
+     if (!root) return;
+     root.classList.remove('theme_matrix', 'theme_blood', 'theme_gold', 'theme_midnight');
+     if (activeCosmetics?.theme) root.classList.add(activeCosmetics.theme);
+   }, [activeCosmetics?.theme]); 
   function analyzeCandles(candles) {
   if (!candles || candles.length < 5) return null;
    const last5    = candles.slice(-5);

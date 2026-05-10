@@ -230,53 +230,58 @@ html, body {
   }
 }
 /* ─── Themes ────────────────────────────────────── */
-#gtm-root.theme_matrix {
-  --accent: #22d3a5;
-  --accent-loss: #22d3a5;
-  --bg: #060810;
-  --bg2: #0a0c0f;
-  filter: hue-rotate(0deg);
-}
-#gtm-root.theme_blood {
-  --accent: #f05454;
+#root.theme_blood #gtm-root {
   background: #0f0808 !important;
 }
-#gtm-root.theme_blood .trade-btn.long:hover,
-#gtm-root.theme_blood .trade-btn.long.selected { border-color: #f05454; color: #f05454; background: rgba(240,84,84,0.06); }
-#gtm-root.theme_blood .logo span,
-#gtm-root.theme_blood .stat-val.green,
-#gtm-root.theme_blood .streak-dot.win,
-#gtm-root.theme_blood .result-verdict.win,
-#gtm-root.theme_blood .result-pnl.pos,
-#gtm-root.theme_blood .cat-btn.active { color: #f05454; border-color: #f05454; background: rgba(240,84,84,0.06); }
-#gtm-root.theme_blood .mode-card.active:hover { border-color: #f05454; background: rgba(240,84,84,0.04); }
+#root.theme_blood #gtm-root .trade-btn.long:hover,
+#root.theme_blood #gtm-root .trade-btn.long.selected { border-color: #f05454; color: #f05454; background: rgba(240,84,84,0.06); }
+#root.theme_blood #gtm-root .logo span,
+#root.theme_blood #gtm-root .stat-val.green,
+#root.theme_blood #gtm-root .streak-dot.win,
+#root.theme_blood #gtm-root .result-verdict.win,
+#root.theme_blood #gtm-root .result-pnl.pos,
+#root.theme_blood #gtm-root .cat-btn.active { color: #f05454; border-color: #f05454; background: rgba(240,84,84,0.06); }
+#root.theme_blood #gtm-root .mode-card.active:hover { border-color: #f05454; background: rgba(240,84,84,0.04); }
 
-#gtm-root.theme_gold {
+#root.theme_gold #gtm-root {
   background: #0c0a05 !important;
 }
-#gtm-root.theme_gold .logo span,
-#gtm-root.theme_gold .stat-val.green,
-#gtm-root.theme_gold .streak-dot.win,
-#gtm-root.theme_gold .result-verdict.win,
-#gtm-root.theme_gold .result-pnl.pos,
-#gtm-root.theme_gold .cat-btn.active { color: #f5c842; border-color: #f5c842; background: rgba(245,200,66,0.06); }
-#gtm-root.theme_gold .trade-btn.long:hover,
-#gtm-root.theme_gold .trade-btn.long.selected { border-color: #f5c842; color: #f5c842; background: rgba(245,200,66,0.06); }
-#gtm-root.theme_gold .mode-card.active:hover { border-color: #f5c842; background: rgba(245,200,66,0.04); }
+#root.theme_gold #gtm-root .logo span,
+#root.theme_gold #gtm-root .stat-val.green,
+#root.theme_gold #gtm-root .streak-dot.win,
+#root.theme_gold #gtm-root .result-verdict.win,
+#root.theme_gold #gtm-root .result-pnl.pos,
+#root.theme_gold #gtm-root .cat-btn.active { color: #f5c842; border-color: #f5c842; background: rgba(245,200,66,0.06); }
+#root.theme_gold #gtm-root .trade-btn.long:hover,
+#root.theme_gold #gtm-root .trade-btn.long.selected { border-color: #f5c842; color: #f5c842; background: rgba(245,200,66,0.06); }
+#root.theme_gold #gtm-root .mode-card.active:hover { border-color: #f5c842; background: rgba(245,200,66,0.04); }
 
-#gtm-root.theme_midnight {
+#root.theme_midnight #gtm-root {
   background: #050810 !important;
 }
-#gtm-root.theme_midnight .logo span,
-#gtm-root.theme_midnight .stat-val.green,
-#gtm-root.theme_midnight .streak-dot.win,
-#gtm-root.theme_midnight .result-verdict.win,
-#gtm-root.theme_midnight .result-pnl.pos,
-#gtm-root.theme_midnight .cat-btn.active { color: #6b9fff; border-color: #6b9fff; background: rgba(107,159,255,0.06); }
-#gtm-root.theme_midnight .trade-btn.long:hover,
-#gtm-root.theme_midnight .trade-btn.long.selected { border-color: #6b9fff; color: #6b9fff; background: rgba(107,159,255,0.06); }
-#gtm-root.theme_midnight .mode-card.active:hover { border-color: #6b9fff; background: rgba(107,159,255,0.04); }
-#gtm-root.theme_midnight .header { border-bottom-color: #1a2040; }
+#root.theme_midnight #gtm-root .logo span,
+#root.theme_midnight #gtm-root .stat-val.green,
+#root.theme_midnight #gtm-root .streak-dot.win,
+#root.theme_midnight #gtm-root .result-verdict.win,
+#root.theme_midnight #gtm-root .result-pnl.pos,
+#root.theme_midnight #gtm-root .cat-btn.active { color: #6b9fff; border-color: #6b9fff; background: rgba(107,159,255,0.06); }
+#root.theme_midnight #gtm-root .trade-btn.long:hover,
+#root.theme_midnight #gtm-root .trade-btn.long.selected { border-color: #6b9fff; color: #6b9fff; background: rgba(107,159,255,0.06); }
+#root.theme_midnight #gtm-root .mode-card.active:hover { border-color: #6b9fff; background: rgba(107,159,255,0.04); }
+#root.theme_midnight #gtm-root .header { border-bottom-color: #1a2040; }
+
+#root.theme_matrix #gtm-root {
+  background: #001a00 !important;
+}
+#root.theme_matrix #gtm-root .logo span,
+#root.theme_matrix #gtm-root .stat-val.green,
+#root.theme_matrix #gtm-root .streak-dot.win,
+#root.theme_matrix #gtm-root .result-verdict.win,
+#root.theme_matrix #gtm-root .result-pnl.pos,
+#root.theme_matrix #gtm-root .cat-btn.active { color: #00ff41; border-color: #00ff41; background: rgba(0,255,65,0.06); }
+#root.theme_matrix #gtm-root .trade-btn.long:hover,
+#root.theme_matrix #gtm-root .trade-btn.long.selected { border-color: #00ff41; color: #00ff41; background: rgba(0,255,65,0.06); }
+#root.theme_matrix #gtm-root .mode-card.active:hover { border-color: #00ff41; background: rgba(0,255,65,0.04); }
 
 /* ─── Chart fill fix ────────────────────────────── */
 .chart-area canvas,
