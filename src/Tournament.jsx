@@ -5,6 +5,7 @@ import Chart from './Chart';
 import { addXP } from './levels.js';
 import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
+import EffectOverlay from './EffectOverlay.jsx';
 
 const SERVER = 'https://tradara-production.up.railway.app';
 
@@ -16,8 +17,10 @@ const AVATAR_EMOJIS = {
 };
 
 export default function Tournament({ onBack }) {
-  const { user, syncProgress } = useAuth();
+  const { user, syncProgress, activeCosmetics } = useAuth();
   const { t } = useLang();
+  const [activeEffect, setActiveEffect] = useState(false);
+  function triggerEffect() { setActiveEffect(true); setTimeout(() => setActiveEffect(false), 1500); }
   const [phase, setPhase] = useState('loading');
   const [rounds, setRounds] = useState([]);
   const [round, setRound] = useState(0);
@@ -112,6 +115,7 @@ export default function Tournament({ onBack }) {
              || (choice === 'short' && direction === 'down')
              || (choice === 'skip'  && direction === 'flat');
     const pts = win && choice !== 'skip' ? 100 : win && choice === 'skip' ? 50 : 0;
+    if (win) triggerEffect();
     setScore(s => s + pts);
     setHistory(h => [...h, { choice, win, pts }]);
     setResult({ win, pts, pctMove, direction, choice });
@@ -328,6 +332,7 @@ export default function Tournament({ onBack }) {
       )}
 
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
+      <EffectOverlay effect={activeCosmetics?.effect} active={activeEffect} />
     </div>
   );
 }

@@ -5,6 +5,8 @@ import { useLang } from './LangContext.jsx';
 import { LANGS } from './i18n.js';
 import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
+import { useAuth } from './AuthContext';
+import EffectOverlay from './EffectOverlay.jsx';
 
 const SOCKET_URL = 'https://tradara-production.up.railway.app';
 
@@ -56,6 +58,9 @@ function botMakeChoice(direction) {
 
 export default function Arena({ onBack }) {
   const { t, lang, setLang } = useLang();
+  const { activeCosmetics }  = useAuth();
+  const [activeEffect, setActiveEffect] = useState(false);
+  function triggerEffect() { setActiveEffect(true); setTimeout(() => setActiveEffect(false), 1500); }
   const [screen,    setScreen]   = useState('lobby');
   const [name,      setName]     = useState('');
   const [status,    setStatus]   = useState('');
@@ -158,6 +163,7 @@ export default function Arena({ onBack }) {
       const correctChoice = roundData.direction === 'up' ? 'long' : roundData.direction === 'down' ? 'short' : 'skip';
       const playerWins = choice === correctChoice;
       const botWins    = botChoice === correctChoice;
+      if (playerWins) triggerEffect();
       const newMyScore  = myBotScore + (playerWins ? 100 : 0);
       const newBotScore = botScore   + (botWins    ? 100 : 0);
       setMyBotScore(newMyScore);
@@ -226,7 +232,7 @@ export default function Arena({ onBack }) {
     socket.on('room:error',           (d) => setStatus(d.message));
     socket.on('game:start',           (d) => { setGameData(d); setRound(d.round); setTotal(d.total); setOpponent(d.opponent); setScreen('game'); setPhase('choose'); setResult(null); startTimer(); });
     socket.on('game:opponent_chose',       () => setStatus(t.arena.opponentChose));
-    socket.on('game:round_result',    (d) => { clearInterval(timerRef.current); setScores(d.scores); setNames(d.names); setResult(d); setPhase('result'); });
+    socket.on('game:round_result',    (d) => { clearInterval(timerRef.current); setScores(d.scores); setNames(d.names); setResult(d); setPhase('result'); if (d.results?.[socket.id]?.win) triggerEffect(); });
     socket.on('game:next_round',      (d) => { setGameData(d); setRound(d.round); setResult(null); setPhase('choose'); setStatus(''); startTimer(); });
     socket.on('game:over',            (d) => {
       setFinalData(d);
@@ -578,6 +584,7 @@ export default function Arena({ onBack }) {
         </div>
 
         {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
+        <EffectOverlay effect={activeCosmetics?.effect} active={activeEffect} />
       </div>
     );
   }

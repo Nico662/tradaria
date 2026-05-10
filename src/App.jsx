@@ -19,6 +19,7 @@ import Survival from './Survival.jsx';
 import Shop from './Shop.jsx';
 import Portfolio from './Portfolio.jsx';
 import Friends from './Friends.jsx';
+import EffectOverlay from './EffectOverlay.jsx';
 
 function randomTF() {
   const tfs = ['1m', '5m', '15m'];
@@ -632,19 +633,7 @@ export default function App() {
 
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
 
-      {activeEffect && activeCosmetics.effect && (
-        <div style={{
-          position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 9998,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: activeCosmetics.effect === 'effect_explosion' ? '80px' : '60px',
-          animation: 'floatUp 1.5s ease forwards',
-        }}>
-          {activeCosmetics.effect === 'effect_confetti'  ? '🎉' :
-           activeCosmetics.effect === 'effect_lightning' ? '⚡' :
-           activeCosmetics.effect === 'effect_explosion' ? '💥' :
-           activeCosmetics.effect === 'effect_stars'     ? '⭐' : ''}
-        </div>
-      )}
+      <EffectOverlay effect={activeCosmetics.effect} active={activeEffect} />
     </div>
   );
 }

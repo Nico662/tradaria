@@ -4,9 +4,14 @@ import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
 import { addXP } from './levels.js';
 import { useLang } from './LangContext.jsx';
+import { useAuth } from './AuthContext';
+import EffectOverlay from './EffectOverlay.jsx';
 
 export default function Daily({ onBack }) {
   const { t, lang, setLang } = useLang();
+  const { activeCosmetics }  = useAuth();
+  const [activeEffect, setActiveEffect] = useState(false);
+  function triggerEffect() { setActiveEffect(true); setTimeout(() => setActiveEffect(false), 1500); }
   const [phase, setPhase]           = useState('loading');
   const [dailyAsset, setDailyAsset] = useState(null);
   const [future, setFuture]         = useState(null);
@@ -96,6 +101,7 @@ export default function Daily({ onBack }) {
     addXP(15);
     setFloatingXP(15);
     setTimeout(() => setFloatingXP(null), 2000);
+    triggerEffect();
   }
 
   const lastDaily = localStorage.getItem('tradara_daily_last');
@@ -288,6 +294,7 @@ export default function Daily({ onBack }) {
         )}
       </div>
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
+      <EffectOverlay effect={activeCosmetics?.effect} active={activeEffect} />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from "react";
+import EffectOverlay from './EffectOverlay.jsx';
 import Chart, { generateCandles } from "./Chart";
 import { useLang } from './LangContext.jsx';
 import { playWin, playLose, playClick, playStreak } from './sounds.js';
@@ -424,19 +425,7 @@ export default function Survival({ onBack }) {
 
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
 
-      {activeEffect && activeCosmetics.effect && (
-        <div style={{
-          position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 9998,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: activeCosmetics.effect === 'effect_explosion' ? '80px' : '60px',
-          animation: 'floatUp 1.5s ease forwards',
-        }}>
-          {activeCosmetics.effect === 'effect_confetti'  ? '🎉' :
-           activeCosmetics.effect === 'effect_lightning' ? '⚡' :
-           activeCosmetics.effect === 'effect_explosion' ? '💥' :
-           activeCosmetics.effect === 'effect_stars'     ? '⭐' : ''}
-        </div>
-      )}
+      <EffectOverlay effect={activeCosmetics.effect} active={activeEffect} />
     </div>
   );
 }

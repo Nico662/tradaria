@@ -5,9 +5,14 @@ import Chart from './Chart.jsx';
 import { addXP } from './levels.js';
 import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
+import { useAuth } from './AuthContext';
+import EffectOverlay from './EffectOverlay.jsx';
 
 export default function Historical({ onBack }) {
   const { t, lang, setLang } = useLang();
+  const { activeCosmetics }  = useAuth();
+  const [activeEffect, setActiveEffect] = useState(false);
+  function triggerEffect() { setActiveEffect(true); setTimeout(() => setActiveEffect(false), 1500); }
   const [phase, setPhase]         = useState('select');
   const [event, setEvent]         = useState(null);
   const [candles, setCandles]     = useState(null);
@@ -62,6 +67,7 @@ export default function Historical({ onBack }) {
 
     const xpAmount = win ? 15 : 5;
     addXP(xpAmount);
+    if (win) triggerEffect();
     setFloatingXP(null);
     setTimeout(() => {
       setFloatingXP(xpAmount);
@@ -255,6 +261,7 @@ export default function Historical({ onBack }) {
       )}
 
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
+      <EffectOverlay effect={activeCosmetics?.effect} active={activeEffect} />
     </div>
   );
 }
