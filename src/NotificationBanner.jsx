@@ -1,25 +1,14 @@
 import { useState, useEffect } from 'react';
 import { SERVER } from './config.js';
-import { useAuth } from './AuthContext';
 
 export default function NotificationBanner() {
   const [show, setShow] = useState(false);
-  const { user } = useAuth();
 
   async function subscribeUser() {
     try {
       const reg      = await navigator.serviceWorker.ready;
       const existing = await reg.pushManager.getSubscription();
-      if (existing) {
-        if (user?.username) {
-          await fetch(`${SERVER}/push/subscribe`, {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({ ...JSON.parse(JSON.stringify(existing)), username: user.username }),
-          });
-        }
-        return;
-      }
+      if (existing) return;
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly:      true,
         applicationServerKey: 'BEWPkbh1HeSsw08H0EsELp5TIPD2gcQ8Yfa1RsSW-9jER3uvoeVUTazcIqjlf4UNFKe7QeqQ8ZlVjGI72pinR0I',
@@ -27,7 +16,7 @@ export default function NotificationBanner() {
       await fetch(`${SERVER}/push/subscribe`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ ...JSON.parse(JSON.stringify(sub)), username: user?.username }),
+        body:    JSON.stringify(sub),
       });
     } catch (err) {
       console.log('Push error:', err);

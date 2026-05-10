@@ -142,7 +142,6 @@ webpush.setVapidDetails(
 );
 // ── Push subscriptions ────────────────────────────────────────────
 let pushSubscriptions = [];
-let userPushSubscriptions = {};
 
 async function loadSubscriptions() {
   try {
@@ -162,30 +161,9 @@ async function saveSubscriptions(subs) {
   } catch (e) {}
 }
 
-async function loadUserSubscriptions() {
-  try {
-    const raw = await redis.get('push_user_subscriptions');
-    if (!raw) return {};
-    return typeof raw === 'string' ? JSON.parse(raw) : raw;
-  } catch (e) {
-    return {};
-  }
-}
-
-async function saveUserSubscriptions(map) {
-  try {
-    await redis.set('push_user_subscriptions', JSON.stringify(map));
-  } catch (e) {}
-}
-
 loadSubscriptions().then(subs => {
   pushSubscriptions = subs;
   console.log('Loaded', subs.length, 'subscriptions from Redis');
-});
-
-loadUserSubscriptions().then(map => {
-  userPushSubscriptions = map;
-  console.log('Loaded', Object.keys(map).length, 'user push subscriptions from Redis');
 });
 
 // ── Cache ─────────────────────────────────────────────────────────
@@ -757,17 +735,13 @@ app.get('/tournament/played', async (req, res) => {
 
 // ── Push routes ───────────────────────────────────────────────────
 app.post('/push/subscribe', async (req, res) => {
-  const { username, ...sub } = req.body;
+  const sub = req.body;
   if (!sub || !sub.endpoint) return res.status(400).json({ error: 'Invalid subscription' });
   pushSubscriptions = await loadSubscriptions();
   const exists = pushSubscriptions.find(s => s.endpoint === sub.endpoint);
   if (!exists) {
     pushSubscriptions.push(sub);
     await saveSubscriptions(pushSubscriptions);
-  }
-  if (username) {
-    userPushSubscriptions[username] = sub;
-    await saveUserSubscriptions(userPushSubscriptions);
   }
   res.json({ ok: true });
 });
@@ -1073,14 +1047,6 @@ io.on('connection', (socket) => {
     }, 30000);
     challengeRooms[code] = { challengerSocketId: socket.id, challengerUsername, targetUsername, timeoutId };
     targetSocket.emit('friend:challenged', { challengerUsername, roomCode: code });
-    const targetPushSub = userPushSubscriptions[targetUsername];
-    if (targetPushSub) {
-      webpush.sendNotification(targetPushSub, JSON.stringify({
-        title: `⚔️ ${socket.username} te reta`,
-        body:  'Acepta el reto en Tradara Arena',
-        url:   'https://tradara.dev',
-      })).catch(() => {});
-    }
   });
 
   socket.on('friend:challenge:accept', ({ roomCode }) => {
@@ -1550,11 +1516,11 @@ app.get('/friends/list', async (req, res) => {
     const friendships = await Friendship.find({
       $or: [{ requester: decoded.id }, { recipient: decoded.id }],
       status: 'accepted',
-    }).populate('requester', 'name avatar username xp badges')
-      .populate('recipient', 'name avatar username xp badges');
+    }).populate('requester', 'name avatar customAvatar username xp badges')
+      .populate('recipient', 'name avatar customAvatar username xp badges');
     const friends = friendships.map(f => {
       const friend = f.requester._id.equals(decoded.id) ? f.recipient : f.requester;
-      return { friendshipId: f._id, id: friend._id, name: friend.name, avatar: friend.avatar, username: friend.username, xp: friend.xp, badges: friend.badges };
+      return { friendshipId: f._id, id: friend._id, name: friend.name, avatar: friend.avatar, customAvatar: friend.customAvatar || null, username: friend.username, xp: friend.xp, badges: friend.badges };
     });
     res.json(friends);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -1607,6 +1573,7 @@ app.get('/friends/profile/:username', async (req, res) => {
       id: target._id,
       name: target.name,
       avatar: target.avatar,
+      customAvatar: target.customAvatar || null,
       username: target.username,
       xp: target.xp,
       badges: target.badges,

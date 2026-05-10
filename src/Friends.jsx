@@ -11,8 +11,8 @@ function authHeaders() {
 }
 
 function Avatar({ user, size }) {
-  if (user.avatar) {
-    return <img src={user.avatar} alt="" style={{ width: size, height: size, borderRadius: '50%', flexShrink: 0, border: '1px solid #1e2530', objectFit: 'cover' }} />;
+  if (user.customAvatar || user.avatar) {
+    return <img src={user.customAvatar || user.avatar} alt="" style={{ width: size, height: size, borderRadius: '50%', flexShrink: 0, border: '1px solid #1e2530', objectFit: 'cover' }} />;
   }
   return (
     <div style={{ width: size, height: size, borderRadius: '50%', background: '#1a2030', border: '1px solid #1e2530', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: Math.floor(size * 0.45) + 'px', flexShrink: 0 }}>
