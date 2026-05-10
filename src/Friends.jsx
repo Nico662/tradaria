@@ -1,0 +1,326 @@
+import { useState, useEffect, useRef } from 'react';
+import { useAuth } from './AuthContext';
+import { getLevel } from './levels.js';
+
+const SERVER = 'https://tradara-production.up.railway.app';
+
+function authHeaders() {
+  return {
+    Authorization: `Bearer ${localStorage.getItem('tradara_token')}`,
+    'Content-Type': 'application/json',
+  };
+}
+
+function Avatar({ user, size }) {
+  if (user.avatar) {
+    return <img src={user.avatar} alt="" style={{ width: size, height: size, borderRadius: '50%', flexShrink: 0, border: '1px solid #1e2530', objectFit: 'cover' }} />;
+  }
+  return (
+    <div style={{ width: size, height: size, borderRadius: '50%', background: '#1a2030', border: '1px solid #1e2530', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: Math.floor(size * 0.45) + 'px', flexShrink: 0 }}>
+      👤
+    </div>
+  );
+}
+
+function FriendCard({ f, onChallenge }) {
+  const level = getLevel(f.xp || 0);
+  return (
+    <div style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <Avatar user={f} size={38} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#f0f0f0', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {f.username ? `@${f.username}` : f.name}
+        </div>
+        <div style={{ fontSize: '9px', color: '#4a5568', fontFamily: "'Space Mono', monospace", marginTop: '2px' }}>
+          {level.icon} {level.name} · {f.xp || 0} XP
+        </div>
+      </div>
+      <button
+        onClick={() => onChallenge && onChallenge(f.username || f.name)}
+        style={{ flexShrink: 0, padding: '7px 11px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}
+        onMouseEnter={e => e.currentTarget.style.background = 'rgba(34,211,165,0.18)'}
+        onMouseLeave={e => e.currentTarget.style.background = 'rgba(34,211,165,0.08)'}
+      >
+        ⚔️ Retar
+      </button>
+    </div>
+  );
+}
+
+function PendingCard({ req, onAccept, onReject }) {
+  const level = getLevel(req.xp || 0);
+  return (
+    <div style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <Avatar user={req} size={38} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#f0f0f0', fontWeight: 700 }}>
+          {req.username ? `@${req.username}` : req.name}
+        </div>
+        <div style={{ fontSize: '9px', color: '#4a5568', fontFamily: "'Space Mono', monospace", marginTop: '2px' }}>
+          {level.icon} {level.name}
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+        <button
+          onClick={() => onAccept(req.friendshipId)}
+          style={{ padding: '6px 12px', background: 'rgba(34,211,165,0.1)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.04em' }}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(34,211,165,0.2)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'rgba(34,211,165,0.1)'}
+        >
+          ✓ Aceptar
+        </button>
+        <button
+          onClick={() => onReject(req.friendshipId)}
+          style={{ padding: '6px 10px', background: 'rgba(240,84,84,0.1)', border: '1px solid #f05454', borderRadius: '6px', color: '#f05454', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer' }}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(240,84,84,0.2)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'rgba(240,84,84,0.1)'}
+        >
+          ✗
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function SearchResultCard({ profile, onSendRequest }) {
+  const level = getLevel(profile.xp || 0);
+  const alreadyFriends = profile.friendshipStatus === 'accepted';
+  const sentRequest    = profile.friendshipStatus === 'pending' && profile.isRequester;
+
+  return (
+    <div style={{ background: '#0f141b', border: '1px solid #22d3a5', borderRadius: '10px', padding: '14px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <Avatar user={profile} size={42} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '12px', color: '#f0f0f0', fontWeight: 700 }}>
+            @{profile.username}
+          </div>
+          <div style={{ fontSize: '9px', color: '#4a5568', fontFamily: "'Space Mono', monospace", marginTop: '2px' }}>
+            {level.icon} {level.name} · {profile.xp || 0} XP
+          </div>
+          {profile.portfolioReturn !== null && profile.portfolioReturn !== undefined && (
+            <div style={{ fontSize: '9px', fontFamily: "'Space Mono', monospace", marginTop: '2px', color: profile.portfolioReturn >= 0 ? '#22d3a5' : '#f05454' }}>
+              portfolio {profile.portfolioReturn >= 0 ? '+' : ''}{profile.portfolioReturn.toFixed(1)}%
+            </div>
+          )}
+        </div>
+        <div style={{ flexShrink: 0 }}>
+          {alreadyFriends ? (
+            <span style={{ fontSize: '9px', color: '#22d3a5', fontFamily: "'Space Mono', monospace" }}>✓ amigos</span>
+          ) : sentRequest ? (
+            <span style={{ fontSize: '9px', color: '#4a5568', fontFamily: "'Space Mono', monospace" }}>pendiente...</span>
+          ) : (
+            <button
+              onClick={() => onSendRequest(profile.username)}
+              style={{ padding: '7px 14px', background: 'rgba(34,211,165,0.1)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer', letterSpacing: '0.04em' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(34,211,165,0.2)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgba(34,211,165,0.1)'}
+            >
+              + Añadir
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function Friends({ onBack, onChallenge }) {
+  const { user } = useAuth();
+  const [friends, setFriends]           = useState([]);
+  const [pending, setPending]           = useState([]);
+  const [searchQ, setSearchQ]           = useState('');
+  const [searchResult, setSearchResult] = useState(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [loading, setLoading]           = useState(true);
+  const [msg, setMsg]                   = useState(null);
+  const debounceRef                     = useRef(null);
+
+  useEffect(() => {
+    if (!user) { setLoading(false); return; }
+    fetchAll();
+  }, [user]);
+
+  async function fetchAll() {
+    setLoading(true);
+    try {
+      const [fRes, pRes] = await Promise.all([
+        fetch(`${SERVER}/friends/list`,    { headers: authHeaders() }),
+        fetch(`${SERVER}/friends/pending`, { headers: authHeaders() }),
+      ]);
+      const [fData, pData] = await Promise.all([fRes.json(), pRes.json()]);
+      setFriends(Array.isArray(fData) ? fData : []);
+      setPending(Array.isArray(pData) ? pData : []);
+    } catch {}
+    setLoading(false);
+  }
+
+  function flash(type, text) {
+    setMsg({ type, text });
+    setTimeout(() => setMsg(null), 3000);
+  }
+
+  function handleSearch(e) {
+    const q = e.target.value;
+    setSearchQ(q);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (q.length < 3) { setSearchResult(null); setSearchLoading(false); return; }
+    setSearchLoading(true);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`${SERVER}/friends/profile/${encodeURIComponent(q.trim().toLowerCase())}`, { headers: authHeaders() });
+        if (res.ok) {
+          setSearchResult({ found: true, user: await res.json() });
+        } else {
+          setSearchResult({ found: false });
+        }
+      } catch { setSearchResult({ found: false }); }
+      setSearchLoading(false);
+    }, 400);
+  }
+
+  async function sendRequest(username) {
+    try {
+      const res  = await fetch(`${SERVER}/friends/request`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ username }) });
+      const data = await res.json();
+      if (data.ok) {
+        flash('ok', 'Solicitud enviada');
+        setSearchResult(prev => prev?.found
+          ? { ...prev, user: { ...prev.user, friendshipStatus: 'pending', isRequester: true } }
+          : prev
+        );
+      } else {
+        flash('err', data.error || 'Error');
+      }
+    } catch { flash('err', 'Error de red'); }
+  }
+
+  async function acceptRequest(friendshipId) {
+    try {
+      const res  = await fetch(`${SERVER}/friends/accept`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ friendshipId }) });
+      const data = await res.json();
+      if (data.ok) { flash('ok', '¡Ahora sois amigos!'); fetchAll(); }
+      else flash('err', data.error || 'Error');
+    } catch { flash('err', 'Error de red'); }
+  }
+
+  async function rejectRequest(friendshipId) {
+    try {
+      const res  = await fetch(`${SERVER}/friends/reject`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ friendshipId }) });
+      const data = await res.json();
+      if (data.ok) setPending(p => p.filter(r => String(r.friendshipId) !== String(friendshipId)));
+      else flash('err', data.error || 'Error');
+    } catch { flash('err', 'Error de red'); }
+  }
+
+  const sectionLabel = {
+    fontSize: '8px', color: '#3a4455', letterSpacing: '0.14em',
+    textTransform: 'uppercase', fontFamily: "'Space Mono', monospace", marginBottom: '8px',
+  };
+
+  return (
+    <div id="gtm-root">
+      <div className="scanlines" />
+      <div style={{ padding: '48px 20px 48px', position: 'relative', zIndex: 2, maxWidth: '480px', margin: '0 auto' }}>
+
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+          <button
+            onClick={onBack}
+            style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', padding: 0 }}
+            onMouseEnter={e => e.currentTarget.style.color = '#e2e8f0'}
+            onMouseLeave={e => e.currentTarget.style.color = '#3a4455'}
+          >
+            ← back
+          </button>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: '#f0f0f0' }}>
+            Amigos
+          </div>
+          {pending.length > 0 && (
+            <div style={{ background: '#f05454', borderRadius: '10px', padding: '2px 8px', fontSize: '9px', color: '#fff', fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>
+              {pending.length}
+            </div>
+          )}
+        </div>
+
+        {/* Flash message */}
+        {msg && (
+          <div style={{ marginBottom: '14px', padding: '10px 14px', background: msg.type === 'ok' ? 'rgba(34,211,165,0.1)' : 'rgba(240,84,84,0.1)', border: `1px solid ${msg.type === 'ok' ? '#22d3a5' : '#f05454'}`, borderRadius: '8px', fontSize: '11px', color: msg.type === 'ok' ? '#22d3a5' : '#f05454', fontFamily: "'Space Mono', monospace" }}>
+            {msg.text}
+          </div>
+        )}
+
+        {!user ? (
+          <div style={{ textAlign: 'center', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', padding: '60px 0' }}>
+            Inicia sesión para usar el sistema de amigos
+          </div>
+        ) : (
+          <>
+            {/* Buscador */}
+            <div style={{ marginBottom: '28px' }}>
+              <div style={sectionLabel}>Buscar jugador por username</div>
+              <input
+                type="text"
+                placeholder="username exacto..."
+                value={searchQ}
+                onChange={handleSearch}
+                style={{ width: '100%', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px', padding: '10px 14px', color: '#f0f0f0', fontFamily: "'Space Mono', monospace", fontSize: '12px', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s' }}
+                onFocus={e => e.currentTarget.style.borderColor = '#22d3a5'}
+                onBlur={e => e.currentTarget.style.borderColor = '#1e2530'}
+              />
+              {searchLoading && (
+                <div style={{ marginTop: '8px', fontSize: '9px', color: '#3a4455', fontFamily: "'Space Mono', monospace" }}>buscando...</div>
+              )}
+              {searchResult && !searchLoading && (
+                <div style={{ marginTop: '8px' }}>
+                  {searchResult.found ? (
+                    <SearchResultCard profile={searchResult.user} onSendRequest={sendRequest} />
+                  ) : (
+                    <div style={{ padding: '12px 14px', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px', fontSize: '11px', color: '#3a4455', fontFamily: "'Space Mono', monospace" }}>
+                      Usuario no encontrado
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Solicitudes pendientes */}
+            {pending.length > 0 && (
+              <div style={{ marginBottom: '28px' }}>
+                <div style={sectionLabel}>Solicitudes recibidas</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {pending.map(req => (
+                    <PendingCard key={String(req.friendshipId)} req={req} onAccept={acceptRequest} onReject={rejectRequest} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Lista de amigos */}
+            <div>
+              <div style={sectionLabel}>
+                Mis amigos{friends.length > 0 ? ` · ${friends.length}` : ''}
+              </div>
+              {loading ? (
+                <div style={{ fontSize: '10px', color: '#3a4455', fontFamily: "'Space Mono', monospace" }}>cargando...</div>
+              ) : friends.length === 0 ? (
+                <div style={{ padding: '24px', textAlign: 'center', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px' }}>
+                  <div style={{ fontSize: '28px', marginBottom: '8px' }}>🤝</div>
+                  <div style={{ fontSize: '10px', color: '#3a4455', fontFamily: "'Space Mono', monospace", lineHeight: 1.6 }}>
+                    Aún no tienes amigos.<br />Busca por username arriba.
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {friends.map(f => (
+                    <FriendCard key={String(f.friendshipId)} f={f} onChallenge={onChallenge} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}

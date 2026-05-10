@@ -18,6 +18,7 @@ import Tournament from './Tournament.jsx';
 import Survival from './Survival.jsx';
 import Shop from './Shop.jsx';
 import Portfolio from './Portfolio.jsx';
+import Friends from './Friends.jsx';
 
 function randomTF() {
   const tfs = ['1m', '5m', '15m'];
@@ -434,6 +435,7 @@ export default function App() {
           else if (mode === 'survival')   setScreen('survival');
           else if (mode === 'shop')       setScreen('shop');
           else if (mode === 'portfolio') setScreen('portfolio');
+          else if (mode === 'friends')   setScreen('friends');
           else setScreen('game');
         }} />
         <NotificationBanner />
@@ -449,7 +451,8 @@ export default function App() {
   if (screen === 'tournament') return <Tournament onBack={() => setScreen('home')} />;
   if (screen === 'survival')   return <Survival   onBack={() => setScreen('home')} />;
   if (screen === 'shop')       return <Shop       onBack={() => setScreen('home')} />;
-  if (screen === 'portfolio') return <Portfolio onBack={() => setScreen('home')} />;
+  if (screen === 'portfolio') return <Portfolio  onBack={() => setScreen('home')} />;
+  if (screen === 'friends')   return <Friends    onBack={() => setScreen('home')} onChallenge={() => setScreen('arena')} />;
 
   // ── Game ──────────────────────────────────────────────────────────
   const cls      = result ? (result.win && !result.neutral ? 'win' : !result.win && !result.neutral ? 'lose' : 'neutral') : '';

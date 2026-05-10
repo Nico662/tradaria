@@ -115,6 +115,15 @@ const Tournament = mongoose.model('Tournament', TournamentSchema);
 const Score      = mongoose.model('Score', ScoreSchema);
 const Stats      = mongoose.model('Stats', StatsSchema);
 
+const FriendshipSchema = new mongoose.Schema({
+  requester: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  recipient: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  status:    { type: String, enum: ['pending', 'accepted'], default: 'pending' },
+  createdAt: { type: Date, default: Date.now },
+});
+FriendshipSchema.index({ requester: 1, recipient: 1 }, { unique: true });
+const Friendship = mongoose.model('Friendship', FriendshipSchema);
+
 // ── VAPID / Push ──────────────────────────────────────────────────
 webpush.setVapidDetails(
   'mailto:nicolasvidalcorrecher@tradara.dev',
@@ -1348,6 +1357,134 @@ app.get('/portfolio/leaderboard', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+// ── Friends routes ────────────────────────────────────────────────
+function verifyToken(req) {
+  const auth = req.headers.authorization;
+  if (!auth) return null;
+  try { return jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET); } catch { return null; }
+}
+
+app.post('/friends/request', async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'No token' });
+  try {
+    const { username } = req.body;
+    if (!username) return res.status(400).json({ error: 'Username required' });
+    const recipient = await User.findOne({ username: username.toLowerCase() });
+    if (!recipient) return res.status(404).json({ error: 'User not found' });
+    if (recipient._id.equals(decoded.id)) return res.status(400).json({ error: 'Cannot add yourself' });
+    const existing = await Friendship.findOne({
+      $or: [
+        { requester: decoded.id, recipient: recipient._id },
+        { requester: recipient._id, recipient: decoded.id },
+      ],
+    });
+    if (existing) return res.status(400).json({ error: existing.status === 'accepted' ? 'Already friends' : 'Request already sent' });
+    await Friendship.create({ requester: decoded.id, recipient: recipient._id });
+    res.json({ ok: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/friends/accept', async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'No token' });
+  try {
+    const { friendshipId } = req.body;
+    const friendship = await Friendship.findOne({ _id: friendshipId, recipient: decoded.id, status: 'pending' });
+    if (!friendship) return res.status(404).json({ error: 'Request not found' });
+    friendship.status = 'accepted';
+    await friendship.save();
+    res.json({ ok: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/friends/reject', async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'No token' });
+  try {
+    const { friendshipId } = req.body;
+    const friendship = await Friendship.findOne({ _id: friendshipId, recipient: decoded.id, status: 'pending' });
+    if (!friendship) return res.status(404).json({ error: 'Request not found' });
+    await friendship.deleteOne();
+    res.json({ ok: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/friends/list', async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'No token' });
+  try {
+    const friendships = await Friendship.find({
+      $or: [{ requester: decoded.id }, { recipient: decoded.id }],
+      status: 'accepted',
+    }).populate('requester', 'name avatar username xp badges')
+      .populate('recipient', 'name avatar username xp badges');
+    const friends = friendships.map(f => {
+      const friend = f.requester._id.equals(decoded.id) ? f.recipient : f.requester;
+      return { friendshipId: f._id, id: friend._id, name: friend.name, avatar: friend.avatar, username: friend.username, xp: friend.xp, badges: friend.badges };
+    });
+    res.json(friends);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/friends/pending', async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'No token' });
+  try {
+    const pending = await Friendship.find({ recipient: decoded.id, status: 'pending' })
+      .populate('requester', 'name avatar username xp');
+    const requests = pending.map(f => ({
+      friendshipId: f._id,
+      id: f.requester._id,
+      name: f.requester.name,
+      avatar: f.requester.avatar,
+      username: f.requester.username,
+      xp: f.requester.xp,
+      createdAt: f.createdAt,
+    }));
+    res.json(requests);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/friends/profile/:username', async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'No token' });
+  try {
+    const target = await User.findOne({ username: req.params.username.toLowerCase() });
+    if (!target) return res.status(404).json({ error: 'User not found' });
+    let portfolioReturn = null;
+    try {
+      const portfolio = await Portfolio.findOne({ userId: target._id });
+      if (portfolio) {
+        const priceMap = {};
+        await Promise.all(PORTFOLIO_ASSETS.map(async a => {
+          try {
+            const c = await redis.get(`price_v2:${a.symbol}`);
+            if (c) { const p = typeof c === 'string' ? JSON.parse(c) : c; priceMap[p.symbol] = p.price; }
+          } catch {}
+        }));
+        const invested = portfolio.positions.reduce((s, pos) => s + (priceMap[pos.symbol] || pos.avgPrice) * pos.qty, 0);
+        portfolioReturn = ((portfolio.cash + invested - 50000) / 50000) * 100;
+      }
+    } catch {}
+    const friendship = await Friendship.findOne({
+      $or: [{ requester: decoded.id, recipient: target._id }, { requester: target._id, recipient: decoded.id }],
+    });
+    res.json({
+      id: target._id,
+      name: target.name,
+      avatar: target.avatar,
+      username: target.username,
+      xp: target.xp,
+      badges: target.badges,
+      portfolioReturn,
+      friendshipStatus: friendship?.status || null,
+      friendshipId: friendship?._id || null,
+      isRequester: friendship ? friendship.requester.equals(decoded.id) : null,
+    });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 app.get('/', (req, res) => res.json({ status: 'ok' }));
 // ── Start ─────────────────────────────────────────────────────────
 httpServer.listen(PORT, () => console.log(`Server running on port ${PORT}`));

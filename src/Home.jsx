@@ -79,6 +79,13 @@ export default function Home({ onSelect }) {
           >
             🛍️ {t.home.shop ?? 'Shop'}
           </button>
+          <button onClick={() => onSelect('friends')}
+            style={{ background: 'transparent', border: '1px solid #1e2530', borderRadius: '8px', padding: '6px 12px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = '#22d3a5'}
+            onMouseLeave={e => e.currentTarget.style.borderColor = '#1e2530'}
+          >
+            🤝 Amigos
+          </button>
           <div className="lang-selector">
             {['en', 'es', 'de'].map(l => (
               <button key={l} className={`lang-btn${lang === l ? ' active' : ''}`} onClick={() => setLang(l)}>
