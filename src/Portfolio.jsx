@@ -737,7 +737,9 @@ export default function Portfolio({ onBack }) {
                     <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#1e2530', flexShrink: 0 }} />
                   )}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0' }}>{entry.name}</div>
+                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0' }}>
+                      {entry.username ? `@${entry.username}` : entry.name}
+                    </div>
                     <div style={{ fontSize: '9px', color: '#4a5568' }}>{formatCash(entry.totalValue)}</div>
                   </div>
                   <div style={{ textAlign: 'right', flexShrink: 0 }}>
@@ -766,7 +768,9 @@ export default function Portfolio({ onBack }) {
                     <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#1e2530', flexShrink: 0 }} />
                   )}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0' }}>{entry.name}</div>
+                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0' }}>
+                      {entry.username ? `@${entry.username}` : entry.name}
+                    </div>
                     <div style={{ fontSize: '9px', color: '#4a5568' }}>{formatCash(entry.currentValue)}</div>
                   </div>
                   <div style={{ textAlign: 'right', flexShrink: 0 }}>

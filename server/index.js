@@ -78,6 +78,7 @@ const ScoreSchema = new mongoose.Schema({
   weekId:         { type: String, required: true },
   userId:         { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   name:           { type: String, required: true },
+  username:       { type: String, default: null },
   avatar:         { type: String },
   score:          { type: Number, default: 0 },
   rounds:         { type: Array, default: [] },
@@ -736,7 +737,7 @@ app.post('/tournament/score', async (req, res) => {
     const existing = await Score.findOne({ weekId, userId: user._id });
     if (existing) return res.status(400).json({ error: 'Already played this week' });
     const { score, rounds, cosmeticAvatar } = req.body;
-    await Score.create({ weekId, userId: user._id, name: user.name, avatar: user.avatar, score, rounds, cosmeticAvatar: cosmeticAvatar || null });
+    await Score.create({ weekId, userId: user._id, name: user.username || user.name, username: user.username || null, avatar: user.avatar, score, rounds, cosmeticAvatar: cosmeticAvatar || null });
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1465,7 +1466,7 @@ app.get('/portfolio/debug/:symbol', async (req, res) => {
 app.get('/portfolio/leaderboard', async (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
   try {
-    const portfolios = await Portfolio.find({}).populate('userId', 'name avatar');
+    const portfolios = await Portfolio.find({}).populate('userId', 'name avatar username');
     const prices     = await Promise.all(PORTFOLIO_ASSETS.map(a => getPrice(a).catch(() => null)));
     const priceMap   = {};
     prices.filter(Boolean).forEach(p => { priceMap[p.symbol] = p.price; });
@@ -1478,7 +1479,8 @@ app.get('/portfolio/leaderboard', async (req, res) => {
       const totalValue = p.cash + invested;
       const returnPct  = ((totalValue - 50000) / 50000) * 100;
       return {
-        name:      p.userId?.name || 'Anonymous',
+        name:      p.userId?.username || p.userId?.name || 'Anonymous',
+        username:  p.userId?.username || null,
         avatar:    p.userId?.avatar || null,
         totalValue,
         returnPct,
@@ -1530,7 +1532,7 @@ app.post('/portfolio/weekly/start', async (req, res) => {
 app.get('/portfolio/weekly/leaderboard', async (req, res) => {
   try {
     const weekId = getWeekId();
-    const records = await PortfolioWeekly.find({ weekId }).populate('userId', 'name avatar customAvatar');
+    const records = await PortfolioWeekly.find({ weekId }).populate('userId', 'name avatar customAvatar username');
     const portfolios = await Portfolio.find({ userId: { $in: records.map(r => r.userId._id) } });
     const priceMap = {};
     const prices = await Promise.all(PORTFOLIO_ASSETS.map(a => getPrice(a).catch(() => null)));
@@ -1542,7 +1544,8 @@ app.get('/portfolio/weekly/leaderboard', async (req, res) => {
       const invested   = p.positions.reduce((s, pos) => s + (priceMap[pos.symbol] || pos.avgPrice) * pos.qty, 0);
       const totalValue = p.cash + invested;
       return {
-        name:         record.userId.name,
+        name:         record.userId.username || record.userId.name,
+        username:     record.userId.username || null,
         avatar:       record.userId.avatar,
         customAvatar: record.userId.customAvatar || null,
         totalValue,
