@@ -220,22 +220,26 @@ export default function Tournament({ onBack }) {
 
           <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#6b7a8d', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '12px' }}>Leaderboard</div>
 
-          {leaderboard.map((entry, i) => (
-            <div key={entry._id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: '#0f141b', border: `1px solid ${i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#1e2530'}`, borderRadius: '8px', marginBottom: '8px' }}>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#3a4455', width: '24px' }}>
-                {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
-              </div>
-              {entry.cosmeticAvatar ? (
-                <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#0f141b', border: '1px solid #22d3a5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', flexShrink: 0 }}>
-                  {entry.cosmeticAvatar}
+          {leaderboard.map((entry, i) => {
+            const displayName = entry.username ? `@${entry.username}` : entry.name;
+            return (
+              <div key={entry._id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: '#0f141b', border: `1px solid ${i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#1e2530'}`, borderRadius: '8px', marginBottom: '8px' }}>
+                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#3a4455', width: '24px' }}>
+                  {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
                 </div>
-              ) : entry.avatar ? (
-                <img src={entry.avatar} style={{ width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0 }} />
-              ) : null}
-              <div style={{ flex: 1, fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0' }}>{entry.name}</div>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#22d3a5' }}>{entry.score}</div>
-            </div>
-          ))}
+                {entry.avatar ? (
+                  <img src={entry.avatar} style={{ width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0 }} />
+                ) : (
+                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#1e2530', flexShrink: 0 }} />
+                )}
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
+                  <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</span>
+                  {entry.cosmeticAvatar && <span style={{ fontSize: '14px', flexShrink: 0 }}>{entry.cosmeticAvatar}</span>}
+                </div>
+                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#22d3a5' }}>{entry.score}</div>
+              </div>
+            );
+          })}
 
           <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '9px', color: '#3a4455', fontFamily: "'Space Mono', monospace" }}>
             New tournament every Monday
