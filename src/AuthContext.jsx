@@ -39,21 +39,18 @@ export function AuthProvider({ children }) {
     } catch (e) {}
   }
 
-  function syncCosmeticsToServer(cosmetics) {
-    const token = localStorage.getItem('tradara_token');
-    if (!token) return;
-    fetch(`${SERVER}/auth/cosmetics`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ activeCosmetics: cosmetics }),
-    }).catch(() => {});
-  }
-
   function equipCosmetic(type, id) {
     const updated = { ...activeCosmetics, [type]: id };
     setActiveCosmetics(updated);
     localStorage.setItem('tradara_cosmetics', JSON.stringify(updated));
-    syncCosmeticsToServer(updated);
+    const token = localStorage.getItem('tradara_token');
+    if (token) {
+      fetch(`${SERVER}/auth/cosmetics`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ activeCosmetics: updated }),
+      }).catch(() => {});
+    }
   }
 
   function unequipCosmetic(type) {
@@ -61,7 +58,14 @@ export function AuthProvider({ children }) {
     delete updated[type];
     setActiveCosmetics(updated);
     localStorage.setItem('tradara_cosmetics', JSON.stringify(updated));
-    syncCosmeticsToServer(updated);
+    const token = localStorage.getItem('tradara_token');
+    if (token) {
+      fetch(`${SERVER}/auth/cosmetics`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ activeCosmetics: updated }),
+      }).catch(() => {});
+    }
   }
 
   function normalizeDateStr(d) {
