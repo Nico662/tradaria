@@ -21,7 +21,7 @@ function Avatar({ user, size }) {
   );
 }
 
-function FriendCard({ f, onChallenge, isChallenging, challengeStatus }) {
+function FriendCard({ f, onChallenge, isChallenging, challengeStatus, onViewProfile }) {
   const level = getLevel(f.xp || 0);
   const btnLabel = isChallenging
     ? (challengeStatus === 'unavailable' ? '✗ No disponible' : '⏳ Esperando...')
@@ -42,6 +42,15 @@ function FriendCard({ f, onChallenge, isChallenging, challengeStatus }) {
         <div style={{ fontSize: '9px', color: '#4a5568', fontFamily: "'Space Mono', monospace", marginTop: '2px' }}>
           {level.icon} {level.name} · {f.xp || 0} XP
         </div>
+        {f.username && onViewProfile && (
+          <button onClick={() => onViewProfile(f.username)}
+            style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', padding: '2px 0', letterSpacing: '0.04em' }}
+            onMouseEnter={e => e.currentTarget.style.color = '#8899b0'}
+            onMouseLeave={e => e.currentTarget.style.color = '#3a4455'}
+          >
+            Ver perfil →
+          </button>
+        )}
       </div>
       <button
         onClick={() => !isChallenging && onChallenge && onChallenge(f.username || f.name)}
@@ -134,7 +143,7 @@ function SearchResultCard({ profile, onSendRequest }) {
   );
 }
 
-export default function Friends({ onBack, challengeSocket }) {
+export default function Friends({ onBack, challengeSocket, onViewProfile }) {
   const { user } = useAuth();
   const [friends, setFriends]           = useState([]);
   const [pending, setPending]           = useState([]);
@@ -355,6 +364,7 @@ export default function Friends({ onBack, challengeSocket }) {
                       onChallenge={challengeFriend}
                       isChallenging={challengingFriend === (f.username || f.name)}
                       challengeStatus={challengingFriend === (f.username || f.name) ? challengeStatus : null}
+                      onViewProfile={onViewProfile}
                     />
                   ))}
                 </div>

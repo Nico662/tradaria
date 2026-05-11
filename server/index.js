@@ -1768,6 +1768,56 @@ app.get('/friends/profile/:username', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+app.get('/u/:username', async (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  try {
+    const target = await User.findOne({ username: req.params.username.toLowerCase() });
+    if (!target) return res.status(404).json({ error: 'User not found' });
+
+    let portfolioReturn = null, totalValue = null;
+    try {
+      const portfolio = await Portfolio.findOne({ userId: target._id });
+      if (portfolio) {
+        const priceMap = {};
+        await Promise.all(PORTFOLIO_ASSETS.map(async a => {
+          try {
+            const c = await redis.get(`price_v2:${a.symbol}`);
+            if (c) { const p = typeof c === 'string' ? JSON.parse(c) : c; priceMap[p.symbol] = p.price; }
+          } catch {}
+        }));
+        const invested = portfolio.positions.reduce((s, pos) => s + (priceMap[pos.symbol] || pos.avgPrice) * pos.qty, 0);
+        totalValue = portfolio.cash + invested;
+        portfolioReturn = ((totalValue - 50000) / 50000) * 100;
+      }
+    } catch {}
+
+    let friendshipStatus = null;
+    const decoded = verifyToken(req);
+    if (decoded && decoded.id !== target._id.toString()) {
+      try {
+        const fr = await Friendship.findOne({
+          $or: [{ requester: decoded.id, recipient: target._id }, { requester: target._id, recipient: decoded.id }],
+        });
+        friendshipStatus = fr?.status || null;
+      } catch {}
+    }
+
+    res.json({
+      username: target.username,
+      name:     target.name,
+      avatar:   target.avatar,
+      customAvatar: target.customAvatar || null,
+      xp:       target.xp,
+      badges:   target.badges,
+      dailyStreak: target.dailyStreak,
+      portfolioReturn,
+      totalValue,
+      joinedAt: target.createdAt,
+      friendshipStatus,
+    });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 app.get('/', (req, res) => res.json({ status: 'ok' }));
 // ── Start ─────────────────────────────────────────────────────────
 httpServer.listen(PORT, () => console.log(`Server running on port ${PORT}`));

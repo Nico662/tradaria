@@ -24,6 +24,8 @@ import Portfolio from './Portfolio.jsx';
 import Friends from './Friends.jsx';
 import EffectOverlay from './EffectOverlay.jsx';
 import ChallengeNotification from './ChallengeNotification.jsx';
+import PublicProfile from './PublicProfile.jsx';
+import Tutorial from './Tutorial.jsx';
 
 
 const CATEGORIES = [
@@ -40,7 +42,15 @@ function randomAsset(cat = 'all') {
 }
 
 export default function App() {
-  const [screen,      setScreen]    = useState('home');
+  const [screen,      setScreen]    = useState(() => {
+    const p = window.location.pathname;
+    return p.startsWith('/u/') ? 'public_profile' : 'home';
+  });
+  const [publicProfileUsername, setPublicProfileUsername] = useState(() => {
+    const p = window.location.pathname;
+    return p.startsWith('/u/') ? p.split('/u/')[1] || null : null;
+  });
+  const [showTutorial, setShowTutorial] = useState(false);
   const [category,    setCategory]  = useState('all');
   const [asset,       setAsset]     = useState(() => randomAsset('all'));
   const [phase,       setPhase]     = useState('choose');
@@ -457,7 +467,10 @@ export default function App() {
           else if (mode === 'shop')       setScreen('shop');
           else if (mode === 'portfolio') setScreen('portfolio');
           else if (mode === 'friends')   setScreen('friends');
-          else setScreen('game');
+          else {
+            setScreen('game');
+            if (!localStorage.getItem('tradara_tutorial_done')) setShowTutorial(true);
+          }
         }} />
         <NotificationBanner />
         {challengeOverlay}
@@ -484,6 +497,29 @@ export default function App() {
       <Friends
         onBack={() => setScreen('home')}
         challengeSocket={challengeSocket}
+        onViewProfile={(uname) => {
+          setPublicProfileUsername(uname);
+          setScreen('public_profile');
+          window.history.pushState({}, '', `/u/${uname}`);
+        }}
+      />
+      {challengeOverlay}
+    </>
+  );
+
+  if (screen === 'public_profile') return (
+    <>
+      <PublicProfile
+        username={publicProfileUsername}
+        onBack={() => {
+          window.history.pushState({}, '', '/');
+          setScreen('home');
+        }}
+        onChallenge={(uname) => {
+          challengeSocketRef.current?.emit('friend:challenge', { targetUsername: uname });
+          window.history.pushState({}, '', '/');
+          setScreen('home');
+        }}
       />
       {challengeOverlay}
     </>
@@ -669,6 +705,7 @@ export default function App() {
 
       <EffectOverlay effect={activeCosmetics.effect} active={activeEffect} />
       {challengeOverlay}
+      {showTutorial && <Tutorial onDone={() => setShowTutorial(false)} />}
     </div>
   );
 }
