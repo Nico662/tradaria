@@ -34,7 +34,7 @@ function formatChange(change) {
 }
 
 function formatCash(amount) {
-  return `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `$${(amount ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 function isMarketOpen() {
@@ -771,11 +771,11 @@ export default function Portfolio({ onBack }) {
                     <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0' }}>
                       {entry.username ? `@${entry.username}` : entry.name}
                     </div>
-                    <div style={{ fontSize: '9px', color: '#4a5568' }}>{formatCash(entry.currentValue)}</div>
+                    <div style={{ fontSize: '9px', color: '#4a5568' }}>{formatCash(entry.totalValue ?? 0)}</div>
                   </div>
                   <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: entry.weeklyReturn >= 0 ? '#22d3a5' : '#f05454' }}>
-                      {entry.weeklyReturn >= 0 ? '+' : ''}{entry.weeklyReturn.toFixed(2)}%
+                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: (entry.weeklyReturn ?? 0) >= 0 ? '#22d3a5' : '#f05454' }}>
+                      {(entry.weeklyReturn ?? 0) >= 0 ? '+' : ''}{(entry.weeklyReturn ?? 0).toFixed(2)}%
                     </div>
                     <div style={{ fontSize: '8px', color: '#4a5568' }}>esta semana</div>
                   </div>

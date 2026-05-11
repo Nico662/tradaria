@@ -397,13 +397,15 @@ export default function Shop({ onBack }) {
                 onMouseEnter={e => { if (!equipped) e.currentTarget.style.borderColor = item.color; }}
                 onMouseLeave={e => { if (!equipped) e.currentTarget.style.borderColor = '#1e2530'; }}
               >
+                {activeCategory === 'frames'  && <PreviewFrame  item={item} userAvatar={user?.customAvatar || user?.avatar} />}
                 {activeCategory === 'themes'  && <PreviewTheme  item={item} />}
+                {activeCategory === 'avatars' && <PreviewAvatar item={item} />}
                 {activeCategory === 'effects' && <PreviewEffect item={item} />}
 
-                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '12px', color: item.color }}>
-                  {item.emoji} {item.name}
+                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '12px', color: item.color, textAlign: 'center' }}>
+                  {item.name}
                 </div>
-                <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.04em' }}>
+                <div style={{ fontSize: '9px', color: '#4a5568', textAlign: 'center', letterSpacing: '0.04em' }}>
                   {item.desc[lang] || item.desc.en}
                 </div>
 

@@ -142,13 +142,11 @@ export default function Home({ onSelect }) {
           {user ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div style={{ position: 'relative', flexShrink: 0 }}>
-                {activeCosmetics.avatar ? (
-                  <div style={{ width: '28px', height: '28px', borderRadius: '50%', ...frameStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', background: '#0f141b' }}>
-                    {AVATAR_EMOJIS[activeCosmetics.avatar] || ''}
-                  </div>
-                ) : (user.customAvatar || user.avatar) ? (
+                {(user.customAvatar || user.avatar) ? (
                   <img src={user.customAvatar || user.avatar} style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', ...frameStyle }} />
-                ) : null}
+                ) : (
+                  <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#1a2030', ...frameStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>👤</div>
+                )}
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={avatarLoading}
@@ -159,9 +157,14 @@ export default function Home({ onSelect }) {
                 <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarChange} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                <span style={{ fontSize: '10px', color: '#8899b0', fontFamily: "'Space Mono', monospace" }}>
-                  {user.username ? `@${user.username}` : user.name}
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <span style={{ fontSize: '10px', color: '#8899b0', fontFamily: "'Space Mono', monospace" }}>
+                    {user.username ? `@${user.username}` : user.name}
+                  </span>
+                  {activeCosmetics.avatar && (
+                    <span style={{ fontSize: '16px', lineHeight: 1 }}>{AVATAR_EMOJIS[activeCosmetics.avatar]}</span>
+                  )}
+                </div>
                 {user.username && (
                   <span style={{ fontSize: '8px', color: '#3a4455', fontFamily: "'Space Mono', monospace" }}>
                     {user.name}

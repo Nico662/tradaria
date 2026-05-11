@@ -1542,14 +1542,15 @@ app.get('/portfolio/weekly/leaderboard', async (req, res) => {
       const p = portfolios.find(p => p.userId.equals(record.userId._id));
       if (!p) return null;
       const invested   = p.positions.reduce((s, pos) => s + (priceMap[pos.symbol] || pos.avgPrice) * pos.qty, 0);
-      const totalValue = p.cash + invested;
+      const totalValue = (p.cash || 0) + (invested || 0);
+      const startValue = record.startValue || 50000;
       return {
         name:         record.userId.username || record.userId.name,
         username:     record.userId.username || null,
         avatar:       record.userId.avatar,
         customAvatar: record.userId.customAvatar || null,
         totalValue,
-        weeklyReturn: ((totalValue - record.startValue) / record.startValue) * 100,
+        weeklyReturn: ((totalValue - startValue) / startValue) * 100,
       };
     }).filter(Boolean).sort((a, b) => b.weeklyReturn - a.weeklyReturn).slice(0, 20);
 
