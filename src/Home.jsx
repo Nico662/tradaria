@@ -5,20 +5,7 @@ import { getUnlocked } from './badges.js';
 import { getXP, getLevel } from './levels.js';
 import { useAuth } from './AuthContext';
 import UsernameModal from './UsernameModal.jsx';
-
-const AVATAR_EMOJIS = {
-  avatar_bull:  '🐂',
-  avatar_bear:  '🐻',
-  avatar_whale: '🐋',
-  avatar_robot: '🤖',
-};
-
-const FRAME_STYLES = {
-  frame_gold:    { border: '2px solid #f5c842', boxShadow: '0 0 8px rgba(245,200,66,0.6)' },
-  frame_neon:    { border: '2px solid #22d3a5', boxShadow: '0 0 8px rgba(34,211,165,0.6)' },
-  frame_fire:    { border: '2px solid #f05454', boxShadow: '0 0 8px rgba(240,84,84,0.6)' },
-  frame_diamond: { border: '2px solid #8899b0', boxShadow: '0 0 8px rgba(136,153,176,0.6)' },
-};
+import { FRAME_STYLES, AVATAR_EMOJIS } from './UserAvatar.jsx';
 
 const TOURNAMENT_SUB = {
   en: 'Weekly · Global ranking · 10 rounds',

@@ -64,8 +64,9 @@ const UserSchema = new mongoose.Schema({
   },
   createdAt: { type: Date, default: Date.now },
   lastLogin: { type: Date, default: Date.now },
-  username:     { type: String, unique: true, sparse: true, default: null },
-  customAvatar: { type: String, default: null },
+  username:        { type: String, unique: true, sparse: true, default: null },
+  customAvatar:    { type: String, default: null },
+  activeCosmetics: { type: mongoose.Schema.Types.Mixed, default: {} },
 });
 
 const TournamentSchema = new mongoose.Schema({
@@ -412,8 +413,9 @@ app.get('/auth/me', async (req, res) => {
       dailyStreak: user.dailyStreak || 0,
       lastPlayed: user.lastPlayed || null,
       username: user.username || null,
-      dailyResult:  user.dailyResult  || null,
-      customAvatar: user.customAvatar || null,
+      dailyResult:     user.dailyResult  || null,
+      customAvatar:    user.customAvatar || null,
+      activeCosmetics: user.activeCosmetics || {},
     });
   } catch (err) {
     res.status(401).json({ error: 'Invalid token' });
@@ -448,6 +450,18 @@ app.post('/auth/avatar', async (req, res) => {
     res.json({ ok: true });
   } catch (err) {
     res.status(401).json({ error: 'Invalid token' });
+  }
+});
+
+app.post('/auth/cosmetics', async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'No token' });
+  try {
+    const { activeCosmetics } = req.body;
+    await User.findByIdAndUpdate(decoded.id, { activeCosmetics: activeCosmetics || {} });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -720,12 +734,13 @@ app.get('/tournament/leaderboard', async (req, res) => {
   try {
     const weekId = getWeekId();
     const scores = await Score.find({ weekId }).sort({ score: -1 }).limit(100)
-      .populate('userId', 'username name avatar customAvatar');
+      .populate('userId', 'username name avatar customAvatar activeCosmetics');
     const result = scores.map(s => ({
       ...s.toObject(),
-      name:         s.userId?.username ? `@${s.userId.username}` : (s.name || s.userId?.name),
-      avatar:       s.userId?.avatar || s.avatar,
-      customAvatar: s.userId?.customAvatar || null,
+      name:            s.userId?.username ? `@${s.userId.username}` : (s.name || s.userId?.name),
+      avatar:          s.userId?.avatar || s.avatar,
+      customAvatar:    s.userId?.customAvatar || null,
+      activeCosmetics: s.userId?.activeCosmetics || {},
     }));
     res.json({ weekId, scores: result });
   } catch (err) {
@@ -1473,7 +1488,7 @@ app.get('/portfolio/debug/:symbol', async (req, res) => {
 app.get('/portfolio/leaderboard', async (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
   try {
-    const portfolios = await Portfolio.find({}).populate('userId', 'name avatar customAvatar username');
+    const portfolios = await Portfolio.find({}).populate('userId', 'name avatar customAvatar username activeCosmetics');
     const prices     = await Promise.all(PORTFOLIO_ASSETS.map(a => getPrice(a).catch(() => null)));
     const priceMap   = {};
     prices.filter(Boolean).forEach(p => { priceMap[p.symbol] = p.price; });
@@ -1486,13 +1501,14 @@ app.get('/portfolio/leaderboard', async (req, res) => {
       const totalValue = p.cash + invested;
       const returnPct  = ((totalValue - 50000) / 50000) * 100;
       return {
-        name:         p.userId?.username || p.userId?.name || 'Anonymous',
-        username:     p.userId?.username || null,
-        avatar:       p.userId?.avatar || null,
-        customAvatar: p.userId?.customAvatar || null,
+        name:            p.userId?.username || p.userId?.name || 'Anonymous',
+        username:        p.userId?.username || null,
+        avatar:          p.userId?.avatar || null,
+        customAvatar:    p.userId?.customAvatar || null,
+        activeCosmetics: p.userId?.activeCosmetics || {},
         totalValue,
         returnPct,
-        cash:         p.cash,
+        cash:            p.cash,
       };
     })
     .filter(p => p.totalValue !== 50000) // solo los que han operado
@@ -1540,7 +1556,7 @@ app.post('/portfolio/weekly/start', async (req, res) => {
 app.get('/portfolio/weekly/leaderboard', async (req, res) => {
   try {
     const weekId = getWeekId();
-    const records = await PortfolioWeekly.find({ weekId }).populate('userId', 'name avatar customAvatar username');
+    const records = await PortfolioWeekly.find({ weekId }).populate('userId', 'name avatar customAvatar username activeCosmetics');
     const portfolios = await Portfolio.find({ userId: { $in: records.map(r => r.userId._id) } });
     const priceMap = {};
     const prices = await Promise.all(PORTFOLIO_ASSETS.map(a => getPrice(a).catch(() => null)));
@@ -1553,10 +1569,11 @@ app.get('/portfolio/weekly/leaderboard', async (req, res) => {
       const totalValue = (p.cash || 0) + (invested || 0);
       const startValue = record.startValue || 50000;
       return {
-        name:         record.userId.username || record.userId.name,
-        username:     record.userId.username || null,
-        avatar:       record.userId.avatar,
-        customAvatar: record.userId.customAvatar || null,
+        name:            record.userId.username || record.userId.name,
+        username:        record.userId.username || null,
+        avatar:          record.userId.avatar,
+        customAvatar:    record.userId.customAvatar || null,
+        activeCosmetics: record.userId.activeCosmetics || {},
         totalValue,
         weeklyReturn: ((totalValue - startValue) / startValue) * 100,
       };
@@ -1711,11 +1728,11 @@ app.get('/friends/list', async (req, res) => {
     const friendships = await Friendship.find({
       $or: [{ requester: decoded.id }, { recipient: decoded.id }],
       status: 'accepted',
-    }).populate('requester', 'name avatar customAvatar username xp badges')
-      .populate('recipient', 'name avatar customAvatar username xp badges');
+    }).populate('requester', 'name avatar customAvatar username xp badges activeCosmetics')
+      .populate('recipient', 'name avatar customAvatar username xp badges activeCosmetics');
     const friends = friendships.map(f => {
       const friend = f.requester._id.equals(decoded.id) ? f.recipient : f.requester;
-      return { friendshipId: f._id, id: friend._id, name: friend.name, avatar: friend.avatar, customAvatar: friend.customAvatar || null, username: friend.username, xp: friend.xp, badges: friend.badges };
+      return { friendshipId: f._id, id: friend._id, name: friend.name, avatar: friend.avatar, customAvatar: friend.customAvatar || null, activeCosmetics: friend.activeCosmetics || {}, username: friend.username, xp: friend.xp, badges: friend.badges };
     });
     res.json(friends);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -1765,13 +1782,14 @@ app.get('/friends/profile/:username', async (req, res) => {
       $or: [{ requester: decoded.id, recipient: target._id }, { requester: target._id, recipient: decoded.id }],
     });
     res.json({
-      id: target._id,
-      name: target.name,
-      avatar: target.avatar,
-      customAvatar: target.customAvatar || null,
-      username: target.username,
-      xp: target.xp,
-      badges: target.badges,
+      id:              target._id,
+      name:            target.name,
+      avatar:          target.avatar,
+      customAvatar:    target.customAvatar || null,
+      activeCosmetics: target.activeCosmetics || {},
+      username:        target.username,
+      xp:              target.xp,
+      badges:          target.badges,
       portfolioReturn,
       friendshipStatus: friendship?.status || null,
       friendshipId: friendship?._id || null,
@@ -1815,16 +1833,17 @@ app.get('/u/:username', async (req, res) => {
     }
 
     res.json({
-      username: target.username,
-      name:     target.name,
-      avatar:   target.avatar,
-      customAvatar: target.customAvatar || null,
-      xp:       target.xp,
-      badges:   target.badges,
-      dailyStreak: target.dailyStreak,
+      username:        target.username,
+      name:            target.name,
+      avatar:          target.avatar,
+      customAvatar:    target.customAvatar || null,
+      activeCosmetics: target.activeCosmetics || {},
+      xp:              target.xp,
+      badges:          target.badges,
+      dailyStreak:     target.dailyStreak,
       portfolioReturn,
       totalValue,
-      joinedAt: target.createdAt,
+      joinedAt:        target.createdAt,
       friendshipStatus,
     });
   } catch (err) { res.status(500).json({ error: err.message }); }

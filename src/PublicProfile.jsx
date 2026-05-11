@@ -4,6 +4,7 @@ import { useLang } from './LangContext.jsx';
 import { getLevel } from './levels.js';
 import { BADGES } from './badges.js';
 import { SERVER } from './config.js';
+import UserAvatar from './UserAvatar.jsx';
 
 export default function PublicProfile({ username, onBack, onChallenge }) {
   const { user } = useAuth();
@@ -66,14 +67,9 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
 
         {/* Avatar + name */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '28px' }}>
-          {(profile.customAvatar || profile.avatar) ? (
-            <img src={profile.customAvatar || profile.avatar} alt=""
-              style={{ width: '80px', height: '80px', borderRadius: '50%', border: '2px solid #22d3a5', objectFit: 'cover', marginBottom: '14px' }} />
-          ) : (
-            <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: '#1a2030', border: '2px solid #22d3a5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px', marginBottom: '14px' }}>
-              👤
-            </div>
-          )}
+          <div style={{ marginBottom: '14px' }}>
+            <UserAvatar user={profile} size={80} showBadge />
+          </div>
           <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: '#f0f0f0', marginBottom: '4px' }}>
             @{profile.username}
           </div>

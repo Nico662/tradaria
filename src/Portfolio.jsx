@@ -5,8 +5,7 @@ import Chart from './Chart.jsx';
 import { ASSET_INFO } from './assetInfo.js';
 
 import { SERVER } from './config.js';
-
-const AVATAR_EMOJIS = { avatar_bull: '🐂', avatar_bear: '🐻', avatar_whale: '🐋', avatar_robot: '🤖' };
+import UserAvatar from './UserAvatar.jsx';
 
 const TYPE_COLORS = {
   stock:     '#378ADD',
@@ -95,6 +94,7 @@ export default function Portfolio({ onBack }) {
   const [duelLoading, setDuelLoading]       = useState(false);
   const [duelMsg, setDuelMsg]               = useState('');
   const [showWelcome, setShowWelcome]       = useState(() => !localStorage.getItem('tradara_portfolio_welcomed'));
+  const [inputMode, setInputMode]           = useState(() => localStorage.getItem('tradara_portfolio_input_mode') || 'units');
   const chartRef = useRef(null);
 
   const token = localStorage.getItem('tradara_token');
@@ -254,10 +254,13 @@ export default function Portfolio({ onBack }) {
     setLoading(true);
     setError('');
     try {
+      const finalQty = inputMode === 'amount'
+        ? parseFloat(qty) / (selectedPrice?.price || 1)
+        : parseFloat(qty);
       const res  = await fetch(`${SERVER}/portfolio/${action}`, {
         method:  'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ symbol: selected.symbol, qty: parseFloat(qty) }),
+        body:    JSON.stringify({ symbol: selected.symbol, qty: finalQty }),
       });
       const data = await res.json();
       if (!data.ok) { setError(data.error); setLoading(false); return; }
@@ -387,7 +390,9 @@ export default function Portfolio({ onBack }) {
   const filteredPrices = filter === 'all' ? prices : prices.filter(p => p.type === filterMap[filter]);
   const selectedPrice  = selected ? prices.find(p => p.symbol === selected.symbol) : null;
   const selectedPos    = selected ? positionsWithValue.find(p => p.symbol === selected.symbol) : null;
-  const tradeTotal     = selectedPrice && qty ? selectedPrice.price * parseFloat(qty) : 0;
+  const tradeTotal     = selectedPrice && qty
+    ? (inputMode === 'amount' ? parseFloat(qty) : selectedPrice.price * parseFloat(qty))
+    : 0;
 
   const stableAsset = selected ? {
     name:         selected.symbol,
@@ -485,22 +490,57 @@ export default function Portfolio({ onBack }) {
             <button onClick={() => setAction('sell')} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: `1px solid ${action === 'sell' ? '#f05454' : '#2a3345'}`, background: action === 'sell' ? 'rgba(240,84,84,0.08)' : 'transparent', color: action === 'sell' ? '#f05454' : '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>{t.portfolio.sell}</button>
           </div>
 
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
-            <input
-              type="number" value={qty} onChange={e => setQty(e.target.value)}
-              placeholder="0.00" min="0" step="0.01"
-              style={{ flex: 1, background: '#0a0c0f', border: '1px solid #2a3345', borderRadius: '6px', padding: '10px 12px', color: '#e2e8f0', fontFamily: "'Space Mono', monospace", fontSize: '12px', outline: 'none' , position: 'relative', zIndex: 100, touchAction: 'auto', pointerEvents: 'all'}}
-            />
+          {/* Input mode toggle */}
+          <div style={{ display: 'flex', gap: '4px', marginBottom: '10px' }}>
+            {[
+              { id: 'units',  label: t.portfolio.inputUnits  || 'Units' },
+              { id: 'amount', label: t.portfolio.inputAmount || '$ Amount' },
+            ].map(m => (
+              <button key={m.id} onClick={() => {
+                setInputMode(m.id);
+                localStorage.setItem('tradara_portfolio_input_mode', m.id);
+                setQty('');
+              }} style={{ flex: 1, padding: '6px 8px', borderRadius: '5px', border: `1px solid ${inputMode === m.id ? '#378ADD' : '#1e2530'}`, background: inputMode === m.id ? 'rgba(55,138,221,0.08)' : 'transparent', color: inputMode === m.id ? '#378ADD' : '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em' }}>
+                {m.label}
+              </button>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', gap: '8px', marginBottom: inputMode === 'amount' && qty && parseFloat(qty) > 0 ? '4px' : '10px' }}>
+            <div style={{ flex: 1, position: 'relative' }}>
+              {inputMode === 'amount' && (
+                <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#6b7a8d', fontFamily: "'Space Mono', monospace", fontSize: '12px', pointerEvents: 'none' }}>$</span>
+              )}
+              <input
+                type="number" value={qty} onChange={e => setQty(e.target.value)}
+                placeholder="0.00" min="0" step="0.01"
+                style={{ width: '100%', background: '#0a0c0f', border: '1px solid #2a3345', borderRadius: '6px', padding: inputMode === 'amount' ? '10px 12px 10px 24px' : '10px 12px', color: '#e2e8f0', fontFamily: "'Space Mono', monospace", fontSize: '12px', outline: 'none', position: 'relative', zIndex: 100, touchAction: 'auto', pointerEvents: 'all', boxSizing: 'border-box' }}
+              />
+            </div>
             <button onClick={() => {
               if (action === 'buy' && selectedPrice?.price) {
-                setQty((Math.floor((portfolio.cash / selectedPrice.price) * 100) / 100).toString());
+                if (inputMode === 'amount') {
+                  setQty((Math.floor(portfolio.cash * 100) / 100).toString());
+                } else {
+                  setQty((Math.floor((portfolio.cash / selectedPrice.price) * 100) / 100).toString());
+                }
               } else if (action === 'sell' && selectedPos) {
-                setQty(selectedPos.qty.toString());
+                if (inputMode === 'amount') {
+                  setQty((Math.floor(selectedPos.qty * selectedPrice.price * 100) / 100).toString());
+                } else {
+                  setQty(selectedPos.qty.toString());
+                }
               }
             }} style={{ padding: '10px 14px', background: '#0a0c0f', border: '1px solid #2a3345', borderRadius: '6px', color: '#8899b0', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
               {t.portfolio.max}
             </button>
           </div>
+
+          {inputMode === 'amount' && qty && parseFloat(qty) > 0 && selectedPrice?.price && (
+            <div style={{ fontSize: '9px', color: '#4a5568', marginBottom: '10px', fontFamily: "'Space Mono', monospace" }}>
+              ≈ {(parseFloat(qty) / selectedPrice.price).toFixed(4)} {t.portfolio.inputUnits || 'units'}
+            </div>
+          )}
 
           {qty && parseFloat(qty) > 0 && (
             <div style={{ fontSize: '10px', color: '#6b7a8d', marginBottom: '10px' }}>
@@ -733,15 +773,10 @@ export default function Portfolio({ onBack }) {
                   <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#3a4455', width: '24px', flexShrink: 0 }}>
                     {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
                   </div>
-                  {(entry.customAvatar || entry.avatar) ? (
-                    <img src={entry.customAvatar || entry.avatar} style={{ width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0, objectFit: 'cover' }} />
-                  ) : (
-                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#1e2530', flexShrink: 0 }} />
-                  )}
+                  <UserAvatar user={entry} size={24} showBadge />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.username ? `@${entry.username}` : entry.name}</span>
-                      {entry.cosmeticAvatar && <span style={{ fontSize: '14px', flexShrink: 0 }}>{AVATAR_EMOJIS[entry.cosmeticAvatar] || entry.cosmeticAvatar}</span>}
+                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {entry.username ? `@${entry.username}` : entry.name}
                     </div>
                     <div style={{ fontSize: '9px', color: '#4a5568' }}>{formatCash(entry.totalValue)}</div>
                   </div>
@@ -765,15 +800,10 @@ export default function Portfolio({ onBack }) {
                   <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#3a4455', width: '24px', flexShrink: 0 }}>
                     {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
                   </div>
-                  {(entry.customAvatar || entry.avatar) ? (
-                    <img src={entry.customAvatar || entry.avatar} style={{ width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0, objectFit: 'cover' }} />
-                  ) : (
-                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#1e2530', flexShrink: 0 }} />
-                  )}
+                  <UserAvatar user={entry} size={24} showBadge />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.username ? `@${entry.username}` : entry.name}</span>
-                      {entry.cosmeticAvatar && <span style={{ fontSize: '14px', flexShrink: 0 }}>{AVATAR_EMOJIS[entry.cosmeticAvatar] || entry.cosmeticAvatar}</span>}
+                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {entry.username ? `@${entry.username}` : entry.name}
                     </div>
                     <div style={{ fontSize: '9px', color: '#4a5568' }}>{formatCash(entry.totalValue ?? 0)}</div>
                   </div>
@@ -869,11 +899,7 @@ export default function Portfolio({ onBack }) {
               ) : (
                 duelFriends.map(f => (
                   <div key={f.username} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', borderRadius: '6px', marginBottom: '4px', background: '#0a0c0f' }}>
-                    {(f.customAvatar || f.avatar) ? (
-                      <img src={f.customAvatar || f.avatar} style={{ width: '28px', height: '28px', borderRadius: '50%' }} />
-                    ) : (
-                      <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#1e2530' }} />
-                    )}
+                    <UserAvatar user={f} size={28} showBadge />
                     <div style={{ flex: 1, fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0' }}>{f.username || f.name}</div>
                     <button onClick={() => challengeFriendDuel(f.username)} disabled={duelLoading}
                       style={{ padding: '6px 12px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, cursor: 'pointer', opacity: duelLoading ? 0.5 : 1 }}>

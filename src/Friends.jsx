@@ -3,23 +3,13 @@ import { useAuth } from './AuthContext';
 import { useLang } from './LangContext.jsx';
 import { getLevel } from './levels.js';
 import { SERVER } from './config.js';
+import UserAvatar from './UserAvatar.jsx';
 
 function authHeaders() {
   return {
     Authorization: `Bearer ${localStorage.getItem('tradara_token')}`,
     'Content-Type': 'application/json',
   };
-}
-
-function Avatar({ user, size }) {
-  if (user.customAvatar || user.avatar) {
-    return <img src={user.customAvatar || user.avatar} alt="" style={{ width: size, height: size, borderRadius: '50%', flexShrink: 0, border: '1px solid #1e2530', objectFit: 'cover' }} />;
-  }
-  return (
-    <div style={{ width: size, height: size, borderRadius: '50%', background: '#1a2030', border: '1px solid #1e2530', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: Math.floor(size * 0.45) + 'px', flexShrink: 0 }}>
-      👤
-    </div>
-  );
 }
 
 function FriendCard({ f, onChallenge, isChallenging, challengeStatus, onViewProfile }) {
@@ -36,7 +26,7 @@ function FriendCard({ f, onChallenge, isChallenging, challengeStatus, onViewProf
     : 'rgba(34,211,165,0.08)';
   return (
     <div style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-      <Avatar user={f} size={38} />
+      <UserAvatar user={f} size={38} showBadge />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#f0f0f0', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {f.username ? `@${f.username}` : f.name}
@@ -72,7 +62,7 @@ function PendingCard({ req, onAccept, onReject }) {
   const level = getLevel(req.xp || 0);
   return (
     <div style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-      <Avatar user={req} size={38} />
+      <UserAvatar user={req} size={38} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#f0f0f0', fontWeight: 700 }}>
           {req.username ? `@${req.username}` : req.name}
@@ -112,7 +102,7 @@ function SearchResultCard({ profile, onSendRequest }) {
   return (
     <div style={{ background: '#0f141b', border: '1px solid #22d3a5', borderRadius: '10px', padding: '14px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <Avatar user={profile} size={42} />
+        <UserAvatar user={profile} size={42} showBadge />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '12px', color: '#f0f0f0', fontWeight: 700 }}>
             @{profile.username}

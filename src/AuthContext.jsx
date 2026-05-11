@@ -39,10 +39,21 @@ export function AuthProvider({ children }) {
     } catch (e) {}
   }
 
+  function syncCosmeticsToServer(cosmetics) {
+    const token = localStorage.getItem('tradara_token');
+    if (!token) return;
+    fetch(`${SERVER}/auth/cosmetics`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ activeCosmetics: cosmetics }),
+    }).catch(() => {});
+  }
+
   function equipCosmetic(type, id) {
     const updated = { ...activeCosmetics, [type]: id };
     setActiveCosmetics(updated);
     localStorage.setItem('tradara_cosmetics', JSON.stringify(updated));
+    syncCosmeticsToServer(updated);
   }
 
   function unequipCosmetic(type) {
@@ -50,6 +61,7 @@ export function AuthProvider({ children }) {
     delete updated[type];
     setActiveCosmetics(updated);
     localStorage.setItem('tradara_cosmetics', JSON.stringify(updated));
+    syncCosmeticsToServer(updated);
   }
 
   function normalizeDateStr(d) {
@@ -67,6 +79,12 @@ export function AuthProvider({ children }) {
       if (res.ok) {
         const data = await res.json();
         setUser(data);
+
+        // Sincronizar cosméticos desde el servidor
+        if (data.activeCosmetics && Object.keys(data.activeCosmetics).length > 0) {
+          setActiveCosmetics(data.activeCosmetics);
+          localStorage.setItem('tradara_cosmetics', JSON.stringify(data.activeCosmetics));
+        }
 
         // Sincronizar XP
         const localXP = parseInt(localStorage.getItem('tradara_xp') || '0');

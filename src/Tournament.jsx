@@ -8,13 +8,7 @@ import BadgeNotification from './BadgeNotification.jsx';
 import EffectOverlay from './EffectOverlay.jsx';
 
 import { SERVER } from './config.js';
-
-const AVATAR_EMOJIS = {
-  avatar_bull:  '🐂',
-  avatar_bear:  '🐻',
-  avatar_whale: '🐋',
-  avatar_robot: '🤖',
-};
+import UserAvatar, { AVATAR_EMOJIS } from './UserAvatar.jsx';
 
 export default function Tournament({ onBack }) {
   const { user, syncProgress, activeCosmetics } = useAuth();
@@ -227,14 +221,9 @@ export default function Tournament({ onBack }) {
                 <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#3a4455', width: '24px' }}>
                   {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
                 </div>
-                {(entry.customAvatar || entry.avatar) ? (
-                  <img src={entry.customAvatar || entry.avatar} style={{ width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0, objectFit: 'cover' }} />
-                ) : (
-                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#1e2530', flexShrink: 0 }} />
-                )}
+                <UserAvatar user={entry} size={24} showBadge />
                 <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
                   <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</span>
-                  {entry.cosmeticAvatar && <span style={{ fontSize: '14px', flexShrink: 0 }}>{entry.cosmeticAvatar}</span>}
                 </div>
                 <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#22d3a5' }}>{entry.score}</div>
               </div>
