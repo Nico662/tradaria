@@ -170,8 +170,8 @@ export default function Daily({ onBack }) {
  };
 
   const shareResult = (res) => {
-    const asset    = res.asset    ?? dailyAsset?.name ?? '?';
-    const interval = res.interval ?? dailyAsset?.tf   ?? '?';
+    const asset    = res.asset    || dailyAsset?.name  || user?.dailyResult?.asset    || '?';
+    const interval = res.interval || dailyAsset?.tf    || user?.dailyResult?.interval || '?';
     const today    = new Date().toISOString().split('T')[0];
     const text     = `⚡ Tradara Daily Challenge\n📅 ${today}\n📈 ${asset} · ${interval}\n\n${res.win ? '✅ CORRECT' : '❌ WRONG'} — price ${res.direction === 'up' ? '▲' : res.direction === 'down' ? '▼' : '—'} ${res.pctMove > 0 ? '+' : ''}${res.pctMove.toFixed(2)}%\n\ntradara.dev`;
     navigator.clipboard.writeText(text).then(() => {
