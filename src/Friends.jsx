@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from './AuthContext';
+import { useLang } from './LangContext.jsx';
 import { getLevel } from './levels.js';
 import { SERVER } from './config.js';
 
@@ -22,10 +23,11 @@ function Avatar({ user, size }) {
 }
 
 function FriendCard({ f, onChallenge, isChallenging, challengeStatus, onViewProfile }) {
+  const { t } = useLang();
   const level = getLevel(f.xp || 0);
   const btnLabel = isChallenging
-    ? (challengeStatus === 'unavailable' ? '✗ No disponible' : '⏳ Esperando...')
-    : '⚔️ Retar';
+    ? (challengeStatus === 'unavailable' ? t.friends.unavailable : t.friends.waiting)
+    : t.friends.challenge;
   const btnColor = isChallenging
     ? (challengeStatus === 'unavailable' ? '#f05454' : '#f5c842')
     : '#22d3a5';
@@ -48,7 +50,7 @@ function FriendCard({ f, onChallenge, isChallenging, challengeStatus, onViewProf
             onMouseEnter={e => e.currentTarget.style.color = '#8899b0'}
             onMouseLeave={e => e.currentTarget.style.color = '#3a4455'}
           >
-            Ver perfil →
+            {t.friends.viewProfile}
           </button>
         )}
       </div>
@@ -66,6 +68,7 @@ function FriendCard({ f, onChallenge, isChallenging, challengeStatus, onViewProf
 }
 
 function PendingCard({ req, onAccept, onReject }) {
+  const { t } = useLang();
   const level = getLevel(req.xp || 0);
   return (
     <div style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -85,7 +88,7 @@ function PendingCard({ req, onAccept, onReject }) {
           onMouseEnter={e => e.currentTarget.style.background = 'rgba(34,211,165,0.2)'}
           onMouseLeave={e => e.currentTarget.style.background = 'rgba(34,211,165,0.1)'}
         >
-          ✓ Aceptar
+          {t.friends.accept}
         </button>
         <button
           onClick={() => onReject(req.friendshipId)}
@@ -101,6 +104,7 @@ function PendingCard({ req, onAccept, onReject }) {
 }
 
 function SearchResultCard({ profile, onSendRequest }) {
+  const { t } = useLang();
   const level = getLevel(profile.xp || 0);
   const alreadyFriends = profile.friendshipStatus === 'accepted';
   const sentRequest    = profile.friendshipStatus === 'pending' && profile.isRequester;
@@ -124,9 +128,9 @@ function SearchResultCard({ profile, onSendRequest }) {
         </div>
         <div style={{ flexShrink: 0 }}>
           {alreadyFriends ? (
-            <span style={{ fontSize: '9px', color: '#22d3a5', fontFamily: "'Space Mono', monospace" }}>✓ amigos</span>
+            <span style={{ fontSize: '9px', color: '#22d3a5', fontFamily: "'Space Mono', monospace" }}>{t.friends.alreadyFriends}</span>
           ) : sentRequest ? (
-            <span style={{ fontSize: '9px', color: '#4a5568', fontFamily: "'Space Mono', monospace" }}>pendiente...</span>
+            <span style={{ fontSize: '9px', color: '#4a5568', fontFamily: "'Space Mono', monospace" }}>{t.friends.pending}</span>
           ) : (
             <button
               onClick={() => onSendRequest(profile.username)}
@@ -134,7 +138,7 @@ function SearchResultCard({ profile, onSendRequest }) {
               onMouseEnter={e => e.currentTarget.style.background = 'rgba(34,211,165,0.2)'}
               onMouseLeave={e => e.currentTarget.style.background = 'rgba(34,211,165,0.1)'}
             >
-              + Añadir
+              {t.friends.add}
             </button>
           )}
         </div>
@@ -145,6 +149,7 @@ function SearchResultCard({ profile, onSendRequest }) {
 
 export default function Friends({ onBack, challengeSocket, onViewProfile }) {
   const { user } = useAuth();
+  const { t } = useLang();
   const [friends, setFriends]           = useState([]);
   const [pending, setPending]           = useState([]);
   const [searchQ, setSearchQ]           = useState('');
@@ -229,7 +234,7 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
       const res  = await fetch(`${SERVER}/friends/request`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ username }) });
       const data = await res.json();
       if (data.ok) {
-        flash('ok', 'Solicitud enviada');
+        flash('ok', t.friends.requestSent);
         setSearchResult(prev => prev?.found
           ? { ...prev, user: { ...prev.user, friendshipStatus: 'pending', isRequester: true } }
           : prev
@@ -237,16 +242,16 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
       } else {
         flash('err', data.error || 'Error');
       }
-    } catch { flash('err', 'Error de red'); }
+    } catch { flash('err', t.friends.networkError); }
   }
 
   async function acceptRequest(friendshipId) {
     try {
       const res  = await fetch(`${SERVER}/friends/accept`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ friendshipId }) });
       const data = await res.json();
-      if (data.ok) { flash('ok', '¡Ahora sois amigos!'); fetchAll(); }
+      if (data.ok) { flash('ok', t.friends.nowFriends); fetchAll(); }
       else flash('err', data.error || 'Error');
-    } catch { flash('err', 'Error de red'); }
+    } catch { flash('err', t.friends.networkError); }
   }
 
   async function rejectRequest(friendshipId) {
@@ -255,7 +260,7 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
       const data = await res.json();
       if (data.ok) setPending(p => p.filter(r => String(r.friendshipId) !== String(friendshipId)));
       else flash('err', data.error || 'Error');
-    } catch { flash('err', 'Error de red'); }
+    } catch { flash('err', t.friends.networkError); }
   }
 
   const sectionLabel = {
@@ -276,10 +281,10 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
             onMouseEnter={e => e.currentTarget.style.color = '#e2e8f0'}
             onMouseLeave={e => e.currentTarget.style.color = '#3a4455'}
           >
-            ← back
+            {t.friends.back}
           </button>
           <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: '#f0f0f0' }}>
-            Amigos
+            {t.friends.title}
           </div>
           {pending.length > 0 && (
             <div style={{ background: '#f05454', borderRadius: '10px', padding: '2px 8px', fontSize: '9px', color: '#fff', fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>
@@ -297,16 +302,16 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
 
         {!user ? (
           <div style={{ textAlign: 'center', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', padding: '60px 0' }}>
-            Inicia sesión para usar el sistema de amigos
+            {t.friends.signIn}
           </div>
         ) : (
           <>
             {/* Buscador */}
             <div style={{ marginBottom: '28px' }}>
-              <div style={sectionLabel}>Buscar jugador por username</div>
+              <div style={sectionLabel}>{t.friends.search}</div>
               <input
                 type="text"
-                placeholder="username exacto..."
+                placeholder={t.friends.searchPlaceholder}
                 value={searchQ}
                 onChange={handleSearch}
                 style={{ width: '100%', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px', padding: '10px 14px', color: '#f0f0f0', fontFamily: "'Space Mono', monospace", fontSize: '12px', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s' }}
@@ -314,7 +319,7 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
                 onBlur={e => e.currentTarget.style.borderColor = '#1e2530'}
               />
               {searchLoading && (
-                <div style={{ marginTop: '8px', fontSize: '9px', color: '#3a4455', fontFamily: "'Space Mono', monospace" }}>buscando...</div>
+                <div style={{ marginTop: '8px', fontSize: '9px', color: '#3a4455', fontFamily: "'Space Mono', monospace" }}>{t.friends.searching}</div>
               )}
               {searchResult && !searchLoading && (
                 <div style={{ marginTop: '8px' }}>
@@ -322,7 +327,7 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
                     <SearchResultCard profile={searchResult.user} onSendRequest={sendRequest} />
                   ) : (
                     <div style={{ padding: '12px 14px', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px', fontSize: '11px', color: '#3a4455', fontFamily: "'Space Mono', monospace" }}>
-                      Usuario no encontrado
+                      {t.friends.notFound}
                     </div>
                   )}
                 </div>
@@ -332,7 +337,7 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
             {/* Solicitudes pendientes */}
             {pending.length > 0 && (
               <div style={{ marginBottom: '28px' }}>
-                <div style={sectionLabel}>Solicitudes recibidas</div>
+                <div style={sectionLabel}>{t.friends.requests}</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {pending.map(req => (
                     <PendingCard key={String(req.friendshipId)} req={req} onAccept={acceptRequest} onReject={rejectRequest} />
@@ -344,15 +349,15 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
             {/* Lista de amigos */}
             <div>
               <div style={sectionLabel}>
-                Mis amigos{friends.length > 0 ? ` · ${friends.length}` : ''}
+                {t.friends.myFriends}{friends.length > 0 ? ` · ${friends.length}` : ''}
               </div>
               {loading ? (
-                <div style={{ fontSize: '10px', color: '#3a4455', fontFamily: "'Space Mono', monospace" }}>cargando...</div>
+                <div style={{ fontSize: '10px', color: '#3a4455', fontFamily: "'Space Mono', monospace" }}>{t.friends.loading}</div>
               ) : friends.length === 0 ? (
                 <div style={{ padding: '24px', textAlign: 'center', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px' }}>
                   <div style={{ fontSize: '28px', marginBottom: '8px' }}>🤝</div>
                   <div style={{ fontSize: '10px', color: '#3a4455', fontFamily: "'Space Mono', monospace", lineHeight: 1.6 }}>
-                    Aún no tienes amigos.<br />Busca por username arriba.
+                    {t.friends.noFriends}<br />{t.friends.noFriendsSub}
                   </div>
                 </div>
               ) : (

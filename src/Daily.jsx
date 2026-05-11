@@ -266,7 +266,7 @@ export default function Daily({ onBack }) {
                   {result.win ? t.daily.correct : t.daily.wrong}
                 </div>
                 <div style={{ fontSize: '11px', color: '#6b7a8d' }}>
-                  price {result.direction === 'up' ? '▲ went up' : result.direction === 'down' ? '▼ went down' : '— stayed flat'} · {result.pctMove > 0 ? '+' : ''}{result.pctMove.toFixed(2)}%
+                  {result.direction === 'up' ? t.daily.priceUp : result.direction === 'down' ? t.daily.priceDown : t.daily.priceFlat} · {result.pctMove > 0 ? '+' : ''}{result.pctMove.toFixed(2)}%
                 </div>
                 <div style={{ marginTop: '16px', fontSize: '9px', color: '#3a4455', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                   {t.daily.comeback}
@@ -284,7 +284,7 @@ export default function Daily({ onBack }) {
               {result.win ? t.daily.correct : t.daily.wrong}
             </div>
             <div style={{ fontSize: '11px', color: '#6b7a8d', marginBottom: '16px' }}>
-              you played {result.choice.toUpperCase()} · price {result.direction === 'up' ? '▲ went up' : result.direction === 'down' ? '▼ went down' : '— stayed flat'}
+              {t.daily.youPlayed} {result.choice.toUpperCase()} · {result.direction === 'up' ? t.daily.priceUp : result.direction === 'down' ? t.daily.priceDown : t.daily.priceFlat}
             </div>
             <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
               {t.daily.next} {timeLeft}

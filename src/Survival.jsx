@@ -182,7 +182,7 @@ export default function Survival({ onBack }) {
             {t.survival.gameOver}
           </div>
           <div style={{ fontSize: '10px', color: '#3a4455', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '32px' }}>
-            survival mode · {round - 1} {t.survival.roundsSurvived}
+            {t.survival.title} · {round - 1} {t.survival.roundsSurvived}
           </div>
 
           <div style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '12px', padding: '28px 24px', marginBottom: '20px' }}>
@@ -194,10 +194,10 @@ export default function Survival({ onBack }) {
             </div>
             {isNewHS && (
               <div style={{ marginTop: '8px', fontSize: '10px', color: '#22d3a5', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                ★ new highscore!
+                {t.survival.newHighscore}
               </div>
             )}
-            <div style={{ fontSize: '11px', color: '#3a4455', marginTop: '4px' }}>best: {highscore}</div>
+            <div style={{ fontSize: '11px', color: '#3a4455', marginTop: '4px' }}>{t.survival.best}: {highscore}</div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginTop: '20px', marginBottom: '16px' }}>
               {[
@@ -301,15 +301,15 @@ export default function Survival({ onBack }) {
       </div>
       <div style={{ padding: '6px 20px 0', position: 'relative', zIndex: 2, display: 'flex', gap: '6px' }}>
         <div style={{ flex: 1, background: '#0f141b', border: '1px solid #1e2530', borderRadius: '6px', padding: '7px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '8px', color: '#4a5568', textTransform: 'uppercase', letterSpacing: '0.06em' }}>round</span>
+          <span style={{ fontSize: '8px', color: '#4a5568', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t.game.round}</span>
           <span style={{ fontSize: '11px', color: '#f0f0f0', fontWeight: 700 }}>{round}</span>
         </div>
         <div style={{ flex: 1, background: '#0f141b', border: '1px solid #1e2530', borderRadius: '6px', padding: '7px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '8px', color: '#4a5568', textTransform: 'uppercase', letterSpacing: '0.06em' }}>score</span>
+          <span style={{ fontSize: '8px', color: '#4a5568', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t.game.score}</span>
           <span style={{ fontSize: '11px', color: '#f5c842', fontWeight: 700 }}>{score}</span>
         </div>
         <div style={{ flex: 1, background: '#0f141b', border: '1px solid #1e2530', borderRadius: '6px', padding: '7px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '8px', color: '#4a5568', textTransform: 'uppercase', letterSpacing: '0.06em' }}>best</span>
+          <span style={{ fontSize: '8px', color: '#4a5568', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t.survival.best}</span>
           <span style={{ fontSize: '11px', color: '#22d3a5', fontWeight: 700 }}>{highscore}</span>
         </div>
       </div>
@@ -344,10 +344,10 @@ export default function Survival({ onBack }) {
                 {result.win && !result.neutral ? t.game.correct : !result.win && !result.neutral ? t.game.wrong : t.game.flat}
               </div>
               <div className="result-detail">
-                price {dirLabel} &nbsp;{result.pctMove > 0 ? '+' : ''}{result.pctMove.toFixed(2)}% · you: {result.choice.toUpperCase()}
+                {dirLabel} &nbsp;{result.pctMove > 0 ? '+' : ''}{result.pctMove.toFixed(2)}% · {result.choice.toUpperCase()}
                 {!result.win && !result.neutral && (
                   <span style={{ color: '#f05454', marginLeft: '8px' }}>
-                    {result.livesLeft > 0 ? `❤️ ${result.livesLeft} left` : '💀 game over'}
+                    {result.livesLeft > 0 ? `❤️ ${result.livesLeft} ${t.survival.livesLeft}` : `💀 ${t.survival.gameOverMsg}`}
                   </span>
                 )}
               </div>
@@ -369,9 +369,9 @@ export default function Survival({ onBack }) {
 
       <div style={{ padding: '12px 20px', borderTop: '1px solid #1e2530', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', position: 'relative', zIndex: 2 }}>
         {[
-          { label: 'CORRECT', value: history.filter(h => h === 'win').length,  color: '#22d3a5' },
-          { label: 'WRONG',   value: history.filter(h => h === 'lose').length, color: '#f05454' },
-          { label: 'BEST',    value: highscore,                                color: '#f5c842' },
+          { label: t.game.correct, value: history.filter(h => h === 'win').length,  color: '#22d3a5' },
+          { label: t.game.wrong,   value: history.filter(h => h === 'lose').length, color: '#f05454' },
+          { label: t.survival.best, value: highscore,                               color: '#f5c842' },
         ].map(s => (
           <div key={s.label} style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px', padding: '10px 8px', textAlign: 'center' }}>
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: s.color }}>{s.value}</div>

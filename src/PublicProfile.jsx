@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
+import { useLang } from './LangContext.jsx';
 import { getLevel } from './levels.js';
 import { BADGES } from './badges.js';
 import { SERVER } from './config.js';
 
 export default function PublicProfile({ username, onBack, onChallenge }) {
   const { user } = useAuth();
+  const { t } = useLang();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState(null);
@@ -17,10 +19,10 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
         const token = localStorage.getItem('tradara_token');
         if (token) headers.Authorization = `Bearer ${token}`;
         const res = await fetch(`${SERVER}/u/${encodeURIComponent(username)}`, { headers });
-        if (!res.ok) { setError('Usuario no encontrado'); setLoading(false); return; }
+        if (!res.ok) { setError(t.profile.notFound); setLoading(false); return; }
         setProfile(await res.json());
       } catch {
-        setError('Error cargando perfil');
+        setError(t.profile.errorLoading);
       }
       setLoading(false);
     }
@@ -34,15 +36,15 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
 
   if (loading) return (
     <div style={{ minHeight: '100vh', background: '#0a0c0f', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ fontSize: '11px', color: '#4a5568', fontFamily: "'Space Mono', monospace" }}>cargando perfil...</div>
+      <div style={{ fontSize: '11px', color: '#4a5568', fontFamily: "'Space Mono', monospace" }}>{t.profile.loading}</div>
     </div>
   );
 
   if (error || !profile) return (
     <div style={{ minHeight: '100vh', background: '#0a0c0f', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', padding: '40px' }}>
       <div style={{ fontSize: '32px' }}>👤</div>
-      <div style={{ fontSize: '11px', color: '#f05454', fontFamily: "'Space Mono', monospace" }}>{error || 'Usuario no encontrado'}</div>
-      {onBack && <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em' }}>← volver</button>}
+      <div style={{ fontSize: '11px', color: '#f05454', fontFamily: "'Space Mono', monospace" }}>{error || t.profile.notFound}</div>
+      {onBack && <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em' }}>{t.profile.back}</button>}
     </div>
   );
 
@@ -59,7 +61,7 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
             style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', marginBottom: '24px', display: 'block', letterSpacing: '0.06em' }}
             onMouseEnter={e => e.currentTarget.style.color = '#e2e8f0'}
             onMouseLeave={e => e.currentTarget.style.color = '#3a4455'}
-          >← back</button>
+          >{t.profile.back}</button>
         )}
 
         {/* Avatar + name */}
@@ -82,8 +84,8 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '16px' }}>
           {[
             { icon: level.icon, value: level.name, sub: `${profile.xp} XP` },
-            { icon: '🔥',       value: profile.dailyStreak, sub: 'streak' },
-            { icon: '🏅',       value: unlockedBadges.length, sub: 'badges' },
+            { icon: '🔥',       value: profile.dailyStreak, sub: t.profile.streak },
+            { icon: '🏅',       value: unlockedBadges.length, sub: t.profile.badges },
           ].map((s, i) => (
             <div key={i} style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px', padding: '14px 10px', textAlign: 'center' }}>
               <div style={{ fontSize: '22px', marginBottom: '4px' }}>{s.icon}</div>
@@ -106,7 +108,7 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: profile.portfolioReturn >= 0 ? '#22d3a5' : '#f05454' }}>
                 {profile.portfolioReturn >= 0 ? '+' : ''}{profile.portfolioReturn.toFixed(2)}%
               </div>
-              <div style={{ fontSize: '8px', color: '#4a5568' }}>vs $50k inicial</div>
+              <div style={{ fontSize: '8px', color: '#4a5568' }}>{t.profile.vsInitial}</div>
             </div>
           </div>
         )}
@@ -114,7 +116,7 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
         {/* Badges */}
         {unlockedBadges.length > 0 && (
           <div style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px', padding: '14px', marginBottom: '16px' }}>
-            <div style={{ fontSize: '8px', color: '#3a4455', letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: "'Space Mono', monospace", marginBottom: '12px' }}>Badges</div>
+            <div style={{ fontSize: '8px', color: '#3a4455', letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: "'Space Mono', monospace", marginBottom: '12px' }}>{t.profile.badges}</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
               {unlockedBadges.map(b => (
                 <div key={b.id} title={`${b.name}: ${b.desc}`}
@@ -128,7 +130,7 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
 
         {/* Joined */}
         <div style={{ fontSize: '10px', color: '#3a4455', fontFamily: "'Space Mono', monospace", textAlign: 'center', marginBottom: '24px' }}>
-          Jugando desde {formatJoined(profile.joinedAt)}
+          {t.profile.playingSince} {formatJoined(profile.joinedAt)}
         </div>
 
         {/* Action buttons */}
@@ -136,12 +138,12 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
           {isFriend && user && onChallenge && (
             <button onClick={() => onChallenge(profile.username)}
               style={{ width: '100%', padding: '14px', background: 'rgba(240,84,84,0.08)', border: '1px solid #f05454', borderRadius: '8px', color: '#f05454', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-              ⚔️ Retar en Arena
+              {t.profile.challenge}
             </button>
           )}
           <a href="https://tradara.dev"
             style={{ display: 'block', textAlign: 'center', padding: '14px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '8px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', textDecoration: 'none' }}>
-            Jugar en Tradara →
+            {t.profile.playOn}
           </a>
         </div>
       </div>

@@ -189,10 +189,10 @@ export default function Portfolio({ onBack }) {
       });
       const data = await res.json();
       if (data.ok) {
-        setDuelMsg('Reto enviado ✓');
+        setDuelMsg(t.portfolio.duelSent);
         setShowFriendPicker(false);
       } else {
-        setDuelMsg(data.error || 'Error al enviar el reto');
+        setDuelMsg(data.error || t.portfolio.duelError);
       }
     } catch {
       setDuelMsg('Error de conexión');
@@ -277,7 +277,7 @@ export default function Portfolio({ onBack }) {
       <div className="scanlines" />
       <div style={{ padding: '48px 28px', position: 'relative', zIndex: 2 }}>
         <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', marginBottom: '32px', display: 'block' }}>
-          ← menu
+          {t.game.menu}
         </button>
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <div style={{ fontSize: '56px', marginBottom: '16px' }}>💼</div>
@@ -312,12 +312,12 @@ export default function Portfolio({ onBack }) {
     <div id="gtm-root" style={{ position: 'relative' }}>
       <div className="scanlines" />
       <div style={{ padding: '48px 28px', textAlign: 'center', position: 'relative', zIndex: 2 }}>
-        <button onClick={onBack} style={{ position: 'absolute', top: '20px', left: '16px', background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}>← menu</button>
+        <button onClick={onBack} style={{ position: 'absolute', top: '20px', left: '16px', background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}>{t.game.menu}</button>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>💼</div>
         <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '24px', color: '#f0f0f0', marginBottom: '8px' }}>{t.portfolio.title}</div>
         <div style={{ fontSize: '11px', color: '#4a5568', marginBottom: '32px' }}>{t.portfolio.signIn}</div>
         <a href={`${SERVER}/auth/google`} style={{ display: 'inline-block', padding: '12px 24px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '8px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', textDecoration: 'none', fontWeight: 700 }}>
-          Sign in with Google
+          {t.portfolio.signInGoogle}
         </a>
       </div>
     </div>
@@ -336,8 +336,8 @@ export default function Portfolio({ onBack }) {
     <div id="gtm-root" style={{ position: 'relative' }}>
       <div className="scanlines" />
       <div style={{ padding: '48px 28px', textAlign: 'center', position: 'relative', zIndex: 2 }}>
-        <button onClick={onBack} style={{ position: 'absolute', top: '20px', left: '16px', background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}>← menu</button>
-        <div style={{ fontSize: '11px', color: '#f05454', fontFamily: "'Space Mono', monospace" }}>error loading portfolio</div>
+        <button onClick={onBack} style={{ position: 'absolute', top: '20px', left: '16px', background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}>{t.game.menu}</button>
+        <div style={{ fontSize: '11px', color: '#f05454', fontFamily: "'Space Mono', monospace" }}>{t.portfolio.errorLoading}</div>
       </div>
     </div>
   );
@@ -416,7 +416,7 @@ export default function Portfolio({ onBack }) {
             style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}
             onMouseEnter={e => e.target.style.color = '#e2e8f0'}
             onMouseLeave={e => e.target.style.color = '#3a4455'}
-          >← back</button>
+          >{t.portfolio.back}</button>
           <div style={{ flex: 1 }}>
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#f0f0f0' }}>{selected.name}</div>
             <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -436,13 +436,13 @@ export default function Portfolio({ onBack }) {
         <div style={{ position: 'relative', zIndex: 2, height: '220px', overflow: 'hidden' }}>
           {loadingCandles ? (
             <div style={{ height: '260px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#3a4455', fontFamily: "'Space Mono', monospace" }}>
-              loading chart...
+              {t.portfolio.loadingChart}
             </div>
           ) : assetCandles && stableAsset ? (
             <Chart ref={chartRef} asset={stableAsset} externalCandles={assetCandles} />
           ) : (
             <div style={{ height: '260px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#3a4455', fontFamily: "'Space Mono', monospace" }}>
-              no chart data
+              {t.portfolio.noChartData}
             </div>
           )}
         </div>
@@ -535,7 +535,7 @@ export default function Portfolio({ onBack }) {
           style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em' }}
           onMouseEnter={e => e.target.style.color = '#e2e8f0'}
           onMouseLeave={e => e.target.style.color = '#3a4455'}
-        >← menu</button>
+        >{t.game.menu}</button>
         <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: '#f0f0f0' }}>💼 {t.portfolio.title}</div>
         <div style={{ fontSize: '10px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>
           {formatCash(totalValue)}
@@ -570,7 +570,7 @@ export default function Portfolio({ onBack }) {
               <div style={{ fontSize: '9px', color: '#6b7a8d', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{t.portfolio.totalValue}</div>
               <div style={{ fontSize: '9px', color: portfolioHistory[portfolioHistory.length - 1].totalValue >= 50000 ? '#22d3a5' : '#f05454', fontWeight: 700 }}>
                 {portfolioHistory[portfolioHistory.length - 1].totalValue >= 50000 ? '+' : ''}
-                {((portfolioHistory[portfolioHistory.length - 1].totalValue - 50000) / 50000 * 100).toFixed(2)}% vs inicio
+                {((portfolioHistory[portfolioHistory.length - 1].totalValue - 50000) / 50000 * 100).toFixed(2)}% {t.portfolio.vsInitial}
               </div>
             </div>
             <svg width="100%" height="80" viewBox={`0 0 ${portfolioHistory.length * 20} 80`} preserveAspectRatio="none">
@@ -605,8 +605,8 @@ export default function Portfolio({ onBack }) {
         {[
           ['market',      t.portfolio.market],
           ['portfolio',   t.portfolio.positions],
-          ['leaderboard', '🏆 Ranking'],
-          ['duel',        '⚔️ Duelo'],
+          ['leaderboard', t.portfolio.ranking],
+          ['duel',        t.portfolio.duelTab],
           ['history',     t.portfolio.history],
         ].map(([id, label]) => (
           <button key={id} onClick={() => setTab(id)}
@@ -707,7 +707,7 @@ export default function Portfolio({ onBack }) {
         <div style={{ padding: '16px 20px 40px', position: 'relative', zIndex: 2 }}>
           {/* Global / Semanal subtabs */}
           <div style={{ display: 'flex', gap: '6px', marginBottom: '16px' }}>
-            {[['global', 'Global'], ['weekly', 'Semanal']].map(([id, label]) => (
+            {[['global', t.portfolio.global], ['weekly', t.portfolio.weekly]].map(([id, label]) => (
               <button key={id} onClick={() => setLbTab(id)}
                 style={{ padding: '6px 16px', borderRadius: '20px', border: `1px solid ${lbTab === id ? '#22d3a5' : '#2a3345'}`, background: lbTab === id ? 'rgba(34,211,165,0.08)' : 'transparent', color: lbTab === id ? '#22d3a5' : '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, cursor: 'pointer' }}>
                 {label}
@@ -717,7 +717,7 @@ export default function Portfolio({ onBack }) {
 
           {lbTab === 'weekly' && weeklyWeekId && (
             <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.06em', marginBottom: '10px', textAlign: 'center' }}>
-              Semana del {getWeekStart()}
+              {t.portfolio.weekOf} {getWeekStart()}
             </div>
           )}
 
@@ -757,7 +757,7 @@ export default function Portfolio({ onBack }) {
             weeklyLeaderboard.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '60px 20px' }}>
                 <div style={{ fontSize: '32px', marginBottom: '12px' }}>📅</div>
-                <div style={{ fontSize: '11px', color: '#4a5568', fontFamily: "'Space Mono', monospace" }}>No hay datos semanales aún</div>
+                <div style={{ fontSize: '11px', color: '#4a5568', fontFamily: "'Space Mono', monospace" }}>{t.portfolio.noWeeklyData}</div>
               </div>
             ) : (
               weeklyLeaderboard.map((entry, i) => (
@@ -781,7 +781,7 @@ export default function Portfolio({ onBack }) {
                     <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: (entry.weeklyReturn ?? 0) >= 0 ? '#22d3a5' : '#f05454' }}>
                       {(entry.weeklyReturn ?? 0) >= 0 ? '+' : ''}{(entry.weeklyReturn ?? 0).toFixed(2)}%
                     </div>
-                    <div style={{ fontSize: '8px', color: '#4a5568' }}>esta semana</div>
+                    <div style={{ fontSize: '8px', color: '#4a5568' }}>{t.portfolio.thisWeek}</div>
                   </div>
                 </div>
               ))
@@ -797,7 +797,7 @@ export default function Portfolio({ onBack }) {
           {/* Duel activo */}
           {activeDuel && (
             <div style={{ background: '#0f141b', border: '1px solid rgba(34,211,165,0.3)', borderRadius: '10px', padding: '16px', marginBottom: '16px' }}>
-              <div style={{ fontSize: '9px', color: '#22d3a5', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '12px' }}>Duelo activo · {activeDuel.daysLeft}d restantes</div>
+              <div style={{ fontSize: '9px', color: '#22d3a5', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '12px' }}>{t.portfolio.activeDuel} · {activeDuel.daysLeft}{t.portfolio.daysLeft}</div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 {[activeDuel.challenger, activeDuel.opponent].map((p, i) => (
                   <div key={i} style={{ flex: 1, background: '#0a0c0f', border: `1px solid ${p.returnPct >= 0 ? 'rgba(34,211,165,0.2)' : 'rgba(240,84,84,0.2)'}`, borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
@@ -810,8 +810,8 @@ export default function Portfolio({ onBack }) {
                 ))}
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', fontSize: '8px', color: '#3a4455' }}>
-                <span>Inicio: {activeDuel.startDate}</span>
-                <span>Fin: {activeDuel.endDate}</span>
+                <span>{t.portfolio.start} {activeDuel.startDate}</span>
+                <span>{t.portfolio.end} {activeDuel.endDate}</span>
               </div>
             </div>
           )}
@@ -819,20 +819,20 @@ export default function Portfolio({ onBack }) {
           {/* Retos pendientes */}
           {pendingDuels.length > 0 && (
             <div style={{ marginBottom: '16px' }}>
-              <div style={{ fontSize: '9px', color: '#f5c842', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px' }}>Retos recibidos</div>
+              <div style={{ fontSize: '9px', color: '#f5c842', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px' }}>{t.portfolio.pendingDuels}</div>
               {pendingDuels.map(d => (
                 <div key={d.id} style={{ background: '#0f141b', border: '1px solid rgba(245,200,66,0.2)', borderRadius: '8px', padding: '12px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0' }}>{d.challengerName}</div>
-                    <div style={{ fontSize: '9px', color: '#4a5568' }}>te reta a un duelo de 7 días</div>
+                    <div style={{ fontSize: '9px', color: '#4a5568' }}>{t.portfolio.duelChallenge}</div>
                   </div>
                   <button onClick={() => acceptDuel(d.id)} disabled={duelLoading}
                     style={{ padding: '7px 12px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, cursor: 'pointer', opacity: duelLoading ? 0.5 : 1 }}>
-                    Aceptar
+                    {t.challenge.accept}
                   </button>
                   <button onClick={() => rejectDuel(d.id)} disabled={duelLoading}
                     style={{ padding: '7px 12px', background: 'transparent', border: '1px solid #2a3345', borderRadius: '6px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, cursor: 'pointer', opacity: duelLoading ? 0.5 : 1 }}>
-                    Rechazar
+                    {t.challenge.reject}
                   </button>
                 </div>
               ))}
@@ -843,11 +843,11 @@ export default function Portfolio({ onBack }) {
           {!activeDuel && (
             <div style={{ textAlign: 'center', padding: '32px 0 16px' }}>
               <div style={{ fontSize: '40px', marginBottom: '12px' }}>⚔️</div>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#f0f0f0', marginBottom: '6px' }}>Portfolio Duel</div>
-              <div style={{ fontSize: '10px', color: '#4a5568', marginBottom: '24px', lineHeight: 1.6 }}>Reta a un amigo. El que más rentabilidad saque en 7 días gana.</div>
+              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#f0f0f0', marginBottom: '6px' }}>{t.portfolio.duelTitle}</div>
+              <div style={{ fontSize: '10px', color: '#4a5568', marginBottom: '24px', lineHeight: 1.6 }}>{t.portfolio.duelDesc}</div>
               <button onClick={() => { setShowFriendPicker(true); loadDuelFriends(); }}
                 style={{ padding: '12px 24px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '8px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', cursor: 'pointer' }}>
-                Retar a un amigo
+                {t.portfolio.challengeFriend}
               </button>
             </div>
           )}
@@ -860,12 +860,12 @@ export default function Portfolio({ onBack }) {
           {showFriendPicker && (
             <div style={{ marginTop: '16px', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px', padding: '16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <div style={{ fontSize: '11px', color: '#f0f0f0', fontFamily: "'Syne', sans-serif", fontWeight: 700 }}>Elige un amigo</div>
+                <div style={{ fontSize: '11px', color: '#f0f0f0', fontFamily: "'Syne', sans-serif", fontWeight: 700 }}>{t.portfolio.chooseFriend}</div>
                 <button onClick={() => setShowFriendPicker(false)}
                   style={{ background: 'transparent', border: 'none', color: '#4a5568', fontSize: '16px', cursor: 'pointer', padding: '0' }}>×</button>
               </div>
               {duelFriends.length === 0 ? (
-                <div style={{ fontSize: '10px', color: '#4a5568', textAlign: 'center', padding: '16px 0' }}>No tienes amigos añadidos aún</div>
+                <div style={{ fontSize: '10px', color: '#4a5568', textAlign: 'center', padding: '16px 0' }}>{t.portfolio.noFriendsYet}</div>
               ) : (
                 duelFriends.map(f => (
                   <div key={f.username} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', borderRadius: '6px', marginBottom: '4px', background: '#0a0c0f' }}>
@@ -877,7 +877,7 @@ export default function Portfolio({ onBack }) {
                     <div style={{ flex: 1, fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0' }}>{f.username || f.name}</div>
                     <button onClick={() => challengeFriendDuel(f.username)} disabled={duelLoading}
                       style={{ padding: '6px 12px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, cursor: 'pointer', opacity: duelLoading ? 0.5 : 1 }}>
-                      Retar
+                      {t.portfolio.challengeBtn}
                     </button>
                   </div>
                 ))

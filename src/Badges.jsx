@@ -16,7 +16,7 @@ export default function Badges({ onBack }) {
           onMouseEnter={e => e.target.style.color = '#e2e8f0'}
           onMouseLeave={e => e.target.style.color = '#3a4455'}
         >
-          ← back
+          {t.badges.back}
         </button>
 
         <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '24px', color: '#f0f0f0', marginBottom: '4px' }}>

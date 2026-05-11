@@ -115,7 +115,7 @@ export default function Arena({ onBack, challengeRoomCode }) {
     if (!challengeRoomCode) return;
     const playerName = user?.username || user?.name || 'Player';
     setName(playerName);
-    setStatus('Uniéndose al reto...');
+    setStatus('JOINING_CHALLENGE');
     setScreen('waiting');
     const socket = initSocket(playerName);
     const doJoin = () => socket.emit('challenge:join', { name: playerName, code: challengeRoomCode });
@@ -352,7 +352,7 @@ export default function Arena({ onBack, challengeRoomCode }) {
           style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', marginBottom: '32px', display: 'block' }}
           onMouseEnter={e => e.target.style.color = '#e2e8f0'}
           onMouseLeave={e => e.target.style.color = '#3a4455'}
-        >← menu</button>
+        >{t.game.menu}</button>
 
         <div style={{ position: 'absolute', top: '14px', right: '20px', zIndex: 10 }}>
           <div className="lang-selector">
@@ -412,15 +412,15 @@ export default function Arena({ onBack, challengeRoomCode }) {
       <div className="scanlines" />
       <div style={{ padding: '40px 28px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
         <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '24px', color: '#f0f0f0', marginBottom: '16px' }}>
-          {status === 'waiting_for_friend' ? t.arena.roomCreated : status === 'Uniéndose al reto...' ? '⚔️ Reto de amigo' : t.arena.searching}
+          {status === 'waiting_for_friend' ? t.arena.roomCreated : status === 'JOINING_CHALLENGE' ? t.arena.joiningChallenge : t.arena.searching}
         </div>
         <div style={{ fontSize: '32px', marginBottom: '24px' }}>
-          {status === 'waiting_for_friend' ? '🔒' : status === 'Uniéndose al reto...' ? '🤝' : '⚔️'}
+          {status === 'waiting_for_friend' ? '🔒' : status === 'JOINING_CHALLENGE' ? '🤝' : '⚔️'}
         </div>
 
-        {status === 'Uniéndose al reto...' && (
+        {status === 'JOINING_CHALLENGE' && (
           <div style={{ marginBottom: '24px', fontSize: '10px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-            Esperando al rival...
+            {t.arena.waitingForRival}
           </div>
         )}
 
@@ -432,7 +432,7 @@ export default function Arena({ onBack, challengeRoomCode }) {
             </div>
             <div style={{ marginTop: '12px', fontSize: '10px', color: '#3a4455', letterSpacing: '0.06em' }}>{t.arena.waitingFriend}</div>
           </div>
-        ) : status !== 'Uniéndose al reto...' ? (
+        ) : status !== 'JOINING_CHALLENGE' ? (
           <>
             <div style={{ fontSize: '10px', color: '#3a4455', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '32px' }}>
               {t.arena.playingAs} <span style={{ color: '#22d3a5' }}>{name}</span>
@@ -482,7 +482,7 @@ export default function Arena({ onBack, challengeRoomCode }) {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-            <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase' }}>round {round}/{total}</div>
+            <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{t.game.round.toLowerCase()} {round}/{total}</div>
             {phase === 'choose' && (
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: timeLeft <= 5 ? '#f05454' : '#f5c842' }}>
                 {timeLeft}s

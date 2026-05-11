@@ -226,7 +226,7 @@ export default function Historical({ onBack }) {
               {result.win ? t.historical.correct : t.historical.wrong}
             </div>
             <div style={{ fontSize: '11px', color: '#6b7a8d', textAlign: 'center', marginBottom: '16px' }}>
-              price {result.direction === 'up' ? '▲ went up' : result.direction === 'down' ? '▼ went down' : '— stayed flat'} · {result.pctMove > 0 ? '+' : ''}{result.pctMove.toFixed(2)}%
+              {result.direction === 'up' ? t.historical.priceUp : result.direction === 'down' ? t.historical.priceDown : t.historical.priceFlat} · {result.pctMove > 0 ? '+' : ''}{result.pctMove.toFixed(2)}%
             </div>
             <div style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px', padding: '14px', marginBottom: '14px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
@@ -239,7 +239,7 @@ export default function Historical({ onBack }) {
             <div style={{ display: 'flex', gap: '8px' }}>
               <button onClick={shareResult}
                 style={{ flex: 1, padding: '12px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-                {copied ? t.historical.copied ?? '✓ copied!' : t.historical.share}
+                {copied ? t.historical.copied : t.historical.share}
               </button>
               <button onClick={() => { setPhase('select'); setResult(null); setCandles(null); setFuture(null); }}
                 style={{ flex: 1, padding: '12px', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '6px', color: '#8899b0', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>

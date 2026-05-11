@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useLang } from './LangContext.jsx';
 
 if (!document.getElementById('challenge-notif-css')) {
   const el = document.createElement('style');
@@ -14,6 +15,7 @@ if (!document.getElementById('challenge-notif-css')) {
 }
 
 export default function ChallengeNotification({ challenge, onAccept, onReject }) {
+  const { t } = useLang();
   const [timeLeft, setTimeLeft] = useState(30);
 
   useEffect(() => {
@@ -52,7 +54,7 @@ export default function ChallengeNotification({ challenge, onAccept, onReject })
             @{challenge.challengerUsername}
           </div>
           <div style={{ fontSize: '10px', color: '#4a5568', fontFamily: "'Space Mono', monospace", marginTop: '2px' }}>
-            te reta en Arena
+            {t.challenge.challenges}
           </div>
         </div>
         <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: timeLeft <= 10 ? '#f05454' : '#f5c842', minWidth: '34px', textAlign: 'right' }}>
@@ -71,7 +73,7 @@ export default function ChallengeNotification({ challenge, onAccept, onReject })
           onMouseEnter={e => e.currentTarget.style.background = 'rgba(34,211,165,0.2)'}
           onMouseLeave={e => e.currentTarget.style.background = 'rgba(34,211,165,0.1)'}
         >
-          ✓ Aceptar
+          {t.challenge.accept}
         </button>
         <button
           onClick={onReject}
@@ -79,7 +81,7 @@ export default function ChallengeNotification({ challenge, onAccept, onReject })
           onMouseEnter={e => e.currentTarget.style.background = 'rgba(240,84,84,0.15)'}
           onMouseLeave={e => e.currentTarget.style.background = 'rgba(240,84,84,0.08)'}
         >
-          ✗ Rechazar
+          {t.challenge.reject}
         </button>
       </div>
     </div>,

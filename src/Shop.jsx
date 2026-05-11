@@ -322,7 +322,7 @@ export default function Shop({ onBack }) {
   async function handleBuy(itemId) {
     const token = localStorage.getItem('tradara_token');
     if (!token) {
-      alert(lang === 'es' ? 'Inicia sesión para comprar' : lang === 'de' ? 'Anmelden zum Kaufen' : 'Sign in to purchase');
+      alert(t.shop.signIn);
       return;
     }
     setLoading(itemId);
@@ -359,7 +359,7 @@ export default function Shop({ onBack }) {
             style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em' }}
             onMouseEnter={e => e.target.style.color = '#e2e8f0'}
             onMouseLeave={e => e.target.style.color = '#3a4455'}
-          >← {lang === 'es' ? 'volver' : lang === 'de' ? 'zurück' : 'back'}</button>
+          >{t.shop.back}</button>
           <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: '#f0f0f0', letterSpacing: '0.06em' }}>
             🛍️ {t.home.shop}
           </div>
@@ -420,9 +420,7 @@ export default function Shop({ onBack }) {
                     fontWeight: 700, letterSpacing: '0.06em', cursor: 'pointer',
                     transition: 'all 0.15s',
                   }}>
-                    {equipped
-                      ? (lang === 'es' ? '✓ Equipado' : lang === 'de' ? '✓ Ausgerüstet' : '✓ Equipped')
-                      : (lang === 'es' ? 'Equipar' : lang === 'de' ? 'Ausrüsten' : 'Equip')}
+                    {equipped ? t.shop.equipped : t.shop.equip}
                   </button>
                 ) : (
                   <button onClick={() => handleBuy(item.id)} disabled={loading === item.id} style={{

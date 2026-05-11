@@ -1,32 +1,5 @@
 import { useState } from 'react';
-
-const STEPS = [
-  {
-    icon: '📈',
-    title: 'Bienvenido a Tradara',
-    body: 'Te mostramos un gráfico real de un activo financiero. Tu misión: adivinar qué pasa después.',
-    visual: null,
-  },
-  {
-    icon: null,
-    title: 'Lee las velas',
-    body: 'Cada vela representa un período de tiempo. Verde = el precio subió. Roja = bajó. Cuanto más larga, más movimiento.',
-    visual: 'candles',
-  },
-  {
-    icon: null,
-    title: 'Elige tu posición',
-    body: 'Long si crees que sube. Short si crees que baja. No Trade si crees que se queda flat. Cada acierto suma puntos.',
-    visual: 'buttons',
-  },
-  {
-    icon: '🎯',
-    title: '¡Listo para empezar!',
-    body: '25 rondas. Activos reales. ¿Cuántos aciertas?',
-    visual: null,
-    final: true,
-  },
-];
+import { useLang } from './LangContext.jsx';
 
 function CandlesSVG() {
   const candles = [
@@ -50,12 +23,13 @@ function CandlesSVG() {
 }
 
 function ButtonPreview() {
+  const { t } = useLang();
   return (
     <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
       {[
-        { label: 'Long',     sub: 'sube',  color: '#22d3a5', bg: 'rgba(34,211,165,0.08)', icon: '▲' },
-        { label: 'No Trade', sub: 'flat',  color: '#f5c842', bg: 'rgba(245,200,66,0.08)',  icon: '—' },
-        { label: 'Short',    sub: 'baja',  color: '#f05454', bg: 'rgba(240,84,84,0.08)',   icon: '▼' },
+        { label: 'Long',     sub: t.tutorial.longSub,     color: '#22d3a5', bg: 'rgba(34,211,165,0.08)', icon: '▲' },
+        { label: 'No Trade', sub: t.tutorial.noTradeSub,  color: '#f5c842', bg: 'rgba(245,200,66,0.08)',  icon: '—' },
+        { label: 'Short',    sub: t.tutorial.shortSub,    color: '#f05454', bg: 'rgba(240,84,84,0.08)',   icon: '▼' },
       ].map(b => (
         <div key={b.label} style={{ flex: 1, padding: '10px 6px', background: b.bg, border: `1px solid ${b.color}`, borderRadius: '8px', textAlign: 'center', opacity: 0.9 }}>
           <div style={{ fontSize: '14px', color: b.color, marginBottom: '3px' }}>{b.icon}</div>
@@ -68,7 +42,16 @@ function ButtonPreview() {
 }
 
 export default function Tutorial({ onDone }) {
+  const { t } = useLang();
   const [step, setStep] = useState(0);
+
+  const STEPS = [
+    { icon: '📈', title: t.tutorial.step1title, body: t.tutorial.step1body, visual: null },
+    { icon: null,  title: t.tutorial.step2title, body: t.tutorial.step2body, visual: 'candles' },
+    { icon: null,  title: t.tutorial.step3title, body: t.tutorial.step3body, visual: 'buttons' },
+    { icon: '🎯',  title: t.tutorial.step4title, body: t.tutorial.step4body, visual: null, final: true },
+  ];
+
   const current = STEPS[step];
 
   function dismiss() {
@@ -101,7 +84,7 @@ export default function Tutorial({ onDone }) {
         {!current.final && (
           <button onClick={dismiss}
             style={{ position: 'absolute', top: '16px', right: '16px', background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer', letterSpacing: '0.04em' }}>
-            Saltar
+            {t.tutorial.skip}
           </button>
         )}
 
@@ -136,12 +119,12 @@ export default function Tutorial({ onDone }) {
           {step > 0 && (
             <button onClick={prev}
               style={{ flex: 1, padding: '12px', background: 'transparent', border: '1px solid #2a3345', borderRadius: '8px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em' }}>
-              ← Anterior
+              {t.tutorial.prev}
             </button>
           )}
           <button onClick={next}
             style={{ flex: 1, padding: '12px', background: current.final ? 'rgba(34,211,165,0.12)' : 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '8px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em' }}>
-            {current.final ? 'Empezar →' : 'Siguiente →'}
+            {current.final ? t.tutorial.start : t.tutorial.next}
           </button>
         </div>
       </div>
