@@ -56,6 +56,15 @@ function getMarketStatus(type, t) {
   return { open, label: open ? t.portfolio.marketOpen : t.portfolio.marketClosed };
 }
 
+function getWeekStart() {
+  const now  = new Date();
+  const day  = now.getUTCDay(); // 0=Sun
+  const diff = (day === 0 ? -6 : 1 - day);
+  const mon  = new Date(now);
+  mon.setUTCDate(now.getUTCDate() + diff);
+  return `${mon.getUTCDate().toString().padStart(2, '0')}/${(mon.getUTCMonth() + 1).toString().padStart(2, '0')}`;
+}
+
 export default function Portfolio({ onBack }) {
   const { user } = useAuth();
   const { t } = useLang();
@@ -74,6 +83,15 @@ export default function Portfolio({ onBack }) {
   const [loadingCandles, setLoadingCandles] = useState(false);
   const [portfolioHistory, setPortfolioHistory] = useState([]);
   const [leaderboard, setLeaderboard]       = useState([]);
+  const [weeklyLeaderboard, setWeeklyLeaderboard] = useState([]);
+  const [weeklyWeekId, setWeeklyWeekId]     = useState('');
+  const [lbTab, setLbTab]                   = useState('global');
+  const [activeDuel, setActiveDuel]         = useState(null);
+  const [pendingDuels, setPendingDuels]     = useState([]);
+  const [duelFriends, setDuelFriends]       = useState([]);
+  const [showFriendPicker, setShowFriendPicker] = useState(false);
+  const [duelLoading, setDuelLoading]       = useState(false);
+  const [duelMsg, setDuelMsg]               = useState('');
   const [showWelcome, setShowWelcome]       = useState(() => !localStorage.getItem('tradara_portfolio_welcomed'));
   const chartRef = useRef(null);
 
@@ -100,10 +118,17 @@ export default function Portfolio({ onBack }) {
         const p = pricesData.find(p => p.symbol === pos.symbol);
         return s + (p?.price || pos.avgPrice) * pos.qty;
       }, 0);
+
       fetch(`${SERVER}/portfolio/snapshot`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ totalValue: tv }),
+      }).catch(() => {});
+
+      fetch(`${SERVER}/portfolio/weekly/start`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ value: tv }),
       }).catch(() => {});
 
       fetch(`${SERVER}/portfolio/history`, {
@@ -117,10 +142,84 @@ export default function Portfolio({ onBack }) {
         .then(data => { if (Array.isArray(data)) setLeaderboard(data); })
         .catch(() => {});
 
+      fetch(`${SERVER}/portfolio/weekly/leaderboard`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }).then(r => r.json()).then(data => {
+        if (data.leaderboard) {
+          setWeeklyLeaderboard(data.leaderboard);
+          setWeeklyWeekId(data.weekId || '');
+        }
+      }).catch(() => {});
+
+      fetch(`${SERVER}/portfolio/duel/active`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }).then(r => r.json()).then(data => {
+        setActiveDuel(data.id ? data : null);
+      }).catch(() => {});
+
+      fetch(`${SERVER}/portfolio/duel/pending`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }).then(r => r.json()).then(data => {
+        if (Array.isArray(data)) setPendingDuels(data);
+      }).catch(() => {});
+
     } catch {
       setScreen('error');
     }
   }, [token]);
+
+  async function loadDuelFriends() {
+    try {
+      const res  = await fetch(`${SERVER}/friends/list`, { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      if (Array.isArray(data)) setDuelFriends(data);
+    } catch {}
+  }
+
+  async function challengeFriendDuel(friendUsername) {
+    setDuelLoading(true);
+    setDuelMsg('');
+    try {
+      const res  = await fetch(`${SERVER}/portfolio/duel/challenge`, {
+        method:  'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ username: friendUsername }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setDuelMsg('Reto enviado ✓');
+        setShowFriendPicker(false);
+      } else {
+        setDuelMsg(data.error || 'Error al enviar el reto');
+      }
+    } catch {
+      setDuelMsg('Error de conexión');
+    }
+    setDuelLoading(false);
+    setTimeout(() => setDuelMsg(''), 3000);
+  }
+
+  async function acceptDuel(duelId) {
+    setDuelLoading(true);
+    try {
+      await fetch(`${SERVER}/portfolio/duel/accept/${duelId}`, {
+        method: 'POST', headers: { Authorization: `Bearer ${token}` },
+      });
+      await loadAll();
+    } catch {}
+    setDuelLoading(false);
+  }
+
+  async function rejectDuel(duelId) {
+    setDuelLoading(true);
+    try {
+      await fetch(`${SERVER}/portfolio/duel/reject/${duelId}`, {
+        method: 'POST', headers: { Authorization: `Bearer ${token}` },
+      });
+      setPendingDuels(prev => prev.filter(d => d.id !== duelId));
+    } catch {}
+    setDuelLoading(false);
+  }
 
   useEffect(() => {
     if (!user) { setScreen('login'); return; }
@@ -505,6 +604,7 @@ export default function Portfolio({ onBack }) {
           ['market',      t.portfolio.market],
           ['portfolio',   t.portfolio.positions],
           ['leaderboard', '🏆 Ranking'],
+          ['duel',        '⚔️ Duelo'],
           ['history',     t.portfolio.history],
         ].map(([id, label]) => (
           <button key={id} onClick={() => setTab(id)}
@@ -603,33 +703,178 @@ export default function Portfolio({ onBack }) {
       {/* ── Leaderboard ── */}
       {tab === 'leaderboard' && (
         <div style={{ padding: '16px 20px 40px', position: 'relative', zIndex: 2 }}>
-          {leaderboard.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-              <div style={{ fontSize: '32px', marginBottom: '12px' }}>🏆</div>
-              <div style={{ fontSize: '11px', color: '#4a5568', fontFamily: "'Space Mono', monospace" }}>{t.portfolio.noLeaderboard}</div>
+          {/* Global / Semanal subtabs */}
+          <div style={{ display: 'flex', gap: '6px', marginBottom: '16px' }}>
+            {[['global', 'Global'], ['weekly', 'Semanal']].map(([id, label]) => (
+              <button key={id} onClick={() => setLbTab(id)}
+                style={{ padding: '6px 16px', borderRadius: '20px', border: `1px solid ${lbTab === id ? '#22d3a5' : '#2a3345'}`, background: lbTab === id ? 'rgba(34,211,165,0.08)' : 'transparent', color: lbTab === id ? '#22d3a5' : '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, cursor: 'pointer' }}>
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {lbTab === 'weekly' && weeklyWeekId && (
+            <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.06em', marginBottom: '10px', textAlign: 'center' }}>
+              Semana del {getWeekStart()}
             </div>
-          ) : (
-            leaderboard.map((entry, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: '#0f141b', border: `1px solid ${i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#1e2530'}`, borderRadius: '8px', marginBottom: '8px' }}>
-                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#3a4455', width: '24px', flexShrink: 0 }}>
-                  {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
-                </div>
-                {entry.avatar ? (
-                  <img src={entry.avatar} style={{ width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0 }} />
-                ) : (
-                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#1e2530', flexShrink: 0 }} />
-                )}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0' }}>{entry.name}</div>
-                  <div style={{ fontSize: '9px', color: '#4a5568' }}>{formatCash(entry.totalValue)}</div>
-                </div>
-                <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                  <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: entry.returnPct >= 0 ? '#22d3a5' : '#f05454' }}>
-                    {entry.returnPct >= 0 ? '+' : ''}{entry.returnPct.toFixed(2)}%
+          )}
+
+          {lbTab === 'global' ? (
+            leaderboard.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+                <div style={{ fontSize: '32px', marginBottom: '12px' }}>🏆</div>
+                <div style={{ fontSize: '11px', color: '#4a5568', fontFamily: "'Space Mono', monospace" }}>{t.portfolio.noLeaderboard}</div>
+              </div>
+            ) : (
+              leaderboard.map((entry, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: '#0f141b', border: `1px solid ${i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#1e2530'}`, borderRadius: '8px', marginBottom: '8px' }}>
+                  <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#3a4455', width: '24px', flexShrink: 0 }}>
+                    {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
+                  </div>
+                  {entry.avatar ? (
+                    <img src={entry.avatar} style={{ width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0 }} />
+                  ) : (
+                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#1e2530', flexShrink: 0 }} />
+                  )}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0' }}>{entry.name}</div>
+                    <div style={{ fontSize: '9px', color: '#4a5568' }}>{formatCash(entry.totalValue)}</div>
+                  </div>
+                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: entry.returnPct >= 0 ? '#22d3a5' : '#f05454' }}>
+                      {entry.returnPct >= 0 ? '+' : ''}{entry.returnPct.toFixed(2)}%
+                    </div>
                   </div>
                 </div>
+              ))
+            )
+          ) : (
+            weeklyLeaderboard.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+                <div style={{ fontSize: '32px', marginBottom: '12px' }}>📅</div>
+                <div style={{ fontSize: '11px', color: '#4a5568', fontFamily: "'Space Mono', monospace" }}>No hay datos semanales aún</div>
               </div>
-            ))
+            ) : (
+              weeklyLeaderboard.map((entry, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: '#0f141b', border: `1px solid ${i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#1e2530'}`, borderRadius: '8px', marginBottom: '8px' }}>
+                  <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#3a4455', width: '24px', flexShrink: 0 }}>
+                    {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
+                  </div>
+                  {entry.avatar ? (
+                    <img src={entry.avatar} style={{ width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0 }} />
+                  ) : (
+                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#1e2530', flexShrink: 0 }} />
+                  )}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0' }}>{entry.name}</div>
+                    <div style={{ fontSize: '9px', color: '#4a5568' }}>{formatCash(entry.currentValue)}</div>
+                  </div>
+                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: entry.weeklyReturn >= 0 ? '#22d3a5' : '#f05454' }}>
+                      {entry.weeklyReturn >= 0 ? '+' : ''}{entry.weeklyReturn.toFixed(2)}%
+                    </div>
+                    <div style={{ fontSize: '8px', color: '#4a5568' }}>esta semana</div>
+                  </div>
+                </div>
+              ))
+            )
+          )}
+        </div>
+      )}
+
+      {/* ── Duelo ── */}
+      {tab === 'duel' && (
+        <div style={{ padding: '16px 20px 40px', position: 'relative', zIndex: 2 }}>
+
+          {/* Duel activo */}
+          {activeDuel && (
+            <div style={{ background: '#0f141b', border: '1px solid rgba(34,211,165,0.3)', borderRadius: '10px', padding: '16px', marginBottom: '16px' }}>
+              <div style={{ fontSize: '9px', color: '#22d3a5', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '12px' }}>Duelo activo · {activeDuel.daysLeft}d restantes</div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {[activeDuel.challenger, activeDuel.opponent].map((p, i) => (
+                  <div key={i} style={{ flex: 1, background: '#0a0c0f', border: `1px solid ${p.returnPct >= 0 ? 'rgba(34,211,165,0.2)' : 'rgba(240,84,84,0.2)'}`, borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '9px', color: '#4a5568', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.username || p.name}</div>
+                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: p.returnPct >= 0 ? '#22d3a5' : '#f05454' }}>
+                      {p.returnPct >= 0 ? '+' : ''}{p.returnPct.toFixed(2)}%
+                    </div>
+                    <div style={{ fontSize: '8px', color: '#4a5568', marginTop: '2px' }}>{formatCash(p.currentValue)}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', fontSize: '8px', color: '#3a4455' }}>
+                <span>Inicio: {activeDuel.startDate}</span>
+                <span>Fin: {activeDuel.endDate}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Retos pendientes */}
+          {pendingDuels.length > 0 && (
+            <div style={{ marginBottom: '16px' }}>
+              <div style={{ fontSize: '9px', color: '#f5c842', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px' }}>Retos recibidos</div>
+              {pendingDuels.map(d => (
+                <div key={d.id} style={{ background: '#0f141b', border: '1px solid rgba(245,200,66,0.2)', borderRadius: '8px', padding: '12px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0' }}>{d.challengerName}</div>
+                    <div style={{ fontSize: '9px', color: '#4a5568' }}>te reta a un duelo de 7 días</div>
+                  </div>
+                  <button onClick={() => acceptDuel(d.id)} disabled={duelLoading}
+                    style={{ padding: '7px 12px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, cursor: 'pointer', opacity: duelLoading ? 0.5 : 1 }}>
+                    Aceptar
+                  </button>
+                  <button onClick={() => rejectDuel(d.id)} disabled={duelLoading}
+                    style={{ padding: '7px 12px', background: 'transparent', border: '1px solid #2a3345', borderRadius: '6px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, cursor: 'pointer', opacity: duelLoading ? 0.5 : 1 }}>
+                    Rechazar
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Empty state / challenge button */}
+          {!activeDuel && (
+            <div style={{ textAlign: 'center', padding: '32px 0 16px' }}>
+              <div style={{ fontSize: '40px', marginBottom: '12px' }}>⚔️</div>
+              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#f0f0f0', marginBottom: '6px' }}>Portfolio Duel</div>
+              <div style={{ fontSize: '10px', color: '#4a5568', marginBottom: '24px', lineHeight: 1.6 }}>Reta a un amigo. El que más rentabilidad saque en 7 días gana.</div>
+              <button onClick={() => { setShowFriendPicker(true); loadDuelFriends(); }}
+                style={{ padding: '12px 24px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '8px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', cursor: 'pointer' }}>
+                Retar a un amigo
+              </button>
+            </div>
+          )}
+
+          {duelMsg && (
+            <div style={{ fontSize: '11px', color: duelMsg.includes('✓') ? '#22d3a5' : '#f05454', textAlign: 'center', marginTop: '12px' }}>{duelMsg}</div>
+          )}
+
+          {/* Friend picker */}
+          {showFriendPicker && (
+            <div style={{ marginTop: '16px', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px', padding: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <div style={{ fontSize: '11px', color: '#f0f0f0', fontFamily: "'Syne', sans-serif", fontWeight: 700 }}>Elige un amigo</div>
+                <button onClick={() => setShowFriendPicker(false)}
+                  style={{ background: 'transparent', border: 'none', color: '#4a5568', fontSize: '16px', cursor: 'pointer', padding: '0' }}>×</button>
+              </div>
+              {duelFriends.length === 0 ? (
+                <div style={{ fontSize: '10px', color: '#4a5568', textAlign: 'center', padding: '16px 0' }}>No tienes amigos añadidos aún</div>
+              ) : (
+                duelFriends.map(f => (
+                  <div key={f.username} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', borderRadius: '6px', marginBottom: '4px', background: '#0a0c0f' }}>
+                    {(f.customAvatar || f.avatar) ? (
+                      <img src={f.customAvatar || f.avatar} style={{ width: '28px', height: '28px', borderRadius: '50%' }} />
+                    ) : (
+                      <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#1e2530' }} />
+                    )}
+                    <div style={{ flex: 1, fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0' }}>{f.username || f.name}</div>
+                    <button onClick={() => challengeFriendDuel(f.username)} disabled={duelLoading}
+                      style={{ padding: '6px 12px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, cursor: 'pointer', opacity: duelLoading ? 0.5 : 1 }}>
+                      Retar
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
           )}
         </div>
       )}

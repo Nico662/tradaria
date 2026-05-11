@@ -119,6 +119,29 @@ const PortfolioHistorySchema = new mongoose.Schema({
 });
 PortfolioHistorySchema.index({ userId: 1, date: 1 }, { unique: true });
 const PortfolioHistory = mongoose.model('PortfolioHistory', PortfolioHistorySchema);
+
+const PortfolioWeeklySchema = new mongoose.Schema({
+  weekId:     { type: String, required: true },
+  userId:     { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  startValue: { type: Number, required: true },
+  createdAt:  { type: Date, default: Date.now },
+});
+PortfolioWeeklySchema.index({ weekId: 1, userId: 1 }, { unique: true });
+const PortfolioWeekly = mongoose.model('PortfolioWeekly', PortfolioWeeklySchema);
+
+const PortfolioDuelSchema = new mongoose.Schema({
+  challenger: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  opponent:   { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  status:     { type: String, enum: ['pending', 'active', 'finished'], default: 'pending' },
+  startDate:  { type: String, default: null },
+  endDate:    { type: String, default: null },
+  challengerStartValue: { type: Number, default: null },
+  opponentStartValue:   { type: Number, default: null },
+  winner:     { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  createdAt:  { type: Date, default: Date.now },
+});
+const PortfolioDuel = mongoose.model('PortfolioDuel', PortfolioDuelSchema);
+
 const Portfolio = mongoose.model('Portfolio', PortfolioSchema);
 const User       = mongoose.model('User', UserSchema);
 const Tournament = mongoose.model('Tournament', TournamentSchema);
@@ -1177,6 +1200,21 @@ cron.schedule('0 20 * * 1-5', async () => {
   );
   await Promise.all(promises);
  });
+
+cron.schedule('0 0 * * *', async () => {
+  const today = new Date().toISOString().split('T')[0];
+  const expiredDuels = await PortfolioDuel.find({ status: 'active', endDate: { $lte: today } });
+  for (const duel of expiredDuels) {
+    const cVal = await getPortfolioValue(duel.challenger);
+    const oVal = await getPortfolioValue(duel.opponent);
+    const cReturn = (cVal - duel.challengerStartValue) / duel.challengerStartValue;
+    const oReturn = (oVal - duel.opponentStartValue)   / duel.opponentStartValue;
+    duel.status = 'finished';
+    duel.winner = cReturn >= oReturn ? duel.challenger : duel.opponent;
+    await duel.save();
+  }
+});
+
  app.get('/stats/dashboard', async (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
   try {
@@ -1456,6 +1494,151 @@ app.get('/portfolio/leaderboard', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+// ── Portfolio weekly leaderboard ──────────────────────────────────
+async function getPortfolioValue(userId) {
+  try {
+    const portfolio = await Portfolio.findOne({ userId });
+    if (!portfolio) return 50000;
+    const priceMap = {};
+    await Promise.all(PORTFOLIO_ASSETS.map(async a => {
+      try {
+        const c = await redis.get(`price_v2:${a.symbol}`);
+        if (c) { const p = typeof c === 'string' ? JSON.parse(c) : c; priceMap[p.symbol] = p.price; }
+      } catch {}
+    }));
+    const invested = portfolio.positions.reduce((s, pos) => s + (priceMap[pos.symbol] || pos.avgPrice) * pos.qty, 0);
+    return portfolio.cash + invested;
+  } catch { return 50000; }
+}
+
+app.post('/portfolio/weekly/start', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const { totalValue } = req.body;
+    const weekId = getWeekId();
+    await PortfolioWeekly.findOneAndUpdate(
+      { weekId, userId: decoded.id },
+      { $setOnInsert: { weekId, userId: decoded.id, startValue: totalValue } },
+      { upsert: true }
+    );
+    res.json({ ok: true, weekId });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/portfolio/weekly/leaderboard', async (req, res) => {
+  try {
+    const weekId = getWeekId();
+    const records = await PortfolioWeekly.find({ weekId }).populate('userId', 'name avatar customAvatar');
+    const portfolios = await Portfolio.find({ userId: { $in: records.map(r => r.userId._id) } });
+    const priceMap = {};
+    const prices = await Promise.all(PORTFOLIO_ASSETS.map(a => getPrice(a).catch(() => null)));
+    prices.filter(Boolean).forEach(p => { priceMap[p.symbol] = p.price; });
+
+    const leaderboard = records.map(record => {
+      const p = portfolios.find(p => p.userId.equals(record.userId._id));
+      if (!p) return null;
+      const invested   = p.positions.reduce((s, pos) => s + (priceMap[pos.symbol] || pos.avgPrice) * pos.qty, 0);
+      const totalValue = p.cash + invested;
+      return {
+        name:         record.userId.name,
+        avatar:       record.userId.avatar,
+        customAvatar: record.userId.customAvatar || null,
+        totalValue,
+        weeklyReturn: ((totalValue - record.startValue) / record.startValue) * 100,
+      };
+    }).filter(Boolean).sort((a, b) => b.weeklyReturn - a.weeklyReturn).slice(0, 20);
+
+    res.json({ weekId, leaderboard });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── Portfolio duels ───────────────────────────────────────────────
+app.post('/portfolio/duel/challenge', async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'No token' });
+  try {
+    const { username } = req.body;
+    const target = await User.findOne({ username: username.toLowerCase() });
+    if (!target) return res.status(404).json({ error: 'User not found' });
+    const friendship = await Friendship.findOne({
+      $or: [{ requester: decoded.id, recipient: target._id }, { requester: target._id, recipient: decoded.id }],
+      status: 'accepted',
+    });
+    if (!friendship) return res.status(403).json({ error: 'Not friends' });
+    const existing = await PortfolioDuel.findOne({
+      $or: [{ challenger: decoded.id, opponent: target._id }, { challenger: target._id, opponent: decoded.id }],
+      status: { $in: ['pending', 'active'] },
+    });
+    if (existing) return res.status(400).json({ error: 'Already have an active duel' });
+    const duel = await PortfolioDuel.create({ challenger: decoded.id, opponent: target._id });
+    res.json({ ok: true, duelId: duel._id });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/portfolio/duel/accept/:duelId', async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'No token' });
+  try {
+    const duel = await PortfolioDuel.findOne({ _id: req.params.duelId, opponent: decoded.id, status: 'pending' });
+    if (!duel) return res.status(404).json({ error: 'Duel not found' });
+    const [cVal, oVal] = await Promise.all([getPortfolioValue(duel.challenger), getPortfolioValue(duel.opponent)]);
+    const startDate = new Date().toISOString().split('T')[0];
+    const endD = new Date(); endD.setDate(endD.getDate() + 7);
+    const endDate = endD.toISOString().split('T')[0];
+    duel.status = 'active'; duel.startDate = startDate; duel.endDate = endDate;
+    duel.challengerStartValue = cVal; duel.opponentStartValue = oVal;
+    await duel.save();
+    res.json({ ok: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/portfolio/duel/reject/:duelId', async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'No token' });
+  try {
+    await PortfolioDuel.findOneAndDelete({ _id: req.params.duelId, opponent: decoded.id, status: 'pending' });
+    res.json({ ok: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/portfolio/duel/pending', async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'No token' });
+  try {
+    const duels = await PortfolioDuel.find({ opponent: decoded.id, status: 'pending' })
+      .populate('challenger', 'name avatar customAvatar username');
+    res.json(duels.map(d => ({
+      id:         d._id,
+      challenger: { name: d.challenger.name, username: d.challenger.username, avatar: d.challenger.avatar, customAvatar: d.challenger.customAvatar || null },
+      createdAt:  d.createdAt,
+    })));
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/portfolio/duel/active', async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'No token' });
+  try {
+    const duel = await PortfolioDuel.findOne({
+      $or: [{ challenger: decoded.id }, { opponent: decoded.id }],
+      status: 'active',
+    }).populate('challenger', 'name avatar customAvatar username')
+      .populate('opponent',   'name avatar customAvatar username');
+    if (!duel) return res.json(null);
+    const [cVal, oVal] = await Promise.all([getPortfolioValue(duel.challenger._id), getPortfolioValue(duel.opponent._id)]);
+    const endDate  = new Date(duel.endDate);
+    const daysLeft = Math.max(0, Math.ceil((endDate - new Date()) / 86400000));
+    res.json({
+      id: duel._id,
+      challenger: { name: duel.challenger.name, username: duel.challenger.username, avatar: duel.challenger.avatar, customAvatar: duel.challenger.customAvatar, returnPct: ((cVal - duel.challengerStartValue) / duel.challengerStartValue) * 100, currentValue: cVal },
+      opponent:   { name: duel.opponent.name,   username: duel.opponent.username,   avatar: duel.opponent.avatar,   customAvatar: duel.opponent.customAvatar,   returnPct: ((oVal - duel.opponentStartValue)   / duel.opponentStartValue)   * 100, currentValue: oVal },
+      startDate: duel.startDate, endDate: duel.endDate, daysLeft,
+    });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // ── Friends routes ────────────────────────────────────────────────
 function verifyToken(req) {
   const auth = req.headers.authorization;
