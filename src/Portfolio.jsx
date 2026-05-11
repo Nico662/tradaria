@@ -6,6 +6,8 @@ import { ASSET_INFO } from './assetInfo.js';
 
 import { SERVER } from './config.js';
 
+const AVATAR_EMOJIS = { avatar_bull: '🐂', avatar_bear: '🐻', avatar_whale: '🐋', avatar_robot: '🤖' };
+
 const TYPE_COLORS = {
   stock:     '#378ADD',
   crypto:    '#f5c842',
@@ -731,14 +733,15 @@ export default function Portfolio({ onBack }) {
                   <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#3a4455', width: '24px', flexShrink: 0 }}>
                     {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
                   </div>
-                  {entry.avatar ? (
-                    <img src={entry.avatar} style={{ width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0 }} />
+                  {(entry.customAvatar || entry.avatar) ? (
+                    <img src={entry.customAvatar || entry.avatar} style={{ width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0, objectFit: 'cover' }} />
                   ) : (
                     <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#1e2530', flexShrink: 0 }} />
                   )}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0' }}>
-                      {entry.username ? `@${entry.username}` : entry.name}
+                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.username ? `@${entry.username}` : entry.name}</span>
+                      {entry.cosmeticAvatar && <span style={{ fontSize: '14px', flexShrink: 0 }}>{AVATAR_EMOJIS[entry.cosmeticAvatar] || entry.cosmeticAvatar}</span>}
                     </div>
                     <div style={{ fontSize: '9px', color: '#4a5568' }}>{formatCash(entry.totalValue)}</div>
                   </div>
@@ -762,14 +765,15 @@ export default function Portfolio({ onBack }) {
                   <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#3a4455', width: '24px', flexShrink: 0 }}>
                     {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
                   </div>
-                  {entry.avatar ? (
-                    <img src={entry.avatar} style={{ width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0 }} />
+                  {(entry.customAvatar || entry.avatar) ? (
+                    <img src={entry.customAvatar || entry.avatar} style={{ width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0, objectFit: 'cover' }} />
                   ) : (
                     <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#1e2530', flexShrink: 0 }} />
                   )}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0' }}>
-                      {entry.username ? `@${entry.username}` : entry.name}
+                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.username ? `@${entry.username}` : entry.name}</span>
+                      {entry.cosmeticAvatar && <span style={{ fontSize: '14px', flexShrink: 0 }}>{AVATAR_EMOJIS[entry.cosmeticAvatar] || entry.cosmeticAvatar}</span>}
                     </div>
                     <div style={{ fontSize: '9px', color: '#4a5568' }}>{formatCash(entry.totalValue ?? 0)}</div>
                   </div>

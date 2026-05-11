@@ -227,8 +227,8 @@ export default function Tournament({ onBack }) {
                 <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#3a4455', width: '24px' }}>
                   {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
                 </div>
-                {entry.avatar ? (
-                  <img src={entry.avatar} style={{ width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0 }} />
+                {(entry.customAvatar || entry.avatar) ? (
+                  <img src={entry.customAvatar || entry.avatar} style={{ width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0, objectFit: 'cover' }} />
                 ) : (
                   <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#1e2530', flexShrink: 0 }} />
                 )}

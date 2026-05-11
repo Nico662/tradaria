@@ -719,8 +719,15 @@ app.get('/tournament', async (req, res) => {
 app.get('/tournament/leaderboard', async (req, res) => {
   try {
     const weekId = getWeekId();
-    const scores = await Score.find({ weekId }).sort({ score: -1 }).limit(100);
-    res.json({ weekId, scores });
+    const scores = await Score.find({ weekId }).sort({ score: -1 }).limit(100)
+      .populate('userId', 'username name avatar customAvatar');
+    const result = scores.map(s => ({
+      ...s.toObject(),
+      name:         s.userId?.username ? `@${s.userId.username}` : (s.name || s.userId?.name),
+      avatar:       s.userId?.avatar || s.avatar,
+      customAvatar: s.userId?.customAvatar || null,
+    }));
+    res.json({ weekId, scores: result });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -1466,7 +1473,7 @@ app.get('/portfolio/debug/:symbol', async (req, res) => {
 app.get('/portfolio/leaderboard', async (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
   try {
-    const portfolios = await Portfolio.find({}).populate('userId', 'name avatar username');
+    const portfolios = await Portfolio.find({}).populate('userId', 'name avatar customAvatar username');
     const prices     = await Promise.all(PORTFOLIO_ASSETS.map(a => getPrice(a).catch(() => null)));
     const priceMap   = {};
     prices.filter(Boolean).forEach(p => { priceMap[p.symbol] = p.price; });
@@ -1479,12 +1486,13 @@ app.get('/portfolio/leaderboard', async (req, res) => {
       const totalValue = p.cash + invested;
       const returnPct  = ((totalValue - 50000) / 50000) * 100;
       return {
-        name:      p.userId?.username || p.userId?.name || 'Anonymous',
-        username:  p.userId?.username || null,
-        avatar:    p.userId?.avatar || null,
+        name:         p.userId?.username || p.userId?.name || 'Anonymous',
+        username:     p.userId?.username || null,
+        avatar:       p.userId?.avatar || null,
+        customAvatar: p.userId?.customAvatar || null,
         totalValue,
         returnPct,
-        cash:      p.cash,
+        cash:         p.cash,
       };
     })
     .filter(p => p.totalValue !== 50000) // solo los que han operado
