@@ -1381,12 +1381,30 @@ app.post('/portfolio/sell', async (req, res) => {
     if (!position || position.qty < qty) return res.status(400).json({ error: 'Insufficient position' });
     portfolio.cash += total;
     position.qty   -= qty;
-    if (position.qty === 0) {
+    if (position.qty <= 0) {
       portfolio.positions = portfolio.positions.filter(p => p.symbol !== symbol);
     }
     portfolio.transactions.push({ symbol, name: asset.name, type: asset.type, action: 'sell', qty, price, total });
+    portfolio.positions = portfolio.positions.filter(p => p.qty > 0);
     await portfolio.save();
     res.json({ ok: true, cash: portfolio.cash });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+app.get('/portfolio/cleanup', async (req, res) => {
+  try {
+    const portfolios = await Portfolio.find({});
+    let cleaned = 0;
+    for (const p of portfolios) {
+      const before = p.positions.length;
+      p.positions = p.positions.filter(pos => pos.qty > 0);
+      if (p.positions.length !== before) {
+        await p.save();
+        cleaned++;
+      }
+    }
+    res.json({ ok: true, cleaned });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
