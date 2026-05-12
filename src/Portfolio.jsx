@@ -255,7 +255,7 @@ export default function Portfolio({ onBack }) {
     setError('');
     try {
       const finalQty = inputMode === 'amount'
-        ? parseFloat(qty) / (selectedPrice?.price || 1)
+        ? Math.round((parseFloat(qty) / (selectedPrice?.price || 1)) * 10000) / 10000
         : parseFloat(qty);
       const res  = await fetch(`${SERVER}/portfolio/${action}`, {
         method:  'POST',
@@ -470,7 +470,7 @@ export default function Portfolio({ onBack }) {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '6px' }}>{t.portfolio.yourPosition}</div>
-                <div style={{ fontSize: '16px', color: '#f0f0f0', fontFamily: "'Syne', sans-serif", fontWeight: 800 }}>{selectedPos.qty} {t.portfolio.units}</div>
+                <div style={{ fontSize: '16px', color: '#f0f0f0', fontFamily: "'Syne', sans-serif", fontWeight: 800 }}>{parseFloat(selectedPos.qty.toFixed(4))} {t.portfolio.units}</div>
                 <div style={{ fontSize: '10px', color: '#4a5568', marginTop: '4px' }}>{t.portfolio.avgPrice} {formatPrice(selectedPos.avgPrice, selected.type)}</div>
               </div>
               <div style={{ textAlign: 'right' }}>
@@ -512,8 +512,14 @@ export default function Portfolio({ onBack }) {
                 <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#6b7a8d', fontFamily: "'Space Mono', monospace", fontSize: '12px', pointerEvents: 'none' }}>$</span>
               )}
               <input
-                type="number" value={qty} onChange={e => setQty(e.target.value)}
-                placeholder="0.00" min="0" step="0.01"
+                type="number" value={qty} onChange={e => {
+                  if (inputMode === 'units') {
+                    const parts = e.target.value.split('.');
+                    if (parts.length > 1 && parts[1].length > 4) return;
+                  }
+                  setQty(e.target.value);
+                }}
+                placeholder="0.00" min="0" step={inputMode === 'units' ? '0.0001' : '0.01'}
                 style={{ width: '100%', background: '#0a0c0f', border: '1px solid #2a3345', borderRadius: '6px', padding: inputMode === 'amount' ? '10px 12px 10px 24px' : '10px 12px', color: '#e2e8f0', fontFamily: "'Space Mono', monospace", fontSize: '12px', outline: 'none', position: 'relative', zIndex: 100, touchAction: 'auto', pointerEvents: 'all', boxSizing: 'border-box' }}
               />
             </div>
@@ -724,7 +730,7 @@ export default function Portfolio({ onBack }) {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <div>
                     <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: '#f0f0f0' }}>{pos.name}</div>
-                    <div style={{ fontSize: '9px', color: '#4a5568' }}>{pos.qty} {t.portfolio.units} · {t.portfolio.avgPrice} {formatPrice(pos.avgPrice, pos.type)}</div>
+                    <div style={{ fontSize: '9px', color: '#4a5568' }}>{parseFloat(pos.qty.toFixed(4))} {t.portfolio.units} · {t.portfolio.avgPrice} {formatPrice(pos.avgPrice, pos.type)}</div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: '#f0f0f0' }}>{formatCash(pos.value)}</div>
@@ -930,7 +936,7 @@ export default function Portfolio({ onBack }) {
                 <div style={{ flex: 1 }}>
                   <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '11px', color: '#f0f0f0' }}>{tx.name}</div>
                   <div style={{ fontSize: '9px', color: '#4a5568' }}>
-                    {tx.qty} × {formatPrice(tx.price, tx.type)} · {new Date(tx.date).toLocaleDateString()}
+                    {parseFloat(tx.qty.toFixed(4))} × {formatPrice(tx.price, tx.type)} · {new Date(tx.date).toLocaleDateString()}
                   </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
