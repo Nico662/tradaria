@@ -1376,15 +1376,11 @@ app.post('/portfolio/sell', async (req, res) => {
     const position  = portfolio.positions.find(p => p.symbol === symbol);
     if (!position || position.qty < qty) return res.status(400).json({ error: 'Insufficient position' });
     portfolio.cash += total;
-    position.qty   -= qty;
-    console.log('Position qty after sell:', position.qty);
-    console.log('Positions before filter:', portfolio.positions.map(p => ({ symbol: p.symbol, qty: p.qty })));
+    position.qty = Math.round((position.qty - qty) * 10000) / 10000;
     if (position.qty <= 0) {
       portfolio.positions = portfolio.positions.filter(p => p.symbol !== symbol);
     }
     portfolio.transactions.push({ symbol, name: asset.name, type: asset.type, action: 'sell', qty, price, total });
-    portfolio.positions = portfolio.positions.filter(p => p.qty > 0);
-    console.log('Positions after filter:', portfolio.positions.map(p => ({ symbol: p.symbol, qty: p.qty })));
     await portfolio.save();
     res.json({ ok: true, cash: portfolio.cash });
   } catch (err) {
