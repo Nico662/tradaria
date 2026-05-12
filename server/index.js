@@ -217,7 +217,6 @@ const PORTFOLIO_ASSETS = [
   { symbol: 'AMZN',  name: 'Amazon',             type: 'stock', source: 'finnhub' },
   { symbol: 'META',  name: 'Meta',               type: 'stock', source: 'finnhub' },
   { symbol: 'TSLA',  name: 'Tesla',              type: 'stock', source: 'finnhub' },
-  { symbol: 'BRK.B', name: 'Berkshire',          type: 'stock', source: 'finnhub' },
   { symbol: 'JPM',   name: 'JPMorgan',           type: 'stock', source: 'finnhub' },
   { symbol: 'UNH',   name: 'UnitedHealth',       type: 'stock', source: 'finnhub' },
   { symbol: 'BAC',   name: 'Bank of America',    type: 'stock', source: 'finnhub' },
@@ -233,8 +232,6 @@ const PORTFOLIO_ASSETS = [
   
   // ── Acciones europeas ─────────────────────────────────────────────
   { symbol: 'ASML',  name: 'ASML',               type: 'stock', source: 'finnhub' },
-  { symbol: 'LVMUY', name: 'LVMH',               type: 'stock', source: 'finnhub' },
-  { symbol: 'NSRGY', name: 'Nestlé',             type: 'stock', source: 'finnhub' },
   { symbol: 'IDEXY', name: 'Inditex',            type: 'stock', source: 'finnhub' },
   { symbol: 'ALIZF', name: 'Allianz',            type: 'stock', source: 'finnhub' },
   { symbol: 'BAYZF', name: 'Bayer',              type: 'stock', source: 'finnhub' },
@@ -255,7 +252,6 @@ const PORTFOLIO_ASSETS = [
   { symbol: 'XLV',   name: 'Health Sector',      type: 'index', source: 'finnhub' },
   // ── Bonos ─────────────────────────────────────────────────────────
   { symbol: 'TLT',   name: 'US Bonds 20Y',       type: 'index', source: 'finnhub' },
-  { symbol: 'AGG',   name: 'US Bonds Aggregate', type: 'index', source: 'finnhub' },
   { symbol: 'HYG',   name: 'High Yield Bonds',   type: 'index', source: 'finnhub' },
   // ── Cripto ────────────────────────────────────────────────────────
   { symbol: 'BTCUSDT',  name: 'Bitcoin',         type: 'crypto', source: 'binance' },
@@ -1381,11 +1377,14 @@ app.post('/portfolio/sell', async (req, res) => {
     if (!position || position.qty < qty) return res.status(400).json({ error: 'Insufficient position' });
     portfolio.cash += total;
     position.qty   -= qty;
+    console.log('Position qty after sell:', position.qty);
+    console.log('Positions before filter:', portfolio.positions.map(p => ({ symbol: p.symbol, qty: p.qty })));
     if (position.qty <= 0) {
       portfolio.positions = portfolio.positions.filter(p => p.symbol !== symbol);
     }
     portfolio.transactions.push({ symbol, name: asset.name, type: asset.type, action: 'sell', qty, price, total });
     portfolio.positions = portfolio.positions.filter(p => p.qty > 0);
+    console.log('Positions after filter:', portfolio.positions.map(p => ({ symbol: p.symbol, qty: p.qty })));
     await portfolio.save();
     res.json({ ok: true, cash: portfolio.cash });
   } catch (err) {
