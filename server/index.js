@@ -1393,26 +1393,6 @@ app.post('/portfolio/sell', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-app.get('/portfolio/cleanup', async (req, res) => {
-  if (!process.env.ADMIN_SECRET || req.query.secret !== process.env.ADMIN_SECRET) {
-    return res.status(403).json({ error: 'Forbidden' });
-  }
-  try {
-    const portfolios = await Portfolio.find({});
-    let cleaned = 0;
-    for (const p of portfolios) {
-      const before = p.positions.length;
-      p.positions = p.positions.filter(pos => pos.qty > 0);
-      if (p.positions.length !== before) {
-        await p.save();
-        cleaned++;
-      }
-    }
-    res.json({ ok: true, cleaned });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
 app.get('/portfolio/clear-crypto-cache', async (req, res) => {
   await redis.del('price:BTCUSDT');
   await redis.del('price:ETHUSDT');
