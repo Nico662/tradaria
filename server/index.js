@@ -15,7 +15,8 @@ const rateLimit      = require('express-rate-limit');
 const { Redis }      = require('@upstash/redis');
 
 // ── Config ────────────────────────────────────────────────────────
-const JWT_SECRET = process.env.JWT_SECRET || 'tradara_secret_2024';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) { console.error('FATAL: JWT_SECRET env var is not set'); process.exit(1); }
 const GOOGLE_CLIENT_ID     = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const MONGODB_URI          = process.env.MONGODB_URI;
@@ -336,10 +337,15 @@ const generalLimiter = rateLimit({
 });
 const dailyLimiter   = rateLimit({ windowMs: 60 * 1000, max: 10,  message: { error: 'Too many requests for daily challenge.' } });
 const candlesLimiter = rateLimit({ windowMs: 60 * 1000, max: 30,  message: { error: 'Too many candle requests.' } });
+const tradeLimiter   = rateLimit({ windowMs: 60 * 1000, max: 20,  message: { error: 'Too many trade requests.' } });
+const authLimiter    = rateLimit({ windowMs: 60 * 1000, max: 10,  message: { error: 'Too many auth requests.' } });
 
 app.use(generalLimiter);
-app.use('/daily',   dailyLimiter);
-app.use('/candles', candlesLimiter);
+app.use('/daily',              dailyLimiter);
+app.use('/candles',            candlesLimiter);
+app.use('/portfolio/buy',      tradeLimiter);
+app.use('/portfolio/sell',     tradeLimiter);
+app.use('/auth/google',        authLimiter);
 
 // ── Passport ──────────────────────────────────────────────────────
 passport.use(new GoogleStrategy({
@@ -1388,6 +1394,9 @@ app.post('/portfolio/sell', async (req, res) => {
   }
 });
 app.get('/portfolio/cleanup', async (req, res) => {
+  if (!process.env.ADMIN_SECRET || req.query.secret !== process.env.ADMIN_SECRET) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
   try {
     const portfolios = await Portfolio.find({});
     let cleaned = 0;
