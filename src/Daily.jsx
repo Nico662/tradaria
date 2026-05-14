@@ -4,7 +4,7 @@ import Chart from './Chart.jsx';
 import { SERVER } from './config.js';
 import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
-import { addXP } from './levels.js';
+import { addXP, getXP } from './levels.js';
 import { useLang } from './LangContext.jsx';
 import { useAuth } from './AuthContext';
 import EffectOverlay from './EffectOverlay.jsx';
@@ -20,7 +20,7 @@ function ShareButton({ onShare, t }) {
 
 export default function Daily({ onBack }) {
   const { t, lang, setLang } = useLang();
-  const { activeCosmetics, user } = useAuth();
+  const { activeCosmetics, user, checkLevelUp } = useAuth();
   const [activeEffect, setActiveEffect] = useState(false);
   function triggerEffect() { setActiveEffect(true); setTimeout(() => setActiveEffect(false), 1500); }
   const [phase, setPhase]           = useState('loading');
@@ -122,7 +122,9 @@ export default function Daily({ onBack }) {
   localStorage.setItem('tradara_daily_result', JSON.stringify(res));
 
   if (win) {
-    addXP(15);
+    const prevXP = getXP();
+    const newXP  = addXP(15);
+    checkLevelUp(prevXP, newXP);
     setFloatingXP(15);
     setTimeout(() => setFloatingXP(null), 2000);
     triggerEffect();
@@ -178,7 +180,7 @@ export default function Daily({ onBack }) {
     link.href = canvas.toDataURL();
     link.click();
     fetch(`${SERVER}/stats/share`, { method: 'POST' }).catch(() => {});
-    addXP(5);
+    const prevXP = getXP(); checkLevelUp(prevXP, addXP(5));
     const shares = parseInt(localStorage.getItem('tradara_share_count') || '0') + 1;
     localStorage.setItem('tradara_share_count', String(shares));
     if (shares >= 3) tryUnlockDailyBadge('screenshot_ready');

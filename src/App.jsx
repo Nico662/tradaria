@@ -73,7 +73,7 @@ export default function App() {
   const [activeEffect,setActiveEffect] = useState(false);
   const [chartReady, setChartReady] = useState(false);
 
-  const { syncProgress, activeCosmetics = {}, user } = useAuth();
+  const { syncProgress, activeCosmetics = {}, user, checkLevelUp } = useAuth();
   const { lang, setLang, t } = useLang();
   const chartRef = useRef(null);
 
@@ -154,8 +154,10 @@ export default function App() {
   }
 
   function earnXP(amount) {
-    const newXP = addXP(amount);
+    const prevXP = getXP();
+    const newXP  = addXP(amount);
     setXp(newXP);
+    checkLevelUp(prevXP, newXP);
     setFloatingXP(null);
     setTimeout(() => {
       setFloatingXP(amount);

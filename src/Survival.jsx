@@ -7,7 +7,7 @@ import { useLang } from './LangContext.jsx';
 import { playWin, playLose, playClick, playStreak } from './sounds.js';
 import { BADGES, unlockBadge } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
-import { addXP, getXP } from './levels.js';
+import { addXP, getXP, getLevel } from './levels.js';
 import { useAuth } from './AuthContext';
 import { SERVER } from './config.js';
 
@@ -20,7 +20,7 @@ function randomAsset() {
 
 export default function Survival({ onBack }) {
   const { t } = useLang();
-  const { syncProgress, activeCosmetics } = useAuth();
+  const { syncProgress, activeCosmetics, checkLevelUp } = useAuth();
 
   const [phase,       setPhase]      = useState('choose');
   const [asset,       setAsset]      = useState(() => randomAsset());
@@ -51,7 +51,9 @@ export default function Survival({ onBack }) {
   }
 
   function earnXP(amount) {
-    const newXP = addXP(amount);
+    const prevXP = getXP();
+    const newXP  = addXP(amount);
+    checkLevelUp(prevXP, newXP);
     setFloatingXP(null);
     setTimeout(() => {
       setFloatingXP(amount);

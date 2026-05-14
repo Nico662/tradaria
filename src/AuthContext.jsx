@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { SERVER } from './config.js';
+import { getLevel, getXP } from './levels.js';
+import LevelUpOverlay from './LevelUpOverlay.jsx';
 
 const AuthContext = createContext();
 
@@ -10,6 +12,16 @@ export function AuthProvider({ children }) {
   const [activeCosmetics, setActiveCosmetics] = useState(() => {
     try { return JSON.parse(localStorage.getItem('tradara_cosmetics') || '{}'); } catch { return {}; }
   });
+  const [levelUpData, setLevelUpData] = useState(null);
+
+  function checkLevelUp(prevXP, newXP) {
+    const prev = getLevel(prevXP);
+    const next = getLevel(newXP);
+    if (next.name !== prev.name) {
+      setLevelUpData({ newLevel: next, prevLevel: prev });
+      setTimeout(() => setLevelUpData(null), 3500);
+    }
+  }
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -171,8 +183,9 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, syncProgress, purchases, activeCosmetics, equipCosmetic, unequipCosmetic, updateUser }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, syncProgress, purchases, activeCosmetics, equipCosmetic, unequipCosmetic, updateUser, checkLevelUp }}>
       {children}
+      {levelUpData && <LevelUpOverlay {...levelUpData} onClose={() => setLevelUpData(null)} />}
     </AuthContext.Provider>
   );
 }
