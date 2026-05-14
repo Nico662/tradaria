@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from "react";
+import html2canvas from 'html2canvas';
 import EffectOverlay from './EffectOverlay.jsx';
 import { ASSETS } from './assets.js';
 import Chart, { generateCandles } from "./Chart";
@@ -8,6 +9,7 @@ import { BADGES, unlockBadge } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
 import { addXP, getXP } from './levels.js';
 import { useAuth } from './AuthContext';
+import { SERVER } from './config.js';
 
 
 const MAX_LIVES = 3;
@@ -168,6 +170,18 @@ export default function Survival({ onBack }) {
   const recent   = history.slice(-12);
 
   // ── Game Over ─────────────────────────────────────────────────────
+  const shareSurvival = async () => {
+    const el = document.getElementById('share-card-survival');
+    if (!el) return;
+    const canvas = await html2canvas(el, { backgroundColor: '#0a0c0f', scale: 2 });
+    const link = document.createElement('a');
+    link.download = 'tradara-survival.png';
+    link.href = canvas.toDataURL();
+    link.click();
+    fetch(`${SERVER}/stats/share`, { method: 'POST' }).catch(() => {});
+    addXP(5);
+  };
+
   if (gameOver) {
     const wins     = history.filter(h => h === 'win').length;
     const losses   = history.filter(h => h === 'lose').length;
@@ -229,6 +243,22 @@ export default function Survival({ onBack }) {
               {t.survival.menu}
             </button>
           </div>
+          <button onClick={shareSurvival}
+            style={{ marginTop: '10px', width: '100%', padding: '12px', background: 'rgba(34,211,165,0.06)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+            📸 {t.daily.share}
+          </button>
+        </div>
+        <div id="share-card-survival" style={{ position: 'absolute', left: '-9999px', top: 0, width: '320px', background: '#0a0c0f', border: '1px solid #f05454', borderRadius: '12px', padding: '28px 24px', fontFamily: "'Space Mono', monospace" }}>
+          <div style={{ fontSize: '10px', color: '#3a4455', letterSpacing: '0.1em', marginBottom: '16px' }}>☠️ TRADARA SURVIVAL</div>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '48px', color: '#f5c842', letterSpacing: '-0.02em', lineHeight: 1, marginBottom: '4px' }}>{score}</div>
+          <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '16px' }}>{t.survival.finalScore}</div>
+          {isNewHS && <div style={{ fontSize: '10px', color: '#22d3a5', marginBottom: '8px' }}>{t.survival.newHighscore}</div>}
+          <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+            <div><span style={{ fontSize: '16px', fontWeight: 800, color: '#e2e8f0' }}>{round - 1}</span><div style={{ fontSize: '8px', color: '#4a5568' }}>rounds</div></div>
+            <div><span style={{ fontSize: '16px', fontWeight: 800, color: '#22d3a5' }}>{wins}</span><div style={{ fontSize: '8px', color: '#4a5568' }}>correct</div></div>
+            <div><span style={{ fontSize: '16px', fontWeight: 800, color: '#f5c842' }}>{accuracy}%</span><div style={{ fontSize: '8px', color: '#4a5568' }}>accuracy</div></div>
+          </div>
+          <div style={{ fontSize: '9px', color: '#22d3a5', letterSpacing: '0.1em', marginTop: '8px' }}>tradara.dev</div>
         </div>
         {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
       </div>

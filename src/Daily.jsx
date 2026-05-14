@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import html2canvas from 'html2canvas';
 import Chart from './Chart.jsx';
 import { SERVER } from './config.js';
 import { unlockBadge, BADGES } from './badges.js';
@@ -8,11 +9,11 @@ import { useLang } from './LangContext.jsx';
 import { useAuth } from './AuthContext';
 import EffectOverlay from './EffectOverlay.jsx';
 
-function ShareButton({ res, copied, onShare, t }) {
+function ShareButton({ onShare, t }) {
   return (
-    <button onClick={() => onShare(res)}
+    <button onClick={onShare}
       style={{ marginTop: '12px', width: '100%', padding: '12px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-      {copied ? t.daily.copied : t.daily.share}
+      📸 {t.daily.share}
     </button>
   );
 }
@@ -29,7 +30,6 @@ export default function Daily({ onBack }) {
   const [revealing, setRevealing]   = useState(false);
   const [timeLeft, setTimeLeft]     = useState('');
   const [newBadge, setNewBadge]     = useState(null);
-  const [copied, setCopied]         = useState(false);
   const [floatingXP, setFloatingXP] = useState(null);
   const chartRef = useRef(null);
 
@@ -169,19 +169,19 @@ export default function Daily({ onBack }) {
   }
  };
 
-  const shareResult = (res) => {
-    const asset    = res.asset    || dailyAsset?.name  || user?.dailyResult?.asset    || '?';
-    const interval = res.interval || dailyAsset?.tf    || user?.dailyResult?.interval || '?';
-    const today    = new Date().toISOString().split('T')[0];
-    const text     = `⚡ Tradara Daily Challenge\n📅 ${today}\n📈 ${asset} · ${interval}\n\n${res.win ? '✅ CORRECT' : '❌ WRONG'} — price ${res.direction === 'up' ? '▲' : res.direction === 'down' ? '▼' : '—'} ${res.pctMove > 0 ? '+' : ''}${res.pctMove.toFixed(2)}%\n\ntradara.dev`;
-    navigator.clipboard.writeText(text).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-      fetch(`${SERVER}/stats/share`, { method: 'POST' }).catch(() => {});
-      const shares = parseInt(localStorage.getItem('tradara_share_count') || '0') + 1;
-      localStorage.setItem('tradara_share_count', String(shares));
-      if (shares >= 3) tryUnlockDailyBadge('screenshot_ready');
-    });
+  const shareResult = async () => {
+    const el = document.getElementById('share-card-daily');
+    if (!el) return;
+    const canvas = await html2canvas(el, { backgroundColor: '#0a0c0f', scale: 2 });
+    const link = document.createElement('a');
+    link.download = 'tradara-daily.png';
+    link.href = canvas.toDataURL();
+    link.click();
+    fetch(`${SERVER}/stats/share`, { method: 'POST' }).catch(() => {});
+    addXP(5);
+    const shares = parseInt(localStorage.getItem('tradara_share_count') || '0') + 1;
+    localStorage.setItem('tradara_share_count', String(shares));
+    if (shares >= 3) tryUnlockDailyBadge('screenshot_ready');
   };
 
   const resultColor = result?.win ? '#22d3a5' : '#f05454';
@@ -271,7 +271,7 @@ export default function Daily({ onBack }) {
                 <div style={{ marginTop: '16px', fontSize: '9px', color: '#3a4455', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                   {t.daily.comeback}
                 </div>
-                <ShareButton res={result} copied={copied} onShare={shareResult} t={t} />
+                <ShareButton onShare={shareResult} t={t} />
               </div>
             )}
           </>
@@ -289,7 +289,7 @@ export default function Daily({ onBack }) {
             <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
               {t.daily.next} {timeLeft}
             </div>
-            <ShareButton res={result} copied={copied} onShare={shareResult} t={t} />
+            <ShareButton onShare={shareResult} t={t} />
           </div>
         )}
 
@@ -311,6 +311,23 @@ export default function Daily({ onBack }) {
           </div>
         )}
       </div>
+      {result && (
+        <div id="share-card-daily" style={{ position: 'absolute', left: '-9999px', top: 0, width: '320px', background: '#0a0c0f', border: `1px solid ${result.win ? '#22d3a5' : '#f05454'}`, borderRadius: '12px', padding: '28px 24px', fontFamily: "'Space Mono', monospace" }}>
+          <div style={{ fontSize: '10px', color: '#3a4455', letterSpacing: '0.1em', marginBottom: '16px' }}>⚡ TRADARA DAILY CHALLENGE</div>
+          <div style={{ fontSize: '11px', color: '#5a6a7d', marginBottom: '4px' }}>{new Date().toISOString().split('T')[0]}</div>
+          <div style={{ fontSize: '11px', color: '#5a6a7d', marginBottom: '20px' }}>{result.asset} · {result.interval}</div>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '26px', color: result.win ? '#22d3a5' : '#f05454', marginBottom: '8px' }}>
+            {result.win ? '✅ CORRECT' : '❌ WRONG'}
+          </div>
+          <div style={{ fontSize: '13px', color: '#6b7a8d', marginBottom: '20px' }}>
+            {result.direction === 'up' ? '▲' : result.direction === 'down' ? '▼' : '—'} {result.pctMove > 0 ? '+' : ''}{result.pctMove.toFixed(2)}%
+          </div>
+          <div style={{ fontSize: '10px', color: '#3a4455', letterSpacing: '0.08em' }}>
+            🔥 {localStorage.getItem('tradara_daily_streak') || 1} day streak
+          </div>
+          <div style={{ marginTop: '16px', fontSize: '9px', color: '#22d3a5', letterSpacing: '0.1em' }}>tradara.dev</div>
+        </div>
+      )}
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
       <EffectOverlay effect={activeCosmetics?.effect} active={activeEffect} />
     </div>

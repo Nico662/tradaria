@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
+import html2canvas from 'html2canvas';
 import { useAuth } from './AuthContext';
 import { useLang } from './LangContext.jsx';
 import Chart from './Chart';
@@ -233,6 +234,30 @@ export default function Tournament({ onBack }) {
           <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '9px', color: '#3a4455', fontFamily: "'Space Mono', monospace" }}>
             New tournament every Monday
           </div>
+
+          <button onClick={async () => {
+            const el = document.getElementById('share-card-tournament');
+            if (!el) return;
+            const canvas = await html2canvas(el, { backgroundColor: '#0a0c0f', scale: 2 });
+            const link = document.createElement('a');
+            link.download = 'tradara-tournament.png';
+            link.href = canvas.toDataURL();
+            link.click();
+            fetch(`${SERVER}/stats/share`, { method: 'POST' }).catch(() => {});
+            addXP(5);
+          }} style={{ marginTop: '16px', width: '100%', padding: '12px', background: 'rgba(245,200,66,0.06)', border: '1px solid #f5c842', borderRadius: '6px', color: '#f5c842', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+            📸 {t.daily.share}
+          </button>
+        </div>
+
+        <div id="share-card-tournament" style={{ position: 'absolute', left: '-9999px', top: 0, width: '320px', background: '#0a0c0f', border: '1px solid #f5c842', borderRadius: '12px', padding: '28px 24px', fontFamily: "'Space Mono', monospace" }}>
+          <div style={{ fontSize: '10px', color: '#3a4455', letterSpacing: '0.1em', marginBottom: '16px' }}>🏆 TRADARA TOURNAMENT</div>
+          <div style={{ fontSize: '11px', color: '#5a6a7d', marginBottom: '16px' }}>{formatWeekId(weekId)}</div>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '48px', color: '#f5c842', letterSpacing: '-0.02em', lineHeight: 1, marginBottom: '4px' }}>
+            {phase === 'finished' ? score : alreadyScore}
+          </div>
+          <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '16px' }}>{t.gameover.finalScore}</div>
+          <div style={{ fontSize: '9px', color: '#f5c842', letterSpacing: '0.1em', marginTop: '8px' }}>tradara.dev</div>
         </div>
 
         {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}

@@ -1,5 +1,6 @@
 import { io } from 'socket.io-client';
 import { useState, useEffect, useRef } from 'react';
+import html2canvas from 'html2canvas';
 import { createChart, CandlestickSeries } from 'lightweight-charts';
 import { useLang } from './LangContext.jsx';
 import { LANGS } from './i18n.js';
@@ -734,6 +735,37 @@ export default function Arena({ onBack, challengeRoomCode }) {
               </div>
             </div>
           )}
+
+          <button onClick={async () => {
+            const el = document.getElementById('share-card-arena');
+            if (!el) return;
+            const canvas = await html2canvas(el, { backgroundColor: '#0a0c0f', scale: 2 });
+            const link = document.createElement('a');
+            link.download = 'tradara-arena.png';
+            link.href = canvas.toDataURL();
+            link.click();
+            fetch(`${SERVER}/stats/share`, { method: 'POST' }).catch(() => {});
+          }} style={{ marginTop: '4px', width: '100%', padding: '12px', background: 'rgba(34,211,165,0.06)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+            📸 {t.daily.share}
+          </button>
+        </div>
+        <div id="share-card-arena" style={{ position: 'absolute', left: '-9999px', top: 0, width: '320px', background: '#0a0c0f', border: `1px solid ${iWon ? '#22d3a5' : isDraw ? '#f5c842' : '#f05454'}`, borderRadius: '12px', padding: '28px 24px', fontFamily: "'Space Mono', monospace" }}>
+          <div style={{ fontSize: '10px', color: '#3a4455', letterSpacing: '0.1em', marginBottom: '16px' }}>⚡ TRADARA ARENA</div>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px', color: iWon ? '#22d3a5' : isDraw ? '#f5c842' : '#f05454', marginBottom: '20px' }}>
+            {iWon ? t.arena.won : isDraw ? t.arena.draw : t.arena.lost}
+          </div>
+          <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+            <div style={{ flex: 1, textAlign: 'center' }}>
+              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '32px', color: '#22d3a5' }}>{myScore}</div>
+              <div style={{ fontSize: '9px', color: '#3a4455', marginTop: '2px' }}>{name}</div>
+            </div>
+            <div style={{ alignSelf: 'center', fontSize: '14px', color: '#3a4455' }}>vs</div>
+            <div style={{ flex: 1, textAlign: 'center' }}>
+              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '32px', color: '#f05454' }}>{oppScore}</div>
+              <div style={{ fontSize: '9px', color: '#3a4455', marginTop: '2px' }}>{opponent}</div>
+            </div>
+          </div>
+          <div style={{ fontSize: '9px', color: '#22d3a5', letterSpacing: '0.1em', marginTop: '8px' }}>tradara.dev</div>
         </div>
         {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
       </div>
