@@ -26,6 +26,7 @@ import EffectOverlay from './EffectOverlay.jsx';
 import ChallengeNotification from './ChallengeNotification.jsx';
 import PublicProfile from './PublicProfile.jsx';
 import Tutorial from './Tutorial.jsx';
+import Landing from './Landing.jsx';
 
 
 const CATEGORIES = [
@@ -50,6 +51,7 @@ export default function App() {
     const p = window.location.pathname;
     return p.startsWith('/u/') ? p.split('/u/')[1] || null : null;
   });
+  const [showLanding,  setShowLanding]  = useState(() => !localStorage.getItem('tradara_landing_seen'));
   const [showTutorial, setShowTutorial] = useState(false);
   const [category,    setCategory]  = useState('all');
   const [asset,       setAsset]     = useState(() => randomAsset('all'));
@@ -459,6 +461,11 @@ export default function App() {
         {challengeOverlay}
       </div>
     );
+  }
+
+  // ── Landing ───────────────────────────────────────────────────────
+  if (showLanding) {
+    return <Landing onEnter={() => setShowLanding(false)} />;
   }
 
   // ── Home ──────────────────────────────────────────────────────────
