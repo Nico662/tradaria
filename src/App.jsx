@@ -590,17 +590,13 @@ export default function App() {
     <div id="gtm-root" className={activeCosmetics?.theme || ''} style={{ position: 'relative' }}>
       <div className="scanlines" />
 
-      <button onClick={goHome}
-        style={{ position: 'absolute', top: 'calc(14px + env(safe-area-inset-top))', left: '16px', background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', zIndex: 10, padding: '4px 0', transition: 'color 0.15s' }}
-        onMouseEnter={e => e.target.style.color = '#e2e8f0'}
-        onMouseLeave={e => e.target.style.color = '#3a4455'}
-      >
-        {t.game.menu}
-      </button>
-
-      <div className="header">
-        <div className="logo">GUESS <span>THE</span> MARKET</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <div className="header" style={{ flexDirection: 'column', gap: '4px', alignItems: 'stretch' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <button onClick={goHome}
+            style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', padding: '4px 0', transition: 'color 0.15s' }}
+            onMouseEnter={e => e.target.style.color = '#e2e8f0'}
+            onMouseLeave={e => e.target.style.color = '#3a4455'}
+          >{t.game.menu}</button>
           <div className="lang-selector">
             {['en', 'es', 'de'].map(l => (
               <button key={l} className={`lang-btn${lang === l ? ' active' : ''}`} onClick={() => setLang(l)}>
@@ -608,19 +604,20 @@ export default function App() {
               </button>
             ))}
           </div>
-          <div className="stats-row">
-            <div className="stat-item">
-              <span className="stat-label">{t.game.round}</span>
-              <span className="stat-val">{round}/25</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-label">{t.game.score}</span>
-              <span className="stat-val yellow">{score}</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-label">{t.game.streak}</span>
-              <span className="stat-val green">{streak}</span>
-            </div>
+        </div>
+        <div className="logo" style={{ textAlign: 'center' }}>GUESS <span>THE</span> MARKET</div>
+        <div className="stats-row" style={{ justifyContent: 'space-around', width: '100%' }}>
+          <div className="stat-item">
+            <span className="stat-label">{t.game.round}</span>
+            <span className="stat-val">{round}/25</span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-label">{t.game.score}</span>
+            <span className="stat-val yellow">{score}</span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-label">{t.game.streak}</span>
+            <span className="stat-val green">{streak}</span>
           </div>
         </div>
       </div>
