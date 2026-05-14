@@ -27,6 +27,7 @@ import ChallengeNotification from './ChallengeNotification.jsx';
 import PublicProfile from './PublicProfile.jsx';
 import Tutorial from './Tutorial.jsx';
 import Landing from './Landing.jsx';
+import Stats from './Stats.jsx';
 
 
 const CATEGORIES = [
@@ -66,6 +67,7 @@ export default function App() {
   const [revealing,   setRevealing] = useState(false);
   const [highscore,   setHighscore] = useState(() => parseInt(localStorage.getItem('tradara_highscore') || '0'));
   const [newBadge,    setNewBadge]  = useState(null);
+  const [personalStats, setPersonalStats] = useState(null);
   const [xp,          setXp]        = useState(() => getXP());
   const [floatingXP,  setFloatingXP]= useState(null);
   const [activeEffect,setActiveEffect] = useState(false);
@@ -281,6 +283,24 @@ export default function App() {
     setResult({ win, neutral, pts, pctMove, direction, choice });
   }, [phase, asset, streak, score, highscore]);
 
+  useEffect(() => {
+    if (!gameOver) return;
+    const token = localStorage.getItem('tradara_token');
+    if (!token) return;
+    const wins     = history.filter(h => h === 'win').length;
+    const losses   = history.filter(h => h === 'lose').length;
+    const nonSkips = history.filter(h => h !== 'skip').length;
+    const acc      = nonSkips > 0 ? Math.round(wins / nonSkips * 100) : 0;
+    const maxStr   = history.reduce((m, h, i) => { if (h !== 'win') return m; let s = 1; while (history[i+s] === 'win') s++; return Math.max(m, s); }, 0);
+    fetch(`${SERVER}/stats/game`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode: 'guess', score, correct: wins, wrong: losses, accuracy: acc, streak: maxStr, rounds: history.length }),
+    }).catch(() => {});
+    fetch(`${SERVER}/stats/personal`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json()).then(setPersonalStats).catch(() => {});
+  }, [gameOver]);
+
   const changeCategory = (cat) => {
     setChartReady(false);
     setCategory(cat);
@@ -431,6 +451,24 @@ export default function App() {
             </div>
           </div>
 
+          {personalStats && (
+            <div style={{ marginBottom: '12px', padding: '12px 16px', background: '#0a0c0f', border: '1px solid #1e2530', borderRadius: '8px' }}>
+              <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px', fontFamily: "'Space Mono', monospace" }}>tu historial</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                {[
+                  { label: 'partidas',  value: personalStats.totalGames },
+                  { label: 'precisión', value: `${personalStats.avgAccuracy}%` },
+                  { label: 'mejor racha', value: `${personalStats.bestStreak}x` },
+                ].map(s => (
+                  <div key={s.label} style={{ textAlign: 'center' }}>
+                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#22d3a5' }}>{s.value}</div>
+                    <div style={{ fontSize: '8px', color: '#3a4455', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '2px' }}>{s.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
             <button onClick={shareResult}
               style={{ flex: 1, padding: '14px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '8px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.18s', boxShadow: '0 0 20px rgba(34,211,165,0.08)' }}
@@ -476,6 +514,7 @@ export default function App() {
           if (mode === 'arena')      setScreen('arena');
           else if (mode === 'legal')      setScreen('legal');
           else if (mode === 'badges')     setScreen('badges');
+          else if (mode === 'stats')      setScreen('stats');
           else if (mode === 'daily')      setScreen('daily');
           else if (mode === 'historical') setScreen('historical');
           else if (mode === 'tournament') setScreen('tournament');
@@ -502,6 +541,7 @@ export default function App() {
   );
   if (screen === 'legal')      return <><Legal      onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'badges')     return <><Badges     onBack={() => setScreen('home')} />{challengeOverlay}</>;
+  if (screen === 'stats')      return <><Stats      onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'daily')      return <><Daily      onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'historical') return <><Historical onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'tournament') return <><Tournament onBack={() => setScreen('home')} />{challengeOverlay}</>;

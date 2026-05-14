@@ -160,6 +160,19 @@ const FriendshipSchema = new mongoose.Schema({
 FriendshipSchema.index({ requester: 1, recipient: 1 }, { unique: true });
 const Friendship = mongoose.model('Friendship', FriendshipSchema);
 
+const GameHistorySchema = new mongoose.Schema({
+  userId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  mode:      { type: String, enum: ['guess', 'survival', 'daily', 'arena', 'tournament'], required: true },
+  score:     { type: Number, default: 0 },
+  correct:   { type: Number, default: 0 },
+  wrong:     { type: Number, default: 0 },
+  accuracy:  { type: Number, default: 0 },
+  streak:    { type: Number, default: 0 },
+  rounds:    { type: Number, default: 0 },
+  createdAt: { type: Date, default: Date.now },
+});
+const GameHistory = mongoose.model('GameHistory', GameHistorySchema);
+
 // ── VAPID / Push ──────────────────────────────────────────────────
 webpush.setVapidDetails(
   'mailto:nicolasvidalcorrecher@tradara.dev',
@@ -598,6 +611,50 @@ app.post('/stats/share', async (req, res) => {
     await Stats.findByIdAndUpdate('shares', { $inc: { daily: 1 } }, { upsert: true, new: true });
     res.json({ ok: true });
   } catch { res.json({ ok: false }); }
+});
+
+app.post('/stats/game', async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'No token' });
+  try {
+    const { mode, score, correct, wrong, accuracy, streak, rounds } = req.body;
+    await GameHistory.create({ userId: decoded.id, mode, score: score || 0, correct: correct || 0, wrong: wrong || 0, accuracy: accuracy || 0, streak: streak || 0, rounds: rounds || 0 });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/stats/personal', async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'No token' });
+  try {
+    const games = await GameHistory.find({ userId: decoded.id }).sort({ createdAt: -1 }).limit(200);
+    const totalGames   = games.length;
+    const totalCorrect = games.reduce((s, g) => s + g.correct, 0);
+    const totalWrong   = games.reduce((s, g) => s + g.wrong, 0);
+    const avgAccuracy  = totalGames ? Math.round(games.reduce((s, g) => s + g.accuracy, 0) / totalGames) : 0;
+    const bestScore    = games.reduce((m, g) => Math.max(m, g.score), 0);
+    const bestStreak   = games.reduce((m, g) => Math.max(m, g.streak), 0);
+    const modeCounts   = {};
+    games.forEach(g => { modeCounts[g.mode] = (modeCounts[g.mode] || 0) + 1; });
+    const favoriteMode = Object.keys(modeCounts).sort((a, b) => modeCounts[b] - modeCounts[a])[0] || null;
+    const arenaGames   = games.filter(g => g.mode === 'arena');
+    const arenaWins    = arenaGames.filter(g => g.score > 0).length;
+    const winRate      = arenaGames.length ? Math.round(arenaWins / arenaGames.length * 100) : 0;
+    const user         = await require('mongoose').model('User').findById(decoded.id).select('dailyStreak lastPlayed');
+    const dailyStreak  = user?.dailyStreak || 0;
+    const weekStart    = new Date(); weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+    const gamesThisWeek = games.filter(g => new Date(g.createdAt) >= weekStart).length;
+    const accuracyTrend = games.slice(0, 7).map(g => g.accuracy).reverse();
+    // global comparison
+    const allAvg = await GameHistory.aggregate([{ $group: { _id: null, avg: { $avg: '$accuracy' } } }]);
+    const globalAvg = allAvg[0]?.avg || 50;
+    const betterThan = avgAccuracy >= globalAvg ? Math.round(((avgAccuracy - globalAvg) / (100 - globalAvg)) * 50 + 50) : Math.round((avgAccuracy / globalAvg) * 50);
+    res.json({ totalGames, totalCorrect, totalWrong, avgAccuracy, bestScore, bestStreak, favoriteMode, winRate, dailyStreak, gamesThisWeek, accuracyTrend, betterThan: Math.min(99, Math.max(1, betterThan)), modeCounts });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ── Candles route ─────────────────────────────────────────────────

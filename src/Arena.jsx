@@ -94,6 +94,7 @@ export default function Arena({ onBack, challengeRoomCode }) {
   const [botScore,         setBotScore]          = useState(0);
   const [botRounds,        setBotRounds]         = useState([]);
   const [currentBotRound,  setCurrentBotRound]   = useState(null);
+  const [personalStats,    setPersonalStats]      = useState(null);
   const BOT_TOTAL = 10;
 
   function tryUnlockArenaBadge(id) {
@@ -110,6 +111,23 @@ export default function Arena({ onBack, challengeRoomCode }) {
       clearInterval(timerRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (screen !== 'gameover' || !finalData || finalData.forfeited) return;
+    const token = localStorage.getItem('tradara_token');
+    if (!token) return;
+    const myScore  = isBotGame ? myBotScore : (finalData.scores?.[myId] ?? 0);
+    const oppId    = myId ? Object.keys(finalData.scores ?? {}).find(id => id !== myId) : null;
+    const oppScore = isBotGame ? botScore   : (finalData.scores?.[oppId] ?? 0);
+    const won      = myScore > oppScore ? 1 : 0;
+    fetch(`${SERVER}/stats/game`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode: 'arena', score: myScore, correct: won, wrong: 1 - won, accuracy: won * 100, streak: 0, rounds: total }),
+    }).catch(() => {});
+    fetch(`${SERVER}/stats/personal`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json()).then(setPersonalStats).catch(() => {});
+  }, [screen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-join when coming from a friend challenge
   useEffect(() => {
@@ -732,6 +750,24 @@ export default function Arena({ onBack, challengeRoomCode }) {
               </div>
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '48px', color: '#22d3a5' }}>
                 {rematchCountdown}
+              </div>
+            </div>
+          )}
+
+          {personalStats && (
+            <div style={{ marginTop: '4px', padding: '12px 16px', background: '#0a0c0f', border: '1px solid #1e2530', borderRadius: '8px' }}>
+              <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px', fontFamily: "'Space Mono', monospace" }}>tu historial</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                {[
+                  { label: 'partidas',  value: personalStats.totalGames },
+                  { label: 'precisión', value: `${personalStats.avgAccuracy}%` },
+                  { label: 'win rate',  value: `${personalStats.winRate}%` },
+                ].map(s => (
+                  <div key={s.label} style={{ textAlign: 'center' }}>
+                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#22d3a5' }}>{s.value}</div>
+                    <div style={{ fontSize: '8px', color: '#3a4455', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '2px' }}>{s.label}</div>
+                  </div>
+                ))}
               </div>
             </div>
           )}

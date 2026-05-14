@@ -169,6 +169,24 @@ export default function Survival({ onBack }) {
   const dirLabel = result ? (result.direction === 'up' ? t.game.up : result.direction === 'down' ? t.game.down : t.game.flatDir) : '';
   const recent   = history.slice(-12);
 
+  const [personalStats, setPersonalStats] = useState(null);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!gameOver) return;
+    const token = localStorage.getItem('tradara_token');
+    if (!token) return;
+    const wins   = history.filter(h => h === 'win').length;
+    const losses = history.filter(h => h === 'lose').length;
+    const acc    = (wins + losses) > 0 ? Math.round(wins / (wins + losses) * 100) : 0;
+    fetch(`${SERVER}/stats/game`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode: 'survival', score, correct: wins, wrong: losses, accuracy: acc, streak, rounds: history.length }),
+    }).catch(() => {});
+    fetch(`${SERVER}/stats/personal`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json()).then(setPersonalStats).catch(() => {});
+  }, [gameOver]);
+
   // ── Game Over ─────────────────────────────────────────────────────
   const shareSurvival = async () => {
     const el = document.getElementById('share-card-survival');
@@ -243,6 +261,23 @@ export default function Survival({ onBack }) {
               {t.survival.menu}
             </button>
           </div>
+          {personalStats && (
+            <div style={{ marginTop: '10px', padding: '12px 16px', background: '#0a0c0f', border: '1px solid #1e2530', borderRadius: '8px' }}>
+              <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px', fontFamily: "'Space Mono', monospace" }}>tu historial</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                {[
+                  { label: 'partidas',  value: personalStats.totalGames },
+                  { label: 'precisión', value: `${personalStats.avgAccuracy}%` },
+                  { label: 'mejor racha', value: `${personalStats.bestStreak}x` },
+                ].map(s => (
+                  <div key={s.label} style={{ textAlign: 'center' }}>
+                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#22d3a5' }}>{s.value}</div>
+                    <div style={{ fontSize: '8px', color: '#3a4455', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '2px' }}>{s.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <button onClick={shareSurvival}
             style={{ marginTop: '10px', width: '100%', padding: '12px', background: 'rgba(34,211,165,0.06)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
             📸 {t.daily.share}

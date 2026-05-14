@@ -294,13 +294,22 @@ export default function Home({ onSelect }) {
 
         {/* Footer */}
         <div style={{ textAlign: 'center', marginTop: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-          <button onClick={() => onSelect('badges')}
-            style={{ background: 'transparent', border: '1px solid #1e2530', borderRadius: '8px', padding: '8px 16px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '8px' }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = '#22d3a5'}
-            onMouseLeave={e => e.currentTarget.style.borderColor = '#1e2530'}
-          >
-            🏅 {t.home.badges ?? 'Badges'} {unlockedCount > 0 && `· ${unlockedCount} unlocked`}
-          </button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={() => onSelect('badges')}
+              style={{ flex: 1, background: 'transparent', border: '1px solid #1e2530', borderRadius: '8px', padding: '8px 16px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = '#22d3a5'}
+              onMouseLeave={e => e.currentTarget.style.borderColor = '#1e2530'}
+            >
+              🏅 {t.home.badges ?? 'Badges'} {unlockedCount > 0 && `· ${unlockedCount}`}
+            </button>
+            <button onClick={() => onSelect('stats')}
+              style={{ flex: 1, background: 'transparent', border: '1px solid #1e2530', borderRadius: '8px', padding: '8px 16px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = '#22d3a5'}
+              onMouseLeave={e => e.currentTarget.style.borderColor = '#1e2530'}
+            >
+              📊 Mis Stats
+            </button>
+          </div>
 
           <a href="https://ko-fi.com/tradaranicolasvidal" target="_blank" rel="noopener noreferrer"
             style={{ background: 'transparent', border: '1px solid #1e2530', borderRadius: '8px', padding: '8px 16px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
