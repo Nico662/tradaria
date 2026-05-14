@@ -416,8 +416,8 @@ export default function App() {
                 { label: t.gameover.accuracy,   value: accuracy + '%', color: '#e2e8f0' },
                 { label: t.gameover.bestStreak, value: maxStreak+'x',  color: '#f5c842' },
               ].map(s => (
-                <div key={s.label} style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px', padding: '10px 8px', textAlign: 'center' }}>
-                  <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: s.color }}>{s.value}</div>
+                <div key={s.label} className="game-stat-card">
+                  <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: s.color }}>{s.value}</div>
                   <div style={{ fontSize: '8px', color: '#4a5568', letterSpacing: '0.06em', textTransform: 'uppercase', marginTop: '2px' }}>{s.label}</div>
                 </div>
               ))}
@@ -431,17 +431,26 @@ export default function App() {
 
           <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
             <button onClick={shareResult}
-              style={{ flex: 1, padding: '14px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+              style={{ flex: 1, padding: '14px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '8px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.18s', boxShadow: '0 0 20px rgba(34,211,165,0.08)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(34,211,165,0.14)'; e.currentTarget.style.boxShadow = '0 0 28px rgba(34,211,165,0.18)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(34,211,165,0.08)'; e.currentTarget.style.boxShadow = '0 0 20px rgba(34,211,165,0.08)'; }}
+            >
               📸 {t.gameover.share ?? 'Share'}
             </button>
           </div>
           <div style={{ display: 'flex', gap: '10px' }}>
             <button onClick={playAgain}
-              style={{ flex: 1, padding: '14px', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '6px', color: '#8899b0', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+              style={{ flex: 1, padding: '14px', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '8px', color: '#8899b0', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.18s' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = '#22d3a5'; e.currentTarget.style.color = '#22d3a5'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a3345'; e.currentTarget.style.color = '#8899b0'; }}
+            >
               {t.gameover.playAgain}
             </button>
             <button onClick={goHome}
-              style={{ flex: 1, padding: '14px', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '6px', color: '#8899b0', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+              style={{ flex: 1, padding: '14px', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '8px', color: '#8899b0', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.18s' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = '#8899b0'; e.currentTarget.style.color = '#e2e8f0'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a3345'; e.currentTarget.style.color = '#8899b0'; }}
+            >
               {t.gameover.menu}
             </button>
           </div>
@@ -679,7 +688,7 @@ export default function App() {
               ? Math.round(history.filter(h => h === 'win').length / history.filter(h => h !== 'skip').length * 100) + '%'
               : '—', color: '#f5c842' },
         ].map(s => (
-          <div key={s.label} style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px', padding: '10px 8px', textAlign: 'center' }}>
+          <div key={s.label} className="game-stat-card">
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: s.color }}>{s.value}</div>
             <div style={{ fontSize: '8px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: '2px' }}>{s.label}</div>
           </div>

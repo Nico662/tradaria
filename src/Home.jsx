@@ -183,11 +183,11 @@ export default function Home({ onSelect }) {
               <rect x="25" y="40" width="50" height="110" rx="6" fill="#22d3a5"/>
               <line x1="50" y1="150" x2="50" y2="190" stroke="#22d3a5" strokeWidth="8" strokeLinecap="round"/>
             </svg>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '42px', letterSpacing: '-0.02em', color: '#f0f0f0' }}>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '42px', letterSpacing: '-0.02em', color: '#f0f0f0', textShadow: '0 0 60px rgba(34,211,165,0.2), 0 2px 20px rgba(0,0,0,0.5)' }}>
               Tradara
             </div>
           </div>
-          <div style={{ fontSize: '10px', color: '#3a4455', letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: '6px' }}>
+          <div style={{ fontSize: '10px', color: '#5a6a7d', letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: '6px' }}>
             {t.home.tagline}
           </div>
 
@@ -213,7 +213,7 @@ export default function Home({ onSelect }) {
         {/* Mode cards */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
 
-          <button className="mode-card active" onClick={() => onSelect('portfolio')} style={{ borderColor: '#378ADD', background: 'rgba(55,138,221,0.04)' }}>
+          <button className="mode-card active" onClick={() => onSelect('portfolio')} style={{ borderColor: '#378ADD', background: 'rgba(55,138,221,0.04)', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.05s both' }}>
             <div className="mode-card-left">
               <span className="mode-icon">💼</span>
               <div>
@@ -224,7 +224,7 @@ export default function Home({ onSelect }) {
             <span className="mode-arrow" style={{ color: '#378ADD' }}>→</span>
           </button>
 
-          <button className="mode-card active" onClick={() => onSelect('daily')} style={{ borderColor: '#f5c842', background: 'rgba(245,200,66,0.04)' }}>
+          <button className="mode-card active" onClick={() => onSelect('daily')} style={{ borderColor: '#f5c842', background: 'rgba(245,200,66,0.04)', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.10s both' }}>
             <div className="mode-card-left">
               <span className="mode-icon">⚡</span>
               <div>
@@ -235,7 +235,7 @@ export default function Home({ onSelect }) {
             <span className="mode-arrow" style={{ color: '#f5c842' }}>→</span>
           </button>
 
-          <button className="mode-card active" onClick={() => onSelect('historical')} style={{ borderColor: '#8899b0', background: 'rgba(136,153,176,0.04)' }}>
+          <button className="mode-card active" onClick={() => onSelect('historical')} style={{ borderColor: '#8899b0', background: 'rgba(136,153,176,0.04)', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.15s both' }}>
             <div className="mode-card-left">
               <span className="mode-icon">📜</span>
               <div>
@@ -246,7 +246,7 @@ export default function Home({ onSelect }) {
             <span className="mode-arrow" style={{ color: '#8899b0' }}>→</span>
           </button>
 
-          <button className="mode-card active" onClick={() => onSelect('survival')} style={{ borderColor: '#f05454', background: 'rgba(240,84,84,0.04)' }}>
+          <button className="mode-card active" onClick={() => onSelect('survival')} style={{ borderColor: '#f05454', background: 'rgba(240,84,84,0.04)', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.20s both' }}>
             <div className="mode-card-left">
               <span className="mode-icon">☠️</span>
               <div>
@@ -257,7 +257,7 @@ export default function Home({ onSelect }) {
             <span className="mode-arrow" style={{ color: '#f05454' }}>→</span>
           </button>
 
-          <button className="mode-card active" onClick={() => onSelect('game')}>
+          <button className="mode-card active" onClick={() => onSelect('game')} style={{ animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.25s both' }}>
             <div className="mode-card-left">
               <span className="mode-icon">📈</span>
               <div>
@@ -268,7 +268,7 @@ export default function Home({ onSelect }) {
             <span className="mode-arrow">→</span>
           </button>
 
-          <button className="mode-card active" onClick={() => onSelect('arena')}>
+          <button className="mode-card active" onClick={() => onSelect('arena')} style={{ animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.30s both' }}>
             <div className="mode-card-left">
               <span className="mode-icon">⚔️</span>
               <div>
@@ -279,7 +279,7 @@ export default function Home({ onSelect }) {
             <span className="mode-arrow">→</span>
           </button>
 
-          <button className="mode-card active" onClick={() => onSelect('tournament')}>
+          <button className="mode-card active" onClick={() => onSelect('tournament')} style={{ animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.35s both' }}>
             <div className="mode-card-left">
               <span className="mode-icon">🏆</span>
               <div>

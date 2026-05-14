@@ -354,13 +354,13 @@ export default function Shop({ onBack }) {
       <div className="scanlines" />
       <div style={{ position: 'relative', zIndex: 2 }}>
 
-        <div style={{ padding: '14px 20px', borderBottom: '1px solid #1e2530', display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ padding: '14px 20px 13px', borderBottom: '1px solid #1e2530', display: 'flex', alignItems: 'center', gap: '12px', background: 'linear-gradient(180deg, rgba(245,200,66,0.025) 0%, transparent 100%)' }}>
           <button onClick={onBack}
-            style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em' }}
+            style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', transition: 'color 0.15s' }}
             onMouseEnter={e => e.target.style.color = '#e2e8f0'}
             onMouseLeave={e => e.target.style.color = '#3a4455'}
           >{t.shop.back}</button>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: '#f0f0f0', letterSpacing: '0.06em' }}>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '15px', color: '#f5c842', letterSpacing: '0.06em', textShadow: '0 0 20px rgba(245,200,66,0.25)' }}>
             🛍️ {t.home.shop}
           </div>
         </div>
@@ -392,10 +392,11 @@ export default function Shop({ onBack }) {
                 border: `1px solid ${equipped ? item.color : '#1e2530'}`,
                 borderRadius: '10px',
                 padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px',
-                transition: 'border-color 0.15s',
+                transition: 'border-color 0.2s, box-shadow 0.2s, transform 0.2s',
+                boxShadow: equipped ? `0 0 20px ${item.color}22, 0 4px 20px rgba(0,0,0,0.4)` : 'none',
               }}
-                onMouseEnter={e => { if (!equipped) e.currentTarget.style.borderColor = item.color; }}
-                onMouseLeave={e => { if (!equipped) e.currentTarget.style.borderColor = '#1e2530'; }}
+                onMouseEnter={e => { if (!equipped) { e.currentTarget.style.borderColor = item.color; e.currentTarget.style.boxShadow = `0 8px 28px rgba(0,0,0,0.5)`; e.currentTarget.style.transform = 'translateY(-2px)'; } }}
+                onMouseLeave={e => { if (!equipped) { e.currentTarget.style.borderColor = '#1e2530'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; } }}
               >
                 {activeCategory === 'frames'  && <PreviewFrame  item={item} userAvatar={user?.customAvatar || user?.avatar} />}
                 {activeCategory === 'themes'  && <PreviewTheme  item={item} />}

@@ -365,8 +365,8 @@ export default function Arena({ onBack, challengeRoomCode }) {
         </div>
 
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px', color: '#f0f0f0', marginBottom: '8px' }}>{t.arena.title}</div>
-          <div style={{ fontSize: '10px', color: '#3a4455', letterSpacing: '0.15em', textTransform: 'uppercase' }}>{t.arena.sub}</div>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '30px', color: '#f0f0f0', marginBottom: '8px', textShadow: '0 0 40px rgba(240,84,84,0.2)' }}>{t.arena.title}</div>
+          <div style={{ fontSize: '10px', color: '#5a6a7d', letterSpacing: '0.15em', textTransform: 'uppercase' }}>{t.arena.sub}</div>
         </div>
 
         <div style={{ marginBottom: '20px' }}>
@@ -379,11 +379,17 @@ export default function Arena({ onBack, challengeRoomCode }) {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <button onClick={findRandom} disabled={!name.trim()}
-            style={{ width: '100%', padding: '14px', background: name.trim() ? 'rgba(34,211,165,0.08)' : '#0f141b', border: `1px solid ${name.trim() ? '#22d3a5' : '#2a3345'}`, borderRadius: '6px', color: name.trim() ? '#22d3a5' : '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: name.trim() ? 'pointer' : 'not-allowed' }}>
+            style={{ width: '100%', padding: '16px', background: name.trim() ? 'rgba(34,211,165,0.08)' : '#0f141b', border: `1px solid ${name.trim() ? '#22d3a5' : '#2a3345'}`, borderRadius: '8px', color: name.trim() ? '#22d3a5' : '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: name.trim() ? 'pointer' : 'not-allowed', transition: 'all 0.18s', boxShadow: name.trim() ? '0 0 20px rgba(34,211,165,0.08)' : 'none' }}
+            onMouseEnter={e => { if (name.trim()) { e.currentTarget.style.background = 'rgba(34,211,165,0.14)'; e.currentTarget.style.boxShadow = '0 0 28px rgba(34,211,165,0.18), 0 8px 20px rgba(0,0,0,0.4)'; e.currentTarget.style.transform = 'translateY(-2px)'; } }}
+            onMouseLeave={e => { e.currentTarget.style.background = name.trim() ? 'rgba(34,211,165,0.08)' : '#0f141b'; e.currentTarget.style.boxShadow = name.trim() ? '0 0 20px rgba(34,211,165,0.08)' : 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
+          >
             ⚡ {t.arena.findMatch}
           </button>
           <button onClick={createRoom} disabled={!name.trim()}
-            style={{ width: '100%', padding: '14px', background: '#0f141b', border: `1px solid ${name.trim() ? '#2a3345' : '#1e2530'}`, borderRadius: '6px', color: name.trim() ? '#8899b0' : '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: name.trim() ? 'pointer' : 'not-allowed' }}>
+            style={{ width: '100%', padding: '14px', background: '#0f141b', border: `1px solid ${name.trim() ? '#2a3345' : '#1e2530'}`, borderRadius: '8px', color: name.trim() ? '#8899b0' : '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: name.trim() ? 'pointer' : 'not-allowed', transition: 'all 0.18s' }}
+            onMouseEnter={e => { if (name.trim()) { e.currentTarget.style.borderColor = '#f05454'; e.currentTarget.style.color = '#f05454'; } }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = name.trim() ? '#2a3345' : '#1e2530'; e.currentTarget.style.color = name.trim() ? '#8899b0' : '#3a4455'; }}
+          >
             🔒 {t.arena.createRoom}
           </button>
           <div style={{ display: 'flex', gap: '8px' }}>
