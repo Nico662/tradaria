@@ -268,7 +268,7 @@ const Chart = forwardRef(function Chart({ asset, externalCandles, onReady }, ref
       }
 
       // ── Normal candles ────────────────────────────────────────────
-      const interval = asset.forex ? '1h'
+      const interval = forex ? '1h'
         : asset.tf === '1m'  ? '1m'
         : asset.tf === '5m'  ? '5m'
         : asset.tf === '15m' ? '15m'
@@ -312,7 +312,8 @@ const Chart = forwardRef(function Chart({ asset, externalCandles, onReady }, ref
         allCandlesRef.current = candles;
         candlesRef.current    = candles.slice(0, 80);
         revealPoolRef.current = candles.slice(80, 100);
-        series.setData(toChartData(candlesRef.current, 0));
+        const fnFallback = (isForexRef.current || isUnixRef.current) ? toChartDataForex : toChartData;
+        series.setData(fnFallback(candlesRef.current, 0));
         chart.timeScale().fitContent();
         if (onReady) onReady();
       });
