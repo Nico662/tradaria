@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tradara-v2';
+const CACHE_NAME = 'tradara-v3';
 
 const STATIC_ASSETS = [
   '/',
