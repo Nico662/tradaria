@@ -99,28 +99,33 @@ export default function Historical({ onBack }) {
   if (phase === 'select') return (
     <div id="gtm-root" style={{ position: 'relative' }}>
       <div className="scanlines" />
-      <div style={{ padding: '48px 24px 32px', position: 'relative', zIndex: 2 }}>
+      <div style={{ padding: '12px 20px 32px', position: 'relative', zIndex: 2 }}>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <div className="header" style={{ display: 'grid', gridTemplateColumns: '80px 1fr 80px', alignItems: 'center', padding: '0 0 12px', borderBottom: '1px solid #1e2530', marginBottom: '24px', background: 'none' }}>
           <button onClick={onBack}
-            style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em' }}
+            style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', padding: 0, textAlign: 'left', transition: 'color 0.15s' }}
             onMouseEnter={e => e.target.style.color = '#e2e8f0'}
             onMouseLeave={e => e.target.style.color = '#3a4455'}
           >{t.historical.back}</button>
-          <div className="lang-selector">
-            {['en', 'es', 'de'].map(l => (
-              <button key={l} className={`lang-btn${lang === l ? ' active' : ''}`} onClick={() => setLang(l)}>
-                {l.toUpperCase()}
-              </button>
-            ))}
-          </div>
-        </div>
 
-        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: '#f0f0f0', marginBottom: '4px' }}>
-          📜 {t.historical.title}
-        </div>
-        <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '24px' }}>
-          {t.historical.sub}
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: '#f5c842', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 24px rgba(245,200,66,0.55), 0 0 8px rgba(245,200,66,0.3)' }}>
+              📜 {t.historical.title}
+            </div>
+            <div style={{ fontSize: '8px', color: '#3a4455', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: "'Space Mono', monospace" }}>
+              HISTORICAL MODE
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <div className="lang-selector">
+              {['en', 'es', 'de'].map(l => (
+                <button key={l} className={`lang-btn${lang === l ? ' active' : ''}`} onClick={() => setLang(l)}>
+                  {l.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -161,15 +166,28 @@ export default function Historical({ onBack }) {
   return (
     <div id="gtm-root" style={{ position: 'relative' }}>
       <div className="scanlines" />
-      <div style={{ padding: '48px 24px 32px', position: 'relative', zIndex: 2 }}>
+      <div style={{ padding: '0 0 32px', position: 'relative', zIndex: 2 }}>
 
-        <button onClick={() => { setPhase('select'); setResult(null); setCandles(null); setFuture(null); }}
-          style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', marginBottom: '16px', display: 'block' }}
-          onMouseEnter={e => e.target.style.color = '#e2e8f0'}
-          onMouseLeave={e => e.target.style.color = '#3a4455'}
-        >{t.historical.eventsBack}</button>
+        <div className="header" style={{ display: 'grid', gridTemplateColumns: '80px 1fr 80px', alignItems: 'center', padding: '12px 20px 10px', marginBottom: '12px' }}>
+          <button onClick={() => { setPhase('select'); setResult(null); setCandles(null); setFuture(null); }}
+            style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', padding: 0, textAlign: 'left', transition: 'color 0.15s' }}
+            onMouseEnter={e => e.target.style.color = '#e2e8f0'}
+            onMouseLeave={e => e.target.style.color = '#3a4455'}
+          >{t.historical.eventsBack}</button>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: '#f5c842', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 24px rgba(245,200,66,0.55), 0 0 8px rgba(245,200,66,0.3)' }}>
+              📜 {t.historical.title}
+            </div>
+            <div style={{ fontSize: '8px', color: '#3a4455', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: "'Space Mono', monospace" }}>
+              HISTORICAL MODE
+            </div>
+          </div>
+
+          <div />
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', padding: '0 20px' }}>
           <span style={{ fontSize: '24px' }}>{event?.emoji}</span>
           <div>
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#f0f0f0' }}>

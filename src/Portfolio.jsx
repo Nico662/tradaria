@@ -594,15 +594,25 @@ export default function Portfolio({ onBack }) {
     <div id="gtm-root" style={{ position: 'relative' }}>
       <div className="scanlines" />
 
-      <div style={{ padding: '14px 20px', borderBottom: '1px solid #1e2530', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', zIndex: 2 }}>
+      <div className="header" style={{ display: 'grid', gridTemplateColumns: '80px 1fr 80px', alignItems: 'center', padding: '12px 20px 10px' }}>
         <button onClick={onBack}
-          style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em' }}
+          style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', padding: 0, textAlign: 'left', transition: 'color 0.15s' }}
           onMouseEnter={e => e.target.style.color = '#e2e8f0'}
           onMouseLeave={e => e.target.style.color = '#3a4455'}
         >{t.game.menu}</button>
-        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: '#f0f0f0' }}>💼 {t.portfolio.title}</div>
-        <div style={{ fontSize: '10px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>
-          {formatCash(totalValue)}
+
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: '#22d3a5', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 24px rgba(34,211,165,0.55), 0 0 8px rgba(34,211,165,0.3)' }}>
+            💼 {t.portfolio.title}
+          </div>
+          <div style={{ fontSize: '8px', color: '#3a4455', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: "'Space Mono', monospace" }}>
+            PORTFOLIO MODE
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
+          <span style={{ fontSize: '8px', color: '#4a5568', letterSpacing: '0.06em', fontFamily: "'Space Mono', monospace" }}>TOTAL</span>
+          <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: '#22d3a5', textShadow: '0 0 14px rgba(34,211,165,0.35)' }}>{formatCash(totalValue)}</span>
         </div>
       </div>
 
