@@ -213,81 +213,88 @@ export default function Home({ onSelect }) {
 
         <DailyMissions />
 
-        {/* Mode cards */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {/* Mode cards — hero */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
 
-          <button className="mode-card active" onClick={() => onSelect('portfolio')} style={{ borderColor: '#378ADD', background: 'rgba(55,138,221,0.04)', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.05s both' }}>
+          <button className="mode-card active" onClick={() => onSelect('portfolio')} style={{ borderColor: '#378ADD', background: 'rgba(55,138,221,0.06)', padding: '22px 20px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.05s both' }}>
             <div className="mode-card-left">
-              <span className="mode-icon">💼</span>
+              <span className="mode-icon" style={{ fontSize: '30px' }}>💼</span>
               <div>
-                <div className="mode-title" style={{ color: '#378ADD' }}>{t.portfolio?.title ?? 'Portfolio Mode'}</div>
+                <div className="mode-title" style={{ color: '#378ADD', fontSize: '17px' }}>{t.portfolio?.title ?? 'Portfolio Mode'}</div>
                 <div className="mode-sub">{t.portfolio?.sub ?? '$50,000 virtual · real prices'}</div>
               </div>
             </div>
-            <span className="mode-arrow" style={{ color: '#378ADD' }}>→</span>
+            <span className="mode-arrow" style={{ color: '#378ADD', fontSize: '20px' }}>→</span>
           </button>
 
-          <button className="mode-card active" onClick={() => onSelect('daily')} style={{ borderColor: '#f5c842', background: 'rgba(245,200,66,0.04)', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.10s both' }}>
+          <button className="mode-card active" onClick={() => onSelect('daily')} style={{ borderColor: '#f5c842', background: 'rgba(245,200,66,0.06)', padding: '22px 20px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.10s both' }}>
             <div className="mode-card-left">
-              <span className="mode-icon">⚡</span>
+              <span className="mode-icon" style={{ fontSize: '30px' }}>⚡</span>
               <div>
-                <div className="mode-title" style={{ color: '#f5c842' }}>{t.home.mode4}</div>
+                <div className="mode-title" style={{ color: '#f5c842', fontSize: '17px' }}>{t.home.mode4}</div>
                 <div className="mode-sub">{t.home.mode4sub}</div>
               </div>
             </div>
-            <span className="mode-arrow" style={{ color: '#f5c842' }}>→</span>
+            <span className="mode-arrow" style={{ color: '#f5c842', fontSize: '20px' }}>→</span>
           </button>
 
-          <button className="mode-card active" onClick={() => onSelect('historical')} style={{ borderColor: '#8899b0', background: 'rgba(136,153,176,0.04)', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.15s both' }}>
-            <div className="mode-card-left">
-              <span className="mode-icon">📜</span>
-              <div>
-                <div className="mode-title" style={{ color: '#8899b0' }}>{t.home.mode5}</div>
-                <div className="mode-sub">{t.home.mode5sub}</div>
-              </div>
-            </div>
-            <span className="mode-arrow" style={{ color: '#8899b0' }}>→</span>
-          </button>
+          {/* Divider */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '2px 0' }}>
+            <div style={{ flex: 1, height: '1px', background: '#1a2030' }} />
+            <span style={{ fontSize: '8px', color: '#2a3345', letterSpacing: '0.18em', fontFamily: "'Space Mono', monospace" }}>MORE MODES</span>
+            <div style={{ flex: 1, height: '1px', background: '#1a2030' }} />
+          </div>
 
-          <button className="mode-card active" onClick={() => onSelect('survival')} style={{ borderColor: '#f05454', background: 'rgba(240,84,84,0.04)', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.20s both' }}>
-            <div className="mode-card-left">
-              <span className="mode-icon">☠️</span>
+          <button className="mode-card active" onClick={() => onSelect('survival')} style={{ borderColor: '#f05454', background: 'rgba(240,84,84,0.04)', padding: '13px 16px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.15s both' }}>
+            <div className="mode-card-left" style={{ gap: '12px' }}>
+              <span className="mode-icon" style={{ fontSize: '20px' }}>☠️</span>
               <div>
-                <div className="mode-title" style={{ color: '#f05454' }}>{t.survival.title}</div>
+                <div className="mode-title" style={{ color: '#f05454', fontSize: '13px' }}>{t.survival.title}</div>
                 <div className="mode-sub">{t.survival.sub}</div>
               </div>
             </div>
             <span className="mode-arrow" style={{ color: '#f05454' }}>→</span>
           </button>
 
-          <button className="mode-card active" onClick={() => onSelect('game')} style={{ animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.25s both' }}>
-            <div className="mode-card-left">
-              <span className="mode-icon">📈</span>
+          <button className="mode-card active" onClick={() => onSelect('historical')} style={{ borderColor: '#8899b0', background: 'rgba(136,153,176,0.04)', padding: '13px 16px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.20s both' }}>
+            <div className="mode-card-left" style={{ gap: '12px' }}>
+              <span className="mode-icon" style={{ fontSize: '20px' }}>📜</span>
               <div>
-                <div className="mode-title">{t.home.mode1}</div>
-                <div className="mode-sub">{t.home.mode1sub}</div>
+                <div className="mode-title" style={{ color: '#8899b0', fontSize: '13px' }}>{t.home.mode5}</div>
+                <div className="mode-sub">{t.home.mode5sub}</div>
               </div>
             </div>
-            <span className="mode-arrow">→</span>
+            <span className="mode-arrow" style={{ color: '#8899b0' }}>→</span>
           </button>
 
-          <button className="mode-card active" onClick={() => onSelect('arena')} style={{ animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.30s both' }}>
-            <div className="mode-card-left">
-              <span className="mode-icon">⚔️</span>
+          <button className="mode-card active" onClick={() => onSelect('arena')} style={{ padding: '13px 16px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.25s both' }}>
+            <div className="mode-card-left" style={{ gap: '12px' }}>
+              <span className="mode-icon" style={{ fontSize: '20px' }}>⚔️</span>
               <div>
-                <div className="mode-title">{t.home.mode2}</div>
+                <div className="mode-title" style={{ fontSize: '13px' }}>{t.home.mode2}</div>
                 <div className="mode-sub">{t.arena.sub}</div>
               </div>
             </div>
             <span className="mode-arrow">→</span>
           </button>
 
-          <button className="mode-card active" onClick={() => onSelect('tournament')} style={{ animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.35s both' }}>
-            <div className="mode-card-left">
-              <span className="mode-icon">🏆</span>
+          <button className="mode-card active" onClick={() => onSelect('tournament')} style={{ padding: '13px 16px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.30s both' }}>
+            <div className="mode-card-left" style={{ gap: '12px' }}>
+              <span className="mode-icon" style={{ fontSize: '20px' }}>🏆</span>
               <div>
-                <div className="mode-title">{t.home.mode3}</div>
+                <div className="mode-title" style={{ fontSize: '13px' }}>{t.home.mode3}</div>
                 <div className="mode-sub">{TOURNAMENT_SUB[lang]}</div>
+              </div>
+            </div>
+            <span className="mode-arrow">→</span>
+          </button>
+
+          <button className="mode-card active" onClick={() => onSelect('game')} style={{ padding: '13px 16px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.35s both' }}>
+            <div className="mode-card-left" style={{ gap: '12px' }}>
+              <span className="mode-icon" style={{ fontSize: '20px' }}>📈</span>
+              <div>
+                <div className="mode-title" style={{ fontSize: '13px' }}>{t.home.mode1}</div>
+                <div className="mode-sub">{t.home.mode1sub}</div>
               </div>
             </div>
             <span className="mode-arrow">→</span>
