@@ -5,21 +5,32 @@ const DEMO_CANDLES = [
   { o: 106, h: 110, l: 103, c: 104 },
   { o: 104, h: 107, l: 98,  c: 101 },
 ];
-const FUTURE_CLOSE = 112;
+const FUTURE_CANDLE = { o: 101, h: 115, l: 99, c: 112 };
 
-function MiniCandle({ candle, visible, width = 28, scale = 1 }) {
-  if (!visible) return <div style={{ width: `${width}px` }} />;
-  const isGreen  = candle.c >= candle.o;
-  const color    = isGreen ? '#22d3a5' : '#f05454';
-  const totalRange = candle.h - candle.l;
-  const bodyH    = Math.abs(candle.c - candle.o) / totalRange * 80 * scale;
-  const wickTopH = (candle.h - Math.max(candle.o, candle.c)) / totalRange * 80 * scale;
-  const wickBotH = (Math.min(candle.o, candle.c) - candle.l) / totalRange * 80 * scale;
+const ALL_PRICES = [...DEMO_CANDLES, FUTURE_CANDLE].flatMap(c => [c.h, c.l]);
+const G_MIN = Math.min(...ALL_PRICES);
+const G_MAX = Math.max(...ALL_PRICES);
+const CHART_H = 80;
+
+function priceToY(p) {
+  return ((G_MAX - p) / (G_MAX - G_MIN)) * CHART_H;
+}
+
+function MiniCandle({ candle, visible, width = 28, animate = false }) {
+  if (!visible) return <div style={{ width: `${width}px`, height: `${CHART_H}px` }} />;
+  const isGreen = candle.c >= candle.o;
+  const color   = isGreen ? '#22d3a5' : '#f05454';
+
+  const wickTop  = priceToY(candle.h);
+  const wickBot  = priceToY(candle.l);
+  const bodyTop  = priceToY(Math.max(candle.o, candle.c));
+  const bodyBot  = priceToY(Math.min(candle.o, candle.c));
+  const bodyH    = Math.max(bodyBot - bodyTop, 2);
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', animation: 'candleIn 0.35s cubic-bezier(0.4,0,0.2,1) both', width: `${width}px` }}>
-      <div style={{ width: '2px', height: `${wickTopH}px`, background: color }} />
-      <div style={{ width: `${width * 0.55}px`, height: `${Math.max(bodyH, 4)}px`, background: color, borderRadius: '2px' }} />
-      <div style={{ width: '2px', height: `${wickBotH}px`, background: color }} />
+    <div style={{ position: 'relative', width: `${width}px`, height: `${CHART_H}px`, animation: animate ? 'candleIn 0.35s cubic-bezier(0.4,0,0.2,1) both' : undefined }}>
+      <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', width: '2px', top: `${wickTop}px`, height: `${wickBot - wickTop}px`, background: color }} />
+      <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', width: `${width * 0.55}px`, top: `${bodyTop}px`, height: `${bodyH}px`, background: color, borderRadius: '2px' }} />
     </div>
   );
 }
@@ -54,8 +65,8 @@ function DemoChart() {
     setTimeout(() => setVisible(3), 1000);
   }
 
-  const lastClose  = DEMO_CANDLES[2].c;
-  const pct        = ((FUTURE_CLOSE - lastClose) / lastClose * 100).toFixed(1);
+  const lastClose = DEMO_CANDLES[2].c;
+  const pct       = ((FUTURE_CANDLE.c - lastClose) / lastClose * 100).toFixed(1);
 
   return (
     <div style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '12px', padding: '20px', marginBottom: '28px' }}>
@@ -63,18 +74,13 @@ function DemoChart() {
         BTC/USDT · 1h
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px', height: '90px', marginBottom: '16px', justifyContent: 'center' }}>
+      <div style={{ position: 'relative', display: 'flex', gap: '10px', height: `${CHART_H}px`, marginBottom: '16px', justifyContent: 'center', alignItems: 'flex-start' }}>
         {DEMO_CANDLES.map((c, i) => (
           <MiniCandle key={i} candle={c} visible={visible > i} width={28} />
         ))}
+        <MiniCandle candle={FUTURE_CANDLE} visible={revealed} width={28} animate />
         {revealed && (
-          <div style={{ display: 'flex', alignItems: 'flex-end', animation: 'candleIn 0.35s cubic-bezier(0.4,0,0.2,1) both' }}>
-            <div style={{ width: '2px', height: '20px', background: '#22d3a5', marginBottom: '4px', alignSelf: 'flex-start' }} />
-            <div style={{ width: '16px', height: '40px', background: 'rgba(34,211,165,0.15)', border: '1px solid #22d3a5', borderRadius: '2px', marginLeft: '-1px' }} />
-          </div>
-        )}
-        {revealed && (
-          <div style={{ position: 'absolute', marginTop: '-60px', fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: '#22d3a5', animation: 'fadeInUp 0.4s both' }}>
+          <div style={{ position: 'absolute', top: `${priceToY(FUTURE_CANDLE.h) - 20}px`, right: '10px', fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: '#22d3a5', animation: 'fadeInUp 0.4s both' }}>
             +{pct}%
           </div>
         )}
