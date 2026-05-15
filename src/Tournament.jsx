@@ -274,22 +274,25 @@ export default function Tournament({ onBack }) {
   return (
     <div id="gtm-root" style={{ position: 'relative' }}>
       <div className="scanlines" />
-      <button onClick={onBack}
-        style={{ position: 'absolute', top: 'calc(14px + env(safe-area-inset-top))', left: '16px', background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', zIndex: 10 }}>
-        {t.game.menu}
-      </button>
+      <div className="header" style={{ display: 'grid', gridTemplateColumns: '80px 1fr 80px', alignItems: 'center', padding: '12px 20px 10px' }}>
+        <button onClick={onBack}
+          style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', padding: 0, textAlign: 'left', transition: 'color 0.15s' }}
+          onMouseEnter={e => e.target.style.color = '#e2e8f0'}
+          onMouseLeave={e => e.target.style.color = '#3a4455'}
+        >{t.game.menu}</button>
 
-      <div className="header">
-        <div className="logo">🏆 {t.home.mode3.toUpperCase()}</div>
-        <div className="stats-row">
-          <div className="stat-item">
-            <span className="stat-label">{t.game.round}</span>
-            <span className="stat-val">{round + 1}/10</span>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: '#f5c842', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 24px rgba(245,200,66,0.55), 0 0 8px rgba(245,200,66,0.3)' }}>
+            🏆 {t.home.mode3.toUpperCase()}
           </div>
-          <div className="stat-item">
-            <span className="stat-label">{t.game.score}</span>
-            <span className="stat-val yellow">{score}</span>
+          <div style={{ fontSize: '8px', color: '#3a4455', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: "'Space Mono', monospace" }}>
+            TOURNAMENT MODE
           </div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
+          <span style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.06em' }}>{round + 1}/10</span>
+          <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#f5c842', textShadow: '0 0 14px rgba(245,200,66,0.35)' }}>{score}</span>
         </div>
       </div>
 

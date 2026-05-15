@@ -607,7 +607,14 @@ export default function App() {
             ))}
           </div>
         </div>
-        <div className="logo" style={{ textAlign: 'center' }}>GUESS <span>THE</span> MARKET</div>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: '#22d3a5', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 24px rgba(34,211,165,0.55), 0 0 8px rgba(34,211,165,0.3)' }}>
+            GUESS <span style={{ color: '#f0f0f0' }}>THE</span> MARKET
+          </div>
+          <div style={{ fontSize: '8px', color: '#3a4455', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: "'Space Mono', monospace" }}>
+            CLASSIC MODE
+          </div>
+        </div>
         <div className="stats-row" style={{ justifyContent: 'space-around', width: '100%' }}>
           <div className="stat-item">
             <span className="stat-label">{t.game.round}</span>

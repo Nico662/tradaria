@@ -191,33 +191,38 @@ export default function Daily({ onBack }) {
   return (
     <div id="gtm-root" style={{ position: 'relative' }}>
       <div className="scanlines" />
-      <div style={{ padding: '48px 28px 32px', position: 'relative', zIndex: 2 }}>
+      <div style={{ padding: '20px 28px 32px', position: 'relative', zIndex: 2 }}>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        {/* Header row: back | lang */}
+        <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr 80px', alignItems: 'center', marginBottom: '20px' }}>
           <button onClick={onBack}
-            style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em' }}
+            style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', padding: 0, textAlign: 'left', transition: 'color 0.15s' }}
             onMouseEnter={e => e.target.style.color = '#e2e8f0'}
             onMouseLeave={e => e.target.style.color = '#3a4455'}
           >{t.daily.back}</button>
-          <div className="lang-selector">
-            {['en', 'es', 'de'].map(l => (
-              <button key={l} className={`lang-btn${lang === l ? ' active' : ''}`} onClick={() => setLang(l)}>
-                {l.toUpperCase()}
-              </button>
-            ))}
+
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: '#378ADD', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 24px rgba(55,138,221,0.55), 0 0 8px rgba(55,138,221,0.3)' }}>
+              📅 {t.daily.title}
+            </div>
+            <div style={{ fontSize: '8px', color: '#3a4455', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: "'Space Mono', monospace" }}>
+              DAILY CHALLENGE
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
+            <span style={{ fontSize: '8px', color: '#3a4455', fontFamily: "'Space Mono', monospace", letterSpacing: '0.06em' }}>{new Date().toISOString().split('T')[0]}</span>
+            <div className="lang-selector" style={{ marginTop: '2px' }}>
+              {['en', 'es', 'de'].map(l => (
+                <button key={l} className={`lang-btn${lang === l ? ' active' : ''}`} onClick={() => setLang(l)}>
+                  {l.toUpperCase()}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: '#f0f0f0' }}>
-            {t.daily.title}
-          </div>
-          <div style={{ fontSize: '9px', color: '#3a4455', fontFamily: "'Space Mono', monospace", letterSpacing: '0.1em' }}>
-            {new Date().toISOString().split('T')[0]}
-          </div>
-        </div>
-
-        <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '24px' }}>
+        <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '24px', textAlign: 'center' }}>
           {t.daily.next} {timeLeft}
         </div>
 
