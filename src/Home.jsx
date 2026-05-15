@@ -241,7 +241,7 @@ export default function Home({ onSelect }) {
           {/* Divider */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '2px 0' }}>
             <div style={{ flex: 1, height: '1px', background: '#1a2030' }} />
-            <span style={{ fontSize: '8px', color: '#2a3345', letterSpacing: '0.18em', fontFamily: "'Space Mono', monospace" }}>MORE MODES</span>
+            <span style={{ fontSize: '8px', color: '#2a3345', letterSpacing: '0.18em', fontFamily: "'Space Mono', monospace" }}>{t.home.moreModes.toUpperCase()}</span>
             <div style={{ flex: 1, height: '1px', background: '#1a2030' }} />
           </div>
 

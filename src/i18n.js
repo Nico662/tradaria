@@ -15,6 +15,7 @@ export const LANGS = {
       mode4sub: 'one chart · one shot · come back tomorrow',
       mode5: 'Historical Mode',
       mode5sub: '50 real events · can you call them?',
+      moreModes: 'More Modes',
       shop: 'Shop',
     },
     game: {
@@ -353,6 +354,7 @@ export const LANGS = {
       mode4sub: 'un gráfico · un intento · vuelve mañana',
       mode5: 'Modo Histórico',
       mode5sub: '50 eventos reales · ¿puedes acertarlos?',
+      moreModes: 'Más Modos',
       shop: 'Tienda',
     },
     game: {
@@ -691,6 +693,7 @@ export const LANGS = {
       mode4sub: 'ein Chart · ein Versuch · komm morgen wieder',
       mode5: 'Historischer Modus',
       mode5sub: '50 echte Ereignisse · kannst du sie erraten?',
+      moreModes: 'Mehr Modi',
       shop: 'Shop',
     },
     game: {
