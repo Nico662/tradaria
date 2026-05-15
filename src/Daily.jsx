@@ -8,6 +8,7 @@ import { addXP, getXP } from './levels.js';
 import { useLang } from './LangContext.jsx';
 import { useAuth } from './AuthContext';
 import EffectOverlay from './EffectOverlay.jsx';
+import { incrementMission, recordModePlayed } from './missions.js';
 
 function ShareButton({ onShare, t }) {
   return (
@@ -31,6 +32,7 @@ export default function Daily({ onBack }) {
   const [timeLeft, setTimeLeft]     = useState('');
   const [newBadge, setNewBadge]     = useState(null);
   const [floatingXP, setFloatingXP] = useState(null);
+  const [missionToast, setMissionToast] = useState(null);
   const chartRef = useRef(null);
 
   function tryUnlockDailyBadge(id) {
@@ -120,6 +122,11 @@ export default function Daily({ onBack }) {
   const today = new Date().toISOString().split('T')[0];
   localStorage.setItem('tradara_daily_played', today);
   localStorage.setItem('tradara_daily_result', JSON.stringify(res));
+
+  const mr = incrementMission('play_daily');
+  if (mr.completed) { setMissionToast(mr.xpEarned); setTimeout(() => setMissionToast(null), 2000); }
+  const modeR = recordModePlayed('daily');
+  if (modeR.completed) { setMissionToast(modeR.xpEarned); setTimeout(() => setMissionToast(null), 2000); }
 
   if (win) {
     const prevXP = getXP();
@@ -336,6 +343,11 @@ export default function Daily({ onBack }) {
         </div>
       )}
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
+      {missionToast !== null && (
+        <div style={{ position: 'fixed', top: '12px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(34,211,165,0.12)', border: '1px solid #22d3a5', borderRadius: '8px', padding: '8px 18px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', zIndex: 9999, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
+          ✓ {lang === 'es' ? 'Misión completada' : lang === 'de' ? 'Mission abgeschlossen' : 'Mission done'} · +{missionToast} XP
+        </div>
+      )}
       <EffectOverlay effect={activeCosmetics?.effect} active={activeEffect} />
     </div>
   );

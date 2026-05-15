@@ -28,6 +28,7 @@ import PublicProfile from './PublicProfile.jsx';
 import Tutorial from './Tutorial.jsx';
 import Landing from './Landing.jsx';
 import Stats from './Stats.jsx';
+import { incrementMission, recordModePlayed } from './missions.js';
 
 
 const CATEGORIES = [
@@ -71,6 +72,7 @@ export default function App() {
   const [xp,          setXp]        = useState(() => getXP());
   const [floatingXP,  setFloatingXP]= useState(null);
   const [activeEffect,setActiveEffect] = useState(false);
+  const [missionToast, setMissionToast] = useState(null);
   const [chartReady, setChartReady] = useState(false);
 
   const { syncProgress, activeCosmetics = {}, user, checkLevelUp } = useAuth();
@@ -280,6 +282,23 @@ export default function App() {
       localStorage.setItem('tradara_whale_wins', '0');
     }
 
+    if (win) {
+      const r1 = incrementMission('correct_10');
+      if (r1.completed) { setMissionToast(r1.xpEarned); setTimeout(() => setMissionToast(null), 2000); }
+      if (streak + 1 === 3) {
+        const r2 = incrementMission('play_3_guess', 3);
+        if (r2.completed) { setMissionToast(r2.xpEarned); setTimeout(() => setMissionToast(null), 2000); }
+      }
+      if (streak + 1 === 5) {
+        const r3 = incrementMission('streak_5', 5);
+        if (r3.completed) { setMissionToast(r3.xpEarned); setTimeout(() => setMissionToast(null), 2000); }
+      }
+      if (choice === 'skip') {
+        const r4 = incrementMission('no_trade_3');
+        if (r4.completed) { setMissionToast(r4.xpEarned); setTimeout(() => setMissionToast(null), 2000); }
+      }
+    }
+
     const outcome = win && !neutral ? 'win' : !win && !neutral ? 'lose' : 'skip';
     setHistory(h => [...h, outcome]);
     setResult({ win, neutral, pts, pctMove, direction, choice });
@@ -314,6 +333,10 @@ export default function App() {
 
   const nextRound = () => {
     setChartReady(false);
+    const mr = incrementMission('play_5_guess');
+    if (mr.completed) { setMissionToast(mr.xpEarned); setTimeout(() => setMissionToast(null), 2000); }
+    const modeR = recordModePlayed('guess');
+    if (modeR.completed) { setMissionToast(modeR.xpEarned); setTimeout(() => setMissionToast(null), 2000); }
     if (round >= 25) {
       setGameOver(true);
       return;
@@ -764,6 +787,12 @@ export default function App() {
       )}
 
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
+
+      {missionToast !== null && (
+        <div style={{ position: 'fixed', top: '12px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(34,211,165,0.12)', border: '1px solid #22d3a5', borderRadius: '8px', padding: '8px 18px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', zIndex: 9999, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
+          ✓ {lang === 'es' ? 'Misión completada' : lang === 'de' ? 'Mission abgeschlossen' : 'Mission done'} · +{missionToast} XP
+        </div>
+      )}
 
       <EffectOverlay effect={activeCosmetics.effect} active={activeEffect} />
       {challengeOverlay}

@@ -10,6 +10,7 @@ import { useAuth } from './AuthContext';
 import EffectOverlay from './EffectOverlay.jsx';
 
 import { SERVER } from './config.js';
+import { incrementMission, recordModePlayed } from './missions.js';
 const SOCKET_URL = SERVER;
 
 const BOT_NAMES = ['AlgoBot', 'TradeAI', 'MarketBot', 'CryptoBot', 'NeuralBot'];
@@ -82,6 +83,7 @@ export default function Arena({ onBack, challengeRoomCode }) {
   const [chatMsg,   setChatMsg]  = useState(null);
   const [showChat,  setShowChat] = useState(false);
   const [newBadge,  setNewBadge] = useState(null);
+  const [missionToast, setMissionToast] = useState(null);
   const socketRef       = useRef(null);
   const timerRef        = useRef(null);
   const [rematchState,     setRematchState]     = useState(null);
@@ -225,7 +227,13 @@ export default function Arena({ onBack, challengeRoomCode }) {
             if (wins === 1) tryUnlockArenaBadge('first_blood');
             if (wins >= 5)  tryUnlockArenaBadge('dominator');
             if (newMyScore >= 1000) tryUnlockArenaBadge('unbeatable');
+            const wr = incrementMission('win_arena');
+            if (wr.completed) { setMissionToast(wr.xpEarned); setTimeout(() => setMissionToast(null), 2000); }
           }
+          const pr = incrementMission('play_arena');
+          if (pr.completed) { setMissionToast(pr.xpEarned); setTimeout(() => setMissionToast(null), 2000); }
+          const modeR = recordModePlayed('arena');
+          if (modeR.completed) { setMissionToast(modeR.xpEarned); setTimeout(() => setMissionToast(null), 2000); }
           setScreen('gameover');
         } else {
           const next = { ...botRounds[nextRoundIndex] };
@@ -279,7 +287,13 @@ export default function Arena({ onBack, challengeRoomCode }) {
         if (wins === 1) tryUnlockArenaBadge('first_blood');
         if (wins >= 5)  tryUnlockArenaBadge('dominator');
         if (myScore >= 1000) tryUnlockArenaBadge('unbeatable');
+        const wr = incrementMission('win_arena');
+        if (wr.completed) { setMissionToast(wr.xpEarned); setTimeout(() => setMissionToast(null), 2000); }
       }
+      const pr = incrementMission('play_arena');
+      if (pr.completed) { setMissionToast(pr.xpEarned); setTimeout(() => setMissionToast(null), 2000); }
+      const modeR = recordModePlayed('arena');
+      if (modeR.completed) { setMissionToast(modeR.xpEarned); setTimeout(() => setMissionToast(null), 2000); }
     });
     socket.on('game:error',           (d) => { setStatus(d.message); setScreen('lobby'); });
     socket.on('game:opponent_disconnected', () => { setStatus(t.arena.oppDisconnected); setScreen('lobby'); socket.disconnect(); });
@@ -804,6 +818,11 @@ export default function Arena({ onBack, challengeRoomCode }) {
           <div style={{ fontSize: '9px', color: '#22d3a5', letterSpacing: '0.1em', marginTop: '8px' }}>tradara.dev</div>
         </div>
         {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
+        {missionToast !== null && (
+          <div style={{ position: 'fixed', top: '12px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(34,211,165,0.12)', border: '1px solid #22d3a5', borderRadius: '8px', padding: '8px 18px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', zIndex: 9999, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
+            ✓ {lang === 'es' ? 'Misión completada' : lang === 'de' ? 'Mission abgeschlossen' : 'Mission done'} · +{missionToast} XP
+          </div>
+        )}
       </div>
     );
   }

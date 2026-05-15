@@ -8,6 +8,7 @@ import { playWin, playLose, playClick, playStreak } from './sounds.js';
 import { BADGES, unlockBadge } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
 import { addXP, getXP, getLevel } from './levels.js';
+import { incrementMission, recordModePlayed } from './missions.js';
 import { useAuth } from './AuthContext';
 import { SERVER } from './config.js';
 
@@ -19,7 +20,7 @@ function randomAsset() {
 }
 
 export default function Survival({ onBack }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const { syncProgress, activeCosmetics, checkLevelUp } = useAuth();
 
   const [phase,       setPhase]      = useState('choose');
@@ -37,6 +38,7 @@ export default function Survival({ onBack }) {
   const [newBadge,    setNewBadge]   = useState(null);
   const [floatingXP,  setFloatingXP] = useState(null);
   const [liveLost,    setLiveLost]   = useState(false);
+  const [missionToast, setMissionToast] = useState(null);
   const [activeEffect,setActiveEffect] = useState(false);
   const chartRef = useRef(null);
 
@@ -152,6 +154,10 @@ export default function Survival({ onBack }) {
     setResult(null);
     setSelected(null);
     setRound(r => r + 1);
+    const mr = incrementMission('play_survival');
+    if (mr.completed) { setMissionToast(mr.xpEarned); setTimeout(() => setMissionToast(null), 2000); }
+    const modeR = recordModePlayed('survival');
+    if (modeR.completed) { setMissionToast(modeR.xpEarned); setTimeout(() => setMissionToast(null), 2000); }
   };
 
   const playAgain = () => {
@@ -469,6 +475,12 @@ export default function Survival({ onBack }) {
       )}
 
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
+
+      {missionToast !== null && (
+        <div style={{ position: 'fixed', top: '12px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(34,211,165,0.12)', border: '1px solid #22d3a5', borderRadius: '8px', padding: '8px 18px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', zIndex: 9999, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
+          ✓ {lang === 'es' ? 'Misión completada' : lang === 'de' ? 'Mission abgeschlossen' : 'Mission done'} · +{missionToast} XP
+        </div>
+      )}
 
       <EffectOverlay effect={activeCosmetics.effect} active={activeEffect} />
     </div>

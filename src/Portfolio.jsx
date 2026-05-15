@@ -6,6 +6,7 @@ import { ASSET_INFO } from './assetInfo.js';
 
 import { SERVER } from './config.js';
 import UserAvatar from './UserAvatar.jsx';
+import { incrementMission, recordModePlayed } from './missions.js';
 
 const TYPE_COLORS = {
   stock:     '#378ADD',
@@ -75,7 +76,7 @@ function getWeekStart() {
 
 export default function Portfolio({ onBack }) {
   const { user } = useAuth();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [screen, setScreen]                 = useState('loading');
   const [prices, setPrices]                 = useState([]);
   const [portfolio, setPortfolio]           = useState(null);
@@ -88,6 +89,7 @@ export default function Portfolio({ onBack }) {
   const [tab, setTab]                       = useState('market');
   const [tradeMsg, setTradeMsg]             = useState('');
   const [factMsg, setFactMsg]               = useState('');
+  const [missionToast, setMissionToast]     = useState(null);
   const [hoveredSymbol, setHoveredSymbol]   = useState(null);
   const [assetCandles, setAssetCandles]     = useState(null);
   const [loadingCandles, setLoadingCandles] = useState(false);
@@ -275,6 +277,11 @@ export default function Portfolio({ onBack }) {
       if (!data.ok) { setError(data.error); setLoading(false); return; }
       setTradeMsg(action === 'buy' ? '✓ ' + t.portfolio.purchase : '✓ ' + t.portfolio.sale);
       setTimeout(() => setTradeMsg(''), 2000);
+      const mKey = action === 'buy' ? 'portfolio_buy' : 'portfolio_sell';
+      const mr = incrementMission(mKey);
+      if (mr.completed) { setMissionToast(mr.xpEarned); setTimeout(() => setMissionToast(null), 2000); }
+      const modeR = recordModePlayed('portfolio');
+      if (modeR.completed) { setMissionToast(modeR.xpEarned); setTimeout(() => setMissionToast(null), 2000); }
       if (action === 'buy') {
         const info = ASSET_INFO[selected.symbol];
         if (info?.fact) {
@@ -991,6 +998,12 @@ export default function Portfolio({ onBack }) {
               </div>
             ))
           )}
+        </div>
+      )}
+
+      {missionToast !== null && (
+        <div style={{ position: 'fixed', top: '12px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(34,211,165,0.12)', border: '1px solid #22d3a5', borderRadius: '8px', padding: '8px 18px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', zIndex: 9999, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
+          ✓ {lang === 'es' ? 'Misión completada' : lang === 'de' ? 'Mission abgeschlossen' : 'Mission done'} · +{missionToast} XP
         </div>
       )}
     </div>

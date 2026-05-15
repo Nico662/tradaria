@@ -8,6 +8,7 @@ import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
 import { useAuth } from './AuthContext';
 import EffectOverlay from './EffectOverlay.jsx';
+import { incrementMission, recordModePlayed } from './missions.js';
 
 export default function Historical({ onBack }) {
   const { t, lang, setLang } = useLang();
@@ -23,6 +24,7 @@ export default function Historical({ onBack }) {
   const [copied, setCopied]       = useState(false);
   const [floatingXP, setFloatingXP] = useState(null);
   const [newBadge, setNewBadge]   = useState(null);
+  const [missionToast, setMissionToast] = useState(null);
   const chartRef = useRef(null);
 
   function tryUnlockHistoricalBadge(id) {
@@ -82,6 +84,10 @@ export default function Historical({ onBack }) {
     }
     if (completed.length >= 10) tryUnlockHistoricalBadge('historian');
     if (completed.length >= 50) tryUnlockHistoricalBadge('time_traveler');
+    const mr = incrementMission('play_historical');
+    if (mr.completed) { setMissionToast(mr.xpEarned); setTimeout(() => setMissionToast(null), 2000); }
+    const modeR = recordModePlayed('historical');
+    if (modeR.completed) { setMissionToast(modeR.xpEarned); setTimeout(() => setMissionToast(null), 2000); }
   };
 
   const shareResult = () => {
@@ -280,6 +286,11 @@ export default function Historical({ onBack }) {
       )}
 
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
+      {missionToast !== null && (
+        <div style={{ position: 'fixed', top: '12px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(34,211,165,0.12)', border: '1px solid #22d3a5', borderRadius: '8px', padding: '8px 18px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', zIndex: 9999, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
+          ✓ {lang === 'es' ? 'Misión completada' : lang === 'de' ? 'Mission abgeschlossen' : 'Mission done'} · +{missionToast} XP
+        </div>
+      )}
       <EffectOverlay effect={activeCosmetics?.effect} active={activeEffect} />
     </div>
   );

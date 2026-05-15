@@ -10,10 +10,11 @@ import EffectOverlay from './EffectOverlay.jsx';
 
 import { SERVER } from './config.js';
 import UserAvatar, { AVATAR_EMOJIS } from './UserAvatar.jsx';
+import { incrementMission, recordModePlayed } from './missions.js';
 
 export default function Tournament({ onBack }) {
   const { user, syncProgress, activeCosmetics } = useAuth();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [activeEffect, setActiveEffect] = useState(false);
   function triggerEffect() { setActiveEffect(true); setTimeout(() => setActiveEffect(false), 1500); }
   const [phase, setPhase] = useState('loading');
@@ -27,6 +28,7 @@ export default function Tournament({ onBack }) {
   const [weekId, setWeekId] = useState('');
   const [alreadyScore, setAlreadyScore] = useState(null);
   const [newBadge, setNewBadge] = useState(null);
+  const [missionToast, setMissionToast] = useState(null);
   const chartRef = useRef(null);
 
   const currentRound = rounds[round];
@@ -135,6 +137,10 @@ export default function Tournament({ onBack }) {
       syncProgress(newXP, badges);
       await loadLeaderboard();
       setPhase('finished');
+      const mr = incrementMission('play_tournament');
+      if (mr.completed) { setMissionToast(mr.xpEarned); setTimeout(() => setMissionToast(null), 2000); }
+      const modeR = recordModePlayed('tournament');
+      if (modeR.completed) { setMissionToast(modeR.xpEarned); setTimeout(() => setMissionToast(null), 2000); }
       return;
     }
     setRound(r => r + 1);
@@ -353,6 +359,11 @@ export default function Tournament({ onBack }) {
       )}
 
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
+      {missionToast !== null && (
+        <div style={{ position: 'fixed', top: '12px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(34,211,165,0.12)', border: '1px solid #22d3a5', borderRadius: '8px', padding: '8px 18px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', zIndex: 9999, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
+          ✓ {lang === 'es' ? 'Misión completada' : lang === 'de' ? 'Mission abgeschlossen' : 'Mission done'} · +{missionToast} XP
+        </div>
+      )}
       <EffectOverlay effect={activeCosmetics?.effect} active={activeEffect} />
     </div>
   );

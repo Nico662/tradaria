@@ -1,5 +1,6 @@
 import { useLang } from './LangContext';
 import { useState, useEffect, useRef } from 'react';
+import DailyMissions from './DailyMissions.jsx';
 import { SERVER } from './config.js';
 import { getUnlocked } from './badges.js';
 import { getXP, getLevel } from './levels.js';
@@ -209,6 +210,8 @@ export default function Home({ onSelect }) {
             </div>
           </div>
         </div>
+
+        <DailyMissions />
 
         {/* Mode cards */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
