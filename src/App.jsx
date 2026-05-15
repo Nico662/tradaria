@@ -29,6 +29,7 @@ import Tutorial from './Tutorial.jsx';
 import Landing from './Landing.jsx';
 import Stats from './Stats.jsx';
 import { incrementMission, recordModePlayed } from './missions.js';
+import MissionNotification from './MissionNotification.jsx';
 
 
 const CATEGORIES = [
@@ -73,6 +74,7 @@ export default function App() {
   const [floatingXP,  setFloatingXP]= useState(null);
   const [activeEffect,setActiveEffect] = useState(false);
   const [missionToast, setMissionToast] = useState(null);
+  const floatingXPKeyRef = useRef(0);
   const [chartReady, setChartReady] = useState(false);
 
   const { syncProgress, activeCosmetics = {}, user, checkLevelUp } = useAuth();
@@ -162,6 +164,7 @@ export default function App() {
     checkLevelUp(prevXP, newXP);
     setFloatingXP(null);
     setTimeout(() => {
+      floatingXPKeyRef.current += 1;
       setFloatingXP(amount);
       setTimeout(() => setFloatingXP(null), 2000);
     }, 50);
@@ -284,18 +287,18 @@ export default function App() {
 
     if (win) {
       const r1 = incrementMission('correct_10');
-      if (r1.completed) { setMissionToast(r1.xpEarned); setTimeout(() => setMissionToast(null), 2000); }
+      if (r1.completed) setMissionToast({ xpEarned: r1.xpEarned, title: r1.mission.title });
       if (streak + 1 === 3) {
         const r2 = incrementMission('play_3_guess', 3);
-        if (r2.completed) { setMissionToast(r2.xpEarned); setTimeout(() => setMissionToast(null), 2000); }
+        if (r2.completed) setMissionToast({ xpEarned: r2.xpEarned, title: r2.mission.title });
       }
       if (streak + 1 === 5) {
         const r3 = incrementMission('streak_5', 5);
-        if (r3.completed) { setMissionToast(r3.xpEarned); setTimeout(() => setMissionToast(null), 2000); }
+        if (r3.completed) setMissionToast({ xpEarned: r3.xpEarned, title: r3.mission.title });
       }
       if (choice === 'skip') {
         const r4 = incrementMission('no_trade_3');
-        if (r4.completed) { setMissionToast(r4.xpEarned); setTimeout(() => setMissionToast(null), 2000); }
+        if (r4.completed) setMissionToast({ xpEarned: r4.xpEarned, title: r4.mission.title });
       }
     }
 
@@ -334,9 +337,9 @@ export default function App() {
   const nextRound = () => {
     setChartReady(false);
     const mr = incrementMission('play_5_guess');
-    if (mr.completed) { setMissionToast(mr.xpEarned); setTimeout(() => setMissionToast(null), 2000); }
+    if (mr.completed) setMissionToast({ xpEarned: mr.xpEarned, title: mr.mission.title });
     const modeR = recordModePlayed('guess');
-    if (modeR.completed) { setMissionToast(modeR.xpEarned); setTimeout(() => setMissionToast(null), 2000); }
+    if (modeR.completed) setMissionToast({ xpEarned: modeR.xpEarned, title: modeR.mission.title });
     if (round >= 25) {
       setGameOver(true);
       return;
@@ -776,7 +779,7 @@ export default function App() {
       </div>
 
       {floatingXP && (
-        <div key={Date.now()} style={{
+        <div key={floatingXPKeyRef.current} style={{
           position: 'fixed', top: '40%', left: '50%', transform: 'translateX(-50%)',
           fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px',
           color: '#22d3a5', zIndex: 9999, pointerEvents: 'none',
@@ -788,11 +791,7 @@ export default function App() {
 
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
 
-      {missionToast !== null && (
-        <div style={{ position: 'fixed', top: '12px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(34,211,165,0.12)', border: '1px solid #22d3a5', borderRadius: '8px', padding: '8px 18px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', zIndex: 9999, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
-          ✓ {lang === 'es' ? 'Misión completada' : lang === 'de' ? 'Mission abgeschlossen' : 'Mission done'} · +{missionToast} XP
-        </div>
-      )}
+      {missionToast && <MissionNotification data={missionToast} onDone={() => setMissionToast(null)} />}
 
       <EffectOverlay effect={activeCosmetics.effect} active={activeEffect} />
       {challengeOverlay}

@@ -50,7 +50,7 @@ export function incrementMission(missionId, amount = 1) {
   localStorage.setItem(key, JSON.stringify(data));
   if (next >= mission.target) {
     addXP(mission.xp);
-    return { completed: true, xpEarned: mission.xp };
+    return { completed: true, xpEarned: mission.xp, mission };
   }
   return { completed: false, xpEarned: 0 };
 }

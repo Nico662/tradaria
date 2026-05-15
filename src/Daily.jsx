@@ -8,6 +8,7 @@ import { useLang } from './LangContext.jsx';
 import { useAuth } from './AuthContext';
 import EffectOverlay from './EffectOverlay.jsx';
 import { incrementMission, recordModePlayed } from './missions.js';
+import MissionNotification from './MissionNotification.jsx';
 
 function ShareButton({ onShare, copied, t }) {
   return (
@@ -124,9 +125,9 @@ export default function Daily({ onBack }) {
   localStorage.setItem('tradara_daily_result', JSON.stringify(res));
 
   const mr = incrementMission('play_daily');
-  if (mr.completed) { setMissionToast(mr.xpEarned); setTimeout(() => setMissionToast(null), 2000); }
+  if (mr.completed) setMissionToast({ xpEarned: mr.xpEarned, title: mr.mission.title });
   const modeR = recordModePlayed('daily');
-  if (modeR.completed) { setMissionToast(modeR.xpEarned); setTimeout(() => setMissionToast(null), 2000); }
+  if (modeR.completed) setMissionToast({ xpEarned: modeR.xpEarned, title: modeR.mission.title });
 
   if (win) {
     const prevXP = getXP();
@@ -328,11 +329,7 @@ export default function Daily({ onBack }) {
         )}
       </div>
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
-      {missionToast !== null && (
-        <div style={{ position: 'fixed', top: '12px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(34,211,165,0.12)', border: '1px solid #22d3a5', borderRadius: '8px', padding: '8px 18px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', zIndex: 9999, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
-          ✓ {lang === 'es' ? 'Misión completada' : lang === 'de' ? 'Mission abgeschlossen' : 'Mission done'} · +{missionToast} XP
-        </div>
-      )}
+      {missionToast && <MissionNotification data={missionToast} onDone={() => setMissionToast(null)} />}
       <EffectOverlay effect={activeCosmetics?.effect} active={activeEffect} />
     </div>
   );

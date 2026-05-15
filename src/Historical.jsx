@@ -9,6 +9,7 @@ import BadgeNotification from './BadgeNotification.jsx';
 import { useAuth } from './AuthContext';
 import EffectOverlay from './EffectOverlay.jsx';
 import { incrementMission, recordModePlayed } from './missions.js';
+import MissionNotification from './MissionNotification.jsx';
 
 export default function Historical({ onBack }) {
   const { t, lang, setLang } = useLang();
@@ -25,6 +26,7 @@ export default function Historical({ onBack }) {
   const [floatingXP, setFloatingXP] = useState(null);
   const [newBadge, setNewBadge]   = useState(null);
   const [missionToast, setMissionToast] = useState(null);
+  const floatingXPKeyRef = useRef(0);
   const chartRef = useRef(null);
 
   function tryUnlockHistoricalBadge(id) {
@@ -73,6 +75,7 @@ export default function Historical({ onBack }) {
     if (win) triggerEffect();
     setFloatingXP(null);
     setTimeout(() => {
+      floatingXPKeyRef.current += 1;
       setFloatingXP(xpAmount);
       setTimeout(() => setFloatingXP(null), 2000);
     }, 50);
@@ -85,9 +88,9 @@ export default function Historical({ onBack }) {
     if (completed.length >= 10) tryUnlockHistoricalBadge('historian');
     if (completed.length >= 50) tryUnlockHistoricalBadge('time_traveler');
     const mr = incrementMission('play_historical');
-    if (mr.completed) { setMissionToast(mr.xpEarned); setTimeout(() => setMissionToast(null), 2000); }
+    if (mr.completed) setMissionToast({ xpEarned: mr.xpEarned, title: mr.mission.title });
     const modeR = recordModePlayed('historical');
-    if (modeR.completed) { setMissionToast(modeR.xpEarned); setTimeout(() => setMissionToast(null), 2000); }
+    if (modeR.completed) setMissionToast({ xpEarned: modeR.xpEarned, title: modeR.mission.title });
   };
 
   const shareResult = () => {
@@ -275,7 +278,7 @@ export default function Historical({ onBack }) {
       </div>
 
       {floatingXP && (
-        <div key={Date.now()} style={{
+        <div key={floatingXPKeyRef.current} style={{
           position: 'fixed', top: '40%', left: '50%', transform: 'translateX(-50%)',
           fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px',
           color: '#22d3a5', zIndex: 9999, pointerEvents: 'none',
@@ -286,11 +289,7 @@ export default function Historical({ onBack }) {
       )}
 
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
-      {missionToast !== null && (
-        <div style={{ position: 'fixed', top: '12px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(34,211,165,0.12)', border: '1px solid #22d3a5', borderRadius: '8px', padding: '8px 18px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', zIndex: 9999, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
-          ✓ {lang === 'es' ? 'Misión completada' : lang === 'de' ? 'Mission abgeschlossen' : 'Mission done'} · +{missionToast} XP
-        </div>
-      )}
+      {missionToast && <MissionNotification data={missionToast} onDone={() => setMissionToast(null)} />}
       <EffectOverlay effect={activeCosmetics?.effect} active={activeEffect} />
     </div>
   );
