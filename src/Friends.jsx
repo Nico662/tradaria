@@ -147,9 +147,17 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
   const [searchLoading, setSearchLoading] = useState(false);
   const [loading, setLoading]           = useState(true);
   const [msg, setMsg]                   = useState(null);
+  const [copiedInvite, setCopiedInvite] = useState(false);
   const debounceRef                     = useRef(null);
   const [challengingFriend, setChallengingFriend] = useState(null);
   const [challengeStatus, setChallengeStatus]     = useState(null);
+
+  function copyInviteLink() {
+    if (!user?.username) return;
+    navigator.clipboard.writeText(`https://tradara.dev?ref=@${user.username}`);
+    setCopiedInvite(true);
+    setTimeout(() => setCopiedInvite(false), 2000);
+  }
 
   useEffect(() => {
     if (!user) { setLoading(false); return; }
@@ -296,6 +304,20 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
           </div>
         ) : (
           <>
+            {/* Invite link */}
+            {user?.username && (
+              <div style={{ marginBottom: '24px', padding: '14px 16px', background: 'rgba(34,211,165,0.03)', border: '1px dashed #2a3345', borderRadius: '10px' }}>
+                <div style={{ fontSize: '8px', color: '#3a4455', fontFamily: "'Space Mono', monospace", letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '6px' }}>{t.friends.inviteTitle}</div>
+                <div style={{ fontSize: '10px', color: '#4a5568', fontFamily: "'Space Mono', monospace", marginBottom: '10px', lineHeight: 1.6 }}>{t.friends.inviteSub}</div>
+                <button
+                  onClick={copyInviteLink}
+                  style={{ width: '100%', padding: '9px', background: copiedInvite ? 'rgba(34,211,165,0.12)' : 'rgba(34,211,165,0.06)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', transition: 'background 0.15s' }}
+                >
+                  {copiedInvite ? t.friends.inviteCopied : t.friends.inviteCopy}
+                </button>
+              </div>
+            )}
+
             {/* Buscador */}
             <div style={{ marginBottom: '28px' }}>
               <div style={sectionLabel}>{t.friends.search}</div>
@@ -344,11 +366,19 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
               {loading ? (
                 <div style={{ fontSize: '10px', color: '#3a4455', fontFamily: "'Space Mono', monospace" }}>{t.friends.loading}</div>
               ) : friends.length === 0 ? (
-                <div style={{ padding: '24px', textAlign: 'center', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px' }}>
-                  <div style={{ fontSize: '28px', marginBottom: '8px' }}>🤝</div>
-                  <div style={{ fontSize: '10px', color: '#3a4455', fontFamily: "'Space Mono', monospace", lineHeight: 1.6 }}>
+                <div style={{ padding: '20px', textAlign: 'center', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px' }}>
+                  <div style={{ fontSize: '24px', marginBottom: '8px' }}>🤝</div>
+                  <div style={{ fontSize: '10px', color: '#3a4455', fontFamily: "'Space Mono', monospace", lineHeight: 1.6, marginBottom: '12px' }}>
                     {t.friends.noFriends}<br />{t.friends.noFriendsSub}
                   </div>
+                  {user?.username && (
+                    <button
+                      onClick={copyInviteLink}
+                      style={{ padding: '8px 16px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}
+                    >
+                      {copiedInvite ? t.friends.inviteCopied : t.friends.inviteCopy}
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>

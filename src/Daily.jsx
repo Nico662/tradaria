@@ -33,6 +33,7 @@ export default function Daily({ onBack }) {
   const [newBadge, setNewBadge]     = useState(null);
   const [floatingXP, setFloatingXP] = useState(null);
   const [copied, setCopied]           = useState(false);
+  const [copiedInvite, setCopiedInvite] = useState(false);
   const [missionToast, setMissionToast] = useState(null);
   const chartRef = useRef(null);
 
@@ -289,6 +290,18 @@ export default function Daily({ onBack }) {
                   {t.daily.comeback}
                 </div>
                 <ShareButton onShare={shareResult} copied={copied} t={t} />
+                {user?.username && (
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`https://tradara.dev?ref=@${user.username}`);
+                      setCopiedInvite(true);
+                      setTimeout(() => setCopiedInvite(false), 2000);
+                    }}
+                    style={{ marginTop: '8px', width: '100%', padding: '10px', background: 'transparent', border: '1px dashed #2a3345', borderRadius: '6px', color: copiedInvite ? '#22d3a5' : '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer', letterSpacing: '0.06em', transition: 'all 0.15s' }}
+                  >
+                    {copiedInvite ? t.friends.inviteCopied : t.friends.inviteDaily}
+                  </button>
+                )}
               </div>
             )}
           </>
@@ -307,6 +320,18 @@ export default function Daily({ onBack }) {
               {t.daily.next} {timeLeft}
             </div>
             <ShareButton onShare={shareResult} copied={copied} t={t} />
+            {user?.username && (
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(`https://tradara.dev?ref=@${user.username}`);
+                  setCopiedInvite(true);
+                  setTimeout(() => setCopiedInvite(false), 2000);
+                }}
+                style={{ marginTop: '8px', width: '100%', padding: '10px', background: 'transparent', border: '1px dashed #2a3345', borderRadius: '6px', color: copiedInvite ? '#22d3a5' : '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer', letterSpacing: '0.06em', transition: 'all 0.15s' }}
+              >
+                {copiedInvite ? t.friends.inviteCopied : t.friends.inviteDaily}
+              </button>
+            )}
           </div>
         )}
 

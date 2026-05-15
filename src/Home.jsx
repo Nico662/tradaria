@@ -22,6 +22,7 @@ export default function Home({ onSelect }) {
   const level = getLevel(xp);
   const { user, login, logout, activeCosmetics, updateUser } = useAuth();
   const [showUsernameModal, setShowUsernameModal] = useState(false);
+  const [copiedInvite, setCopiedInvite] = useState(false);
   const [avatarLoading, setAvatarLoading] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -212,6 +213,21 @@ export default function Home({ onSelect }) {
         </div>
 
         <DailyMissions />
+
+        {user?.username && (
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(`https://tradara.dev?ref=@${user.username}`);
+              setCopiedInvite(true);
+              setTimeout(() => setCopiedInvite(false), 2000);
+            }}
+            style={{ width: '100%', marginBottom: '16px', padding: '10px 16px', background: 'transparent', border: '1px dashed #2a3345', borderRadius: '8px', color: copiedInvite ? '#22d3a5' : '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.15s' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#22d3a5'; e.currentTarget.style.color = '#22d3a5'; }}
+            onMouseLeave={e => { if (!copiedInvite) { e.currentTarget.style.borderColor = '#2a3345'; e.currentTarget.style.color = '#3a4455'; } }}
+          >
+            {copiedInvite ? t.friends.inviteCopied : t.friends.inviteCopy}
+          </button>
+        )}
 
         {/* Mode cards */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
