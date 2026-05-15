@@ -202,7 +202,7 @@ export default function Daily({ onBack }) {
           >{t.daily.back}</button>
 
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: '#378ADD', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 24px rgba(55,138,221,0.55), 0 0 8px rgba(55,138,221,0.3)' }}>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: '#378ADD', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(55,138,221,0.2)' }}>
               📅 {t.daily.title}
             </div>
             <div style={{ fontSize: '8px', color: '#3a4455', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: "'Space Mono', monospace" }}>

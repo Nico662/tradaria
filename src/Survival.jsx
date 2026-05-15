@@ -317,7 +317,7 @@ export default function Survival({ onBack }) {
 
         {/* Centered title */}
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: '#f05454', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 24px rgba(240,84,84,0.55), 0 0 8px rgba(240,84,84,0.3)' }}>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: '#f05454', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(240,84,84,0.2)' }}>
             ☠️ {t.survival.title}
           </div>
           <div style={{ fontSize: '8px', color: '#3a4455', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: "'Space Mono', monospace" }}>

@@ -113,7 +113,7 @@ export default function Home({ onSelect }) {
             onMouseEnter={e => e.currentTarget.style.borderColor = '#22d3a5'}
             onMouseLeave={e => e.currentTarget.style.borderColor = '#1e2530'}
           >
-            🤝 Amigos
+            🤝 {t.friends.title}
           </button>
           <div className="lang-selector">
             {['en', 'es', 'de'].map(l => (
@@ -307,7 +307,7 @@ export default function Home({ onSelect }) {
               onMouseEnter={e => e.currentTarget.style.borderColor = '#22d3a5'}
               onMouseLeave={e => e.currentTarget.style.borderColor = '#1e2530'}
             >
-              📊 Mis Stats
+              📊 {t.stats.title}
             </button>
           </div>
 
