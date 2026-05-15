@@ -265,12 +265,12 @@ export default function Survival({ onBack }) {
           </div>
           {personalStats && (
             <div style={{ marginTop: '10px', padding: '12px 16px', background: '#0a0c0f', border: '1px solid #1e2530', borderRadius: '8px' }}>
-              <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px', fontFamily: "'Space Mono', monospace" }}>tu historial</div>
+              <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px', fontFamily: "'Space Mono', monospace" }}>{t.stats.myHistory}</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
                 {[
-                  { label: 'partidas',  value: personalStats.totalGames },
-                  { label: 'precisión', value: `${personalStats.avgAccuracy}%` },
-                  { label: 'mejor racha', value: `${personalStats.bestStreak}x` },
+                  { label: t.stats.games,       value: personalStats.totalGames },
+                  { label: t.stats.avgAccuracy,  value: `${personalStats.avgAccuracy}%` },
+                  { label: t.stats.bestStreak,   value: `${personalStats.bestStreak}x` },
                 ].map(s => (
                   <div key={s.label} style={{ textAlign: 'center' }}>
                     <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#22d3a5' }}>{s.value}</div>
@@ -317,7 +317,7 @@ export default function Survival({ onBack }) {
 
         {/* Centered title */}
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: '#f05454', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 24px rgba(240,84,84,0.55), 0 0 8px rgba(240,84,84,0.3)' }}>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: '#f05454', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 24px rgba(240,84,84,0.55), 0 0 8px rgba(240,84,84,0.3)' }}>
             ☠️ {t.survival.title}
           </div>
           <div style={{ fontSize: '8px', color: '#3a4455', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: "'Space Mono', monospace" }}>

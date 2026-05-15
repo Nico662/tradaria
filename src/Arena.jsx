@@ -756,12 +756,12 @@ export default function Arena({ onBack, challengeRoomCode }) {
 
           {personalStats && (
             <div style={{ marginTop: '4px', padding: '12px 16px', background: '#0a0c0f', border: '1px solid #1e2530', borderRadius: '8px' }}>
-              <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px', fontFamily: "'Space Mono', monospace" }}>tu historial</div>
+              <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px', fontFamily: "'Space Mono', monospace" }}>{t.stats.myHistory}</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
                 {[
-                  { label: 'partidas',  value: personalStats.totalGames },
-                  { label: 'precisión', value: `${personalStats.avgAccuracy}%` },
-                  { label: 'win rate',  value: `${personalStats.winRate}%` },
+                  { label: t.stats.games,       value: personalStats.totalGames },
+                  { label: t.stats.avgAccuracy,  value: `${personalStats.avgAccuracy}%` },
+                  { label: t.stats.arenaWinRate, value: `${personalStats.winRate}%` },
                 ].map(s => (
                   <div key={s.label} style={{ textAlign: 'center' }}>
                     <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#22d3a5' }}>{s.value}</div>

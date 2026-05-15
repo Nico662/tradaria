@@ -282,7 +282,7 @@ export default function Tournament({ onBack }) {
         >{t.game.menu}</button>
 
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: '#f5c842', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 24px rgba(245,200,66,0.55), 0 0 8px rgba(245,200,66,0.3)' }}>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: '#f5c842', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 24px rgba(245,200,66,0.55), 0 0 8px rgba(245,200,66,0.3)' }}>
             🏆 {t.home.mode3.toUpperCase()}
           </div>
           <div style={{ fontSize: '8px', color: '#3a4455', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: "'Space Mono', monospace" }}>
