@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import html2canvas from 'html2canvas';
 import EffectOverlay from './EffectOverlay.jsx';
 import { ASSETS } from './assets.js';
