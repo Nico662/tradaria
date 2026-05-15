@@ -7,6 +7,11 @@ export const ASSET_INFO = {
     en: 'Apple is one of the world\'s most valuable companies, known for the iPhone, Mac, and App Store ecosystem.',
     es: 'Apple es una de lasempresas más valiosas del mundo, conocida por el iPhone, Mac y el ecosistema App Store.',
     de: 'Apple ist eine der wertvollsten Unternehmen der Welt, bekannt für iPhone, Mac und das App Store-Ökosystem.',
+    fact: {
+      en: 'Earns $100B+ in profit every year',
+      es: 'Genera más de $100B en beneficios al año',
+      de: 'Verdient jährlich über $100 Milliarden Gewinn',
+    },
   },
   MSFT: {
     sector: 'Technology',
@@ -15,6 +20,11 @@ export const ASSET_INFO = {
     en: 'Microsoft dominates enterprise software with Windows, Office, and Azure cloud services.',
     es: 'Microsoft domina el software empresarial con Windows, Office y los servicios cloud Azure.',
     de: 'Microsoft dominiert Unternehmenssoftware mit Windows, Office und Azure-Cloud-Diensten.',
+    fact: {
+      en: 'Azure cloud grows 30%+ per year',
+      es: 'Azure cloud crece más del 30% al año',
+      de: 'Azure Cloud wächst jährlich um 30%+',
+    },
   },
   NVDA: {
     sector: 'Semiconductors',
@@ -23,6 +33,11 @@ export const ASSET_INFO = {
     en: 'NVIDIA leads the AI chip revolution with its GPUs powering data centers and AI models worldwide.',
     es: 'NVIDIA lidera la revolución de chips IA con sus GPUs que impulsan centros de datos y modelos de IA.',
     de: 'NVIDIA führt die KI-Chip-Revolution mit GPUs an, die Rechenzentren und KI-Modelle weltweit antreiben.',
+    fact: {
+      en: 'GPUs power 80%+ of global AI data centers',
+      es: 'Sus GPUs impulsan más del 80% de los centros de IA',
+      de: 'GPUs betreiben 80%+ aller globalen KI-Rechenzentren',
+    },
   },
   GOOGL: {
     sector: 'Technology',
@@ -31,6 +46,11 @@ export const ASSET_INFO = {
     en: 'Alphabet owns Google Search, YouTube, and Google Cloud — the backbone of the modern internet.',
     es: 'Alphabet es dueña de Google Search, YouTube y Google Cloud — la columna vertebral de internet.',
     de: 'Alphabet besitzt Google Search, YouTube und Google Cloud — das Rückgrat des modernen Internets.',
+    fact: {
+      en: 'Processes 8.5 billion searches every day',
+      es: 'Procesa 8.500 millones de búsquedas al día',
+      de: 'Verarbeitet täglich 8,5 Milliarden Suchanfragen',
+    },
   },
   AMZN: {
     sector: 'E-Commerce / Cloud',
@@ -39,6 +59,11 @@ export const ASSET_INFO = {
     en: 'Amazon is the world\'s largest online retailer and cloud provider through AWS.',
     es: 'Amazon es el mayor minorista online del mundo y proveedor de cloud a través de AWS.',
     de: 'Amazon ist der weltgrößte Online-Händler und Cloud-Anbieter durch AWS.',
+    fact: {
+      en: 'AWS generates 70% of Amazon\'s profits',
+      es: 'AWS genera el 70% de los beneficios de Amazon',
+      de: 'AWS erwirtschaftet 70% von Amazons Gewinnen',
+    },
   },
   META: {
     sector: 'Social Media',
@@ -47,6 +72,11 @@ export const ASSET_INFO = {
     en: 'Meta owns Facebook, Instagram, and WhatsApp, reaching over 3 billion people daily.',
     es: 'Meta es dueña de Facebook, Instagram y WhatsApp, llegando a más de 3.000 millones de personas al día.',
     de: 'Meta besitzt Facebook, Instagram und WhatsApp und erreicht täglich über 3 Milliarden Menschen.',
+    fact: {
+      en: '3.3 billion people use a Meta app daily',
+      es: '3.300 millones usan una app de Meta cada día',
+      de: '3,3 Milliarden Menschen nutzen täglich eine Meta-App',
+    },
   },
   TSLA: {
     sector: 'Electric Vehicles',
@@ -55,6 +85,11 @@ export const ASSET_INFO = {
     en: 'Tesla is the world leader in electric vehicles and energy storage, led by Elon Musk.',
     es: 'Tesla es el líder mundial en vehículos eléctricos y almacenamiento de energía, liderada por Elon Musk.',
     de: 'Tesla ist der Weltmarktführer bei Elektrofahrzeugen und Energiespeicherung, geführt von Elon Musk.',
+    fact: {
+      en: 'Delivers over 1.8 million cars per year',
+      es: 'Entrega más de 1,8 millones de coches al año',
+      de: 'Liefert jährlich über 1,8 Millionen Autos aus',
+    },
   },
   'BRK.B': {
     sector: 'Financials',
@@ -63,6 +98,11 @@ export const ASSET_INFO = {
     en: 'Berkshire Hathaway is Warren Buffett\'s conglomerate holding stakes in Apple, Coca-Cola, and hundreds of companies.',
     es: 'Berkshire Hathaway es el conglomerado de Warren Buffett con participaciones en Apple, Coca-Cola y cientos de empresas.',
     de: 'Berkshire Hathaway ist Warren Buffetts Konglomerat mit Beteiligungen an Apple, Coca-Cola und Hunderten von Unternehmen.',
+    fact: {
+      en: 'Owns $170B+ of Apple stock',
+      es: 'Posee más de $170B en acciones de Apple',
+      de: 'Besitzt Apple-Aktien im Wert von über $170 Mrd.',
+    },
   },
   JPM: {
     sector: 'Banking',
@@ -71,6 +111,11 @@ export const ASSET_INFO = {
     en: 'JPMorgan Chase is the largest US bank by assets, leading in investment banking and retail finance.',
     es: 'JPMorgan Chase es el mayor banco de EE.UU. por activos, líder en banca de inversión y finanzas minoristas.',
     de: 'JPMorgan Chase ist die größte US-Bank nach Vermögenswerten, führend in Investmentbanking und Privatkundengeschäft.',
+    fact: {
+      en: 'Manages $3.9 trillion in assets',
+      es: 'Gestiona 3,9 billones de dólares en activos',
+      de: 'Verwaltet Vermögenswerte von 3,9 Billionen Dollar',
+    },
   },
   V: {
     sector: 'Payments',
@@ -79,6 +124,11 @@ export const ASSET_INFO = {
     en: 'Visa operates the world\'s largest payment network, processing billions of transactions daily.',
     es: 'Visa opera la mayor red de pagos del mundo, procesando miles de millones de transacciones al día.',
     de: 'Visa betreibt das weltweit größte Zahlungsnetzwerk und verarbeitet täglich Milliarden von Transaktionen.',
+    fact: {
+      en: 'Processes 259 million transactions per day',
+      es: 'Procesa 259 millones de transacciones al día',
+      de: 'Verarbeitet täglich 259 Millionen Transaktionen',
+    },
   },
   UNH: {
     sector: 'Healthcare',
@@ -87,6 +137,11 @@ export const ASSET_INFO = {
     en: 'UnitedHealth is America\'s largest health insurer, covering over 50 million people.',
     es: 'UnitedHealth es la mayor aseguradora de salud de América, cubriendo a más de 50 millones de personas.',
     de: 'UnitedHealth ist Amerikas größter Krankenversicherer und deckt über 50 Millionen Menschen ab.',
+    fact: {
+      en: 'Insures over 50 million Americans',
+      es: 'Asegura a más de 50 millones de estadounidenses',
+      de: 'Versichert über 50 Millionen Amerikaner',
+    },
   },
   MA: {
     sector: 'Payments',
@@ -95,6 +150,11 @@ export const ASSET_INFO = {
     en: 'Mastercard is a global payment technology company connecting billions of consumers and merchants.',
     es: 'Mastercard es una empresa global de tecnología de pagos que conecta miles de millones de consumidores y comerciantes.',
     de: 'Mastercard ist ein globales Zahlungstechnologieunternehmen, das Milliarden von Verbrauchern und Händlern verbindet.',
+    fact: {
+      en: 'Active in 210+ countries and territories',
+      es: 'Activa en más de 210 países y territorios',
+      de: 'In über 210 Ländern und Territorien aktiv',
+    },
   },
   JNJ: {
     sector: 'Healthcare',
@@ -103,6 +163,11 @@ export const ASSET_INFO = {
     en: 'Johnson & Johnson is a healthcare giant producing pharmaceuticals, medical devices, and consumer products.',
     es: 'Johnson & Johnson es un gigante de la salud que produce fármacos, dispositivos médicos y productos de consumo.',
     de: 'Johnson & Johnson ist ein Gesundheitsriese, der Pharmazeutika, Medizinprodukte und Konsumgüter herstellt.',
+    fact: {
+      en: 'Paid dividends for 62 consecutive years',
+      es: 'Pagó dividendos durante 62 años consecutivos',
+      de: 'Zahlte 62 Jahre in Folge Dividenden',
+    },
   },
   PG: {
     sector: 'Consumer Staples',
@@ -111,6 +176,11 @@ export const ASSET_INFO = {
     en: 'Procter & Gamble owns brands like Gillette, Pampers, and Tide, sold in 180+ countries.',
     es: 'Procter & Gamble es dueña de marcas como Gillette, Pampers y Tide, vendidas en más de 180 países.',
     de: 'Procter & Gamble besitzt Marken wie Gillette, Pampers und Tide, die in über 180 Ländern verkauft werden.',
+    fact: {
+      en: 'Sells 25+ billion-dollar brands globally',
+      es: 'Vende más de 25 marcas de $1B en el mundo',
+      de: 'Verkauft weltweit 25+ Milliarden-Dollar-Marken',
+    },
   },
   HD: {
     sector: 'Retail',
@@ -119,6 +189,11 @@ export const ASSET_INFO = {
     en: 'Home Depot is the largest home improvement retailer in the world with 2,300+ stores.',
     es: 'Home Depot es el mayor minorista de mejoras del hogar del mundo con más de 2.300 tiendas.',
     de: 'Home Depot ist der weltgrößte Heimwerkereinzelhändler mit über 2.300 Filialen.',
+    fact: {
+      en: '2,300+ stores across North America',
+      es: 'Más de 2.300 tiendas en Norteamérica',
+      de: 'Über 2.300 Filialen in Nordamerika',
+    },
   },
   BAC: {
     sector: 'Banking',
@@ -127,6 +202,11 @@ export const ASSET_INFO = {
     en: 'Bank of America serves 66 million clients and is one of the largest banks in the world.',
     es: 'Bank of America atiende a 66 millones de clientes y es uno de los mayores bancos del mundo.',
     de: 'Bank of America betreut 66 Millionen Kunden und ist eine der größten Banken der Welt.',
+    fact: {
+      en: 'Serves 66 million consumer clients',
+      es: 'Atiende a 66 millones de clientes particulares',
+      de: 'Betreut 66 Millionen Privatkunden',
+    },
   },
   COST: {
     sector: 'Retail',
@@ -135,6 +215,11 @@ export const ASSET_INFO = {
     en: 'Costco is a membership-based warehouse retailer known for bulk products and unbeatable prices.',
     es: 'Costco es un minorista de almacén por membresía conocido por productos a granel y precios imbatibles.',
     de: 'Costco ist ein mitgliedschaftsbasierter Lagereinzelhändler, bekannt für Großprodukte und unschlagbare Preise.',
+    fact: {
+      en: '75 million paid members worldwide',
+      es: '75 millones de socios de pago en el mundo',
+      de: 'Weltweit 75 Millionen zahlende Mitglieder',
+    },
   },
   NFLX: {
     sector: 'Streaming',
@@ -143,6 +228,11 @@ export const ASSET_INFO = {
     en: 'Netflix is the world\'s leading streaming platform with 260+ million subscribers globally.',
     es: 'Netflix es la plataforma de streaming líder en el mundo con más de 260 millones de suscriptores.',
     de: 'Netflix ist die weltweit führende Streaming-Plattform mit über 260 Millionen Abonnenten weltweit.',
+    fact: {
+      en: '260M+ subscribers in 190 countries',
+      es: 'Más de 260M de suscriptores en 190 países',
+      de: 'Über 260 Mio. Abonnenten in 190 Ländern',
+    },
   },
   ADBE: {
     sector: 'Software',
@@ -151,6 +241,11 @@ export const ASSET_INFO = {
     en: 'Adobe dominates creative software with Photoshop, Illustrator, and the PDF standard.',
     es: 'Adobe domina el software creativo con Photoshop, Illustrator y el estándar PDF.',
     de: 'Adobe dominiert Kreativsoftware mit Photoshop, Illustrator und dem PDF-Standard.',
+    fact: {
+      en: 'PDF format was invented by Adobe in 1993',
+      es: 'Adobe inventó el formato PDF en 1993',
+      de: 'Adobe erfand 1993 das PDF-Format',
+    },
   },
   CRM: {
     sector: 'Software',
@@ -159,6 +254,11 @@ export const ASSET_INFO = {
     en: 'Salesforce is the world\'s #1 CRM platform, helping companies manage customer relationships.',
     es: 'Salesforce es la plataforma CRM nº 1 del mundo, ayudando a las empresas a gestionar relaciones con clientes.',
     de: 'Salesforce ist die weltweit führende CRM-Plattform und hilft Unternehmen, Kundenbeziehungen zu verwalten.',
+    fact: {
+      en: '#1 CRM platform with $35B in annual revenue',
+      es: 'Plataforma CRM nº1 con $35B de ingresos anuales',
+      de: 'Nr. 1 CRM-Plattform mit $35 Mrd. Jahresumsatz',
+    },
   },
   AMD: {
     sector: 'Semiconductors',
@@ -167,6 +267,11 @@ export const ASSET_INFO = {
     en: 'AMD makes high-performance CPUs and GPUs competing directly with Intel and NVIDIA.',
     es: 'AMD fabrica CPUs y GPUs de alto rendimiento compitiendo directamente con Intel y NVIDIA.',
     de: 'AMD stellt Hochleistungs-CPUs und GPUs her und konkurriert direkt mit Intel und NVIDIA.',
+    fact: {
+      en: 'Now makes chips for PlayStation and Xbox',
+      es: 'Fabrica los chips de PlayStation y Xbox',
+      de: 'Stellt Chips für PlayStation und Xbox her',
+    },
   },
   ORCL: {
     sector: 'Software / Cloud',
@@ -175,6 +280,11 @@ export const ASSET_INFO = {
     en: 'Oracle is a cloud computing and database giant trusted by most of the world\'s largest companies.',
     es: 'Oracle es un gigante del cloud y bases de datos en el que confían la mayoría de las mayores empresas del mundo.',
     de: 'Oracle ist ein Cloud- und Datenbankgigant, dem die meisten der weltgrößten Unternehmen vertrauen.',
+    fact: {
+      en: 'Used by 98% of Fortune 100 companies',
+      es: 'Usado por el 98% de las empresas Fortune 100',
+      de: 'Von 98% der Fortune-100-Unternehmen genutzt',
+    },
   },
   UBER: {
     sector: 'Transport / Tech',
@@ -183,6 +293,11 @@ export const ASSET_INFO = {
     en: 'Uber is the world\'s largest ride-hailing and food delivery platform, operating in 70+ countries.',
     es: 'Uber es la mayor plataforma de transporte y entrega de comida del mundo, operando en más de 70 países.',
     de: 'Uber ist die weltweit größte Fahrvermittlungs- und Essenslieferplattform in über 70 Ländern.',
+    fact: {
+      en: '8 billion trips completed since founding',
+      es: '8.000 millones de viajes desde su fundación',
+      de: '8 Milliarden abgeschlossene Fahrten seit Gründung',
+    },
   },
   PYPL: {
     sector: 'Fintech',
@@ -191,6 +306,11 @@ export const ASSET_INFO = {
     en: 'PayPal is a leading digital payments platform with 430+ million active accounts worldwide.',
     es: 'PayPal es una plataforma líder de pagos digitales con más de 430 millones de cuentas activas en el mundo.',
     de: 'PayPal ist eine führende digitale Zahlungsplattform mit über 430 Millionen aktiven Konten weltweit.',
+    fact: {
+      en: '430M+ active accounts, $1.5T processed/year',
+      es: 'Más de 430M de cuentas activas en el mundo',
+      de: 'Über 430 Mio. aktive Konten weltweit',
+    },
   },
   INTC: {
     sector: 'Semiconductors',
@@ -199,6 +319,11 @@ export const ASSET_INFO = {
     en: 'Intel is the world\'s largest semiconductor company by revenue, known for PC and server processors.',
     es: 'Intel es la mayor empresa de semiconductores del mundo por ingresos, conocida por procesadores de PC y servidor.',
     de: 'Intel ist das weltweit größte Halbleiterunternehmen nach Umsatz, bekannt für PC- und Serverprozessoren.',
+    fact: {
+      en: 'Founded in 1968, older than the internet',
+      es: 'Fundada en 1968, más antigua que internet',
+      de: '1968 gegründet, älter als das Internet',
+    },
   },
   SPOT: {
     sector: 'Streaming',
@@ -207,6 +332,7 @@ export const ASSET_INFO = {
     en: 'Spotify is the world\'s largest music streaming platform with 600+ million users.',
     es: 'Spotify es la mayor plataforma de streaming musical del mundo con más de 600 millones de usuarios.',
     de: 'Spotify ist die weltweit größte Musik-Streaming-Plattform mit über 600 Millionen Nutzern.',
+    fact: { en: '600M+ users listen to 100M+ tracks', es: 'Más de 600M usuarios escuchan 100M+ canciones', de: 'Über 600 Mio. Nutzer hören 100 Mio.+ Titel' },
   },
   ABNB: {
     sector: 'Travel / Tech',
@@ -215,6 +341,7 @@ export const ASSET_INFO = {
     en: 'Airbnb revolutionized travel with its peer-to-peer home rental platform in 220+ countries.',
     es: 'Airbnb revolucionó los viajes con su plataforma de alquiler de casas entre particulares en más de 220 países.',
     de: 'Airbnb revolutionierte das Reisen mit seiner Peer-to-Peer-Mietwohnungsplattform in über 220 Ländern.',
+    fact: { en: '7M+ listings in 220+ countries', es: 'Más de 7 millones de anuncios en 220+ países', de: 'Über 7 Millionen Inserate in 220+ Ländern' },
   },
   SHOP: {
     sector: 'E-Commerce',
@@ -223,6 +350,7 @@ export const ASSET_INFO = {
     en: 'Shopify powers over 1.7 million businesses worldwide with its e-commerce platform.',
     es: 'Shopify impulsa a más de 1,7 millones de negocios en todo el mundo con su plataforma de e-commerce.',
     de: 'Shopify unterstützt über 1,7 Millionen Unternehmen weltweit mit seiner E-Commerce-Plattform.',
+    fact: { en: 'Powers 10% of all US e-commerce', es: 'Impulsa el 10% del e-commerce en EE.UU.', de: 'Treibt 10% des gesamten US-E-Commerce an' },
   },
   PLTR: {
     sector: 'AI / Defense',
@@ -231,6 +359,7 @@ export const ASSET_INFO = {
     en: 'Palantir builds AI-powered data analytics platforms for governments and large enterprises.',
     es: 'Palantir construye plataformas de análisis de datos con IA para gobiernos y grandes empresas.',
     de: 'Palantir entwickelt KI-gestützte Datenanalyseplattformen für Regierungen und Großunternehmen.',
+    fact: { en: 'Used by CIA, FBI, and the US Army', es: 'Usado por la CIA, el FBI y el Ejército de EE.UU.', de: 'Von CIA, FBI und US-Armee genutzt' },
   },
   COIN: {
     sector: 'Crypto / Fintech',
@@ -239,6 +368,7 @@ export const ASSET_INFO = {
     en: 'Coinbase is the largest US crypto exchange, acting as a gateway to the crypto market.',
     es: 'Coinbase es el mayor exchange de cripto de EE.UU., actuando como puerta de entrada al mercado cripto.',
     de: 'Coinbase ist die größte US-Kryptobörse und dient als Einstiegspunkt in den Kryptomarkt.',
+    fact: { en: '110M+ verified users on its platform', es: 'Más de 110M de usuarios verificados', de: 'Über 110 Mio. verifizierte Nutzer' },
   },
   HOOD: {
     sector: 'Fintech',
@@ -247,6 +377,7 @@ export const ASSET_INFO = {
     en: 'Robinhood democratized investing by offering commission-free trades to retail investors.',
     es: 'Robinhood democratizó la inversión ofreciendo operaciones sin comisiones a inversores minoristas.',
     de: 'Robinhood demokratisierte das Investieren durch provisionsfreie Trades für Privatanleger.',
+    fact: { en: 'Pioneered commission-free trading in 2013', es: 'Pionero del trading sin comisiones en 2013', de: 'Pionier des provisionsfreien Handels 2013' },
   },
   NET: {
     sector: 'Cybersecurity',
@@ -255,6 +386,7 @@ export const ASSET_INFO = {
     en: 'Cloudflare protects and accelerates millions of websites with its global network infrastructure.',
     es: 'Cloudflare protege y acelera millones de sitios web con su infraestructura de red global.',
     de: 'Cloudflare schützt und beschleunigt Millionen von Websites mit seiner globalen Netzwerkinfrastruktur.',
+    fact: { en: 'Protects 20% of the entire internet', es: 'Protege el 20% de toda la internet global', de: 'Schützt 20% des gesamten Internets' },
   },
   MSTR: {
     sector: 'Technology / Bitcoin',
@@ -263,6 +395,7 @@ export const ASSET_INFO = {
     en: 'MicroStrategy holds over 200,000 Bitcoin on its balance sheet, making it a de facto Bitcoin proxy stock.',
     es: 'MicroStrategy tiene más de 200.000 Bitcoin en su balance, convirtiéndola en una acción proxy de Bitcoin.',
     de: 'MicroStrategy hält über 200.000 Bitcoin in seiner Bilanz und ist damit ein De-facto-Bitcoin-Proxy.',
+    fact: { en: 'Holds 200K+ BTC — most of any company', es: 'Posee más de 200.000 BTC, récord empresarial', de: 'Hält 200K+ BTC – Rekord unter Unternehmen' },
   },
   ARM: {
     sector: 'Semiconductors',
@@ -271,6 +404,7 @@ export const ASSET_INFO = {
     en: 'ARM designs the chip architecture found in virtually every smartphone on the planet.',
     es: 'ARM diseña la arquitectura de chips que se encuentra en prácticamente todos los smartphones del planeta.',
     de: 'ARM entwickelt die Chip-Architektur, die sich in praktisch jedem Smartphone auf dem Planeten befindet.',
+    fact: { en: 'Powers 99% of all smartphones on Earth', es: 'Está en el 99% de smartphones del mundo', de: 'Steckt in 99% aller Smartphones weltweit' },
   },
   TSM: {
     sector: 'Semiconductors',
@@ -279,6 +413,7 @@ export const ASSET_INFO = {
     en: 'TSMC manufactures chips for Apple, NVIDIA, and AMD — controlling over 50% of the global foundry market.',
     es: 'TSMC fabrica chips para Apple, NVIDIA y AMD — controlando más del 50% del mercado global de fundición.',
     de: 'TSMC stellt Chips für Apple, NVIDIA und AMD her und kontrolliert über 50% des globalen Foundry-Markts.',
+    fact: { en: 'Makes 90%+ of the world\'s advanced chips', es: 'Fabrica más del 90% de los chips avanzados', de: 'Stellt 90%+ der weltweiten High-End-Chips her' },
   },
   SMCI: {
     sector: 'AI Infrastructure',
@@ -287,6 +422,7 @@ export const ASSET_INFO = {
     en: 'Super Micro builds high-performance servers for AI data centers, riding the GPU compute wave.',
     es: 'Super Micro construye servidores de alto rendimiento para centros de datos de IA, montada en la ola del cómputo GPU.',
     de: 'Super Micro baut Hochleistungsserver für KI-Rechenzentren und reitet die GPU-Computing-Welle.',
+    fact: { en: 'AI server demand grew 100%+ in one year', es: 'La demanda de servidores IA creció +100% en un año', de: 'KI-Server-Nachfrage wuchs in einem Jahr 100%+' },
   },
   APP: {
     sector: 'AdTech / AI',
@@ -295,6 +431,7 @@ export const ASSET_INFO = {
     en: 'AppLovin is the fastest-growing adtech company, using AI to power mobile app advertising.',
     es: 'AppLovin es la empresa de adtech de más rápido crecimiento, usando IA para impulsar la publicidad en apps móviles.',
     de: 'AppLovin ist das am schnellsten wachsende Adtech-Unternehmen, das KI für mobile App-Werbung nutzt.',
+    fact: { en: 'AI matches ads to 1 billion+ users daily', es: 'Su IA llega a más de 1.000M usuarios al día', de: 'KI schaltet Anzeigen für 1 Mrd.+ Nutzer täglich' },
   },
   MELI: {
     sector: 'E-Commerce',
@@ -303,6 +440,7 @@ export const ASSET_INFO = {
     en: 'MercadoLibre is the Amazon of Latin America, dominating e-commerce and fintech across 18 countries.',
     es: 'MercadoLibre es el Amazon de Latinoamérica, dominando el e-commerce y fintech en 18 países.',
     de: 'MercadoLibre ist das Amazon Lateinamerikas und dominiert E-Commerce und Fintech in 18 Ländern.',
+    fact: { en: 'Processes $50B+ in payments per year', es: 'Procesa más de $50B en pagos al año', de: 'Verarbeitet jährlich über $50 Mrd. Zahlungen' },
   },
 
   // ── Acciones europeas ─────────────────────────────────────────────
@@ -313,6 +451,7 @@ export const ASSET_INFO = {
     en: 'ASML is the only company in the world that makes EUV machines — the tools that print the most advanced chips.',
     es: 'ASML es la única empresa del mundo que fabrica máquinas EUV — las herramientas que imprimen los chips más avanzados.',
     de: 'ASML ist das einzige Unternehmen weltweit, das EUV-Maschinen herstellt — die Werkzeuge für modernste Chips.',
+    fact: { en: 'Only company that makes EUV chip machines', es: 'Única empresa que fabrica máquinas EUV', de: 'Einziges Unternehmen, das EUV-Maschinen baut' },
   },
   SAP: {
     sector: 'Enterprise Software',
@@ -321,6 +460,7 @@ export const ASSET_INFO = {
     en: 'SAP is Europe\'s largest software company, powering ERP systems for 99% of Fortune 500 companies.',
     es: 'SAP es la mayor empresa de software de Europa, impulsando sistemas ERP para el 99% de las empresas Fortune 500.',
     de: 'SAP ist Europas größtes Softwareunternehmen und treibt ERP-Systeme für 99% der Fortune-500-Unternehmen an.',
+    fact: { en: 'ERP software for 99% of Fortune 500 firms', es: 'Software ERP para el 99% del Fortune 500', de: 'ERP-Software für 99% der Fortune-500-Firmen' },
   },
   LVMUY: {
     sector: 'Luxury',
@@ -329,6 +469,7 @@ export const ASSET_INFO = {
     en: 'LVMH is the world\'s largest luxury group, owning Louis Vuitton, Dior, Moët, and 75+ premium brands.',
     es: 'LVMH es el mayor grupo de lujo del mundo, dueño de Louis Vuitton, Dior, Moët y más de 75 marcas premium.',
     de: 'LVMH ist die weltgrößte Luxusgruppe mit Louis Vuitton, Dior, Moët und über 75 Premiummarken.',
+    fact: { en: 'Owns 75+ luxury brands including Dior & LV', es: 'Posee más de 75 marcas de lujo, Dior y LV', de: 'Besitzt 75+ Luxusmarken, darunter Dior und LV' },
   },
   NSRGY: {
     sector: 'Consumer Staples',
@@ -337,6 +478,7 @@ export const ASSET_INFO = {
     en: 'Nestlé is the world\'s largest food company, owning Nespresso, KitKat, Maggi, and hundreds of brands.',
     es: 'Nestlé es la mayor empresa de alimentación del mundo, dueña de Nespresso, KitKat, Maggi y cientos de marcas.',
     de: 'Nestlé ist das weltgrößte Lebensmittelunternehmen mit Nespresso, KitKat, Maggi und Hunderten von Marken.',
+    fact: { en: 'Sells 2,000+ products in 186 countries', es: 'Vende más de 2.000 productos en 186 países', de: 'Verkauft 2.000+ Produkte in 186 Ländern' },
   },
   SIEGY: {
     sector: 'Industrial',
@@ -345,6 +487,7 @@ export const ASSET_INFO = {
     en: 'Siemens is a global industrial conglomerate leading in automation, energy, and smart infrastructure.',
     es: 'Siemens es un conglomerado industrial global líder en automatización, energía e infraestructura inteligente.',
     de: 'Siemens ist ein globales Industriekonglomerat, führend in Automatisierung, Energie und intelligenter Infrastruktur.',
+    fact: { en: 'Operates in 190+ countries around the world', es: 'Opera en más de 190 países en todo el mundo', de: 'Tätig in über 190 Ländern weltweit' },
   },
   IDEXY: {
     sector: 'Fashion / Retail',
@@ -353,6 +496,7 @@ export const ASSET_INFO = {
     en: 'Inditex owns Zara, Massimo Dutti, and Pull&Bear — the world\'s largest fast fashion group.',
     es: 'Inditex es dueña de Zara, Massimo Dutti y Pull&Bear — el mayor grupo de moda rápida del mundo.',
     de: 'Inditex besitzt Zara, Massimo Dutti und Pull&Bear — die weltgrößte Fast-Fashion-Gruppe.',
+    fact: { en: 'Zara launches new designs every 2 weeks', es: 'Zara lanza nuevos diseños cada 2 semanas', de: 'Zara bringt alle 2 Wochen neue Designs heraus' },
   },
   ALIZF: {
     sector: 'Insurance',
@@ -361,6 +505,7 @@ export const ASSET_INFO = {
     en: 'Allianz is Europe\'s largest insurance company, operating in 70+ countries worldwide.',
     es: 'Allianz es la mayor aseguradora de Europa, operando en más de 70 países en todo el mundo.',
     de: 'Allianz ist Europas größtes Versicherungsunternehmen und operiert in über 70 Ländern weltweit.',
+    fact: { en: 'Insures 125 million customers worldwide', es: 'Asegura a 125 millones de clientes en el mundo', de: 'Versichert 125 Millionen Kunden weltweit' },
   },
   BAYZF: {
     sector: 'Pharmaceuticals',
@@ -369,6 +514,7 @@ export const ASSET_INFO = {
     en: 'Bayer is a global pharmaceutical and agricultural company known for aspirin and crop science.',
     es: 'Bayer es una empresa farmacéutica y agrícola global conocida por la aspirina y la ciencia agrícola.',
     de: 'Bayer ist ein globales Pharma- und Agrochemieunternehmen, bekannt für Aspirin und Pflanzenwissenschaften.',
+    fact: { en: 'Invented aspirin in 1897', es: 'Inventó la aspirina en 1897', de: 'Erfand 1897 das Aspirin' },
   },
   RACE: {
     sector: 'Luxury / Automotive',
@@ -377,6 +523,7 @@ export const ASSET_INFO = {
     en: 'Ferrari is the world\'s most powerful luxury brand, selling exclusivity as much as cars.',
     es: 'Ferrari es la marca de lujo más poderosa del mundo, vendiendo exclusividad tanto como coches.',
     de: 'Ferrari ist die mächtigste Luxusmarke der Welt und verkauft Exklusivität genauso wie Autos.',
+    fact: { en: 'Makes fewer than 15,000 cars per year', es: 'Fabrica menos de 15.000 coches al año', de: 'Produziert weniger als 15.000 Autos pro Jahr' },
   },
 
   // ── Índices y ETFs ────────────────────────────────────────────────
@@ -387,6 +534,7 @@ export const ASSET_INFO = {
     en: 'SPY tracks the S&P 500 — the 500 largest US companies. The benchmark for the US stock market.',
     es: 'SPY sigue el S&P 500 — las 500 mayores empresas de EE.UU. El referente del mercado bursátil estadounidense.',
     de: 'SPY bildet den S&P 500 ab — die 500 größten US-Unternehmen. Der Maßstab für den US-Aktienmarkt.',
+    fact: { en: 'Launched in 1993 — the first US ETF ever', es: 'Lanzado en 1993, el primer ETF de EE.UU.', de: '1993 aufgelegt — der erste US-ETF überhaupt' },
   },
   QQQ: {
     sector: 'Index ETF',
@@ -395,6 +543,7 @@ export const ASSET_INFO = {
     en: 'QQQ tracks the NASDAQ 100, the 100 largest non-financial companies including Apple, NVIDIA, and Google.',
     es: 'QQQ sigue el NASDAQ 100, las 100 mayores empresas no financieras incluyendo Apple, NVIDIA y Google.',
     de: 'QQQ bildet den NASDAQ 100 ab, die 100 größten Nicht-Finanzunternehmen einschließlich Apple, NVIDIA und Google.',
+    fact: { en: 'Top 5 holdings = over 40% of the fund', es: 'Los 5 primeros valores son el 40% del fondo', de: 'Top-5-Positionen = über 40% des Fonds' },
   },
   DIA: {
     sector: 'Index ETF',
@@ -403,6 +552,7 @@ export const ASSET_INFO = {
     en: 'DIA tracks the Dow Jones Industrial Average — 30 blue-chip US companies like Boeing, Goldman Sachs, and Nike.',
     es: 'DIA sigue el Dow Jones Industrial Average — 30 empresas blue-chip de EE.UU. como Boeing, Goldman Sachs y Nike.',
     de: 'DIA bildet den Dow Jones Industrial Average ab — 30 Blue-Chip-US-Unternehmen wie Boeing, Goldman Sachs und Nike.',
+    fact: { en: 'Tracks 30 iconic US companies since 1998', es: 'Sigue a 30 empresas icónicas de EE.UU. desde 1998', de: 'Bildet seit 1998 30 ikonische US-Unternehmen ab' },
   },
   VTI: {
     sector: 'Index ETF',
@@ -411,6 +561,7 @@ export const ASSET_INFO = {
     en: 'VTI tracks the entire US stock market — over 3,500 companies from large-cap to small-cap.',
     es: 'VTI sigue todo el mercado bursátil de EE.UU. — más de 3.500 empresas desde large-cap hasta small-cap.',
     de: 'VTI bildet den gesamten US-Aktienmarkt ab — über 3.500 Unternehmen von Large-Cap bis Small-Cap.',
+    fact: { en: 'Holds 3,500+ US stocks at a 0.03% fee', es: 'Tiene más de 3.500 valores con 0,03% de comisión', de: 'Hält 3.500+ US-Aktien bei 0,03% Gebühr' },
   },
   VOO: {
     sector: 'Index ETF',
@@ -419,6 +570,7 @@ export const ASSET_INFO = {
     en: 'VOO is Vanguard\'s S&P 500 ETF — one of the most popular long-term investment vehicles in the world.',
     es: 'VOO es el ETF del S&P 500 de Vanguard — uno de los vehículos de inversión a largo plazo más populares del mundo.',
     de: 'VOO ist Vanguards S&P 500 ETF — eines der beliebtesten langfristigen Anlageinstrumente der Welt.',
+    fact: { en: 'S&P 500 averages 10% annual return since 1957', es: 'El S&P 500 promedia un 10% anual desde 1957', de: 'S&P 500 liefert seit 1957 ~10% jährlich' },
   },
   IWM: {
     sector: 'Index ETF',
@@ -427,6 +579,7 @@ export const ASSET_INFO = {
     en: 'IWM tracks the Russell 2000 — 2,000 small-cap US companies, a gauge of domestic economic health.',
     es: 'IWM sigue el Russell 2000 — 2.000 empresas small-cap de EE.UU., un indicador de la salud económica doméstica.',
     de: 'IWM bildet den Russell 2000 ab — 2.000 Small-Cap-US-Unternehmen, ein Maßstab für die inländische Wirtschaftsgesundheit.',
+    fact: { en: 'Small caps outperform large caps over 20yr', es: 'Las small caps superan a las large caps a 20 años', de: 'Small Caps übertreffen Large Caps über 20 Jahre' },
   },
   VEA: {
     sector: 'Index ETF',
@@ -435,6 +588,7 @@ export const ASSET_INFO = {
     en: 'VEA tracks developed market stocks outside the US — Europe, Japan, Australia, and Canada.',
     es: 'VEA sigue acciones de mercados desarrollados fuera de EE.UU. — Europa, Japón, Australia y Canadá.',
     de: 'VEA bildet Aktien entwickelter Märkte außerhalb der USA ab — Europa, Japan, Australien und Kanada.',
+    fact: { en: 'Covers 3,900+ stocks across 24 countries', es: 'Cubre más de 3.900 valores en 24 países', de: 'Umfasst 3.900+ Aktien aus 24 Ländern' },
   },
   VWO: {
     sector: 'Index ETF',
@@ -443,6 +597,7 @@ export const ASSET_INFO = {
     en: 'VWO tracks emerging market stocks from China, India, Brazil, Taiwan, and other growing economies.',
     es: 'VWO sigue acciones de mercados emergentes de China, India, Brasil, Taiwán y otras economías en crecimiento.',
     de: 'VWO bildet Schwellenmarktaktien aus China, Indien, Brasilien, Taiwan und anderen wachsenden Volkswirtschaften ab.',
+    fact: { en: 'Emerging markets = 40%+ of world GDP', es: 'Los mercados emergentes son el 40%+ del PIB mundial', de: 'Schwellenländer = 40%+ des weltweiten BIP' },
   },
   EWG: {
     sector: 'Country ETF',
@@ -451,6 +606,7 @@ export const ASSET_INFO = {
     en: 'EWG tracks the German stock market — Europe\'s largest economy with companies like SAP and Siemens.',
     es: 'EWG sigue el mercado bursátil alemán — la mayor economía de Europa con empresas como SAP y Siemens.',
     de: 'EWG bildet den deutschen Aktienmarkt ab — Europas größte Volkswirtschaft mit Unternehmen wie SAP und Siemens.',
+    fact: { en: 'Germany: largest economy in Europe', es: 'Alemania: la mayor economía de Europa', de: 'Deutschland: größte Volkswirtschaft Europas' },
   },
   EWQ: {
     sector: 'Country ETF',
@@ -459,6 +615,7 @@ export const ASSET_INFO = {
     en: 'EWQ tracks the French stock market, home to luxury giants like LVMH and L\'Oréal.',
     es: 'EWQ sigue el mercado bursátil francés, hogar de gigantes del lujo como LVMH y L\'Oréal.',
     de: 'EWQ bildet den französischen Aktienmarkt ab, Heimat von Luxusgiganten wie LVMH und L\'Oréal.',
+    fact: { en: "France's economy ranks 7th globally", es: 'La economía de Francia ocupa el puesto 7 mundial', de: 'Frankreichs Wirtschaft belegt Platz 7 weltweit' },
   },
   EWP: {
     sector: 'Country ETF',
@@ -467,6 +624,7 @@ export const ASSET_INFO = {
     en: 'EWP tracks the Spanish stock market, including Inditex, Santander, and Iberdrola.',
     es: 'EWP sigue el mercado bursátil español, incluyendo Inditex, Santander e Iberdrola.',
     de: 'EWP bildet den spanischen Aktienmarkt ab, einschließlich Inditex, Santander und Iberdrola.',
+    fact: { en: "Spain's economy is 4th largest in Europe", es: 'España tiene la 4ª mayor economía de Europa', de: 'Spaniens Wirtschaft ist die viertgrößte Europas' },
   },
   ARKK: {
     sector: 'Thematic ETF',
@@ -475,6 +633,7 @@ export const ASSET_INFO = {
     en: 'ARK Innovation ETF invests in disruptive technologies like AI, genomics, and blockchain.',
     es: 'ARK Innovation ETF invierte en tecnologías disruptivas como IA, genómica y blockchain.',
     de: 'ARK Innovation ETF investiert in disruptive Technologien wie KI, Genomik und Blockchain.',
+    fact: { en: 'Focuses on tech disrupting existing industries', es: 'Invierte en tecnología que disrumpe industrias', de: 'Fokus auf disruptive Technologien' },
   },
   XLK: {
     sector: 'Sector ETF',
@@ -483,6 +642,7 @@ export const ASSET_INFO = {
     en: 'XLK tracks the US technology sector — Apple, Microsoft, and NVIDIA make up over 40% of the fund.',
     es: 'XLK sigue el sector tecnológico de EE.UU. — Apple, Microsoft y NVIDIA suponen más del 40% del fondo.',
     de: 'XLK bildet den US-Technologiesektor ab — Apple, Microsoft und NVIDIA machen über 40% des Fonds aus.',
+    fact: { en: 'Tech is 30%+ of the entire S&P 500 index', es: 'La tecnología es el 30%+ del S&P 500 total', de: 'Tech macht 30%+ des gesamten S&P 500 aus' },
   },
   XLF: {
     sector: 'Sector ETF',
@@ -491,6 +651,7 @@ export const ASSET_INFO = {
     en: 'XLF tracks US financial stocks — banks, insurance companies, and asset managers.',
     es: 'XLF sigue las acciones financieras de EE.UU. — bancos, aseguradoras y gestores de activos.',
     de: 'XLF bildet US-Finanzaktien ab — Banken, Versicherungen und Vermögensverwalter.',
+    fact: { en: 'US banks manage over $23 trillion in assets', es: 'Los bancos de EE.UU. gestionan +23 billones USD', de: 'US-Banken verwalten über 23 Billionen USD' },
   },
   XLE: {
     sector: 'Sector ETF',
@@ -499,6 +660,7 @@ export const ASSET_INFO = {
     en: 'XLE tracks the US energy sector — ExxonMobil, Chevron, and other oil & gas companies.',
     es: 'XLE sigue el sector energético de EE.UU. — ExxonMobil, Chevron y otras empresas de petróleo y gas.',
     de: 'XLE bildet den US-Energiesektor ab — ExxonMobil, Chevron und andere Öl- und Gasunternehmen.',
+    fact: { en: 'Energy stocks pay the highest dividends on average', es: 'Las energéticas pagan los dividendos más altos', de: 'Energieaktien zahlen im Schnitt die höchsten Dividenden' },
   },
   XLV: {
     sector: 'Sector ETF',
@@ -507,6 +669,7 @@ export const ASSET_INFO = {
     en: 'XLV tracks US healthcare stocks — pharmaceuticals, hospitals, and medical device companies.',
     es: 'XLV sigue las acciones sanitarias de EE.UU. — farmacéuticas, hospitales y empresas de dispositivos médicos.',
     de: 'XLV bildet US-Gesundheitsaktien ab — Pharmaunternehmen, Krankenhäuser und Medizingerätehersteller.',
+    fact: { en: 'Healthcare is 13% of the US economy', es: 'La sanidad representa el 13% de la economía de EE.UU.', de: 'Gesundheit macht 13% der US-Wirtschaft aus' },
   },
   TLT: {
     sector: 'Bond ETF',
@@ -515,6 +678,7 @@ export const ASSET_INFO = {
     en: 'TLT tracks long-term US government bonds (20+ years). It rises when interest rates fall.',
     es: 'TLT sigue los bonos del gobierno de EE.UU. a largo plazo (+20 años). Sube cuando los tipos de interés bajan.',
     de: 'TLT bildet langfristige US-Staatsanleihen (20+ Jahre) ab. Er steigt, wenn die Zinsen fallen.',
+    fact: { en: 'Bonds and stocks usually move in opposite directions', es: 'Los bonos y las acciones suelen moverse al contrario', de: 'Anleihen und Aktien bewegen sich meist gegensätzlich' },
   },
   AGG: {
     sector: 'Bond ETF',
@@ -523,6 +687,7 @@ export const ASSET_INFO = {
     en: 'AGG tracks the total US bond market — a diversified mix of government, corporate, and mortgage bonds.',
     es: 'AGG sigue el mercado total de bonos de EE.UU. — una mezcla diversificada de bonos gubernamentales, corporativos e hipotecarios.',
     de: 'AGG bildet den gesamten US-Anleihemarkt ab — eine diversifizierte Mischung aus Staats-, Unternehmens- und Hypothekenanleihen.',
+    fact: { en: 'Holds 10,000+ individual bonds in one fund', es: 'Contiene más de 10.000 bonos individuales en un fondo', de: 'Enthält 10.000+ einzelne Anleihen in einem Fonds' },
   },
   HYG: {
     sector: 'Bond ETF',
@@ -531,6 +696,7 @@ export const ASSET_INFO = {
     en: 'HYG tracks high-yield corporate bonds — higher returns than government bonds but with more risk.',
     es: 'HYG sigue bonos corporativos de alto rendimiento — mayores retornos que los bonos gubernamentales pero con más riesgo.',
     de: 'HYG bildet Hochzinsunternehmensanleihen ab — höhere Renditen als Staatsanleihen, aber mit mehr Risiko.',
+    fact: { en: '"Junk bonds" yield 4-6% more than US Treasuries', es: 'Los "bonos basura" dan 4-6% más que el Tesoro', de: '"Junk Bonds" rentieren 4-6% mehr als US-Anleihen' },
   },
   BOTZ: {
     sector: 'Thematic ETF',
@@ -539,6 +705,7 @@ export const ASSET_INFO = {
     en: 'BOTZ invests in robotics and AI companies — industrial robots, autonomous vehicles, and machine learning.',
     es: 'BOTZ invierte en empresas de robótica e IA — robots industriales, vehículos autónomos y aprendizaje automático.',
     de: 'BOTZ investiert in Robotik- und KI-Unternehmen — Industrieroboter, autonome Fahrzeuge und maschinelles Lernen.',
+    fact: { en: 'Robot installations hit a record 500K units in 2023', es: 'Se instalaron 500.000 robots, récord histórico en 2023', de: 'Robot-Installationen erreichten 2023 Rekord 500K' },
   },
   HERO: {
     sector: 'Thematic ETF',
@@ -547,6 +714,7 @@ export const ASSET_INFO = {
     en: 'HERO tracks the global gaming and esports industry — game developers, streaming platforms, and hardware makers.',
     es: 'HERO sigue la industria global de videojuegos y esports — desarrolladores, plataformas de streaming y fabricantes de hardware.',
     de: 'HERO bildet die globale Gaming- und Esports-Industrie ab — Spieleentwickler, Streaming-Plattformen und Hardware-Hersteller.',
+    fact: { en: 'Gaming revenue surpassed movies and music combined', es: 'Los videojuegos superan a cine y música juntos', de: 'Gaming-Umsatz übertrifft Film und Musik zusammen' },
   },
   ICLN: {
     sector: 'Thematic ETF',
@@ -555,6 +723,7 @@ export const ASSET_INFO = {
     en: 'ICLN invests in global clean energy companies — solar, wind, and other renewable energy producers.',
     es: 'ICLN invierte en empresas globales de energía limpia — solar, eólica y otros productores de energías renovables.',
     de: 'ICLN investiert in globale Unternehmen für saubere Energie — Solar-, Wind- und andere erneuerbare Energieproduzenten.',
+    fact: { en: 'Solar power capacity doubled every 2 years since 2010', es: 'La energía solar se duplicó cada 2 años desde 2010', de: 'Solarkapazität hat sich seit 2010 alle 2 Jahre verdoppelt' },
   },
 
   // ── Cripto ────────────────────────────────────────────────────────
@@ -565,6 +734,7 @@ export const ASSET_INFO = {
     en: 'Bitcoin is the world\'s first and largest cryptocurrency, created in 2009 by Satoshi Nakamoto.',
     es: 'Bitcoin es la primera y mayor criptomoneda del mundo, creada en 2009 por Satoshi Nakamoto.',
     de: 'Bitcoin ist die erste und größte Kryptowährung der Welt, 2009 von Satoshi Nakamoto erschaffen.',
+    fact: { en: 'Only 21 million BTC will ever exist', es: 'Solo existirán 21 millones de BTC en total', de: 'Es werden nie mehr als 21 Millionen BTC existieren' },
   },
   ETHUSDT: {
     sector: 'Cryptocurrency',
@@ -573,6 +743,7 @@ export const ASSET_INFO = {
     en: 'Ethereum is the leading smart contract platform powering DeFi, NFTs, and most of the crypto ecosystem.',
     es: 'Ethereum es la plataforma líder de contratos inteligentes que impulsa DeFi, NFTs y la mayor parte del ecosistema cripto.',
     de: 'Ethereum ist die führende Smart-Contract-Plattform, die DeFi, NFTs und den größten Teil des Krypto-Ökosystems antreibt.',
+    fact: { en: 'Hosts 4,000+ decentralized apps (dApps)', es: 'Alberga más de 4.000 aplicaciones descentralizadas', de: 'Beherbergt 4.000+ dezentrale Apps (dApps)' },
   },
   XRPUSDT: {
     sector: 'Cryptocurrency',
@@ -581,6 +752,7 @@ export const ASSET_INFO = {
     en: 'XRP is designed for fast, low-cost international payments between banks and financial institutions.',
     es: 'XRP está diseñado para pagos internacionales rápidos y de bajo coste entre bancos e instituciones financieras.',
     de: 'XRP ist für schnelle, kostengünstige internationale Zahlungen zwischen Banken und Finanzinstitutionen konzipiert.',
+    fact: { en: 'Settles transactions in under 4 seconds', es: 'Confirma transacciones en menos de 4 segundos', de: 'Transaktionen werden in unter 4 Sekunden bestätigt' },
   },
   SOLUSDT: {
     sector: 'Cryptocurrency',
@@ -589,6 +761,7 @@ export const ASSET_INFO = {
     en: 'Solana is a high-speed blockchain processing 65,000 transactions per second, rivaling Ethereum.',
     es: 'Solana es una blockchain de alta velocidad que procesa 65.000 transacciones por segundo, rivalizando con Ethereum.',
     de: 'Solana ist eine Hochgeschwindigkeits-Blockchain, die 65.000 Transaktionen pro Sekunde verarbeitet und Ethereum rivalisiert.',
+    fact: { en: 'Transaction fees average just $0.00025 on Solana', es: 'Las comisiones promedian solo $0,00025 en Solana', de: 'Transaktionsgebühren betragen im Schnitt $0,00025' },
   },
   // ── Materias primas ───────────────────────────────────────────────
   GLD: {
@@ -598,6 +771,7 @@ export const ASSET_INFO = {
     en: 'GLD tracks the price of gold — the world\'s oldest safe-haven asset used as a hedge against inflation.',
     es: 'GLD sigue el precio del oro — el activo refugio más antiguo del mundo usado como cobertura contra la inflación.',
     de: 'GLD bildet den Goldpreis ab — das älteste Sicherheitsasset der Welt, das als Inflationsschutz eingesetzt wird.',
+    fact: { en: 'All gold ever mined fits in a 22m cube', es: 'Todo el oro extraído cabe en un cubo de 22 m', de: 'Alles je geförderte Gold passt in einen 22m-Würfel' },
   },
   SLV: {
     sector: 'Commodity ETF',
@@ -606,6 +780,7 @@ export const ASSET_INFO = {
     en: 'SLV tracks silver prices — both a precious metal and industrial commodity used in solar panels and electronics.',
     es: 'SLV sigue el precio de la plata — tanto metal precioso como materia prima industrial usada en paneles solares y electrónica.',
     de: 'SLV bildet den Silberpreis ab — sowohl Edelmetall als auch industrieller Rohstoff für Solarmodule und Elektronik.',
+    fact: { en: 'Every EV uses about 50g of silver in its electronics', es: 'Cada coche eléctrico usa unos 50 g de plata', de: 'Jedes E-Auto enthält ~50 g Silber in der Elektronik' },
   },
   PDBC: {
     sector: 'Commodity ETF',
@@ -614,6 +789,7 @@ export const ASSET_INFO = {
     en: 'PDBC tracks a diversified basket of commodities including oil, gold, wheat, and natural gas.',
     es: 'PDBC sigue una cesta diversificada de materias primas incluyendo petróleo, oro, trigo y gas natural.',
     de: 'PDBC bildet einen diversifizierten Rohstoffkorb einschließlich Öl, Gold, Weizen und Erdgas ab.',
+    fact: { en: 'Commodities hedge inflation better than most assets', es: 'Las materias primas cubren la inflación mejor que otros activos', de: 'Rohstoffe schützen besser vor Inflation als die meisten Assets' },
   },
   GDX: {
     sector: 'Commodity ETF',
@@ -622,6 +798,7 @@ export const ASSET_INFO = {
     en: 'GDX tracks gold mining companies — when gold prices rise, miners often gain even more.',
     es: 'GDX sigue empresas mineras de oro — cuando el precio del oro sube, las mineras suelen ganar aún más.',
     de: 'GDX bildet Goldminenunternehmen ab — wenn der Goldpreis steigt, gewinnen Minengesellschaften oft noch mehr.',
+    fact: { en: 'Miners can gain 3x more than gold in a bull run', es: 'Las mineras pueden ganar 3x más que el oro en subida', de: 'Minenaktien können 3x mehr steigen als Gold selbst' },
   },
   PPLT: {
     sector: 'Commodity ETF',
@@ -630,6 +807,7 @@ export const ASSET_INFO = {
     en: 'PPLT tracks platinum prices — a rare precious metal used in catalytic converters and jewelry.',
     es: 'PPLT sigue el precio del platino — un metal precioso raro usado en catalizadores y joyería.',
     de: 'PPLT bildet den Platinpreis ab — ein seltenes Edelmetall, das in Katalysatoren und Schmuck verwendet wird.',
+    fact: { en: 'Platinum is 30x rarer than gold in the Earth\'s crust', es: 'El platino es 30 veces más escaso que el oro', de: 'Platin ist 30x seltener in der Erdkruste als Gold' },
   },
   WEAT: {
     sector: 'Commodity ETF',
@@ -638,6 +816,7 @@ export const ASSET_INFO = {
     en: 'WEAT tracks wheat futures — one of the world\'s most important food commodities.',
     es: 'WEAT sigue los futuros del trigo — una de las materias primas alimentarias más importantes del mundo.',
     de: 'WEAT bildet Weizen-Futures ab — einen der wichtigsten Nahrungsmittelrohstoffe der Welt.',
+    fact: { en: 'Wheat feeds 35% of the world\'s population', es: 'El trigo alimenta al 35% de la población mundial', de: 'Weizen ernährt 35% der Weltbevölkerung' },
   },
   CORN: {
     sector: 'Commodity ETF',
@@ -646,5 +825,6 @@ export const ASSET_INFO = {
     en: 'CORN tracks corn futures — used in food, biofuel, and animal feed across the world.',
     es: 'CORN sigue los futuros del maíz — usado en alimentación, biocombustible y piensos en todo el mundo.',
     de: 'CORN bildet Mais-Futures ab — verwendet in Lebensmitteln, Biokraftstoff und Tierfutter weltweit.',
+    fact: { en: 'The US produces 30% of all the world\'s corn', es: 'EE.UU. produce el 30% del maíz mundial', de: 'Die USA produzieren 30% des weltweiten Maises' },
   },
 };

@@ -21,6 +21,13 @@ const TYPE_EMOJIS = {
   commodity: '🪙',
 };
 
+const RISK_DOT = {
+  crypto:    { color: '#f05454', label: '●' },
+  stock:     { color: '#f5c842', label: '●' },
+  index:     { color: '#22d3a5', label: '●' },
+  commodity: { color: '#f5c842', label: '●' },
+};
+
 function formatPrice(price, type) {
   if (!price) return '—';
   if (type === 'crypto' && price > 1000) return `$${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -80,6 +87,8 @@ export default function Portfolio({ onBack }) {
   const [filter, setFilter]                 = useState('all');
   const [tab, setTab]                       = useState('market');
   const [tradeMsg, setTradeMsg]             = useState('');
+  const [factMsg, setFactMsg]               = useState('');
+  const [hoveredSymbol, setHoveredSymbol]   = useState(null);
   const [assetCandles, setAssetCandles]     = useState(null);
   const [loadingCandles, setLoadingCandles] = useState(false);
   const [portfolioHistory, setPortfolioHistory] = useState([]);
@@ -266,6 +275,14 @@ export default function Portfolio({ onBack }) {
       if (!data.ok) { setError(data.error); setLoading(false); return; }
       setTradeMsg(action === 'buy' ? '✓ ' + t.portfolio.purchase : '✓ ' + t.portfolio.sale);
       setTimeout(() => setTradeMsg(''), 2000);
+      if (action === 'buy') {
+        const info = ASSET_INFO[selected.symbol];
+        if (info?.fact) {
+          const factLang = t.portfolio.buy === 'Buy' ? 'en' : t.portfolio.buy === 'Comprar' ? 'es' : 'de';
+          setFactMsg(info.fact[factLang] || info.fact.en);
+          setTimeout(() => setFactMsg(''), 3500);
+        }
+      }
       setQty('');
       await loadAll();
     } catch {
@@ -456,9 +473,9 @@ export default function Portfolio({ onBack }) {
         {info && (
           <div style={{ margin: '12px 20px 0', padding: '14px 16px', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px', position: 'relative', zIndex: 2 }}>
             <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '9px', color: '#378ADD', background: 'rgba(55,138,221,0.1)', padding: '3px 10px', borderRadius: '4px', letterSpacing: '0.04em' }}>{info.sector}</span>
-              <span style={{ fontSize: '9px', color: '#4a5568', background: '#0a0c0f', padding: '3px 10px', borderRadius: '4px', letterSpacing: '0.04em' }}>{info.country}</span>
-              <span style={{ fontSize: '9px', color: '#f5c842', background: 'rgba(245,200,66,0.08)', padding: '3px 10px', borderRadius: '4px', letterSpacing: '0.04em' }}>{info.cap}</span>
+              <span style={{ fontSize: '9px', color: '#378ADD', background: 'rgba(55,138,221,0.1)', padding: '3px 10px', borderRadius: '4px', letterSpacing: '0.04em' }}>📊 {info.sector}</span>
+              <span style={{ fontSize: '9px', color: '#4a5568', background: '#0a0c0f', padding: '3px 10px', borderRadius: '4px', letterSpacing: '0.04em' }}>🌍 {info.country}</span>
+              <span style={{ fontSize: '9px', color: '#f5c842', background: 'rgba(245,200,66,0.08)', padding: '3px 10px', borderRadius: '4px', letterSpacing: '0.04em' }}>💰 {info.cap}</span>
             </div>
             <div style={{ fontSize: '11px', color: '#6b7a8d', lineHeight: 1.7 }}>{info[lang]}</div>
           </div>
@@ -561,6 +578,7 @@ export default function Portfolio({ onBack }) {
 
           {error    && <div style={{ fontSize: '10px', color: '#f05454', marginBottom: '10px' }}>{error}</div>}
           {tradeMsg && <div style={{ fontSize: '10px', color: '#22d3a5', marginBottom: '10px' }}>{tradeMsg}</div>}
+          {factMsg  && <div style={{ fontSize: '9px', color: '#6b7a8d', marginBottom: '10px', padding: '6px 10px', background: 'rgba(55,138,221,0.05)', border: '1px solid rgba(55,138,221,0.12)', borderRadius: '6px', letterSpacing: '0.02em' }}>💡 {factMsg}</div>}
 
           <button onClick={handleTrade} disabled={loading || !qty || parseFloat(qty) <= 0}
             style={{ width: '100%', padding: '14px', background: loading ? '#0f141b' : action === 'buy' ? 'rgba(34,211,165,0.08)' : 'rgba(240,84,84,0.08)', border: `1px solid ${action === 'buy' ? '#22d3a5' : '#f05454'}`, borderRadius: '6px', color: action === 'buy' ? '#22d3a5' : '#f05454', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading || !qty || parseFloat(qty) <= 0 ? 0.4 : 1 }}>
@@ -682,29 +700,42 @@ export default function Portfolio({ onBack }) {
 
           <div style={{ padding: '0 20px 40px' }}>
             {filteredPrices.map(asset => {
-              const status = getMarketStatus(asset.type, t);
+              const status    = getMarketStatus(asset.type, t);
+              const info      = ASSET_INFO[asset.symbol];
+              const riskDot   = RISK_DOT[asset.type];
+              const infoLang  = t.portfolio.buy === 'Buy' ? 'en' : t.portfolio.buy === 'Comprar' ? 'es' : 'de';
+              const tooltip   = info?.[infoLang]?.split('.')[0];
+              const isHovered = hoveredSymbol === asset.symbol;
               return (
-                <div key={asset.symbol} onClick={() => openAsset(asset)}
-                  style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px', marginBottom: '6px', cursor: 'pointer', transition: 'all 0.15s' }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = TYPE_COLORS[asset.type]}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = '#1e2530'}
-                >
-                  <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: `${TYPE_COLORS[asset.type]}15`, border: `1px solid ${TYPE_COLORS[asset.type]}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', flexShrink: 0 }}>
-                    {TYPE_EMOJIS[asset.type]}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '12px', color: '#f0f0f0' }}>{asset.name}</div>
-                    <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      {asset.symbol} · {t.portfolio.types[asset.type]}
-                      <span style={{ fontSize: '8px', color: status.open ? '#22d3a5' : '#f05454', background: status.open ? 'rgba(34,211,165,0.1)' : 'rgba(240,84,84,0.1)', padding: '1px 5px', borderRadius: '4px', letterSpacing: '0.04em' }}>
-                        {status.label}
-                      </span>
+                <div key={asset.symbol} style={{ position: 'relative', marginBottom: '6px' }}>
+                  <div onClick={() => openAsset(asset)}
+                    style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.15s' }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = TYPE_COLORS[asset.type]; setHoveredSymbol(asset.symbol); }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = '#1e2530'; setHoveredSymbol(null); }}
+                  >
+                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: `${TYPE_COLORS[asset.type]}15`, border: `1px solid ${TYPE_COLORS[asset.type]}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', flexShrink: 0 }}>
+                      {TYPE_EMOJIS[asset.type]}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '12px', color: '#f0f0f0' }}>{asset.name}</div>
+                      <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {asset.symbol} · {t.portfolio.types[asset.type]}
+                        <span style={{ fontSize: '8px', color: status.open ? '#22d3a5' : '#f05454', background: status.open ? 'rgba(34,211,165,0.1)' : 'rgba(240,84,84,0.1)', padding: '1px 5px', borderRadius: '4px', letterSpacing: '0.04em' }}>
+                          {status.label}
+                        </span>
+                        {riskDot && <span style={{ fontSize: '8px', color: riskDot.color, lineHeight: 1 }} title="Risk">{riskDot.label}</span>}
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                      <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: '#f0f0f0' }}>{formatPrice(asset.price, asset.type)}</div>
+                      <div style={{ fontSize: '10px', color: asset.change >= 0 ? '#22d3a5' : '#f05454', fontWeight: 700 }}>{formatChange(asset.change)}</div>
                     </div>
                   </div>
-                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: '#f0f0f0' }}>{formatPrice(asset.price, asset.type)}</div>
-                    <div style={{ fontSize: '10px', color: asset.change >= 0 ? '#22d3a5' : '#f05454', fontWeight: 700 }}>{formatChange(asset.change)}</div>
-                  </div>
+                  {isHovered && tooltip && (
+                    <div style={{ position: 'absolute', bottom: 'calc(100% + 4px)', left: 0, right: 0, background: '#0f141b', border: '1px solid #2a3345', borderRadius: '6px', padding: '7px 12px', fontSize: '9px', color: '#8899b0', lineHeight: 1.5, zIndex: 50, pointerEvents: 'none' }}>
+                      {tooltip}
+                    </div>
+                  )}
                 </div>
               );
             })}
