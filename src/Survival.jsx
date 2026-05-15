@@ -307,39 +307,28 @@ export default function Survival({ onBack }) {
     <div id="gtm-root" style={{ position: 'relative' }}>
       <div className="scanlines" />
 
-      <button onClick={onBack}
-        style={{ position: 'absolute', top: 'calc(14px + env(safe-area-inset-top))', left: '16px', background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', zIndex: 10, padding: '4px 0', transition: 'color 0.15s' }}
-        onMouseEnter={e => e.target.style.color = '#e2e8f0'}
-        onMouseLeave={e => e.target.style.color = '#3a4455'}
-      >{t.survival.back}</button>
+      <div className="header" style={{ display: 'grid', gridTemplateColumns: '80px 1fr 80px', alignItems: 'center', padding: '12px 20px 10px' }}>
+        {/* Back */}
+        <button onClick={onBack}
+          style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', padding: 0, textAlign: 'left', transition: 'color 0.15s' }}
+          onMouseEnter={e => e.target.style.color = '#e2e8f0'}
+          onMouseLeave={e => e.target.style.color = '#3a4455'}
+        >{t.survival.back}</button>
 
-      <div className="header">
-        <div className="logo">☠️ {t.survival.title}</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-            {Array.from({ length: MAX_LIVES }, (_, i) => (
-              <span key={i} style={{
-                fontSize: '16px',
-                opacity: i < lives ? 1 : 0.2,
-                transition: 'opacity 0.3s',
-                filter: liveLost && i === lives ? 'brightness(0) saturate(100%) invert(27%) sepia(90%) saturate(3000%) hue-rotate(340deg)' : 'none',
-              }}>❤️</span>
-            ))}
+        {/* Centered title */}
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: '#f05454', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 24px rgba(240,84,84,0.55), 0 0 8px rgba(240,84,84,0.3)' }}>
+            ☠️ {t.survival.title}
           </div>
-          <div className="stats-row">
-            <div className="stat-item">
-              <span className="stat-label">{t.game.round}</span>
-              <span className="stat-val">{round}</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-label">{t.game.score}</span>
-              <span className="stat-val yellow">{score}</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-label">{t.game.streak}</span>
-              <span className="stat-val green">{streak}</span>
-            </div>
+          <div style={{ fontSize: '8px', color: '#3a4455', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: "'Space Mono', monospace" }}>
+            SURVIVAL MODE
           </div>
+        </div>
+
+        {/* Stats right */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
+          <span style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.06em' }}>{t.game.score}</span>
+          <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#f5c842', textShadow: '0 0 14px rgba(245,200,66,0.35)' }}>{score}</span>
         </div>
       </div>
 
@@ -366,6 +355,23 @@ export default function Survival({ onBack }) {
         ))}
         {streak > 1 && <span className="streak-label">{streak}x streak</span>}
       </div>
+      {/* Lives below chart */}
+      <div style={{ padding: '8px 20px 4px', position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px' }}>
+        <span style={{ fontSize: '8px', color: '#3a4455', letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: "'Space Mono', monospace" }}>LIVES</span>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          {Array.from({ length: MAX_LIVES }, (_, i) => (
+            <span key={i} style={{
+              fontSize: '28px',
+              opacity: i < lives ? 1 : 0.13,
+              transition: 'all 0.35s',
+              transform: liveLost && i === lives ? 'scale(0.65)' : 'scale(1)',
+              filter: liveLost && i === lives ? 'grayscale(1) brightness(0.4)' : i < lives ? 'drop-shadow(0 0 6px rgba(240,84,84,0.6))' : 'none',
+            }}>❤️</span>
+          ))}
+        </div>
+        <span style={{ fontSize: '8px', color: '#3a4455', letterSpacing: '0.18em', fontFamily: "'Space Mono', monospace" }}>R·{round}</span>
+      </div>
+
       <div style={{ padding: '6px 20px 0', position: 'relative', zIndex: 2, display: 'flex', gap: '6px' }}>
         <div style={{ flex: 1, background: '#0f141b', border: '1px solid #1e2530', borderRadius: '6px', padding: '7px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: '8px', color: '#4a5568', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t.game.round}</span>
