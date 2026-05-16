@@ -7,6 +7,7 @@ import { getXP, getLevel } from './levels.js';
 import { useAuth } from './AuthContext';
 import UsernameModal from './UsernameModal.jsx';
 import { FRAME_STYLES, AVATAR_EMOJIS } from './UserAvatar.jsx';
+import FounderBadge, { isFounder } from './FounderBadge.jsx';
 
 const TOURNAMENT_SUB = {
   en: 'Weekly · Global ranking · 10 rounds',
@@ -146,8 +147,9 @@ export default function Home({ onSelect }) {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <span style={{ fontSize: '10px', color: '#8899b0', fontFamily: "'Space Mono', monospace" }}>
+                  <span style={{ fontSize: '10px', color: '#8899b0', fontFamily: "'Space Mono', monospace", display: 'inline-flex', alignItems: 'center' }}>
                     {user.username ? `@${user.username}` : user.name}
+                    {isFounder(user.username) && <FounderBadge size={12} />}
                   </span>
                   {activeCosmetics.avatar && (
                     <span style={{ fontSize: '16px', lineHeight: 1 }}>{AVATAR_EMOJIS[activeCosmetics.avatar]}</span>

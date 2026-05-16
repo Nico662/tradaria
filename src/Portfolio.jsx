@@ -10,6 +10,7 @@ import { incrementMission, recordModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
 import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
+import FounderBadge, { isFounder } from './FounderBadge.jsx';
 
 const TYPE_COLORS = {
   stock:     '#378ADD',
@@ -857,8 +858,9 @@ export default function Portfolio({ onBack }) {
                   </div>
                   <UserAvatar user={entry} size={24} showBadge />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
                       {entry.username ? `@${entry.username}` : entry.name}
+                      {isFounder(entry.username) && <FounderBadge size={11} />}
                     </div>
                     <div style={{ fontSize: '9px', color: '#4a5568' }}>{formatCash(entry.totalValue)}</div>
                   </div>
@@ -884,8 +886,9 @@ export default function Portfolio({ onBack }) {
                   </div>
                   <UserAvatar user={entry} size={24} showBadge />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
                       {entry.username ? `@${entry.username}` : entry.name}
+                      {isFounder(entry.username) && <FounderBadge size={11} />}
                     </div>
                     <div style={{ fontSize: '9px', color: '#4a5568' }}>{formatCash(entry.totalValue ?? 0)}</div>
                   </div>
@@ -913,7 +916,7 @@ export default function Portfolio({ onBack }) {
               <div style={{ display: 'flex', gap: '8px' }}>
                 {[activeDuel.challenger, activeDuel.opponent].map((p, i) => (
                   <div key={i} style={{ flex: 1, background: '#0a0c0f', border: `1px solid ${p.returnPct >= 0 ? 'rgba(34,211,165,0.2)' : 'rgba(240,84,84,0.2)'}`, borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '9px', color: '#4a5568', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.username || p.name}</div>
+                    <div style={{ fontSize: '9px', color: '#4a5568', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{p.username || p.name}{isFounder(p.username) && <FounderBadge size={9} />}</div>
                     <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: p.returnPct >= 0 ? '#22d3a5' : '#f05454' }}>
                       {p.returnPct >= 0 ? '+' : ''}{p.returnPct.toFixed(2)}%
                     </div>
@@ -982,7 +985,7 @@ export default function Portfolio({ onBack }) {
                 duelFriends.map(f => (
                   <div key={f.username} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', borderRadius: '6px', marginBottom: '4px', background: '#0a0c0f' }}>
                     <UserAvatar user={f} size={28} showBadge />
-                    <div style={{ flex: 1, fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0' }}>{f.username || f.name}</div>
+                    <div style={{ flex: 1, fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0', display: 'flex', alignItems: 'center' }}>{f.username || f.name}{isFounder(f.username) && <FounderBadge size={11} />}</div>
                     <button onClick={() => challengeFriendDuel(f.username)} disabled={duelLoading}
                       style={{ padding: '6px 12px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, cursor: 'pointer', opacity: duelLoading ? 0.5 : 1 }}>
                       {t.portfolio.challengeBtn}

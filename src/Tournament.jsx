@@ -7,6 +7,7 @@ import { addXP } from './levels.js';
 import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
 import EffectOverlay from './EffectOverlay.jsx';
+import FounderBadge, { isFounder } from './FounderBadge.jsx';
 
 import { SERVER } from './config.js';
 import UserAvatar, { AVATAR_EMOJIS } from './UserAvatar.jsx';
@@ -230,8 +231,9 @@ export default function Tournament({ onBack }) {
                   {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
                 </div>
                 <UserAvatar user={entry} size={24} showBadge />
-                <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
                   <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</span>
+                  {isFounder(entry.username) && <FounderBadge size={11} />}
                 </div>
                 <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#22d3a5' }}>{entry.score}</div>
               </div>

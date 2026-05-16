@@ -5,6 +5,7 @@ import { getLevel } from './levels.js';
 import { BADGES } from './badges.js';
 import { SERVER } from './config.js';
 import UserAvatar from './UserAvatar.jsx';
+import FounderBadge, { isFounder } from './FounderBadge.jsx';
 
 export default function PublicProfile({ username, onBack, onChallenge }) {
   const { user } = useAuth();
@@ -70,8 +71,9 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
           <div style={{ marginBottom: '14px' }}>
             <UserAvatar user={profile} size={80} showBadge />
           </div>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: '#f0f0f0', marginBottom: '4px' }}>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: '#f0f0f0', marginBottom: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
             @{profile.username}
+            {isFounder(profile.username) && <FounderBadge size={18} />}
           </div>
           <div style={{ fontSize: '11px', color: '#4a5568', fontFamily: "'Space Mono', monospace" }}>{profile.name}</div>
         </div>

@@ -6,6 +6,7 @@ import { SERVER } from './config.js';
 import UserAvatar from './UserAvatar.jsx';
 import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
+import FounderBadge, { isFounder } from './FounderBadge.jsx';
 
 function authHeaders() {
   return {
@@ -30,8 +31,9 @@ function FriendCard({ f, onChallenge, isChallenging, challengeStatus, onViewProf
     <div style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
       <UserAvatar user={f} size={38} showBadge />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#f0f0f0', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#f0f0f0', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
           {f.username ? `@${f.username}` : f.name}
+          {isFounder(f.username) && <FounderBadge size={11} />}
         </div>
         <div style={{ fontSize: '9px', color: '#4a5568', fontFamily: "'Space Mono', monospace", marginTop: '2px' }}>
           {level.icon} {level.name} · {f.xp || 0} XP
@@ -66,8 +68,9 @@ function PendingCard({ req, onAccept, onReject }) {
     <div style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
       <UserAvatar user={req} size={38} />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#f0f0f0', fontWeight: 700 }}>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#f0f0f0', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
           {req.username ? `@${req.username}` : req.name}
+          {isFounder(req.username) && <FounderBadge size={11} />}
         </div>
         <div style={{ fontSize: '9px', color: '#4a5568', fontFamily: "'Space Mono', monospace", marginTop: '2px' }}>
           {level.icon} {level.name}
@@ -106,8 +109,9 @@ function SearchResultCard({ profile, onSendRequest }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <UserAvatar user={profile} size={42} showBadge />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '12px', color: '#f0f0f0', fontWeight: 700 }}>
+          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '12px', color: '#f0f0f0', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
             @{profile.username}
+            {isFounder(profile.username) && <FounderBadge size={12} />}
           </div>
           <div style={{ fontSize: '9px', color: '#4a5568', fontFamily: "'Space Mono', monospace", marginTop: '2px' }}>
             {level.icon} {level.name} · {profile.xp || 0} XP
