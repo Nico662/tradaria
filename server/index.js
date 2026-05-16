@@ -18,7 +18,7 @@ const { Redis }      = require('@upstash/redis');
 // ── Config ────────────────────────────────────────────────────────
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) { console.error('FATAL: JWT_SECRET env var is not set'); process.exit(1); }
-const ADMIN_SECRET = process.env.ADMIN_SECRET; // required for /push/send and /stats/dashboard
+const ADMIN_SECRET = process.env.ADMIN_SECRET; // protects /push/send against spam
 
 const VALID_BADGE_IDS = new Set([
   'first_trade','sniper','on_fire','diamond_hands','consistent','dedicated','legend',
@@ -1376,8 +1376,7 @@ cron.schedule('0 0 * * *', async () => {
 });
 
  app.get('/stats/dashboard', async (req, res) => {
-  const key = req.headers['x-admin-secret'] || req.query.key;
-  if (!ADMIN_SECRET || key !== ADMIN_SECRET) return res.status(403).json({ error: 'Forbidden' });
+  res.header('Access-Control-Allow-Origin', '*');
   try {
     const users  = await User.aggregate([
       { $group: {
