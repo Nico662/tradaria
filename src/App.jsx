@@ -75,6 +75,7 @@ export default function App() {
   const [activeEffect,setActiveEffect] = useState(false);
   const [missionToast, setMissionToast] = useState(null);
   const floatingXPKeyRef = useRef(0);
+  const gameStartRef     = useRef(Date.now());
   const [chartReady, setChartReady] = useState(false);
 
   const { syncProgress, activeCosmetics = {}, user, checkLevelUp } = useAuth();
@@ -186,9 +187,12 @@ export default function App() {
     const newStreak = lastPlayed === yesterday ? current + 1 : 1;
     localStorage.setItem('tradara_daily_streak', String(newStreak));
     localStorage.setItem('tradara_daily_last', today);
-    if (newStreak >= 3)  tryUnlockBadge('consistent');
-    if (newStreak >= 7)  tryUnlockBadge('dedicated');
-    if (newStreak >= 30) tryUnlockBadge('legend');
+    if (newStreak >= 3)   tryUnlockBadge('consistent');
+    if (newStreak >= 7)   tryUnlockBadge('dedicated');
+    if (newStreak >= 14)  tryUnlockBadge('streak_14');
+    if (newStreak >= 30)  tryUnlockBadge('legend');
+    if (newStreak >= 60)  tryUnlockBadge('streak_60');
+    if (newStreak >= 100) tryUnlockBadge('streak_100');
   }
 
   const makeChoice = useCallback((choice) => {
@@ -341,6 +345,7 @@ export default function App() {
     const modeR = recordModePlayed('guess');
     if (modeR.completed) setMissionToast({ xpEarned: modeR.xpEarned, title: modeR.mission.title });
     if (round >= 25) {
+      if ((Date.now() - gameStartRef.current) / 1000 < 180) tryUnlockBadge('secret_speedrun');
       setGameOver(true);
       return;
     }
@@ -376,8 +381,10 @@ export default function App() {
     const acc      = nonSkips > 0 ? Math.round(wins / nonSkips * 100) : 0;
     if (acc >= 90) tryUnlockBadge('big_brain');
     if (acc === 100 && nonSkips === 25) tryUnlockBadge('perfectionist');
+    if (wins === 25) tryUnlockBadge('secret_allgreen');
     const catsWon = new Set(history.map((h, i) => h === 'win' ? ASSETS[i % ASSETS.length].cat : null).filter(Boolean));
     if (catsWon.size >= 4) tryUnlockBadge('all_rounder');
+    gameStartRef.current = Date.now();
     setGameOver(false);
     setRound(1);
     setScore(0);

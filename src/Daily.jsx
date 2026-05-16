@@ -161,7 +161,7 @@ export default function Daily({ onBack }) {
 
   const hour = new Date().getHours();
   if (hour < 9) tryUnlockDailyBadge('early_bird');
-  if (hour === 3) tryUnlockDailyBadge('ghost');
+  if (hour === 3) { tryUnlockDailyBadge('ghost'); tryUnlockDailyBadge('secret_night'); }
 
   // Sincronizar streak con servidor
   const token = localStorage.getItem('tradara_token');

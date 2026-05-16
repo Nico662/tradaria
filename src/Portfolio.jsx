@@ -8,6 +8,8 @@ import { SERVER } from './config.js';
 import UserAvatar from './UserAvatar.jsx';
 import { incrementMission, recordModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
+import { unlockBadge, BADGES } from './badges.js';
+import BadgeNotification from './BadgeNotification.jsx';
 
 const TYPE_COLORS = {
   stock:     '#378ADD',
@@ -91,6 +93,7 @@ export default function Portfolio({ onBack }) {
   const [tradeMsg, setTradeMsg]             = useState('');
   const [factMsg, setFactMsg]               = useState('');
   const [missionToast, setMissionToast]     = useState(null);
+  const [newBadge, setNewBadge]             = useState(null);
   const [hoveredSymbol, setHoveredSymbol]   = useState(null);
   const [assetCandles, setAssetCandles]     = useState(null);
   const [loadingCandles, setLoadingCandles] = useState(false);
@@ -114,6 +117,14 @@ export default function Portfolio({ onBack }) {
   function dismissWelcome() {
     localStorage.setItem('tradara_portfolio_welcomed', 'true');
     setShowWelcome(false);
+  }
+
+  function tryUnlockPortfolioBadge(id) {
+    const unlocked = unlockBadge(id);
+    if (unlocked) {
+      const badge = BADGES.find(b => b.id === id);
+      if (badge) setNewBadge(badge);
+    }
   }
 
   const loadAll = useCallback(async () => {
@@ -242,6 +253,19 @@ export default function Portfolio({ onBack }) {
     return () => clearInterval(interval);
   }, [user, loadAll]);
 
+  useEffect(() => {
+    if (!portfolio || !prices.length) return;
+    const tv = (portfolio.cash || 0) + (portfolio.positions || []).reduce((s, pos) => {
+      const p = prices.find(p => p.symbol === pos.symbol);
+      return s + (p?.price || pos.avgPrice) * pos.qty;
+    }, 0);
+    if (tv >= 55000)  tryUnlockPortfolioBadge('portfolio_profit');
+    if (tv >= 100000) tryUnlockPortfolioBadge('portfolio_10x');
+    if (tv <= 40000)  tryUnlockPortfolioBadge('portfolio_loss');
+    if (tv <= 0)      tryUnlockPortfolioBadge('secret_broke');
+    if ((portfolio.positions || []).length >= 5) tryUnlockPortfolioBadge('portfolio_diverse');
+  }, [portfolio, prices]); // eslint-disable-line react-hooks/exhaustive-deps
+
   async function loadCandles(symbol) {
     setLoadingCandles(true);
     setAssetCandles(null);
@@ -278,6 +302,9 @@ export default function Portfolio({ onBack }) {
       if (!data.ok) { setError(data.error); setLoading(false); return; }
       setTradeMsg(action === 'buy' ? '✓ ' + t.portfolio.purchase : '✓ ' + t.portfolio.sale);
       setTimeout(() => setTradeMsg(''), 2000);
+      const trades = parseInt(localStorage.getItem('tradara_portfolio_trades') || '0') + 1;
+      localStorage.setItem('tradara_portfolio_trades', String(trades));
+      if (trades >= 50) tryUnlockPortfolioBadge('portfolio_trader');
       const mKey = action === 'buy' ? 'portfolio_buy' : 'portfolio_sell';
       const mr = incrementMission(mKey);
       if (mr.completed) setMissionToast({ xpEarned: mr.xpEarned, title: mr.mission.title });
@@ -1003,6 +1030,7 @@ export default function Portfolio({ onBack }) {
       )}
 
       {missionToast && <MissionNotification data={missionToast} onDone={() => setMissionToast(null)} />}
+      {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
     </div>
   );
 }

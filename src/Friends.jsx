@@ -4,6 +4,8 @@ import { useLang } from './LangContext.jsx';
 import { getLevel } from './levels.js';
 import { SERVER } from './config.js';
 import UserAvatar from './UserAvatar.jsx';
+import { unlockBadge, BADGES } from './badges.js';
+import BadgeNotification from './BadgeNotification.jsx';
 
 function authHeaders() {
   return {
@@ -148,9 +150,18 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
   const [loading, setLoading]           = useState(true);
   const [msg, setMsg]                   = useState(null);
   const [copiedInvite, setCopiedInvite] = useState(false);
+  const [newBadge, setNewBadge]         = useState(null);
   const debounceRef                     = useRef(null);
   const [challengingFriend, setChallengingFriend] = useState(null);
   const [challengeStatus, setChallengeStatus]     = useState(null);
+
+  function tryUnlockSocialBadge(id) {
+    const unlocked = unlockBadge(id);
+    if (unlocked) {
+      const badge = BADGES.find(b => b.id === id);
+      if (badge) setNewBadge(badge);
+    }
+  }
 
   function copyInviteLink() {
     if (!user?.username) return;
@@ -197,8 +208,11 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
         fetch(`${SERVER}/friends/pending`, { headers: authHeaders() }),
       ]);
       const [fData, pData] = await Promise.all([fRes.json(), pRes.json()]);
-      setFriends(Array.isArray(fData) ? fData : []);
+      const friendList = Array.isArray(fData) ? fData : [];
+      setFriends(friendList);
       setPending(Array.isArray(pData) ? pData : []);
+      if (friendList.length >= 1) tryUnlockSocialBadge('social_first');
+      if (friendList.length >= 5) tryUnlockSocialBadge('social_squad');
     } catch {}
     setLoading(false);
   }
@@ -398,6 +412,7 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
           </>
         )}
       </div>
+      {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
     </div>
   );
 }

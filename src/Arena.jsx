@@ -228,8 +228,14 @@ export default function Arena({ onBack, challengeRoomCode }) {
             if (wins === 1) tryUnlockArenaBadge('first_blood');
             if (wins >= 5)  tryUnlockArenaBadge('dominator');
             if (newMyScore >= 1000) tryUnlockArenaBadge('unbeatable');
+            const arenaStreak = parseInt(localStorage.getItem('tradara_arena_win_streak') || '0') + 1;
+            localStorage.setItem('tradara_arena_win_streak', String(arenaStreak));
+            if (arenaStreak >= 3) tryUnlockArenaBadge('arena_streak_3');
+            if (arenaStreak >= 5) tryUnlockArenaBadge('arena_streak_5');
             const wr = incrementMission('win_arena');
             if (wr.completed) setMissionToast({ xpEarned: wr.xpEarned, title: wr.mission.title });
+          } else {
+            localStorage.setItem('tradara_arena_win_streak', '0');
           }
           const pr = incrementMission('play_arena');
           if (pr.completed) setMissionToast({ xpEarned: pr.xpEarned, title: pr.mission.title });
@@ -288,8 +294,14 @@ export default function Arena({ onBack, challengeRoomCode }) {
         if (wins === 1) tryUnlockArenaBadge('first_blood');
         if (wins >= 5)  tryUnlockArenaBadge('dominator');
         if (myScore >= 1000) tryUnlockArenaBadge('unbeatable');
+        const arenaStreak = parseInt(localStorage.getItem('tradara_arena_win_streak') || '0') + 1;
+        localStorage.setItem('tradara_arena_win_streak', String(arenaStreak));
+        if (arenaStreak >= 3) tryUnlockArenaBadge('arena_streak_3');
+        if (arenaStreak >= 5) tryUnlockArenaBadge('arena_streak_5');
         const wr = incrementMission('win_arena');
         if (wr.completed) setMissionToast({ xpEarned: wr.xpEarned, title: wr.mission.title });
+      } else {
+        localStorage.setItem('tradara_arena_win_streak', '0');
       }
       const pr = incrementMission('play_arena');
       if (pr.completed) setMissionToast({ xpEarned: pr.xpEarned, title: pr.mission.title });
@@ -306,6 +318,10 @@ export default function Arena({ onBack, challengeRoomCode }) {
       localStorage.setItem('tradara_arena_wins', String(wins));
       if (wins === 1) tryUnlockArenaBadge('first_blood');
       if (wins >= 5)  tryUnlockArenaBadge('dominator');
+      const arenaStreak = parseInt(localStorage.getItem('tradara_arena_win_streak') || '0') + 1;
+      localStorage.setItem('tradara_arena_win_streak', String(arenaStreak));
+      if (arenaStreak >= 3) tryUnlockArenaBadge('arena_streak_3');
+      if (arenaStreak >= 5) tryUnlockArenaBadge('arena_streak_5');
     });
     socket.on('connect',                   () => setMyId(socket.id));
     socket.on('chat:message',         (d) => { setChatMsg(d); setTimeout(() => setChatMsg(null), 3000); });

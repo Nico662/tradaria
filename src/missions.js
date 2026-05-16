@@ -1,4 +1,5 @@
 import { addXP } from './levels.js';
+import { unlockBadge } from './badges.js';
 
 const MISSION_POOL = [
   { id: 'play_5_guess',     title: { en: 'Play 5 rounds',                  es: 'Juega 5 rondas',                    de: '5 Runden spielen'                  }, desc: { en: 'in Guess The Market',           es: 'en Adivina el Mercado',             de: 'in Markt raten'                    }, xp: 20, target: 5,  mode: 'guess'      },
@@ -50,6 +51,10 @@ export function incrementMission(missionId, amount = 1) {
   localStorage.setItem(key, JSON.stringify(data));
   if (next >= mission.target) {
     addXP(mission.xp);
+    const total = parseInt(localStorage.getItem('tradara_missions_completed_total') || '0') + 1;
+    localStorage.setItem('tradara_missions_completed_total', String(total));
+    if (total === 1) unlockBadge('mission_first');
+    if (total >= 30) unlockBadge('mission_master');
     return { completed: true, xpEarned: mission.xp, mission };
   }
   return { completed: false, xpEarned: 0 };
