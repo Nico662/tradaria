@@ -173,6 +173,13 @@ export function AuthProvider({ children }) {
   }
 
   function logout() {
+    const token = localStorage.getItem('tradara_token');
+    if (token) {
+      fetch(`${SERVER}/auth/logout`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch(() => {});
+    }
     localStorage.removeItem('tradara_token');
     setUser(null);
     setPurchases([]);

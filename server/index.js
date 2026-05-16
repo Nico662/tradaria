@@ -3,6 +3,7 @@ const http           = require('http');
 const { Server }     = require('socket.io');
 const YahooFinance   = require('yahoo-finance2').default;
 const cors           = require('cors');
+const helmet         = require('helmet');
 const cron           = require('node-cron');
 const webpush        = require('web-push');
 const mongoose       = require('mongoose');
@@ -17,6 +18,22 @@ const { Redis }      = require('@upstash/redis');
 // ── Config ────────────────────────────────────────────────────────
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) { console.error('FATAL: JWT_SECRET env var is not set'); process.exit(1); }
+const ADMIN_SECRET = process.env.ADMIN_SECRET; // required for /push/send and /stats/dashboard
+
+const VALID_BADGE_IDS = new Set([
+  'first_trade','sniper','on_fire','diamond_hands','consistent','dedicated','legend',
+  'rekt','bitcoin_maxi','forex_king','whale','perfectionist','big_brain','all_rounder',
+  'screenshot_ready','daily_streak_3','daily_streak_7','daily_streak_30','perfect_week',
+  'early_bird','ghost','historical_ace','first_blood','dominator',
+  'mission_first','mission_week','mission_master',
+  'portfolio_profit','portfolio_10x','portfolio_loss','portfolio_diverse','portfolio_hodl','portfolio_trader',
+  'social_first','social_squad','social_duel_win','social_duel_3','social_challenger',
+  'streak_14','streak_60','streak_100','arena_streak_3','arena_streak_5',
+  'secret_night','secret_allgreen','secret_broke','secret_speedrun','secret_comeback',
+]);
+
+const VALID_GAME_MODES = new Set(['guess', 'survival', 'daily', 'arena', 'tournament', 'historical', 'portfolio']);
+const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 const GOOGLE_CLIENT_ID     = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const MONGODB_URI          = process.env.MONGODB_URI;
@@ -30,8 +47,10 @@ const yf     = new YahooFinance();
 // ── Express ───────────────────────────────────────────────────────
 const app        = express();
 const httpServer = http.createServer(app);
-const io         = new Server(httpServer, { cors: { origin: '*' } });
+const ALLOWED_ORIGINS = ['https://tradara.dev', 'https://www.tradara.dev'];
+const io         = new Server(httpServer, { cors: { origin: ALLOWED_ORIGINS, credentials: true } });
 app.set('trust proxy', 1);
+app.use(helmet({ crossOriginResourcePolicy: false }));
 
 // ── Redis ─────────────────────────────────────────────────────────
 const redis = new Redis({
@@ -352,6 +371,8 @@ const dailyLimiter   = rateLimit({ windowMs: 60 * 1000, max: 10,  message: { err
 const candlesLimiter = rateLimit({ windowMs: 60 * 1000, max: 30,  message: { error: 'Too many candle requests.' } });
 const tradeLimiter   = rateLimit({ windowMs: 60 * 1000, max: 20,  message: { error: 'Too many trade requests.' } });
 const authLimiter    = rateLimit({ windowMs: 60 * 1000, max: 10,  message: { error: 'Too many auth requests.' } });
+const shareLimiter   = rateLimit({ windowMs: 60 * 1000, max: 5,   message: { error: 'Too many share requests.' } });
+const syncLimiter    = rateLimit({ windowMs: 60 * 1000, max: 30,  message: { error: 'Too many sync requests.' } });
 
 app.use(generalLimiter);
 app.use('/daily',              dailyLimiter);
@@ -359,6 +380,9 @@ app.use('/candles',            candlesLimiter);
 app.use('/portfolio/buy',      tradeLimiter);
 app.use('/portfolio/sell',     tradeLimiter);
 app.use('/auth/google',        authLimiter);
+app.use('/auth/username/check', authLimiter);
+app.use('/stats/share',        shareLimiter);
+app.use('/auth/sync',          syncLimiter);
 
 // ── Passport ──────────────────────────────────────────────────────
 passport.use(new GoogleStrategy({
@@ -411,6 +435,18 @@ app.get('/auth/google/callback',
   }
 );
 
+app.post('/auth/logout', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.json({ ok: true });
+  const token = auth.replace('Bearer ', '');
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const ttl = decoded.exp - Math.floor(Date.now() / 1000);
+    if (ttl > 0) await redis.set(`blacklist:${token}`, '1', { ex: ttl });
+  } catch {}
+  res.json({ ok: true });
+});
+
 app.get('/auth/me', async (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'No token' });
@@ -438,19 +474,44 @@ app.get('/auth/me', async (req, res) => {
 });
 
 app.post('/auth/sync', async (req, res) => {
-  const auth = req.headers.authorization;
-  if (!auth) return res.status(401).json({ error: 'No token' });
+  const decoded = await verifyTokenBlacklisted(req);
+  if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
-    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const current = await User.findById(decoded.id);
+    if (!current) return res.status(404).json({ error: 'User not found' });
     const { xp, badges, dailyStreak, lastPlayed, dailyResult } = req.body;
-    const update = { xp, badges };
-    if (dailyStreak !== undefined) update.dailyStreak = dailyStreak;
-    if (lastPlayed !== undefined) update.lastPlayed = lastPlayed;
+
+    // XP: only allow increase, cap delta at 2000 per sync
+    const newXP = Number(xp);
+    const safeXP = Number.isFinite(newXP) && newXP >= 0
+      ? Math.min(newXP, current.xp + 2000)
+      : current.xp;
+
+    // Badges: only known IDs, only additive
+    const incomingBadges = Array.isArray(badges) ? badges : [];
+    const safeBadges = [...new Set([
+      ...current.badges,
+      ...incomingBadges.filter(b => typeof b === 'string' && VALID_BADGE_IDS.has(b)),
+    ])];
+
+    // Streak: non-negative integer, max 3650, only increase
+    const newStreak = Number(dailyStreak);
+    const safeStreak = Number.isInteger(newStreak) && newStreak >= 0 && newStreak <= 3650
+      ? Math.max(current.dailyStreak || 0, newStreak)
+      : current.dailyStreak || 0;
+
+    // lastPlayed: must be YYYY-MM-DD
+    const safeLastPlayed = typeof lastPlayed === 'string' && DATE_REGEX.test(lastPlayed)
+      ? lastPlayed : current.lastPlayed;
+
+    const update = { xp: safeXP, badges: safeBadges };
+    if (dailyStreak !== undefined) update.dailyStreak = safeStreak;
+    if (lastPlayed  !== undefined) update.lastPlayed  = safeLastPlayed;
     if (dailyResult !== undefined) update.dailyResult = dailyResult;
     await User.findByIdAndUpdate(decoded.id, update);
     res.json({ ok: true });
   } catch (err) {
-    res.status(401).json({ error: 'Invalid token' });
+    res.status(500).json({ error: 'Sync failed' });
   }
 });
 app.post('/auth/avatar', async (req, res) => {
@@ -460,6 +521,7 @@ app.post('/auth/avatar', async (req, res) => {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
     const { avatar } = req.body;
     if (!avatar) return res.status(400).json({ error: 'No avatar' });
+    if (typeof avatar !== 'string' || !avatar.startsWith('data:image/')) return res.status(400).json({ error: 'Invalid image format' });
     if (avatar.length > 700000) return res.status(400).json({ error: 'Image too large (max 500KB)' });
     await User.findByIdAndUpdate(decoded.id, { customAvatar: avatar });
     res.json({ ok: true });
@@ -554,7 +616,8 @@ app.post('/shop/checkout', async (req, res) => {
     });
     res.json({ url: stripeSession.url });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Checkout error:', err.message);
+    res.status(500).json({ error: 'Checkout failed' });
   }
 });
 
@@ -607,6 +670,7 @@ app.get('/stats/share', async (req, res) => {
 });
 
 app.post('/stats/share', async (req, res) => {
+  if (!verifyToken(req)) return res.status(401).json({ error: 'No token' });
   try {
     await Stats.findByIdAndUpdate('shares', { $inc: { daily: 1 } }, { upsert: true, new: true });
     res.json({ ok: true });
@@ -618,7 +682,14 @@ app.post('/stats/game', async (req, res) => {
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const { mode, score, correct, wrong, accuracy, streak, rounds } = req.body;
-    await GameHistory.create({ userId: decoded.id, mode, score: score || 0, correct: correct || 0, wrong: wrong || 0, accuracy: accuracy || 0, streak: streak || 0, rounds: rounds || 0 });
+    if (!VALID_GAME_MODES.has(mode)) return res.status(400).json({ error: 'Invalid mode' });
+    const safeScore    = Math.max(0, Math.min(Number(score)    || 0, 100000));
+    const safeCorrect  = Math.max(0, Math.min(Number(correct)  || 0, 10000));
+    const safeWrong    = Math.max(0, Math.min(Number(wrong)    || 0, 10000));
+    const safeAccuracy = Math.max(0, Math.min(Number(accuracy) || 0, 100));
+    const safeStreak   = Math.max(0, Math.min(Number(streak)   || 0, 10000));
+    const safeRounds   = Math.max(0, Math.min(Number(rounds)   || 0, 10000));
+    await GameHistory.create({ userId: decoded.id, mode, score: safeScore, correct: safeCorrect, wrong: safeWrong, accuracy: safeAccuracy, streak: safeStreak, rounds: safeRounds });
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -660,6 +731,9 @@ app.get('/stats/personal', async (req, res) => {
 // ── Candles route ─────────────────────────────────────────────────
 app.get('/candles', async (req, res) => {
   const { symbol, interval, from, to } = req.query;
+  if (!symbol || !/^[A-Z0-9\-\.=^/]{1,20}$/i.test(symbol)) return res.status(400).json({ error: 'Invalid symbol' });
+  if (from && !DATE_REGEX.test(from)) return res.status(400).json({ error: 'Invalid from date' });
+  if (to   && !DATE_REGEX.test(to))   return res.status(400).json({ error: 'Invalid to date' });
   try {
     let period1, period2;
     if (from && to) {
@@ -818,7 +892,9 @@ app.post('/tournament/score', async (req, res) => {
     const existing = await Score.findOne({ weekId, userId: user._id });
     if (existing) return res.status(400).json({ error: 'Already played this week' });
     const { score, rounds, cosmeticAvatar } = req.body;
-    await Score.create({ weekId, userId: user._id, name: user.username || user.name, username: user.username || null, avatar: user.avatar, score, rounds, cosmeticAvatar: cosmeticAvatar || null });
+    const MAX_TOURNAMENT_SCORE = TOTAL_ROUNDS * 100;
+    const safeScore = Number.isFinite(Number(score)) ? Math.max(0, Math.min(Number(score), MAX_TOURNAMENT_SCORE)) : 0;
+    await Score.create({ weekId, userId: user._id, name: user.username || user.name, username: user.username || null, avatar: user.avatar, score: safeScore, rounds, cosmeticAvatar: cosmeticAvatar || null });
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -852,6 +928,8 @@ app.post('/push/subscribe', async (req, res) => {
 });
 
 app.post('/push/send', async (req, res) => {
+  const key = req.headers['x-admin-secret'];
+  if (!ADMIN_SECRET || key !== ADMIN_SECRET) return res.status(403).json({ error: 'Forbidden' });
   pushSubscriptions = await loadSubscriptions();
   const payload = JSON.stringify({
     title: '⚡ Daily Challenge',
@@ -1298,7 +1376,8 @@ cron.schedule('0 0 * * *', async () => {
 });
 
  app.get('/stats/dashboard', async (req, res) => {
-  res.header('Access-Control-Allow-Origin', '*');
+  const key = req.headers['x-admin-secret'] || req.query.key;
+  if (!ADMIN_SECRET || key !== ADMIN_SECRET) return res.status(403).json({ error: 'Forbidden' });
   try {
     const users  = await User.aggregate([
       { $group: {
@@ -1394,7 +1473,7 @@ app.post('/portfolio/buy', async (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'No token' });
   try {
-    const decoded  = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
     const { symbol, qty } = req.body;
     if (!qty || qty <= 0 || !Number.isFinite(qty)) return res.status(400).json({ error: 'Invalid quantity' });
     const asset    = PORTFOLIO_ASSETS.find(a => a.symbol === symbol);
@@ -1417,7 +1496,8 @@ app.post('/portfolio/buy', async (req, res) => {
     await portfolio.save();
     res.json({ ok: true, cash: portfolio.cash });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Buy error:', err.message);
+    res.status(500).json({ error: 'Trade failed' });
   }
 });
 
@@ -1426,7 +1506,7 @@ app.post('/portfolio/sell', async (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'No token' });
   try {
-    const decoded  = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
     const { symbol, qty } = req.body;
     if (!qty || qty <= 0 || !Number.isFinite(qty)) return res.status(400).json({ error: 'Invalid quantity' });
     const asset    = PORTFOLIO_ASSETS.find(a => a.symbol === symbol);
@@ -1447,7 +1527,8 @@ app.post('/portfolio/sell', async (req, res) => {
     await portfolio.save();
     res.json({ ok: true, cash: portfolio.cash });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Sell error:', err.message);
+    res.status(500).json({ error: 'Trade failed' });
   }
 });
 app.get('/portfolio/clear-crypto-cache', async (req, res) => {
@@ -1525,21 +1606,6 @@ app.get('/portfolio/clear-cache', async (req, res) => {
       .map(a => `price:${a.symbol}`);
     await Promise.all(keys.map(k => redis.del(k)));
     res.json({ ok: true, cleared: keys.length });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-app.get('/portfolio/debug/:symbol', async (req, res) => {
-  const auth = req.headers.authorization;
-  if (!auth) return res.status(401).json({ error: 'No token' });
-  try { jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET); } 
-  catch { return res.status(401).json({ error: 'Invalid token' }); }
-  try {
-    const { symbol } = req.params;
-    const url  = `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_KEY}`;
-    const r    = await fetch(url);
-    const data = await r.json();
-    res.json({ symbol, data, url });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -1727,12 +1793,26 @@ app.get('/portfolio/duel/active', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ── Friends routes ────────────────────────────────────────────────
+// ── Auth helpers ──────────────────────────────────────────────────
 function verifyToken(req) {
   const auth = req.headers.authorization;
   if (!auth) return null;
   try { return jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET); } catch { return null; }
 }
+
+async function verifyTokenBlacklisted(req) {
+  const auth = req.headers.authorization;
+  if (!auth) return null;
+  const token = auth.replace('Bearer ', '');
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const blacklisted = await redis.get(`blacklist:${token}`);
+    if (blacklisted) return null;
+    return decoded;
+  } catch { return null; }
+}
+
+// ── Friends routes ────────────────────────────────────────────────
 
 app.post('/friends/request', async (req, res) => {
   const decoded = verifyToken(req);
