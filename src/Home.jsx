@@ -1,6 +1,7 @@
 import { useLang } from './LangContext';
 import { useState, useEffect, useRef } from 'react';
 import DailyMissions from './DailyMissions.jsx';
+import WordOfTheDay from './WordOfTheDay.jsx';
 import { SERVER } from './config.js';
 import { getUnlocked } from './badges.js';
 import { getXP, getLevel } from './levels.js';
@@ -213,7 +214,12 @@ export default function Home({ onSelect }) {
           </div>
         </div>
 
-        <DailyMissions />
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <DailyMissions />
+          </div>
+          <WordOfTheDay />
+        </div>
 
         {/* Mode cards — hero */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
