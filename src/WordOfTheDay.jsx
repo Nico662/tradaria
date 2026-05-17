@@ -10,13 +10,15 @@ const accent = ACCENTS[dayOfYear % ACCENTS.length];
 
 const LABELS = {
   header: { en: '— WORD OF DAY —', es: '— CONCEPTO DEL DÍA —', de: '— WORT DES TAGES —' },
-  more:   { en: '↓ more', es: '↓ más', de: '↓ mehr' },
-  less:   { en: '↑ less', es: '↑ menos', de: '↑ weniger' },
+  more:   { en: 'learn more →', es: 'saber más →', de: 'mehr erfahren →' },
+  back:   { en: '← back', es: '← volver', de: '← zurück' },
+  example: { en: 'Example', es: 'Ejemplo', de: 'Beispiel' },
+  context: { en: 'More context', es: 'Más contexto', de: 'Mehr Kontext' },
+  soon:   { en: 'Chart example · coming soon', es: 'Ejemplo con gráfico · próximamente', de: 'Chartbeispiel · demnächst' },
 };
 
-export default function WordOfTheDay() {
+function DetailScreen({ onClose }) {
   const { lang } = useLang();
-  const [expanded, setExpanded] = useState(false);
 
   const word       = todayEntry.word[lang]       || todayEntry.word.en;
   const definition = todayEntry.definition[lang] || todayEntry.definition.en;
@@ -25,94 +27,226 @@ export default function WordOfTheDay() {
 
   return (
     <div style={{
-      flexShrink: 0,
-      width: '142px',
-      background: '#0f141b',
-      border: '1px solid #1e2530',
-      borderTop: `2px solid ${accent}`,
-      borderRadius: '8px',
-      padding: '8px 10px 10px',
-      marginBottom: '12px',
+      position: 'fixed', inset: 0,
+      background: '#080c11',
+      zIndex: 9999,
+      overflowY: 'auto',
     }}>
-      <div style={{
-        fontSize: '6.5px',
-        color: '#2a3345',
-        letterSpacing: '0.18em',
-        textTransform: 'uppercase',
-        fontFamily: "'Space Mono', monospace",
-        marginBottom: '7px',
-      }}>
-        {LABELS.header[lang] || LABELS.header.en}
-      </div>
+      <div style={{ padding: '20px 28px 48px', maxWidth: '480px', margin: '0 auto' }}>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '6px' }}>
-        <span style={{ fontSize: '20px', lineHeight: 1, flexShrink: 0 }}>{todayEntry.emoji}</span>
-        <span style={{
+        {/* Back */}
+        <button
+          onClick={onClose}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            color: '#4a5568',
+            fontFamily: "'Space Mono', monospace",
+            fontSize: '10px',
+            cursor: 'pointer',
+            letterSpacing: '0.08em',
+            padding: '8px 0',
+            marginBottom: '32px',
+            display: 'block',
+          }}
+          onMouseEnter={e => e.currentTarget.style.color = accent}
+          onMouseLeave={e => e.currentTarget.style.color = '#4a5568'}
+        >
+          {LABELS.back[lang] || LABELS.back.en}
+        </button>
+
+        {/* Label */}
+        <div style={{
+          fontSize: '8px', color: '#2a3345',
+          letterSpacing: '0.22em', textTransform: 'uppercase',
+          fontFamily: "'Space Mono', monospace",
+          marginBottom: '18px',
+        }}>
+          {LABELS.header[lang] || LABELS.header.en}
+        </div>
+
+        {/* Emoji */}
+        <div style={{ fontSize: '56px', lineHeight: 1, marginBottom: '16px' }}>
+          {todayEntry.emoji}
+        </div>
+
+        {/* Word */}
+        <div style={{
           fontFamily: "'Syne', sans-serif",
           fontWeight: 800,
-          fontSize: '12px',
+          fontSize: '34px',
           color: accent,
-          lineHeight: 1.15,
-          wordBreak: 'break-word',
+          lineHeight: 1.1,
+          marginBottom: '20px',
+          letterSpacing: '-0.01em',
         }}>
           {word}
-        </span>
+        </div>
+
+        {/* Divider */}
+        <div style={{ height: '1px', background: '#1a2030', marginBottom: '20px' }} />
+
+        {/* Definition */}
+        <p style={{
+          fontSize: '13px',
+          color: '#c8d4e0',
+          lineHeight: 1.7,
+          margin: '0 0 24px',
+        }}>
+          {definition}
+        </p>
+
+        {/* Example */}
+        {example && (
+          <div style={{
+            background: 'rgba(255,255,255,0.03)',
+            border: `1px solid ${accent}22`,
+            borderLeft: `3px solid ${accent}`,
+            borderRadius: '0 6px 6px 0',
+            padding: '12px 16px',
+            marginBottom: '24px',
+          }}>
+            <div style={{
+              fontSize: '8px', color: accent, letterSpacing: '0.14em',
+              textTransform: 'uppercase', fontFamily: "'Space Mono', monospace",
+              marginBottom: '6px', opacity: 0.7,
+            }}>
+              {LABELS.example[lang] || LABELS.example.en}
+            </div>
+            <p style={{ fontSize: '11px', color: '#8899b0', fontStyle: 'italic', margin: 0, lineHeight: 1.6 }}>
+              {example}
+            </p>
+          </div>
+        )}
+
+        {/* Extra */}
+        {extra && (
+          <div style={{ marginBottom: '32px' }}>
+            <div style={{
+              fontSize: '8px', color: '#2a3345', letterSpacing: '0.18em',
+              textTransform: 'uppercase', fontFamily: "'Space Mono', monospace",
+              marginBottom: '10px',
+            }}>
+              {LABELS.context[lang] || LABELS.context.en}
+            </div>
+            <p style={{ fontSize: '12px', color: '#5a6a7d', lineHeight: 1.75, margin: 0 }}>
+              {extra}
+            </p>
+          </div>
+        )}
+
+        {/* Image placeholder */}
+        <div style={{
+          border: '1px dashed #1e2530',
+          borderRadius: '10px',
+          padding: '36px 20px',
+          textAlign: 'center',
+          marginTop: '8px',
+        }}>
+          <div style={{ fontSize: '28px', marginBottom: '10px', opacity: 0.3 }}>📸</div>
+          <div style={{
+            fontSize: '9px', color: '#2a3345',
+            fontFamily: "'Space Mono', monospace",
+            letterSpacing: '0.14em', textTransform: 'uppercase',
+          }}>
+            {LABELS.soon[lang] || LABELS.soon.en}
+          </div>
+        </div>
+
       </div>
+    </div>
+  );
+}
 
-      <p style={{
-        fontSize: '8px',
-        color: '#8899b0',
-        margin: '0 0 5px',
-        lineHeight: 1.55,
-        wordBreak: 'break-word',
+export default function WordOfTheDay() {
+  const { lang } = useLang();
+  const [showDetail, setShowDetail] = useState(false);
+
+  const word       = todayEntry.word[lang]       || todayEntry.word.en;
+  const definition = todayEntry.definition[lang] || todayEntry.definition.en;
+
+  return (
+    <>
+      {showDetail && <DetailScreen onClose={() => setShowDetail(false)} />}
+
+      <div style={{
+        flexShrink: 0,
+        width: '138px',
+        alignSelf: 'stretch',
+        background: '#0f141b',
+        border: '1px solid #1e2530',
+        borderTop: `2px solid ${accent}`,
+        borderRadius: '8px',
+        padding: '8px 10px 10px',
+        marginBottom: '12px',
+        display: 'flex',
+        flexDirection: 'column',
       }}>
-        {definition}
-      </p>
-
-      {example && (
-        <p style={{
-          fontSize: '7.5px',
-          color: '#3a4a5c',
-          fontStyle: 'italic',
-          margin: '0 0 7px',
-          lineHeight: 1.45,
+        {/* Header label */}
+        <div style={{
+          fontSize: '6px',
+          color: '#2a3345',
+          letterSpacing: '0.18em',
+          textTransform: 'uppercase',
+          fontFamily: "'Space Mono', monospace",
+          marginBottom: '8px',
         }}>
-          {example}
-        </p>
-      )}
+          {LABELS.header[lang] || LABELS.header.en}
+        </div>
 
-      {expanded && extra && (
+        {/* Emoji + word */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '7px' }}>
+          <span style={{ fontSize: '18px', lineHeight: 1, flexShrink: 0 }}>{todayEntry.emoji}</span>
+          <span style={{
+            fontFamily: "'Syne', sans-serif",
+            fontWeight: 800,
+            fontSize: '11px',
+            color: accent,
+            lineHeight: 1.2,
+            wordBreak: 'break-word',
+          }}>
+            {word}
+          </span>
+        </div>
+
+        {/* Definition — truncated */}
         <p style={{
-          fontSize: '7.5px',
-          color: '#5a6a7d',
-          margin: '0 0 7px',
-          lineHeight: 1.55,
+          fontSize: '8px',
+          color: '#8899b0',
+          margin: '0',
+          lineHeight: 1.5,
+          flex: 1,
+          overflow: 'hidden',
+          display: '-webkit-box',
+          WebkitLineClamp: 4,
+          WebkitBoxOrient: 'vertical',
         }}>
-          {extra}
+          {definition}
         </p>
-      )}
 
-      {extra && (
+        {/* Button pinned to bottom */}
         <button
-          onClick={() => setExpanded(e => !e)}
+          onClick={() => setShowDetail(true)}
           style={{
+            marginTop: '9px',
             background: 'transparent',
             border: `1px solid ${accent}33`,
             borderRadius: '4px',
-            padding: '2px 7px',
+            padding: '3px 7px',
             color: accent,
             fontFamily: "'Space Mono', monospace",
             fontSize: '7px',
             cursor: 'pointer',
             letterSpacing: '0.06em',
-            display: 'block',
+            width: '100%',
+            textAlign: 'center',
           }}
-          onMouseEnter={e => e.currentTarget.style.borderColor = accent + '88'}
-          onMouseLeave={e => e.currentTarget.style.borderColor = accent + '33'}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = accent + '88'; e.currentTarget.style.background = accent + '11'; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = accent + '33'; e.currentTarget.style.background = 'transparent'; }}
         >
-          {expanded ? (LABELS.less[lang] || LABELS.less.en) : (LABELS.more[lang] || LABELS.more.en)}
+          {LABELS.more[lang] || LABELS.more.en}
         </button>
-      )}
-    </div>
+      </div>
+    </>
   );
 }

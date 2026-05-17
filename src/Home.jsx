@@ -214,7 +214,7 @@ export default function Home({ onSelect }) {
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'stretch' }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <DailyMissions />
           </div>
