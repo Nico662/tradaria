@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { GLOSSARY } from './tradingGlossary.js';
+import { CHARTS } from './glossaryCharts.jsx';
 import { useLang } from './LangContext.jsx';
 
 const ACCENTS = ['#22d3a5', '#f5c842', '#8899b0'];
@@ -135,23 +136,32 @@ function DetailScreen({ onClose }) {
           </div>
         )}
 
-        {/* Image placeholder */}
-        <div style={{
-          border: '1px dashed #1e2530',
-          borderRadius: '10px',
-          padding: '36px 20px',
-          textAlign: 'center',
-          marginTop: '8px',
-        }}>
-          <div style={{ fontSize: '28px', marginBottom: '10px', opacity: 0.3 }}>📸</div>
-          <div style={{
-            fontSize: '9px', color: '#2a3345',
-            fontFamily: "'Space Mono', monospace",
-            letterSpacing: '0.14em', textTransform: 'uppercase',
-          }}>
-            {LABELS.soon[lang] || LABELS.soon.en}
-          </div>
-        </div>
+        {/* Chart: real SVG if available, placeholder otherwise */}
+        {(() => {
+          const ChartComponent = todayEntry.chartId ? CHARTS[todayEntry.chartId] : null;
+          return ChartComponent ? (
+            <div style={{ marginTop: '8px', borderRadius: '10px', overflow: 'hidden' }}>
+              <ChartComponent />
+            </div>
+          ) : (
+            <div style={{
+              border: '1px dashed #1e2530',
+              borderRadius: '10px',
+              padding: '36px 20px',
+              textAlign: 'center',
+              marginTop: '8px',
+            }}>
+              <div style={{ fontSize: '28px', marginBottom: '10px', opacity: 0.3 }}>📸</div>
+              <div style={{
+                fontSize: '9px', color: '#2a3345',
+                fontFamily: "'Space Mono', monospace",
+                letterSpacing: '0.14em', textTransform: 'uppercase',
+              }}>
+                {LABELS.soon[lang] || LABELS.soon.en}
+              </div>
+            </div>
+          );
+        })()}
 
       </div>
     </div>

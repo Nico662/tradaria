@@ -19,6 +19,7 @@ export const GLOSSARY = [
     },
   },
   {
+    chartId: 'fvg',
     word: { en: 'Fair Value Gap', es: 'Desequilibrio (FVG)', de: 'Preislücke (FVG)' },
     definition: {
       en: 'A price gap caused by a very fast move. The market often returns to that zone to fill it before continuing.',
