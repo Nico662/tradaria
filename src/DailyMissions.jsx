@@ -38,23 +38,22 @@ export default function DailyMissions() {
 
           return (
             <div key={m.id}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '6px', marginBottom: '3px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flex: 1 }}>
                   {done
                     ? <span style={{ fontSize: '9px', color: '#22d3a5', flexShrink: 0 }}>✓</span>
-                    : <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#2a3345', display: 'inline-block', flexShrink: 0 }} />
+                    : <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#2a3345', display: 'inline-block', flexShrink: 0, marginTop: '2px' }} />
                   }
-                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, color: done ? '#22d3a5' : '#c8d4e0', letterSpacing: '0.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, color: done ? '#22d3a5' : '#c8d4e0', letterSpacing: '0.02em', lineHeight: 1.3 }}>
                     {title}
                   </span>
-                  <span style={{ fontSize: '7px', color: '#2a3345' }}>·</span>
-                  <span style={{ fontSize: '8px', color: '#3a4a5c', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1, minWidth: 0 }}>
-                    {desc}
-                  </span>
                 </div>
-                <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', fontWeight: 700, color: '#22d3a5', flexShrink: 0, marginLeft: '8px' }}>
+                <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', fontWeight: 700, color: '#22d3a5', flexShrink: 0 }}>
                   +{m.xp} XP
                 </span>
+              </div>
+              <div style={{ fontSize: '8px', color: '#3a4a5c', paddingLeft: '11px', marginBottom: '5px', lineHeight: 1.4 }}>
+                {desc}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <div style={{ flex: 1, height: '3px', background: '#1a2030', borderRadius: '2px', overflow: 'hidden' }}>
