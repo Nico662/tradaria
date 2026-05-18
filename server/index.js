@@ -1542,7 +1542,7 @@ app.post('/portfolio/sell', async (req, res) => {
   }
 });
 app.post('/portfolio/refund-delisted', async (req, res) => {
-  const DELISTED = ['BRK.B', 'LVMUY', 'NSRGY', 'AGG'];
+  const DELISTED = ['BRK.B', 'LVMUY', 'NSRGY', 'AGG', 'SAP'];
   try {
     const portfolios = await Portfolio.find({});
     let totalRefunded = 0;
