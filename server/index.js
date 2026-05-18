@@ -1509,7 +1509,18 @@ app.post('/portfolio/sell', async (req, res) => {
     const { symbol, qty } = req.body;
     if (!qty || qty <= 0 || !Number.isFinite(qty)) return res.status(400).json({ error: 'Invalid quantity' });
     const asset    = PORTFOLIO_ASSETS.find(a => a.symbol === symbol);
-    if (!asset) return res.status(400).json({ error: 'Asset not found' });
+    if (!asset) {
+      const portfolio = await Portfolio.findOne({ userId: decoded.id });
+      if (!portfolio) return res.status(404).json({ error: 'Portfolio not found' });
+      const position = portfolio.positions.find(p => p.symbol === symbol);
+      if (!position) return res.status(404).json({ error: 'Position not found' });
+      const refund = position.avgPrice * position.qty;
+      portfolio.cash += refund;
+      portfolio.positions = portfolio.positions.filter(p => p.symbol !== symbol);
+      portfolio.transactions.push({ symbol, name: position.name, type: position.type, action: 'sell', qty: position.qty, price: position.avgPrice, total: refund });
+      await portfolio.save();
+      return res.json({ ok: true, cash: portfolio.cash, refunded: true });
+    }
     const priceData = await getPrice(asset);
     const price     = priceData.price;
     const total     = price * qty;
@@ -1530,6 +1541,33 @@ app.post('/portfolio/sell', async (req, res) => {
     res.status(500).json({ error: 'Trade failed' });
   }
 });
+app.post('/portfolio/refund-delisted', async (req, res) => {
+  const DELISTED = ['BRK.B', 'LVMUY', 'NSRGY', 'AGG'];
+  try {
+    const portfolios = await Portfolio.find({});
+    let totalRefunded = 0;
+    let usersAffected = 0;
+    for (const portfolio of portfolios) {
+      const delistedPositions = portfolio.positions.filter(p => DELISTED.includes(p.symbol));
+      if (delistedPositions.length === 0) continue;
+      let refund = 0;
+      for (const pos of delistedPositions) {
+        refund += pos.avgPrice * pos.qty;
+        portfolio.transactions.push({ symbol: pos.symbol, name: pos.name, type: pos.type, action: 'sell', qty: pos.qty, price: pos.avgPrice, total: pos.avgPrice * pos.qty, date: new Date() });
+      }
+      portfolio.positions = portfolio.positions.filter(p => !DELISTED.includes(p.symbol));
+      portfolio.cash += refund;
+      await portfolio.save();
+      totalRefunded += refund;
+      usersAffected++;
+      console.log(`Refunded $${refund.toFixed(2)} to portfolio ${portfolio._id}`);
+    }
+    res.json({ ok: true, usersAffected, totalRefunded: totalRefunded.toFixed(2) });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/portfolio/clear-crypto-cache', async (req, res) => {
   await redis.del('price:BTCUSDT');
   await redis.del('price:ETHUSDT');
