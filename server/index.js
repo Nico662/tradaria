@@ -1541,6 +1541,36 @@ app.post('/portfolio/sell', async (req, res) => {
     res.status(500).json({ error: 'Trade failed' });
   }
 });
+app.post('/admin/refund-unlisted/:username', async (req, res) => {
+  if (req.query.key !== 'tr4d4r4_adm1n') return res.status(403).json({ error: 'forbidden' });
+  try {
+    const user = await User.findOne({ username: req.params.username.toLowerCase() });
+    if (!user) return res.status(404).json({ error: 'user not found' });
+    const portfolio = await Portfolio.findOne({ userId: user._id });
+    if (!portfolio) return res.status(404).json({ error: 'portfolio not found' });
+
+    const listed = new Set(PORTFOLIO_ASSETS.map(a => a.symbol));
+    const stuck  = portfolio.positions.filter(p => !listed.has(p.symbol));
+
+    if (stuck.length === 0) {
+      return res.json({ ok: true, message: 'no unlisted positions', positions: portfolio.positions.map(p => p.symbol) });
+    }
+
+    let refund = 0;
+    for (const pos of stuck) {
+      refund += pos.avgPrice * pos.qty;
+      portfolio.transactions.push({ symbol: pos.symbol, name: pos.name, type: pos.type, action: 'sell', qty: pos.qty, price: pos.avgPrice, total: pos.avgPrice * pos.qty, date: new Date() });
+    }
+    portfolio.positions = portfolio.positions.filter(p => listed.has(p.symbol));
+    portfolio.cash += refund;
+    await portfolio.save();
+
+    res.json({ ok: true, refundedSymbols: stuck.map(p => p.symbol), refund: refund.toFixed(2), newCash: portfolio.cash.toFixed(2) });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/portfolio/refund-delisted', async (req, res) => {
   const DELISTED = ['BRK.B', 'LVMUY', 'NSRGY', 'AGG', 'SAP'];
   try {
