@@ -267,7 +267,7 @@ export default function WordOfTheDay() {
         {/* Emoji + word */}
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', marginBottom: '7px' }}>
           <span style={{ fontSize: '20px', lineHeight: 1, flexShrink: 0, marginTop: '1px' }}>{entry.emoji}</span>
-          <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '9px', color: accent, lineHeight: 1.2, overflowWrap: 'break-word', wordBreak: 'break-word', minWidth: 0, flex: 1 }}>
+          <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '9px', color: accent, lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, flex: 1 }}>
             {word}
           </span>
         </div>
