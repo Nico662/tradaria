@@ -60,6 +60,56 @@ export function incrementMission(missionId, amount = 1) {
   return { completed: false, xpEarned: 0 };
 }
 
+const WEEKLY_MISSION_POOL = [
+  { id: 'weekly_arena_5',     title: { en: 'Arena Champion',   es: 'Campeón de Arena',       de: 'Arena Champion'              }, desc: { en: 'Win 5 Arena matches this week',          es: 'Gana 5 partidas de Arena esta semana',      de: '5 Arena-Matches gewinnen'          }, xp: 150, target: 5,  mode: 'arena'     },
+  { id: 'weekly_streak_7',    title: { en: 'Week Warrior',     es: 'Guerrero Semanal',       de: 'Wochenkämpfer'               }, desc: { en: 'Play daily challenge 7 days in a row',   es: 'Juega el diario 7 días seguidos',           de: '7 Tage Daily Challenge spielen'    }, xp: 200, target: 7,  mode: 'daily'     },
+  { id: 'weekly_correct_50',  title: { en: 'Sharp Eye',        es: 'Ojo Fino',               de: 'Scharfes Auge'               }, desc: { en: 'Get 50 correct answers this week',       es: '50 respuestas correctas esta semana',       de: '50 richtige Antworten'             }, xp: 175, target: 50, mode: 'any'       },
+  { id: 'weekly_portfolio',   title: { en: 'Portfolio Pro',    es: 'Pro del Portfolio',      de: 'Portfolio Profi'             }, desc: { en: 'Make 10 trades in Portfolio this week',  es: '10 operaciones en Portfolio esta semana',   de: '10 Portfolio-Trades'               }, xp: 150, target: 10, mode: 'portfolio' },
+  { id: 'weekly_survival_20', title: { en: 'Survivor',         es: 'Superviviente',          de: 'Überlebender'                }, desc: { en: 'Reach round 20 in Survival this week',  es: 'Llega a la ronda 20 en Survival',           de: 'Runde 20 in Survival erreichen'    }, xp: 175, target: 1,  mode: 'survival'  },
+  { id: 'weekly_modes_5',     title: { en: 'All-Rounder',      es: 'Todoterreno',            de: 'Allrounder'                  }, desc: { en: 'Play 5 different modes this week',       es: 'Juega 5 modos diferentes esta semana',      de: '5 verschiedene Modi spielen'       }, xp: 200, target: 5,  mode: 'any'       },
+  { id: 'weekly_accuracy_80', title: { en: 'Precision Trader', es: 'Trader Preciso',         de: 'Präzisionstrader'            }, desc: { en: 'Finish a game with 80%+ accuracy',      es: 'Termina una partida con 80%+ de precisión', de: 'Spiel mit 80%+ Genauigkeit'        }, xp: 150, target: 1,  mode: 'guess'     },
+];
+
+function getWeekMonday() {
+  const now  = new Date();
+  const day  = now.getUTCDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  const mon  = new Date(now);
+  mon.setUTCDate(now.getUTCDate() + diff);
+  return mon.toISOString().split('T')[0];
+}
+
+export function getWeeklyMission() {
+  const monday   = getWeekMonday();
+  const weekSeed = parseInt(monday.replace(/-/g, ''));
+  return WEEKLY_MISSION_POOL[weekSeed % WEEKLY_MISSION_POOL.length];
+}
+
+export function getWeeklyProgress() {
+  const monday  = getWeekMonday();
+  const weekKey = `tradara_weekly_mission_${monday}`;
+  const data    = JSON.parse(localStorage.getItem(weekKey) || '{}');
+  const mission = getWeeklyMission();
+  return data[mission.id] || 0;
+}
+
+export function incrementWeeklyMission(missionId, amount = 1) {
+  const monday  = getWeekMonday();
+  const weekKey = `tradara_weekly_mission_${monday}`;
+  const data    = JSON.parse(localStorage.getItem(weekKey) || '{}');
+  const mission = getWeeklyMission();
+  if (mission.id !== missionId) return { completed: false, xpEarned: 0 };
+  const prev = data[missionId] || 0;
+  const next = Math.min(prev + amount, mission.target);
+  data[missionId] = next;
+  localStorage.setItem(weekKey, JSON.stringify(data));
+  if (prev < mission.target && next >= mission.target) {
+    addXP(mission.xp);
+    return { completed: true, xpEarned: mission.xp, mission };
+  }
+  return { completed: false, xpEarned: 0 };
+}
+
 export function recordModePlayed(mode) {
   const today = new Date().toISOString().split('T')[0];
   const key   = `tradara_modes_${today}`;

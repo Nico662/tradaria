@@ -10,7 +10,7 @@ import { useAuth } from './AuthContext';
 import EffectOverlay from './EffectOverlay.jsx';
 
 import { SERVER } from './config.js';
-import { incrementMission, recordModePlayed } from './missions.js';
+import { incrementMission, recordModePlayed, incrementWeeklyMission } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
 const SOCKET_URL = SERVER;
 
@@ -234,6 +234,8 @@ export default function Arena({ onBack, challengeRoomCode }) {
             if (arenaStreak >= 5) tryUnlockArenaBadge('arena_streak_5');
             const wr = incrementMission('win_arena');
             if (wr.completed) setMissionToast({ xpEarned: wr.xpEarned, title: wr.mission.title });
+            const wwr = incrementWeeklyMission('weekly_arena_5');
+            if (wwr.completed) setMissionToast({ xpEarned: wwr.xpEarned, title: wwr.mission.title });
           } else {
             localStorage.setItem('tradara_arena_win_streak', '0');
           }

@@ -28,7 +28,7 @@ import PublicProfile from './PublicProfile.jsx';
 import Tutorial from './Tutorial.jsx';
 import Landing from './Landing.jsx';
 import Stats from './Stats.jsx';
-import { incrementMission, recordModePlayed } from './missions.js';
+import { incrementMission, recordModePlayed, incrementWeeklyMission } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
 
 
@@ -292,6 +292,8 @@ export default function App() {
     if (win) {
       const r1 = incrementMission('correct_10');
       if (r1.completed) setMissionToast({ xpEarned: r1.xpEarned, title: r1.mission.title });
+      const wr1 = incrementWeeklyMission('weekly_correct_50');
+      if (wr1.completed) setMissionToast({ xpEarned: wr1.xpEarned, title: wr1.mission.title });
       if (streak + 1 === 3) {
         const r2 = incrementMission('play_3_guess', 3);
         if (r2.completed) setMissionToast({ xpEarned: r2.xpEarned, title: r2.mission.title });

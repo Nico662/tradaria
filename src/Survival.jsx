@@ -8,7 +8,7 @@ import { playWin, playLose, playClick, playStreak } from './sounds.js';
 import { BADGES, unlockBadge } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
 import { addXP, getXP, getLevel } from './levels.js';
-import { incrementMission, recordModePlayed } from './missions.js';
+import { incrementMission, recordModePlayed, incrementWeeklyMission } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
 import { useAuth } from './AuthContext';
 import { SERVER } from './config.js';
@@ -159,6 +159,10 @@ export default function Survival({ onBack }) {
     setRound(r => r + 1);
     const mr = incrementMission('play_survival');
     if (mr.completed) setMissionToast({ xpEarned: mr.xpEarned, title: mr.mission.title });
+    if (round === 20) {
+      const wsr = incrementWeeklyMission('weekly_survival_20');
+      if (wsr.completed) setMissionToast({ xpEarned: wsr.xpEarned, title: wsr.mission.title });
+    }
     const modeR = recordModePlayed('survival');
     if (modeR.completed) setMissionToast({ xpEarned: modeR.xpEarned, title: modeR.mission.title });
   };
