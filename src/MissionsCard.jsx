@@ -177,35 +177,67 @@ export default function MissionsCard() {
           {LABELS.header[lang]}
         </div>
 
-        {/* Emoji + count */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '9px' }}>
-          <span style={{ fontSize: '20px', lineHeight: 1, flexShrink: 0 }}>🎯</span>
-          <span style={{ fontFamily: "'Space Mono', monospace", fontWeight: 700, fontSize: '13px', color: allDailyDone ? '#22d3a5' : '#c8d4e0', lineHeight: 1.1 }}>
-            {dailyDone}/{missions.length}
-          </span>
-        </div>
-
-        {/* Daily dots */}
-        <div style={{ display: 'flex', gap: '4px', marginBottom: '6px' }}>
+        {/* Daily missions list */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '8px', flex: 1 }}>
           {missions.map(m => {
             const done = getMissionProgress(m.id) >= m.target;
+            const progress = getMissionProgress(m.id);
+            const pct = Math.min(progress / m.target * 100, 100);
+            const title = m.title[lang] || m.title.en;
             return (
-              <div key={m.id} style={{ flex: 1, height: '3px', borderRadius: '2px', background: done ? '#22d3a5' : '#1e2a38' }} />
+              <div key={m.id}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '3px' }}>
+                  {done
+                    ? <span style={{ fontSize: '8px', color: '#22d3a5', flexShrink: 0, lineHeight: 1 }}>✓</span>
+                    : <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#2a3345', display: 'inline-block', flexShrink: 0 }} />
+                  }
+                  <span style={{
+                    fontFamily: "'Space Mono', monospace",
+                    fontSize: '8px',
+                    fontWeight: 700,
+                    color: done ? '#22d3a5' : '#c8d4e0',
+                    letterSpacing: '0.01em',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    minWidth: 0,
+                    flex: 1,
+                  }}>
+                    {title}
+                  </span>
+                </div>
+                <div style={{ height: '2px', background: '#1a2030', borderRadius: '1px', overflow: 'hidden', marginLeft: '10px' }}>
+                  <div style={{ width: `${pct}%`, height: '100%', background: done ? '#22d3a5' : 'rgba(34,211,165,0.35)', borderRadius: '1px', transition: 'width 0.3s ease' }} />
+                </div>
+              </div>
             );
           })}
         </div>
 
-        {/* Weekly dot */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '6px' }}>
-          <div style={{ width: '100%', height: '3px', borderRadius: '2px', background: weeklyDone ? '#22d3a5' : '#f5c84233', overflow: 'hidden' }}>
-            <div style={{ width: `${Math.min(weeklyProgress / weekly.target * 100, 100)}%`, height: '100%', background: weeklyDone ? '#22d3a5' : '#f5c842', borderRadius: '2px' }} />
+        {/* Weekly teaser */}
+        <div style={{ borderTop: '1px solid #1a2030', paddingTop: '6px', marginBottom: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            {weeklyDone
+              ? <span style={{ fontSize: '8px', color: '#22d3a5', flexShrink: 0, lineHeight: 1 }}>✓</span>
+              : <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#3a2a08', display: 'inline-block', flexShrink: 0 }} />
+            }
+            <span style={{
+              fontFamily: "'Space Mono', monospace",
+              fontSize: '8px',
+              fontWeight: 700,
+              color: weeklyDone ? '#22d3a5' : '#e8d4a0',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              minWidth: 0,
+              flex: 1,
+            }}>
+              {weekly.title[lang] || weekly.title.en}
+            </span>
           </div>
-        </div>
-
-        {/* Labels */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'auto' }}>
-          <span style={{ fontSize: '7px', color: '#2a3a4a', fontFamily: "'Space Mono', monospace" }}>daily</span>
-          <span style={{ fontSize: '7px', color: '#4a3a10', fontFamily: "'Space Mono', monospace" }}>weekly</span>
+          <div style={{ height: '2px', background: '#1a1508', borderRadius: '1px', overflow: 'hidden', marginTop: '3px', marginLeft: '10px' }}>
+            <div style={{ width: `${Math.min(weeklyProgress / weekly.target * 100, 100)}%`, height: '100%', background: weeklyDone ? '#22d3a5' : '#f5c842', borderRadius: '1px', transition: 'width 0.3s ease' }} />
+          </div>
         </div>
 
         {/* Button */}
