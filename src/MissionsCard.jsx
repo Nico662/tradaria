@@ -160,14 +160,14 @@ export default function MissionsCard() {
       {showDetail && <DetailScreen onClose={() => setShowDetail(false)} />}
 
       <div style={{
-        flexShrink: 0,
-        width: '138px',
+        flex: 1,
+        minWidth: 0,
         alignSelf: 'stretch',
         background: '#0f141b',
         border: '1px solid #1e2530',
         borderTop: '2px solid #22d3a5',
         borderRadius: '8px',
-        padding: '8px 10px 10px',
+        padding: '10px 12px 12px',
         marginBottom: '12px',
         display: 'flex',
         flexDirection: 'column',
@@ -178,9 +178,9 @@ export default function MissionsCard() {
         </div>
 
         {/* Emoji + count */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-          <span style={{ fontSize: '18px', lineHeight: 1, flexShrink: 0 }}>🎯</span>
-          <span style={{ fontFamily: "'Space Mono', monospace", fontWeight: 700, fontSize: '12px', color: allDailyDone ? '#22d3a5' : '#c8d4e0', lineHeight: 1.1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '9px' }}>
+          <span style={{ fontSize: '20px', lineHeight: 1, flexShrink: 0 }}>🎯</span>
+          <span style={{ fontFamily: "'Space Mono', monospace", fontWeight: 700, fontSize: '13px', color: allDailyDone ? '#22d3a5' : '#c8d4e0', lineHeight: 1.1 }}>
             {dailyDone}/{missions.length}
           </span>
         </div>

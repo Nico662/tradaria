@@ -214,7 +214,7 @@ export default function Home({ onSelect }) {
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px', margin: '0 20px 0' }}>
+        <div style={{ display: 'flex', gap: '8px' }}>
           <MissionsCard />
           <WordOfTheDay />
         </div>

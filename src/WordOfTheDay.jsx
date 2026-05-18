@@ -180,14 +180,14 @@ export default function WordOfTheDay() {
       {showDetail && <DetailScreen onClose={() => setShowDetail(false)} />}
 
       <div style={{
-        flexShrink: 0,
-        width: '138px',
+        flex: 1,
+        minWidth: 0,
         alignSelf: 'stretch',
         background: '#0f141b',
         border: '1px solid #1e2530',
         borderTop: `2px solid ${accent}`,
         borderRadius: '8px',
-        padding: '8px 10px 10px',
+        padding: '10px 12px 12px',
         marginBottom: '12px',
         display: 'flex',
         flexDirection: 'column',
@@ -205,15 +205,18 @@ export default function WordOfTheDay() {
         </div>
 
         {/* Emoji + word */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '7px' }}>
-          <span style={{ fontSize: '18px', lineHeight: 1, flexShrink: 0 }}>{todayEntry.emoji}</span>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', marginBottom: '7px' }}>
+          <span style={{ fontSize: '20px', lineHeight: 1, flexShrink: 0, marginTop: '1px' }}>{todayEntry.emoji}</span>
           <span style={{
             fontFamily: "'Syne', sans-serif",
             fontWeight: 800,
-            fontSize: '11px',
+            fontSize: '12px',
             color: accent,
             lineHeight: 1.2,
+            overflowWrap: 'break-word',
             wordBreak: 'break-word',
+            minWidth: 0,
+            flex: 1,
           }}>
             {word}
           </span>
