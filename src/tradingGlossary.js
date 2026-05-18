@@ -39,6 +39,7 @@ export const GLOSSARY = [
     },
   },
   {
+    chartId: 'displacement',
     word: { en: 'Displacement', es: 'Desplazamiento', de: 'Displacement' },
     definition: {
       en: 'A strong aggressive price move with large candles. Indicates important money entered the market and usually leaves clues about future direction.',

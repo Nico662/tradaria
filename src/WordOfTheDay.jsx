@@ -33,7 +33,7 @@ function DetailScreen({ onClose }) {
       zIndex: 9999,
       overflowY: 'auto',
     }}>
-      <div style={{ padding: '20px 28px 48px', maxWidth: '480px', margin: '0 auto' }}>
+      <div style={{ padding: 'max(20px, calc(env(safe-area-inset-top) + 12px)) 28px 48px', maxWidth: '480px', margin: '0 auto' }}>
 
         {/* Back */}
         <button

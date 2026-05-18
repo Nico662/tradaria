@@ -83,8 +83,83 @@ function FVGChart() {
   );
 }
 
+// ─── Displacement Chart ─────────────────────────────────────────────────────
+
+function DisplacementChart() {
+  // price range 120-180 → y range 12-150  (scale 2.3 px/unit)
+  const py = p => 12 + (180 - p) * 2.3;
+
+  // displacement group spans candles 4-6
+  const dispTop  = py(172) - 4;
+  const dispBot  = py(131) + 4;
+
+  const candles = [
+    { x: 14,  O: 128, H: 133, L: 126, C: 130 }, // context
+    { x: 27,  O: 130, H: 135, L: 128, C: 132 }, // context
+    { x: 40,  O: 132, H: 137, L: 130, C: 134 }, // context
+    { x: 53,  O: 134, H: 138, L: 132, C: 133 }, // last context (slight bearish)
+    { x: 66,  O: 132, H: 150, L: 131, C: 148, bw: 10 }, // displacement 1
+    { x: 79,  O: 148, H: 163, L: 147, C: 161, bw: 10 }, // displacement 2
+    { x: 92,  O: 161, H: 172, L: 160, C: 170, bw: 10 }, // displacement 3
+    { x: 105, O: 170, H: 173, L: 166, C: 167 }, // aftermath
+    { x: 118, O: 167, H: 170, L: 163, C: 165 }, // aftermath
+  ];
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="#060b10" rx="8" />
+
+      {/* Grid */}
+      {[40, 65, 90, 115, 140].map(y => (
+        <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
+      ))}
+
+      {/* Displacement highlight box */}
+      <rect
+        x="60" y={dispTop}
+        width="38" height={dispBot - dispTop}
+        fill="#f5c84210" rx="3"
+      />
+
+      {/* Candles */}
+      {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
+        const bull  = C >= O;
+        const col   = bull ? '#22d3a5' : '#e05555';
+        const bodyY = py(Math.max(O, C));
+        const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="1" opacity="0.75" />
+            <rect x={x - bw / 2} y={bodyY} width={bw} height={bodyH} fill={col} rx="0.5" opacity="0.95" />
+          </g>
+        );
+      })}
+
+      {/* Label above displacement candles */}
+      <text
+        x="79" y="11"
+        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        fontSize="5.5" fill="#f5c842" opacity="0.9"
+      >↑ displacement</text>
+
+      {/* Bracket lines connecting label to candle group */}
+      <line x1="61" y1="14" x2="61" y2="18" stroke="#f5c842" strokeWidth="0.6" opacity="0.35" />
+      <line x1="61" y1="14" x2="97" y2="14" stroke="#f5c842" strokeWidth="0.6" opacity="0.35" />
+      <line x1="97" y1="14" x2="97" y2="18" stroke="#f5c842" strokeWidth="0.6" opacity="0.35" />
+
+      {/* Watermark */}
+      <text
+        x="6" y="154"
+        fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#172030" letterSpacing="0.1em"
+      >DISPLACEMENT</text>
+    </svg>
+  );
+}
+
 // ─── exports ────────────────────────────────────────────────────────────────
 
 export const CHARTS = {
-  fvg: FVGChart,
+  fvg:           FVGChart,
+  displacement:  DisplacementChart,
 };
