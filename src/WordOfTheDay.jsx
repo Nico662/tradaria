@@ -75,7 +75,7 @@ function DetailScreen({ onClose }) {
         <div style={{
           fontFamily: "'Syne', sans-serif",
           fontWeight: 800,
-          fontSize: '34px',
+          fontSize: '22px',
           color: accent,
           lineHeight: 1.1,
           marginBottom: '20px',
@@ -210,7 +210,7 @@ export default function WordOfTheDay() {
           <span style={{
             fontFamily: "'Syne', sans-serif",
             fontWeight: 800,
-            fontSize: '12px',
+            fontSize: '9px',
             color: accent,
             lineHeight: 1.2,
             overflowWrap: 'break-word',
