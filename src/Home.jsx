@@ -1,7 +1,6 @@
 import { useLang } from './LangContext';
 import { useState, useEffect, useRef } from 'react';
-import DailyMissions from './DailyMissions.jsx';
-import WeeklyMission from './WeeklyMission.jsx';
+import MissionsCard from './MissionsCard.jsx';
 import WordOfTheDay from './WordOfTheDay.jsx';
 import { SERVER } from './config.js';
 import { getUnlocked } from './badges.js';
@@ -181,7 +180,7 @@ export default function Home({ onSelect }) {
         </div>
 
         {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 200" width="24">
               <line x1="50" y1="10" x2="50" y2="40" stroke="#22d3a5" strokeWidth="8" strokeLinecap="round"/>
@@ -215,75 +214,99 @@ export default function Home({ onSelect }) {
           </div>
         </div>
 
-        {/* Hero modes — first thing after logo */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', gap: '8px', margin: '0 20px 0' }}>
+          <MissionsCard />
+          <WordOfTheDay />
+        </div>
 
-          <button className="mode-card active" onClick={() => onSelect('portfolio')} style={{ borderColor: '#378ADD', background: 'rgba(55,138,221,0.06)', padding: '18px 20px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.05s both' }}>
+        {/* Mode cards — hero */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+
+          <button className="mode-card active" onClick={() => onSelect('portfolio')} style={{ borderColor: '#378ADD', background: 'rgba(55,138,221,0.06)', padding: '22px 20px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.05s both' }}>
             <div className="mode-card-left">
-              <span className="mode-icon" style={{ fontSize: '28px' }}>💼</span>
+              <span className="mode-icon" style={{ fontSize: '30px' }}>💼</span>
               <div>
-                <div className="mode-title" style={{ color: '#378ADD', fontSize: '16px' }}>{t.portfolio?.title ?? 'Portfolio Mode'}</div>
+                <div className="mode-title" style={{ color: '#378ADD', fontSize: '17px' }}>{t.portfolio?.title ?? 'Portfolio Mode'}</div>
                 <div className="mode-sub">{t.portfolio?.sub ?? '$50,000 virtual · real prices'}</div>
               </div>
             </div>
-            <span className="mode-arrow" style={{ color: '#378ADD', fontSize: '18px' }}>→</span>
+            <span className="mode-arrow" style={{ color: '#378ADD', fontSize: '20px' }}>→</span>
           </button>
 
-          <button className="mode-card active" onClick={() => onSelect('daily')} style={{ borderColor: '#f5c842', background: 'rgba(245,200,66,0.06)', padding: '18px 20px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.10s both' }}>
+          <button className="mode-card active" onClick={() => onSelect('daily')} style={{ borderColor: '#f5c842', background: 'rgba(245,200,66,0.06)', padding: '22px 20px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.10s both' }}>
             <div className="mode-card-left">
-              <span className="mode-icon" style={{ fontSize: '28px' }}>⚡</span>
+              <span className="mode-icon" style={{ fontSize: '30px' }}>⚡</span>
               <div>
-                <div className="mode-title" style={{ color: '#f5c842', fontSize: '16px' }}>{t.home.mode4}</div>
+                <div className="mode-title" style={{ color: '#f5c842', fontSize: '17px' }}>{t.home.mode4}</div>
                 <div className="mode-sub">{t.home.mode4sub}</div>
               </div>
             </div>
-            <span className="mode-arrow" style={{ color: '#f5c842', fontSize: '18px' }}>→</span>
+            <span className="mode-arrow" style={{ color: '#f5c842', fontSize: '20px' }}>→</span>
           </button>
 
-          {/* Secondary modes — compact 3-column grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginTop: '4px' }}>
-            {[
-              { key: 'survival',   icon: '☠️',  label: t.survival.title,  color: '#f05454' },
-              { key: 'arena',      icon: '⚔️',  label: t.home.mode2,      color: '#22d3a5' },
-              { key: 'tournament', icon: '🏆',  label: t.home.mode3,      color: '#22d3a5' },
-              { key: 'historical', icon: '📜',  label: t.home.mode5,      color: '#8899b0' },
-              { key: 'game',       icon: '📈',  label: t.home.mode1,      color: '#22d3a5' },
-            ].map(({ key, icon, label, color }, i) => (
-              <button
-                key={key}
-                onClick={() => onSelect(key)}
-                style={{
-                  background: '#0f141b',
-                  border: `1px solid ${color}33`,
-                  borderRadius: '8px',
-                  padding: '10px 8px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '5px',
-                  animation: `fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) ${0.15 + i * 0.05}s both`,
-                  gridColumn: i === 4 ? '2 / 3' : 'auto',
-                }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = color + '88'}
-                onMouseLeave={e => e.currentTarget.style.borderColor = color + '33'}
-              >
-                <span style={{ fontSize: '20px', lineHeight: 1 }}>{icon}</span>
-                <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '7px', color, letterSpacing: '0.04em', textAlign: 'center', lineHeight: 1.3 }}>{label}</span>
-              </button>
-            ))}
+          {/* Divider */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '2px 0' }}>
+            <div style={{ flex: 1, height: '1px', background: '#1a2030' }} />
+            <span style={{ fontSize: '8px', color: '#2a3345', letterSpacing: '0.18em', fontFamily: "'Space Mono', monospace" }}>{t.home.moreModes.toUpperCase()}</span>
+            <div style={{ flex: 1, height: '1px', background: '#1a2030' }} />
           </div>
 
-        </div>
+          <button className="mode-card active" onClick={() => onSelect('survival')} style={{ borderColor: '#f05454', background: 'rgba(240,84,84,0.04)', padding: '13px 16px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.15s both' }}>
+            <div className="mode-card-left" style={{ gap: '12px' }}>
+              <span className="mode-icon" style={{ fontSize: '20px' }}>☠️</span>
+              <div>
+                <div className="mode-title" style={{ color: '#f05454', fontSize: '13px' }}>{t.survival.title}</div>
+                <div className="mode-sub">{t.survival.sub}</div>
+              </div>
+            </div>
+            <span className="mode-arrow" style={{ color: '#f05454' }}>→</span>
+          </button>
 
-        {/* Missions + Word of day */}
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'stretch', marginBottom: '0' }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <DailyMissions />
-          </div>
-          <WordOfTheDay />
+          <button className="mode-card active" onClick={() => onSelect('historical')} style={{ borderColor: '#8899b0', background: 'rgba(136,153,176,0.04)', padding: '13px 16px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.20s both' }}>
+            <div className="mode-card-left" style={{ gap: '12px' }}>
+              <span className="mode-icon" style={{ fontSize: '20px' }}>📜</span>
+              <div>
+                <div className="mode-title" style={{ color: '#8899b0', fontSize: '13px' }}>{t.home.mode5}</div>
+                <div className="mode-sub">{t.home.mode5sub}</div>
+              </div>
+            </div>
+            <span className="mode-arrow" style={{ color: '#8899b0' }}>→</span>
+          </button>
+
+          <button className="mode-card active" onClick={() => onSelect('arena')} style={{ padding: '13px 16px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.25s both' }}>
+            <div className="mode-card-left" style={{ gap: '12px' }}>
+              <span className="mode-icon" style={{ fontSize: '20px' }}>⚔️</span>
+              <div>
+                <div className="mode-title" style={{ fontSize: '13px' }}>{t.home.mode2}</div>
+                <div className="mode-sub">{t.arena.sub}</div>
+              </div>
+            </div>
+            <span className="mode-arrow">→</span>
+          </button>
+
+          <button className="mode-card active" onClick={() => onSelect('tournament')} style={{ padding: '13px 16px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.30s both' }}>
+            <div className="mode-card-left" style={{ gap: '12px' }}>
+              <span className="mode-icon" style={{ fontSize: '20px' }}>🏆</span>
+              <div>
+                <div className="mode-title" style={{ fontSize: '13px' }}>{t.home.mode3}</div>
+                <div className="mode-sub">{TOURNAMENT_SUB[lang]}</div>
+              </div>
+            </div>
+            <span className="mode-arrow">→</span>
+          </button>
+
+          <button className="mode-card active" onClick={() => onSelect('game')} style={{ padding: '13px 16px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.35s both' }}>
+            <div className="mode-card-left" style={{ gap: '12px' }}>
+              <span className="mode-icon" style={{ fontSize: '20px' }}>📈</span>
+              <div>
+                <div className="mode-title" style={{ fontSize: '13px' }}>{t.home.mode1}</div>
+                <div className="mode-sub">{t.home.mode1sub}</div>
+              </div>
+            </div>
+            <span className="mode-arrow">→</span>
+          </button>
+
         </div>
-        <WeeklyMission />
 
         {/* Footer */}
         <div style={{ textAlign: 'center', marginTop: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
