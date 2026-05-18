@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { SERVER } from './config.js';
+import { useAuth } from './AuthContext.jsx';
 
 export default function NotificationBanner() {
   const [show, setShow] = useState(false);
+  const { user } = useAuth();
 
   async function subscribeUser() {
     try {
@@ -16,7 +18,7 @@ export default function NotificationBanner() {
       await fetch(`${SERVER}/push/subscribe`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify(sub),
+        body:    JSON.stringify({ ...sub.toJSON(), userId: user?.id }),
       });
     } catch (err) {
       console.log('Push error:', err);

@@ -916,13 +916,16 @@ app.get('/tournament/played', async (req, res) => {
 
 // ── Push routes ───────────────────────────────────────────────────
 app.post('/push/subscribe', async (req, res) => {
-  const sub = req.body;
+  const { userId, ...sub } = req.body;
   if (!sub || !sub.endpoint) return res.status(400).json({ error: 'Invalid subscription' });
   pushSubscriptions = await loadSubscriptions();
   const exists = pushSubscriptions.find(s => s.endpoint === sub.endpoint);
   if (!exists) {
     pushSubscriptions.push(sub);
     await saveSubscriptions(pushSubscriptions);
+  }
+  if (userId) {
+    await redis.set(`push_user_sub:${userId}`, JSON.stringify(sub));
   }
   res.json({ ok: true });
 });
@@ -1360,6 +1363,37 @@ cron.schedule('0 20 * * 1-5', async () => {
   );
   await Promise.all(promises);
  });
+
+cron.schedule('0 7 * * *', async () => {
+  const portfolios = await Portfolio.find({}).populate('userId', 'name');
+  for (const portfolio of portfolios) {
+    try {
+      if (!portfolio.userId) continue;
+      const today     = new Date().toISOString().split('T')[0];
+      const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+      const histToday = await PortfolioHistory.findOne({ userId: portfolio.userId._id, date: today });
+      const histYest  = await PortfolioHistory.findOne({ userId: portfolio.userId._id, date: yesterday });
+      if (!histToday || !histYest) continue;
+      const change    = histToday.totalValue - histYest.totalValue;
+      const changePct = ((change / histYest.totalValue) * 100).toFixed(2);
+      const emoji     = change >= 0 ? '📈' : '📉';
+      const sign      = change >= 0 ? '+' : '';
+      const subRaw    = await redis.get(`push_user_sub:${portfolio.userId._id}`);
+      if (!subRaw) continue;
+      const sub     = JSON.parse(subRaw);
+      const payload = JSON.stringify({
+        title: `${emoji} Tu portfolio hoy`,
+        body:  `${sign}${changePct}% (${sign}${change.toFixed(0)}) · Valor total: ${histToday.totalValue.toFixed(0)}`,
+        url:   'https://tradara.dev',
+      });
+      await webpush.sendNotification(sub, payload).catch(async err => {
+        if (err.statusCode === 410) await redis.del(`push_user_sub:${portfolio.userId._id}`);
+      });
+    } catch (e) {
+      console.error('Portfolio notification error:', e.message);
+    }
+  }
+});
 
 cron.schedule('0 0 * * *', async () => {
   const today = new Date().toISOString().split('T')[0];
