@@ -309,6 +309,14 @@ export default function Portfolio({ onBack }) {
       const mKey = action === 'buy' ? 'portfolio_buy' : 'portfolio_sell';
       const mr = incrementMission(mKey);
       if (mr.completed) setMissionToast({ xpEarned: mr.xpEarned, title: mr.mission.title });
+      const tvNow = (data.cash || 0) + (portfolio?.positions || []).reduce((s, pos) => {
+        const p = prices.find(p => p.symbol === pos.symbol);
+        return s + (p?.price || pos.avgPrice) * pos.qty;
+      }, 0);
+      if (tvNow > 50000) {
+        const ppr = incrementMission('portfolio_profit');
+        if (ppr.completed) setMissionToast({ xpEarned: ppr.xpEarned, title: ppr.mission.title });
+      }
       const wpr = incrementWeeklyMission('weekly_portfolio');
       if (wpr.completed) setMissionToast({ xpEarned: wpr.xpEarned, title: wpr.mission.title });
       const modeR = recordModePlayed('portfolio');
