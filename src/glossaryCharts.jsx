@@ -157,9 +157,86 @@ function DisplacementChart() {
   );
 }
 
+// ─── MSS Chart ──────────────────────────────────────────────────────────────
+
+function MSSChart() {
+  // price range 119-163, y range 12-150  (scale ≈ 3.27 px/unit)
+  const py = p => 12 + (163 - p) * 138 / 44;
+
+  const mssLevel = 150; // the lower high that gets broken
+  const mssY = py(mssLevel);
+
+  const candles = [
+    { x: 14,  O: 156, H: 162, L: 149, C: 151 }, // swing high (bearish)
+    { x: 27,  O: 151, H: 154, L: 139, C: 141 }, // bearish
+    { x: 40,  O: 141, H: 149, L: 132, C: 146 }, // bullish pullback
+    { x: 53,  O: 146, H: 150, L: 138, C: 140 }, // bearish — LH at 150 (key level)
+    { x: 66,  O: 140, H: 143, L: 123, C: 125 }, // big bearish, new LL
+    { x: 79,  O: 125, H: 135, L: 122, C: 132 }, // bullish recovery
+    { x: 93,  O: 132, H: 147, L: 131, C: 145 }, // bullish, approaching LH
+    { x: 108, O: 145, H: 157, L: 144, C: 155, bw: 10 }, // MSS break — closes above 150
+    { x: 123, O: 155, H: 160, L: 153, C: 158 }, // continuation
+    { x: 136, O: 158, H: 163, L: 156, C: 161 }, // continuation
+  ];
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="#060b10" rx="8" />
+
+      {/* Grid */}
+      {[40, 65, 90, 115, 140].map(y => (
+        <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
+      ))}
+
+      {/* MSS level line — dashed red up to break, then faint green as support */}
+      <line x1="53" y1={mssY} x2="108" y2={mssY} stroke="#e05555" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.7" />
+      <line x1="108" y1={mssY} x2="182" y2={mssY} stroke="#22d3a5" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.3" />
+
+      {/* Candles */}
+      {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
+        const bull  = C >= O;
+        const col   = bull ? '#22d3a5' : '#e05555';
+        const bodyY = py(Math.max(O, C));
+        const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="1" opacity="0.75" />
+            <rect x={x - bw / 2} y={bodyY} width={bw} height={bodyH} fill={col} rx="0.5" opacity="0.95" />
+          </g>
+        );
+      })}
+
+      {/* LH marker above the key candle */}
+      <text
+        x="53" y={py(152)}
+        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        fontSize="5.5" fill="#e05555" opacity="0.85"
+      >LH</text>
+
+      {/* MSS label at the breakout candle */}
+      <text
+        x="108" y="11"
+        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        fontSize="5.5" fill="#22d3a5" opacity="0.9"
+      >↑ MSS</text>
+
+      {/* Small tick line from label to candle */}
+      <line x1="108" y1="13" x2="108" y2="17" stroke="#22d3a5" strokeWidth="0.6" opacity="0.4" />
+
+      {/* Watermark */}
+      <text
+        x="6" y="154"
+        fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#172030" letterSpacing="0.1em"
+      >BULLISH MSS</text>
+    </svg>
+  );
+}
+
 // ─── exports ────────────────────────────────────────────────────────────────
 
 export const CHARTS = {
   fvg:           FVGChart,
   displacement:  DisplacementChart,
+  mss:           MSSChart,
 };

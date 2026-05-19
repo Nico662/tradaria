@@ -59,6 +59,7 @@ export const GLOSSARY = [
     },
   },
   {
+    chartId: 'mss',
     word: { en: 'Market Structure Shift', es: 'Cambio de Estructura (MSS)', de: 'Marktstrukturwechsel (MSS)' },
     definition: {
       en: 'The initial change in market trend. Happens when price breaks an important high or low, signaling a possible reversal.',
