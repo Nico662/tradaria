@@ -669,12 +669,20 @@ export default function Portfolio({ onBack }) {
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: '#f0f0f0' }}>{formatCash(totalInvested)}</div>
           </div>
         </div>
-        <div style={{ background: '#0f141b', border: `1px solid ${totalPnl >= 0 ? 'rgba(34,211,165,0.3)' : 'rgba(240,84,84,0.3)'}`, borderRadius: '8px', padding: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ fontSize: '8px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase' }}>P&L</div>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '15px', color: totalPnl >= 0 ? '#22d3a5' : '#f05454' }}>
-            {totalPnl >= 0 ? '+' : ''}{formatCash(totalPnl)}
-          </div>
-        </div>
+        {(() => {
+          const pnl    = totalValue - 50000;
+          const pnlPct = (pnl / 50000) * 100;
+          const color  = pnl >= 0 ? '#22d3a5' : '#f05454';
+          return (
+            <div style={{ background: '#0f141b', border: `1px solid ${pnl >= 0 ? 'rgba(34,211,165,0.3)' : 'rgba(240,84,84,0.3)'}`, borderRadius: '8px', padding: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontSize: '8px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase' }}>P&L total</div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '15px', color }}>{pnl >= 0 ? '+' : ''}{formatCash(pnl)}</div>
+                <div style={{ fontSize: '8px', color, fontFamily: "'Space Mono', monospace", marginTop: '1px' }}>{pnlPct >= 0 ? '+' : ''}{pnlPct.toFixed(2)}%</div>
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Gráfico histórico */}
