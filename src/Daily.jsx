@@ -21,9 +21,9 @@ function ShareButton({ onShare, copied, t }) {
 
 export default function Daily({ onBack }) {
   const { t, lang, setLang } = useLang();
-  const { activeCosmetics, user, checkLevelUp } = useAuth();
+  const { activeCosmetics, user, checkLevelUp, syncProgress } = useAuth();
   const [activeEffect, setActiveEffect] = useState(false);
-  function triggerEffect() { setActiveEffect(true); setTimeout(() => setActiveEffect(false), 1500); }
+  function triggerEffect() { setActiveEffect(true); clearTimeout(effectTimerRef.current); effectTimerRef.current = setTimeout(() => setActiveEffect(false), 1500); }
   const [phase, setPhase]           = useState('loading');
   const [dailyAsset, setDailyAsset] = useState(null);
   const [future, setFuture]         = useState(null);
@@ -34,8 +34,11 @@ export default function Daily({ onBack }) {
   const [floatingXP, setFloatingXP] = useState(null);
   const [copied, setCopied]           = useState(false);
   const [copiedInvite, setCopiedInvite] = useState(false);
-  const [missionToast, setMissionToast] = useState(null);
-  const chartRef = useRef(null);
+  const [missionToast, setMissionToast] = useState([]);
+  const pushMission = data => setMissionToast(q => [...q, data]);
+  const chartRef      = useRef(null);
+  const fetchedRef    = useRef(false);
+  const effectTimerRef = useRef(null);
 
   function tryUnlockDailyBadge(id) {
     const unlocked = unlockBadge(id);
@@ -48,15 +51,14 @@ export default function Daily({ onBack }) {
   useEffect(() => {
     const timer = setInterval(() => {
       const now      = new Date();
-      const midnight = new Date();
-      midnight.setHours(24, 0, 0, 0);
-      const diff = midnight - now;
+      const midnight = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
+      const diff     = midnight - now;
       const h = Math.floor(diff / 3600000);
       const m = Math.floor((diff % 3600000) / 60000);
       const s = Math.floor((diff % 60000) / 1000);
       setTimeLeft(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`);
     }, 1000);
-    return () => clearInterval(timer);
+    return () => { clearInterval(timer); clearTimeout(effectTimerRef.current); };
   }, []);
 
   useEffect(() => {
@@ -83,6 +85,9 @@ export default function Daily({ onBack }) {
       return;
     }
 
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
+
     fetch(`${SERVER}/daily`)
       .then(r => r.json())
       .then(data => {
@@ -102,7 +107,7 @@ export default function Daily({ onBack }) {
         setPhase('choose');
       })
       .catch(() => setPhase('error'));
-  }, []);
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
  const makeChoice = (choice) => {
   if (phase !== 'choose' || !future || future.length === 0) return;
@@ -126,17 +131,18 @@ export default function Daily({ onBack }) {
   localStorage.setItem('tradara_daily_result', JSON.stringify(res));
 
   const mr = incrementMission('play_daily');
-  if (mr.completed) setMissionToast({ xpEarned: mr.xpEarned, title: mr.mission.title });
+  if (mr.completed) pushMission({ xpEarned: mr.xpEarned, title: mr.mission.title });
   const wdr = incrementWeeklyMission('weekly_streak_7');
-  if (wdr.completed) setMissionToast({ xpEarned: wdr.xpEarned, title: wdr.mission.title });
+  if (wdr.completed) pushMission({ xpEarned: wdr.xpEarned, title: wdr.mission.title });
   const modeR = recordModePlayed('daily');
-  if (modeR.completed) setMissionToast({ xpEarned: modeR.xpEarned, title: modeR.mission.title });
+  if (modeR.completed) pushMission({ xpEarned: modeR.xpEarned, title: modeR.mission.title });
   recordWeeklyModePlayed('daily');
 
   if (win) {
     const prevXP = getXP();
     const newXP  = addXP(15);
     checkLevelUp(prevXP, newXP);
+    syncProgress(newXP, JSON.parse(localStorage.getItem('tradara_badges') || '[]'));
     setFloatingXP(15);
     setTimeout(() => setFloatingXP(null), 2000);
     triggerEffect();
@@ -357,7 +363,7 @@ export default function Daily({ onBack }) {
         )}
       </div>
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
-      {missionToast && <MissionNotification data={missionToast} onDone={() => setMissionToast(null)} />}
+      {missionToast[0] && <MissionNotification data={missionToast[0]} onDone={() => setMissionToast(q => q.slice(1))} />}
       <EffectOverlay effect={activeCosmetics?.effect} active={activeEffect} />
     </div>
   );

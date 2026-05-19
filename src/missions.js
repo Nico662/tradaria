@@ -26,7 +26,11 @@ export function getTodayMissions() {
   const i2 = (seed * 3) % MISSION_POOL.length;
   const i3 = (seed * 7) % MISSION_POOL.length;
   const indices = [...new Set([i1, i2, i3])];
-  while (indices.length < 3) indices.push((indices[indices.length - 1] + 1) % MISSION_POOL.length);
+  while (indices.length < 3) {
+    const next = (indices[indices.length - 1] + 1) % MISSION_POOL.length;
+    if (!indices.includes(next)) indices.push(next);
+    else indices.push((next + 1) % MISSION_POOL.length);
+  }
   return indices.slice(0, 3).map(i => MISSION_POOL[i]);
 }
 
@@ -100,6 +104,7 @@ export function incrementWeeklyMission(missionId, amount = 1) {
   const mission = getWeeklyMission();
   if (mission.id !== missionId) return { completed: false, xpEarned: 0 };
   const prev = data[missionId] || 0;
+  if (prev >= mission.target) return { completed: false, xpEarned: 0 };
   const next = Math.min(prev + amount, mission.target);
   data[missionId] = next;
   localStorage.setItem(weekKey, JSON.stringify(data));

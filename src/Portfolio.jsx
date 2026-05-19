@@ -93,7 +93,8 @@ export default function Portfolio({ onBack }) {
   const [tab, setTab]                       = useState('market');
   const [tradeMsg, setTradeMsg]             = useState('');
   const [factMsg, setFactMsg]               = useState('');
-  const [missionToast, setMissionToast]     = useState(null);
+  const [missionToast, setMissionToast]     = useState([]);
+  const pushMission = data => setMissionToast(q => [...q, data]);
   const [newBadge, setNewBadge]             = useState(null);
   const [hoveredSymbol, setHoveredSymbol]   = useState(null);
   const [assetCandles, setAssetCandles]     = useState(null);
@@ -129,10 +130,11 @@ export default function Portfolio({ onBack }) {
   }
 
   const loadAll = useCallback(async () => {
+    const tok = localStorage.getItem('tradara_token');
     try {
       const [pricesRes, portfolioRes] = await Promise.all([
         fetch(`${SERVER}/portfolio/prices`),
-        fetch(`${SERVER}/portfolio`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${SERVER}/portfolio`, { headers: { Authorization: `Bearer ${tok}` } }),
       ]);
       const pricesData    = await pricesRes.json();
       const portfolioData = await portfolioRes.json();
@@ -147,18 +149,18 @@ export default function Portfolio({ onBack }) {
 
       fetch(`${SERVER}/portfolio/snapshot`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ totalValue: tv }),
       }).catch(() => {});
 
       fetch(`${SERVER}/portfolio/weekly/start`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ value: tv }),
       }).catch(() => {});
 
       fetch(`${SERVER}/portfolio/history`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${tok}` },
       }).then(r => r.json()).then(data => {
         if (Array.isArray(data)) setPortfolioHistory(data);
       }).catch(() => {});
@@ -169,7 +171,7 @@ export default function Portfolio({ onBack }) {
         .catch(() => {});
 
       fetch(`${SERVER}/portfolio/weekly/leaderboard`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${tok}` },
       }).then(r => r.json()).then(data => {
         if (data.leaderboard) {
           setWeeklyLeaderboard(data.leaderboard);
@@ -178,13 +180,13 @@ export default function Portfolio({ onBack }) {
       }).catch(() => {});
 
       fetch(`${SERVER}/portfolio/duel/active`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${tok}` },
       }).then(r => r.json()).then(data => {
         setActiveDuel(data.id ? data : null);
       }).catch(() => {});
 
       fetch(`${SERVER}/portfolio/duel/pending`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${tok}` },
       }).then(r => r.json()).then(data => {
         if (Array.isArray(data)) setPendingDuels(data);
       }).catch(() => {});
@@ -192,7 +194,7 @@ export default function Portfolio({ onBack }) {
     } catch {
       setScreen('error');
     }
-  }, [token]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function loadDuelFriends() {
     try {
@@ -308,19 +310,19 @@ export default function Portfolio({ onBack }) {
       if (trades >= 50) tryUnlockPortfolioBadge('portfolio_trader');
       const mKey = action === 'buy' ? 'portfolio_buy' : 'portfolio_sell';
       const mr = incrementMission(mKey);
-      if (mr.completed) setMissionToast({ xpEarned: mr.xpEarned, title: mr.mission.title });
+      if (mr.completed) pushMission({ xpEarned: mr.xpEarned, title: mr.mission.title });
       const tvNow = (data.cash || 0) + (portfolio?.positions || []).reduce((s, pos) => {
         const p = prices.find(p => p.symbol === pos.symbol);
         return s + (p?.price || pos.avgPrice) * pos.qty;
       }, 0);
       if (tvNow > 50000) {
         const ppr = incrementMission('portfolio_profit');
-        if (ppr.completed) setMissionToast({ xpEarned: ppr.xpEarned, title: ppr.mission.title });
+        if (ppr.completed) pushMission({ xpEarned: ppr.xpEarned, title: ppr.mission.title });
       }
       const wpr = incrementWeeklyMission('weekly_portfolio');
-      if (wpr.completed) setMissionToast({ xpEarned: wpr.xpEarned, title: wpr.mission.title });
+      if (wpr.completed) pushMission({ xpEarned: wpr.xpEarned, title: wpr.mission.title });
       const modeR = recordModePlayed('portfolio');
-      if (modeR.completed) setMissionToast({ xpEarned: modeR.xpEarned, title: modeR.mission.title });
+      if (modeR.completed) pushMission({ xpEarned: modeR.xpEarned, title: modeR.mission.title });
       recordWeeklyModePlayed('portfolio');
       if (action === 'buy') {
         const info = ASSET_INFO[selected.symbol];
@@ -428,15 +430,7 @@ export default function Portfolio({ onBack }) {
  const realizedPnl = (portfolio?.transactions || [])
   .filter(tx => tx.action === 'sell')
   .reduce((s, tx) => {
-    // Buscar el precio medio de compra de esa posición en el momento de la venta
-    // Como no tenemos ese dato exacto, usamos precio venta - precio medio actual como aproximación
-    // Mejor: total recibido - coste original (qty * avgPrice en el momento)
-    // Usamos las compras previas para calcular el coste
-    const buys = (portfolio?.transactions || [])
-      .filter(t => t.action === 'buy' && t.symbol === tx.symbol);
-    const totalBought = buys.reduce((a, b) => a + b.qty, 0);
-    const totalCost   = buys.reduce((a, b) => a + b.total, 0);
-    const avgCost     = totalBought > 0 ? totalCost / totalBought : tx.price;
+    const avgCost = tx.avgPrice ?? tx.price;
     return s + (tx.price - avgCost) * tx.qty;
   }, 0);
 
@@ -1043,7 +1037,7 @@ export default function Portfolio({ onBack }) {
         </div>
       )}
 
-      {missionToast && <MissionNotification data={missionToast} onDone={() => setMissionToast(null)} />}
+      {missionToast[0] && <MissionNotification data={missionToast[0]} onDone={() => setMissionToast(q => q.slice(1))} />}
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
     </div>
   );

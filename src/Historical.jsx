@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { SERVER } from './config.js';
 import { useLang } from './LangContext.jsx';
 import { HISTORICAL_EVENTS } from './historical.js';
@@ -15,7 +15,7 @@ export default function Historical({ onBack }) {
   const { t, lang, setLang } = useLang();
   const { activeCosmetics }  = useAuth();
   const [activeEffect, setActiveEffect] = useState(false);
-  function triggerEffect() { setActiveEffect(true); setTimeout(() => setActiveEffect(false), 1500); }
+  function triggerEffect() { setActiveEffect(true); clearTimeout(effectTimerRef.current); effectTimerRef.current = setTimeout(() => setActiveEffect(false), 1500); }
   const [phase, setPhase]         = useState('select');
   const [event, setEvent]         = useState(null);
   const [candles, setCandles]     = useState(null);
@@ -25,9 +25,13 @@ export default function Historical({ onBack }) {
   const [copied, setCopied]       = useState(false);
   const [floatingXP, setFloatingXP] = useState(null);
   const [newBadge, setNewBadge]   = useState(null);
-  const [missionToast, setMissionToast] = useState(null);
+  const [missionToast, setMissionToast] = useState([]);
+  const pushMission = data => setMissionToast(q => [...q, data]);
   const floatingXPKeyRef = useRef(0);
+  const effectTimerRef   = useRef(null);
   const chartRef = useRef(null);
+
+  useEffect(() => () => clearTimeout(effectTimerRef.current), []);
 
   function tryUnlockHistoricalBadge(id) {
     const unlocked = unlockBadge(id);
@@ -88,9 +92,9 @@ export default function Historical({ onBack }) {
     if (completed.length >= 10) tryUnlockHistoricalBadge('historian');
     if (completed.length >= 50) tryUnlockHistoricalBadge('time_traveler');
     const mr = incrementMission('play_historical');
-    if (mr.completed) setMissionToast({ xpEarned: mr.xpEarned, title: mr.mission.title });
+    if (mr.completed) pushMission({ xpEarned: mr.xpEarned, title: mr.mission.title });
     const modeR = recordModePlayed('historical');
-    if (modeR.completed) setMissionToast({ xpEarned: modeR.xpEarned, title: modeR.mission.title });
+    if (modeR.completed) pushMission({ xpEarned: modeR.xpEarned, title: modeR.mission.title });
     recordWeeklyModePlayed('historical');
   };
 
@@ -290,7 +294,7 @@ export default function Historical({ onBack }) {
       )}
 
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
-      {missionToast && <MissionNotification data={missionToast} onDone={() => setMissionToast(null)} />}
+      {missionToast[0] && <MissionNotification data={missionToast[0]} onDone={() => setMissionToast(q => q.slice(1))} />}
       <EffectOverlay effect={activeCosmetics?.effect} active={activeEffect} />
     </div>
   );

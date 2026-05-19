@@ -5,18 +5,19 @@ import { useLang } from './LangContext.jsx';
 
 const ACCENTS = ['#22d3a5', '#f5c842', '#8899b0'];
 
+function getUTCDoy(offset) {
+  const now = new Date();
+  const d   = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + offset));
+  const jan1 = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.floor((d - jan1) / 86400000) + 1;
+}
+
 function getWordForOffset(offset) {
-  const date = new Date();
-  date.setDate(date.getDate() + offset);
-  const doy = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 86400000);
-  return GLOSSARY[doy % GLOSSARY.length];
+  return GLOSSARY[getUTCDoy(offset) % GLOSSARY.length];
 }
 
 function getAccentForOffset(offset) {
-  const date = new Date();
-  date.setDate(date.getDate() + offset);
-  const doy = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 86400000);
-  return ACCENTS[doy % ACCENTS.length];
+  return ACCENTS[getUTCDoy(offset) % ACCENTS.length];
 }
 
 function formatDate(offset, lang) {

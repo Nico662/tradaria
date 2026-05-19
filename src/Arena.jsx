@@ -64,7 +64,7 @@ export default function Arena({ onBack, challengeRoomCode }) {
   const { t, lang, setLang } = useLang();
   const { activeCosmetics, user } = useAuth();
   const [activeEffect, setActiveEffect] = useState(false);
-  function triggerEffect() { setActiveEffect(true); setTimeout(() => setActiveEffect(false), 1500); }
+  function triggerEffect() { setActiveEffect(true); clearTimeout(effectTimerRef.current); effectTimerRef.current = setTimeout(() => setActiveEffect(false), 1500); }
   const [screen,    setScreen]   = useState('lobby');
   const [name,      setName]     = useState(() => user?.username || user?.name || '');
   const [status,    setStatus]   = useState('');
@@ -84,12 +84,16 @@ export default function Arena({ onBack, challengeRoomCode }) {
   const [chatMsg,   setChatMsg]  = useState(null);
   const [showChat,  setShowChat] = useState(false);
   const [newBadge,  setNewBadge] = useState(null);
-  const [missionToast, setMissionToast] = useState(null);
+  const [missionToast, setMissionToast] = useState([]);
+  const pushMission = data => setMissionToast(q => [...q, data]);
   const socketRef       = useRef(null);
   const timerRef        = useRef(null);
   const [rematchState,     setRematchState]     = useState(null);
   const [rematchCountdown, setRematchCountdown] = useState(10);
-  const rematchTimerRef = useRef(null);
+  const rematchTimerRef  = useRef(null);
+  const botOuterTimerRef  = useRef(null);
+  const botInnerTimerRef  = useRef(null);
+  const effectTimerRef    = useRef(null);
 
   const [isBotGame,        setIsBotGame]        = useState(false);
   const [botName,          setBotName]           = useState('');
@@ -112,6 +116,10 @@ export default function Arena({ onBack, challengeRoomCode }) {
     return () => {
       socketRef.current?.disconnect();
       clearInterval(timerRef.current);
+      clearInterval(rematchTimerRef.current);
+      clearTimeout(botOuterTimerRef.current);
+      clearTimeout(botInnerTimerRef.current);
+      clearTimeout(effectTimerRef.current);
     };
   }, []);
 
@@ -195,7 +203,7 @@ export default function Arena({ onBack, challengeRoomCode }) {
     const roundData = currentBotRound || gameData;
     const botChoice = botMakeChoice(roundData.direction);
 
-    setTimeout(() => {
+    botOuterTimerRef.current = setTimeout(() => {
       const correctChoice = roundData.direction === 'up' ? 'long' : roundData.direction === 'down' ? 'short' : 'skip';
       const playerWins = choice === correctChoice;
       const botWins    = botChoice === correctChoice;
@@ -216,7 +224,7 @@ export default function Arena({ onBack, challengeRoomCode }) {
       });
       setPhase('result');
 
-      setTimeout(() => {
+      botInnerTimerRef.current = setTimeout(() => {
         const nextRoundIndex = round;
         if (nextRoundIndex >= BOT_TOTAL) {
           const iWon   = newMyScore > newBotScore;
@@ -233,16 +241,16 @@ export default function Arena({ onBack, challengeRoomCode }) {
             if (arenaStreak >= 3) tryUnlockArenaBadge('arena_streak_3');
             if (arenaStreak >= 5) tryUnlockArenaBadge('arena_streak_5');
             const wr = incrementMission('win_arena');
-            if (wr.completed) setMissionToast({ xpEarned: wr.xpEarned, title: wr.mission.title });
+            if (wr.completed) pushMission({ xpEarned: wr.xpEarned, title: wr.mission.title });
             const wwr = incrementWeeklyMission('weekly_arena_5');
-            if (wwr.completed) setMissionToast({ xpEarned: wwr.xpEarned, title: wwr.mission.title });
+            if (wwr.completed) pushMission({ xpEarned: wwr.xpEarned, title: wwr.mission.title });
           } else {
             localStorage.setItem('tradara_arena_win_streak', '0');
           }
           const pr = incrementMission('play_arena');
-          if (pr.completed) setMissionToast({ xpEarned: pr.xpEarned, title: pr.mission.title });
+          if (pr.completed) pushMission({ xpEarned: pr.xpEarned, title: pr.mission.title });
           const modeR = recordModePlayed('arena');
-          if (modeR.completed) setMissionToast({ xpEarned: modeR.xpEarned, title: modeR.mission.title });
+          if (modeR.completed) pushMission({ xpEarned: modeR.xpEarned, title: modeR.mission.title });
           recordWeeklyModePlayed('arena');
           setScreen('gameover');
         } else {
@@ -270,7 +278,6 @@ export default function Arena({ onBack, challengeRoomCode }) {
 
   function initSocket(name) {
     if (socketRef.current) {
-      if (socketRef.current.connected) return socketRef.current;
       socketRef.current.disconnect();
       socketRef.current = null;
     }
@@ -302,14 +309,17 @@ export default function Arena({ onBack, challengeRoomCode }) {
         if (arenaStreak >= 3) tryUnlockArenaBadge('arena_streak_3');
         if (arenaStreak >= 5) tryUnlockArenaBadge('arena_streak_5');
         const wr = incrementMission('win_arena');
-        if (wr.completed) setMissionToast({ xpEarned: wr.xpEarned, title: wr.mission.title });
+        if (wr.completed) pushMission({ xpEarned: wr.xpEarned, title: wr.mission.title });
+        const wwr = incrementWeeklyMission('weekly_arena_5');
+        if (wwr.completed) pushMission({ xpEarned: wwr.xpEarned, title: wwr.mission.title });
       } else {
         localStorage.setItem('tradara_arena_win_streak', '0');
       }
       const pr = incrementMission('play_arena');
-      if (pr.completed) setMissionToast({ xpEarned: pr.xpEarned, title: pr.mission.title });
+      if (pr.completed) pushMission({ xpEarned: pr.xpEarned, title: pr.mission.title });
       const modeR = recordModePlayed('arena');
-      if (modeR.completed) setMissionToast({ xpEarned: modeR.xpEarned, title: modeR.mission.title });
+      if (modeR.completed) pushMission({ xpEarned: modeR.xpEarned, title: modeR.mission.title });
+      recordWeeklyModePlayed('arena');
     });
     socket.on('game:error',           (d) => { setStatus(d.message); setScreen('lobby'); });
     socket.on('game:opponent_disconnected', () => { setStatus(t.arena.oppDisconnected); setScreen('lobby'); socket.disconnect(); });
@@ -325,6 +335,15 @@ export default function Arena({ onBack, challengeRoomCode }) {
       localStorage.setItem('tradara_arena_win_streak', String(arenaStreak));
       if (arenaStreak >= 3) tryUnlockArenaBadge('arena_streak_3');
       if (arenaStreak >= 5) tryUnlockArenaBadge('arena_streak_5');
+      const fwr = incrementMission('win_arena');
+      if (fwr.completed) pushMission({ xpEarned: fwr.xpEarned, title: fwr.mission.title });
+      const fwwr = incrementWeeklyMission('weekly_arena_5');
+      if (fwwr.completed) pushMission({ xpEarned: fwwr.xpEarned, title: fwwr.mission.title });
+      const fpr = incrementMission('play_arena');
+      if (fpr.completed) pushMission({ xpEarned: fpr.xpEarned, title: fpr.mission.title });
+      const fmodeR = recordModePlayed('arena');
+      if (fmodeR.completed) pushMission({ xpEarned: fmodeR.xpEarned, title: fmodeR.mission.title });
+      recordWeeklyModePlayed('arena');
     });
     socket.on('connect',                   () => setMyId(socket.id));
     socket.on('chat:message',         (d) => { setChatMsg(d); setTimeout(() => setChatMsg(null), 3000); });
@@ -392,6 +411,9 @@ export default function Arena({ onBack, challengeRoomCode }) {
     if (screen === 'game' && !isBotGame) socketRef.current?.emit('game:forfeit');
     socketRef.current?.disconnect();
     clearInterval(timerRef.current);
+    clearInterval(rematchTimerRef.current);
+    clearTimeout(botOuterTimerRef.current);
+    clearTimeout(botInnerTimerRef.current);
     resetBotState();
     onBack();
   }
@@ -838,7 +860,7 @@ export default function Arena({ onBack, challengeRoomCode }) {
           <div style={{ fontSize: '9px', color: '#22d3a5', letterSpacing: '0.1em', marginTop: '8px' }}>tradara.dev</div>
         </div>
         {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
-        {missionToast && <MissionNotification data={missionToast} onDone={() => setMissionToast(null)} />}
+        {missionToast[0] && <MissionNotification data={missionToast[0]} onDone={() => setMissionToast(q => q.slice(1))} />}
       </div>
     );
   }

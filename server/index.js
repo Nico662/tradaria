@@ -1564,10 +1564,10 @@ app.post('/portfolio/sell', async (req, res) => {
     if (!position || position.qty < qty) return res.status(400).json({ error: 'Insufficient position' });
     portfolio.cash += total;
     position.qty = Math.round((position.qty - qty) * 10000) / 10000;
-    if (position.qty <= 0) {
+    if (position.qty < 0.0001) {
       portfolio.positions = portfolio.positions.filter(p => p.symbol !== symbol);
     }
-    portfolio.transactions.push({ symbol, name: asset.name, type: asset.type, action: 'sell', qty, price, total });
+    portfolio.transactions.push({ symbol, name: asset.name, type: asset.type, action: 'sell', qty, price, total, avgPrice: position?.avgPrice ?? price });
     await portfolio.save();
     res.json({ ok: true, cash: portfolio.cash });
   } catch (err) {
@@ -1606,6 +1606,8 @@ app.post('/admin/refund-unlisted/:username', async (req, res) => {
 });
 
 app.post('/portfolio/refund-delisted', async (req, res) => {
+  const key = req.headers['x-admin-secret'] || req.query.secret;
+  if (!ADMIN_SECRET || key !== ADMIN_SECRET) return res.status(403).json({ error: 'Forbidden' });
   const DELISTED = ['BRK.B', 'LVMUY', 'NSRGY', 'AGG', 'SAP'];
   try {
     const portfolios = await Portfolio.find({});

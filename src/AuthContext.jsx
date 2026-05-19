@@ -181,8 +181,10 @@ export function AuthProvider({ children }) {
       }).catch(() => {});
     }
     localStorage.removeItem('tradara_token');
+    localStorage.removeItem('tradara_cosmetics');
     setUser(null);
     setPurchases([]);
+    setActiveCosmetics({});
   }
 
   function updateUser(updates) {

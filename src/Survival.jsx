@@ -39,8 +39,11 @@ export default function Survival({ onBack }) {
   const [newBadge,    setNewBadge]   = useState(null);
   const [floatingXP,  setFloatingXP] = useState(null);
   const [liveLost,    setLiveLost]   = useState(false);
-  const [missionToast, setMissionToast] = useState(null);
+  const [missionToast, setMissionToast] = useState([]);
+  const pushMission = data => setMissionToast(q => [...q, data]);
   const floatingXPKeyRef = useRef(0);
+  const highscoreRef   = useRef(parseInt(localStorage.getItem('tradara_survival_highscore') || '0'));
+  const effectTimerRef = useRef(null);
   const [activeEffect,setActiveEffect] = useState(false);
   const chartRef = useRef(null);
 
@@ -70,7 +73,8 @@ export default function Survival({ onBack }) {
 
   function triggerEffect() {
     setActiveEffect(true);
-    setTimeout(() => setActiveEffect(false), 1500);
+    clearTimeout(effectTimerRef.current);
+    effectTimerRef.current = setTimeout(() => setActiveEffect(false), 1500);
   }
 
   const makeChoice = useCallback((choice) => {
@@ -103,7 +107,8 @@ export default function Survival({ onBack }) {
       pts = 100 + streak * 10;
       setScore(s => {
         const ns = s + pts;
-        if (ns > highscore) {
+        if (ns > highscoreRef.current) {
+          highscoreRef.current = ns;
           setHighscore(ns);
           localStorage.setItem('tradara_survival_highscore', String(ns));
         }
@@ -117,7 +122,8 @@ export default function Survival({ onBack }) {
       pts = 50;
       setScore(s => {
         const ns = s + pts;
-        if (ns > highscore) {
+        if (ns > highscoreRef.current) {
+          highscoreRef.current = ns;
           setHighscore(ns);
           localStorage.setItem('tradara_survival_highscore', String(ns));
         }
@@ -149,7 +155,7 @@ export default function Survival({ onBack }) {
     if (newLives <= 0) {
       setTimeout(() => setGameOver(true), 2000);
     }
-  }, [phase, asset, streak, score, highscore, lives]);
+  }, [phase, asset, streak, lives]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const nextRound = () => {
     setAsset(randomAsset());
@@ -158,13 +164,13 @@ export default function Survival({ onBack }) {
     setSelected(null);
     setRound(r => r + 1);
     const mr = incrementMission('play_survival');
-    if (mr.completed) setMissionToast({ xpEarned: mr.xpEarned, title: mr.mission.title });
+    if (mr.completed) pushMission({ xpEarned: mr.xpEarned, title: mr.mission.title });
     if (round === 20) {
       const wsr = incrementWeeklyMission('weekly_survival_20');
-      if (wsr.completed) setMissionToast({ xpEarned: wsr.xpEarned, title: wsr.mission.title });
+      if (wsr.completed) pushMission({ xpEarned: wsr.xpEarned, title: wsr.mission.title });
     }
     const modeR = recordModePlayed('survival');
-    if (modeR.completed) setMissionToast({ xpEarned: modeR.xpEarned, title: modeR.mission.title });
+    if (modeR.completed) pushMission({ xpEarned: modeR.xpEarned, title: modeR.mission.title });
     recordWeeklyModePlayed('survival');
   };
 
@@ -187,6 +193,10 @@ export default function Survival({ onBack }) {
 
   const [personalStats, setPersonalStats] = useState(null);
   // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    return () => { clearTimeout(effectTimerRef.current); };
+  }, []);
+
   useEffect(() => {
     if (!gameOver) return;
     const token = localStorage.getItem('tradara_token');
@@ -483,7 +493,7 @@ export default function Survival({ onBack }) {
       )}
 
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
-      {missionToast && <MissionNotification data={missionToast} onDone={() => setMissionToast(null)} />}
+      {missionToast[0] && <MissionNotification data={missionToast[0]} onDone={() => setMissionToast(q => q.slice(1))} />}
 
       <EffectOverlay effect={activeCosmetics.effect} active={activeEffect} />
     </div>

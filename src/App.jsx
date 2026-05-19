@@ -73,9 +73,11 @@ export default function App() {
   const [xp,          setXp]        = useState(() => getXP());
   const [floatingXP,  setFloatingXP]= useState(null);
   const [activeEffect,setActiveEffect] = useState(false);
-  const [missionToast, setMissionToast] = useState(null);
+  const [missionToast, setMissionToast] = useState([]);
+  const pushMission = data => setMissionToast(q => [...q, data]);
   const floatingXPKeyRef = useRef(0);
   const gameStartRef     = useRef(Date.now());
+  const wonCatsRef       = useRef(new Set());
   const [chartReady, setChartReady] = useState(false);
 
   const { syncProgress, activeCosmetics = {}, user, checkLevelUp } = useAuth();
@@ -289,22 +291,24 @@ export default function App() {
       localStorage.setItem('tradara_whale_wins', '0');
     }
 
+    if (win) wonCatsRef.current.add(asset.cat);
+
     if (win) {
       const r1 = incrementMission('correct_10');
-      if (r1.completed) setMissionToast({ xpEarned: r1.xpEarned, title: r1.mission.title });
+      if (r1.completed) pushMission({ xpEarned: r1.xpEarned, title: r1.mission.title });
       const wr1 = incrementWeeklyMission('weekly_correct_50');
-      if (wr1.completed) setMissionToast({ xpEarned: wr1.xpEarned, title: wr1.mission.title });
+      if (wr1.completed) pushMission({ xpEarned: wr1.xpEarned, title: wr1.mission.title });
       if (streak + 1 === 3) {
         const r2 = incrementMission('play_3_guess', 3);
-        if (r2.completed) setMissionToast({ xpEarned: r2.xpEarned, title: r2.mission.title });
+        if (r2.completed) pushMission({ xpEarned: r2.xpEarned, title: r2.mission.title });
       }
       if (streak + 1 === 5) {
         const r3 = incrementMission('streak_5', 5);
-        if (r3.completed) setMissionToast({ xpEarned: r3.xpEarned, title: r3.mission.title });
+        if (r3.completed) pushMission({ xpEarned: r3.xpEarned, title: r3.mission.title });
       }
       if (choice === 'skip') {
         const r4 = incrementMission('no_trade_3');
-        if (r4.completed) setMissionToast({ xpEarned: r4.xpEarned, title: r4.mission.title });
+        if (r4.completed) pushMission({ xpEarned: r4.xpEarned, title: r4.mission.title });
       }
     }
 
@@ -343,9 +347,9 @@ export default function App() {
   const nextRound = () => {
     setChartReady(false);
     const mr = incrementMission('play_5_guess');
-    if (mr.completed) setMissionToast({ xpEarned: mr.xpEarned, title: mr.mission.title });
+    if (mr.completed) pushMission({ xpEarned: mr.xpEarned, title: mr.mission.title });
     const modeR = recordModePlayed('guess');
-    if (modeR.completed) setMissionToast({ xpEarned: modeR.xpEarned, title: modeR.mission.title });
+    if (modeR.completed) pushMission({ xpEarned: modeR.xpEarned, title: modeR.mission.title });
     recordWeeklyModePlayed('guess');
     if (round >= 25) {
       if ((Date.now() - gameStartRef.current) / 1000 < 180) tryUnlockBadge('secret_speedrun');
@@ -376,6 +380,7 @@ export default function App() {
     setScore(0);
     setStreak(0);
     setHistory([]);
+    wonCatsRef.current = new Set();
   };
 
   const playAgain = () => {
@@ -385,9 +390,9 @@ export default function App() {
     if (acc >= 90) tryUnlockBadge('big_brain');
     if (acc === 100 && nonSkips === 25) tryUnlockBadge('perfectionist');
     if (wins === 25) tryUnlockBadge('secret_allgreen');
-    const catsWon = new Set(history.map((h, i) => h === 'win' ? ASSETS[i % ASSETS.length].cat : null).filter(Boolean));
-    if (catsWon.size >= 4) tryUnlockBadge('all_rounder');
+    if (wonCatsRef.current.size >= 4) tryUnlockBadge('all_rounder');
     gameStartRef.current = Date.now();
+    wonCatsRef.current = new Set();
     setGameOver(false);
     setRound(1);
     setScore(0);
@@ -801,7 +806,7 @@ export default function App() {
 
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
 
-      {missionToast && <MissionNotification data={missionToast} onDone={() => setMissionToast(null)} />}
+      {missionToast[0] && <MissionNotification data={missionToast[0]} onDone={() => setMissionToast(q => q.slice(1))} />}
 
       <EffectOverlay effect={activeCosmetics.effect} active={activeEffect} />
       {challengeOverlay}
