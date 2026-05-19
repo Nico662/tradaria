@@ -8,7 +8,7 @@ import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
 import { useAuth } from './AuthContext';
 import EffectOverlay from './EffectOverlay.jsx';
-import { incrementMission, recordModePlayed } from './missions.js';
+import { incrementMission, recordModePlayed, recordWeeklyModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
 
 export default function Historical({ onBack }) {
@@ -91,6 +91,7 @@ export default function Historical({ onBack }) {
     if (mr.completed) setMissionToast({ xpEarned: mr.xpEarned, title: mr.mission.title });
     const modeR = recordModePlayed('historical');
     if (modeR.completed) setMissionToast({ xpEarned: modeR.xpEarned, title: modeR.mission.title });
+    recordWeeklyModePlayed('historical');
   };
 
   const shareResult = () => {

@@ -121,3 +121,15 @@ export function recordModePlayed(mode) {
   }
   return { completed: false, xpEarned: 0 };
 }
+
+export function recordWeeklyModePlayed(mode) {
+  const monday   = getWeekMonday();
+  const key      = `tradara_weekly_modes_${monday}`;
+  const modes    = JSON.parse(localStorage.getItem(key) || '[]');
+  if (!modes.includes(mode)) {
+    modes.push(mode);
+    localStorage.setItem(key, JSON.stringify(modes));
+    return incrementWeeklyMission('weekly_modes_5');
+  }
+  return { completed: false, xpEarned: 0 };
+}

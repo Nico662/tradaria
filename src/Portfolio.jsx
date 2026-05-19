@@ -6,7 +6,7 @@ import { ASSET_INFO } from './assetInfo.js';
 
 import { SERVER } from './config.js';
 import UserAvatar from './UserAvatar.jsx';
-import { incrementMission, recordModePlayed, incrementWeeklyMission } from './missions.js';
+import { incrementMission, recordModePlayed, incrementWeeklyMission, recordWeeklyModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
 import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
@@ -313,6 +313,7 @@ export default function Portfolio({ onBack }) {
       if (wpr.completed) setMissionToast({ xpEarned: wpr.xpEarned, title: wpr.mission.title });
       const modeR = recordModePlayed('portfolio');
       if (modeR.completed) setMissionToast({ xpEarned: modeR.xpEarned, title: modeR.mission.title });
+      recordWeeklyModePlayed('portfolio');
       if (action === 'buy') {
         const info = ASSET_INFO[selected.symbol];
         if (info?.fact) {

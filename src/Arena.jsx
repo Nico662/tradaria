@@ -10,7 +10,7 @@ import { useAuth } from './AuthContext';
 import EffectOverlay from './EffectOverlay.jsx';
 
 import { SERVER } from './config.js';
-import { incrementMission, recordModePlayed, incrementWeeklyMission } from './missions.js';
+import { incrementMission, recordModePlayed, incrementWeeklyMission, recordWeeklyModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
 const SOCKET_URL = SERVER;
 
@@ -243,6 +243,7 @@ export default function Arena({ onBack, challengeRoomCode }) {
           if (pr.completed) setMissionToast({ xpEarned: pr.xpEarned, title: pr.mission.title });
           const modeR = recordModePlayed('arena');
           if (modeR.completed) setMissionToast({ xpEarned: modeR.xpEarned, title: modeR.mission.title });
+          recordWeeklyModePlayed('arena');
           setScreen('gameover');
         } else {
           const next = { ...botRounds[nextRoundIndex] };

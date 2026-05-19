@@ -28,7 +28,7 @@ import PublicProfile from './PublicProfile.jsx';
 import Tutorial from './Tutorial.jsx';
 import Landing from './Landing.jsx';
 import Stats from './Stats.jsx';
-import { incrementMission, recordModePlayed, incrementWeeklyMission } from './missions.js';
+import { incrementMission, recordModePlayed, incrementWeeklyMission, recordWeeklyModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
 
 
@@ -346,6 +346,7 @@ export default function App() {
     if (mr.completed) setMissionToast({ xpEarned: mr.xpEarned, title: mr.mission.title });
     const modeR = recordModePlayed('guess');
     if (modeR.completed) setMissionToast({ xpEarned: modeR.xpEarned, title: modeR.mission.title });
+    recordWeeklyModePlayed('guess');
     if (round >= 25) {
       if ((Date.now() - gameStartRef.current) / 1000 < 180) tryUnlockBadge('secret_speedrun');
       setGameOver(true);

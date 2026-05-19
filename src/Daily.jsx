@@ -7,7 +7,7 @@ import { addXP, getXP } from './levels.js';
 import { useLang } from './LangContext.jsx';
 import { useAuth } from './AuthContext';
 import EffectOverlay from './EffectOverlay.jsx';
-import { incrementMission, recordModePlayed, incrementWeeklyMission } from './missions.js';
+import { incrementMission, recordModePlayed, incrementWeeklyMission, recordWeeklyModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
 
 function ShareButton({ onShare, copied, t }) {
@@ -131,6 +131,7 @@ export default function Daily({ onBack }) {
   if (wdr.completed) setMissionToast({ xpEarned: wdr.xpEarned, title: wdr.mission.title });
   const modeR = recordModePlayed('daily');
   if (modeR.completed) setMissionToast({ xpEarned: modeR.xpEarned, title: modeR.mission.title });
+  recordWeeklyModePlayed('daily');
 
   if (win) {
     const prevXP = getXP();
