@@ -96,6 +96,7 @@ export const GLOSSARY = [
       es: 'Los bloques de órdenes representan donde los institucionales colocaron sus órdenes. Quedan órdenes residuales que atraen al precio.',
       de: 'Order Blocks zeigen, wo Institutionen ihre Orders platzierten. Restaufträge ziehen den Preis zurück.',
     },
+    chartId: 'order_block',
   },
   {
     word: { en: 'Daily Bias', es: 'Sesgo Diario', de: 'Tagesbias' },

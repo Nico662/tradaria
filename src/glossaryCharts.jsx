@@ -233,10 +233,102 @@ function MSSChart() {
   );
 }
 
+// ─── Order Block Chart ───────────────────────────────────────────────────────
+
+function OrderBlockChart() {
+  // price range 125–185, y range 12–150  (scale 2.3 px/unit)
+  const py = p => 12 + (185 - p) * 2.3;
+
+  const obTopY = py(150); // top of OB zone (body open of OB candle)
+  const obBotY = py(142); // bottom of OB zone (body close of OB candle)
+
+  const candles = [
+    // Context — slight sideways
+    { x: 14,  O: 150, H: 153, L: 147, C: 149 },
+    { x: 27,  O: 149, H: 152, L: 145, C: 148 },
+    { x: 40,  O: 148, H: 151, L: 145, C: 150 },
+    // OB candle — last bearish before the move
+    { x: 54,  O: 150, H: 154, L: 139, C: 142, bw: 10 },
+    // Displacement — strong bullish away
+    { x: 68,  O: 143, H: 160, L: 142, C: 156, bw: 10 },
+    { x: 82,  O: 156, H: 171, L: 155, C: 168, bw: 10 },
+    { x: 96,  O: 168, H: 181, L: 167, C: 178, bw: 10 },
+    // Distribution near top
+    { x: 110, O: 178, H: 182, L: 173, C: 175 },
+    { x: 123, O: 175, H: 177, L: 167, C: 169 },
+    // Return to OB
+    { x: 136, O: 169, H: 171, L: 159, C: 161 },
+    { x: 149, O: 161, H: 163, L: 150, C: 152 },
+    // Reaction — bounce from OB zone
+    { x: 163, O: 151, H: 164, L: 148, C: 161, bw: 10 },
+  ];
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="#060b10" rx="8" />
+
+      {/* Grid */}
+      {[40, 65, 90, 115, 140].map(y => (
+        <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
+      ))}
+
+      {/* OB zone — from just before the OB candle to right edge */}
+      <rect x="48" y={obTopY} width="134" height={obBotY - obTopY} fill="#f5c84218" />
+      <line x1="48" y1={obTopY} x2="182" y2={obTopY} stroke="#f5c842" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.6" />
+      <line x1="48" y1={obBotY} x2="182" y2={obBotY} stroke="#f5c842" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.6" />
+
+      {/* Candles */}
+      {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
+        const bull  = C >= O;
+        const col   = bull ? '#22d3a5' : '#e05555';
+        const bodyY = py(Math.max(O, C));
+        const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="1" opacity="0.75" />
+            <rect x={x - bw / 2} y={bodyY} width={bw} height={bodyH} fill={col} rx="0.5" opacity="0.95" />
+          </g>
+        );
+      })}
+
+      {/* OB label above the OB candle */}
+      <text
+        x="54" y="11"
+        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        fontSize="5.5" fill="#f5c842" opacity="0.9"
+      >OB ↓</text>
+      <line x1="54" y1="13" x2="54" y2="17" stroke="#f5c842" strokeWidth="0.6" opacity="0.35" />
+
+      {/* OB label inside the zone on the right */}
+      <text
+        x="182" y={(obTopY + obBotY) / 2 + 3.5}
+        textAnchor="end" fontFamily="'Space Mono', monospace"
+        fontSize="8" fontWeight="bold" fill="#f5c842" opacity="0.9"
+      >OB</text>
+
+      {/* Reaction label above the bounce candle */}
+      <text
+        x="163" y="11"
+        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        fontSize="5.5" fill="#22d3a5" opacity="0.9"
+      >↑ reacción</text>
+      <line x1="163" y1="13" x2="163" y2="17" stroke="#22d3a5" strokeWidth="0.6" opacity="0.4" />
+
+      {/* Watermark */}
+      <text
+        x="6" y="154"
+        fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#172030" letterSpacing="0.1em"
+      >BULLISH ORDER BLOCK</text>
+    </svg>
+  );
+}
+
 // ─── exports ────────────────────────────────────────────────────────────────
 
 export const CHARTS = {
   fvg:           FVGChart,
   displacement:  DisplacementChart,
   mss:           MSSChart,
+  order_block:   OrderBlockChart,
 };
