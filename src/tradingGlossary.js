@@ -116,6 +116,7 @@ export const GLOSSARY = [
       es: 'Establece el sesgo diario analizando la acción del precio del día anterior, niveles clave y eventos económicos.',
       de: 'Lege den Tagesbias fest durch Analyse der Vortages-Preisentwicklung, Schlüsselniveaus und Wirtschaftsereignisse.',
     },
+    chartId: 'daily_bias',
   },
   {
     word: { en: 'Premium & Discount', es: 'Premium y Descuento', de: 'Premium & Discount' },

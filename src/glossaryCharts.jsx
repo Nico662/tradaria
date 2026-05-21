@@ -324,6 +324,96 @@ function OrderBlockChart() {
   );
 }
 
+// ─── Daily Bias Chart ────────────────────────────────────────────────────────
+
+function DailyBiasChart() {
+  // price range 112–160, y range 12–135  (scale 2.56 px/unit)
+  const py = p => 12 + (160 - p) * 2.56;
+
+  const prevDay = [
+    { x: 14, O: 115, H: 120, L: 112, C: 118 },
+    { x: 27, O: 118, H: 124, L: 115, C: 122 },
+    { x: 40, O: 122, H: 128, L: 119, C: 126 },
+    { x: 53, O: 126, H: 132, L: 123, C: 130 },
+    { x: 66, O: 130, H: 138, L: 128, C: 136 }, // closes near high → bullish
+  ];
+
+  const today = [
+    { x: 90,  O: 135, H: 138, L: 126, C: 128, bw: 10 }, // pullback
+    { x: 103, O: 128, H: 130, L: 124, C: 125, bw: 10 }, // deeper dip
+    { x: 116, O: 125, H: 131, L: 124, C: 129, bw: 10 }, // reversal
+    { x: 129, O: 129, H: 137, L: 128, C: 135, bw: 10 }, // push up
+    { x: 142, O: 135, H: 143, L: 134, C: 141, bw: 10 }, // strong bull
+    { x: 155, O: 141, H: 149, L: 140, C: 147, bw: 10 }, // continuation
+    { x: 168, O: 147, H: 156, L: 146, C: 154, bw: 10 }, // strong close
+  ];
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="#060b10" rx="8" />
+
+      {/* Grid */}
+      {[40, 65, 90, 115].map(y => (
+        <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
+      ))}
+
+      {/* Today section tint */}
+      <rect x="80" y="14" width="104" height="124" fill="#22d3a508" rx="2" />
+
+      {/* Vertical separator */}
+      <line x1="79" y1="14" x2="79" y2="138" stroke="#1e2530" strokeWidth="0.8" strokeDasharray="3 2" />
+
+      {/* Section labels */}
+      <text x="41"  y="10" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#2a3345"  letterSpacing="0.12em">PREV DAY</text>
+      <text x="133" y="10" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#22d3a5" letterSpacing="0.12em" opacity="0.75">TODAY</text>
+
+      {/* PDC carry-over line from prev day close */}
+      <line x1="70" y1={py(136)} x2="182" y2={py(136)}
+        stroke="#22d3a5" strokeWidth="0.7" strokeDasharray="3 2" opacity="0.2" />
+      <text x="181" y={py(136) - 2.5} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#22d3a5" opacity="0.35">PDC</text>
+
+      {/* Prev day candles */}
+      {prevDay.map(({ x, O, H, L, C, bw = 8 }, i) => {
+        const bull  = C >= O;
+        const col   = bull ? '#22d3a5' : '#e05555';
+        const bodyY = py(Math.max(O, C));
+        const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="1" opacity="0.75" />
+            <rect x={x - bw / 2} y={bodyY} width={bw} height={bodyH} fill={col} rx="0.5" opacity="0.95" />
+          </g>
+        );
+      })}
+
+      {/* Today candles */}
+      {today.map(({ x, O, H, L, C, bw = 8 }, i) => {
+        const bull  = C >= O;
+        const col   = bull ? '#22d3a5' : '#e05555';
+        const bodyY = py(Math.max(O, C));
+        const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="1" opacity="0.75" />
+            <rect x={x - bw / 2} y={bodyY} width={bw} height={bodyH} fill={col} rx="0.5" opacity="0.95" />
+          </g>
+        );
+      })}
+
+      {/* Bias direction — dashed diagonal from pullback low to final close */}
+      <line x1="82" y1={py(128)} x2="176" y2={py(154)}
+        stroke="#22d3a5" strokeWidth="1.2" strokeDasharray="5 3" opacity="0.28" />
+
+      {/* BULLISH BIAS badge */}
+      <rect x="83" y="139" width="96" height="11" fill="#22d3a514" rx="2.5" />
+      <text x="131" y="147.5" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="6.5" fill="#22d3a5" letterSpacing="0.1em" opacity="0.85">BULLISH BIAS ↑</text>
+
+      {/* Watermark */}
+      <text x="6" y="154" fontFamily="'Space Mono', monospace" fontSize="5" fill="#172030" letterSpacing="0.1em">DAILY BIAS</text>
+    </svg>
+  );
+}
+
 // ─── exports ────────────────────────────────────────────────────────────────
 
 export const CHARTS = {
@@ -331,4 +421,5 @@ export const CHARTS = {
   displacement:  DisplacementChart,
   mss:           MSSChart,
   order_block:   OrderBlockChart,
+  daily_bias:    DailyBiasChart,
 };
