@@ -587,10 +587,10 @@ export default function App() {
   if (screen === 'stats')      return <><Stats      onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'daily')      return <><Daily      onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'historical') return <><Historical onBack={() => setScreen('home')} />{challengeOverlay}</>;
-  if (screen === 'tournament') return <><Tournament onBack={() => setScreen('home')} />{challengeOverlay}</>;
+  if (screen === 'tournament') return <><Tournament onBack={() => setScreen('home')} onViewProfile={(uname) => { setPublicProfileUsername(uname); setScreen('public_profile'); window.history.pushState({}, '', `/u/${uname}`); }} />{challengeOverlay}</>;
   if (screen === 'survival')   return <><Survival   onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'shop')       return <><Shop       onBack={() => setScreen('home')} />{challengeOverlay}</>;
-  if (screen === 'portfolio')  return <><Portfolio  onBack={() => setScreen('home')} />{challengeOverlay}</>;
+  if (screen === 'portfolio')  return <><Portfolio  onBack={() => setScreen('home')} onViewProfile={(uname) => { setPublicProfileUsername(uname); setScreen('public_profile'); window.history.pushState({}, '', `/u/${uname}`); }} />{challengeOverlay}</>;
   if (screen === 'friends') return (
     <>
       <Friends

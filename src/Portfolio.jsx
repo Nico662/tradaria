@@ -78,7 +78,7 @@ function getWeekStart() {
   return `${mon.getUTCDate().toString().padStart(2, '0')}/${(mon.getUTCMonth() + 1).toString().padStart(2, '0')}`;
 }
 
-export default function Portfolio({ onBack }) {
+export default function Portfolio({ onBack, onViewProfile }) {
   const { user } = useAuth();
   const { t, lang } = useLang();
   const [screen, setScreen]                 = useState('loading');
@@ -865,7 +865,7 @@ export default function Portfolio({ onBack }) {
               </div>
             ) : (
               leaderboard.map((entry, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: '#0f141b', border: `1px solid ${i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#1e2530'}`, borderRadius: '8px', marginBottom: '8px' }}>
+                <div key={i} onClick={() => entry.username && onViewProfile && onViewProfile(entry.username)} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: '#0f141b', border: `1px solid ${i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#1e2530'}`, borderRadius: '8px', marginBottom: '8px', cursor: entry.username && onViewProfile ? 'pointer' : 'default' }}>
                   <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#3a4455', width: '24px', flexShrink: 0 }}>
                     {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
                   </div>
@@ -893,7 +893,7 @@ export default function Portfolio({ onBack }) {
               </div>
             ) : (
               weeklyLeaderboard.map((entry, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: '#0f141b', border: `1px solid ${i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#1e2530'}`, borderRadius: '8px', marginBottom: '8px' }}>
+                <div key={i} onClick={() => entry.username && onViewProfile && onViewProfile(entry.username)} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: '#0f141b', border: `1px solid ${i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#1e2530'}`, borderRadius: '8px', marginBottom: '8px', cursor: entry.username && onViewProfile ? 'pointer' : 'default' }}>
                   <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#3a4455', width: '24px', flexShrink: 0 }}>
                     {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
                   </div>
