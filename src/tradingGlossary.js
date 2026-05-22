@@ -126,6 +126,7 @@ export const GLOSSARY = [
       de: 'ICT teilt den Preis in "teure" und "günstige" Zonen mit Fibonacci ein. Günstig kaufen und teuer verkaufen.',
     },
     emoji: '💹',
+    chartId: 'premium_discount',
     example: {
       en: 'Waiting for price to return to the discount zone before entering long.',
       es: 'Esperar que el precio vuelva a la zona de descuento antes de entrar largo.',

@@ -414,12 +414,95 @@ function DailyBiasChart() {
   );
 }
 
+// ─── Premium & Discount Chart ────────────────────────────────────────────────
+
+function PremiumDiscountChart() {
+  // price range 115–165, y range 16–144  (scale 2.56 px/unit)
+  const py  = p => 16 + (165 - p) * 2.56;
+  const eqY = py(140); // 50% midpoint = 80
+  const shY = py(165); // swing high  = 16
+  const slY = py(115); // swing low   = 144
+
+  const candles = [
+    // Discount → EQ → Premium (rally)
+    { x: 14,  O: 120, H: 124, L: 116, C: 122 },
+    { x: 27,  O: 122, H: 130, L: 120, C: 128 },
+    { x: 40,  O: 128, H: 143, L: 126, C: 140, bw: 10 }, // crosses EQ
+    { x: 53,  O: 140, H: 155, L: 139, C: 152, bw: 10 }, // premium
+    { x: 66,  O: 152, H: 165, L: 150, C: 161, bw: 10 }, // SH
+    // Retracement through EQ into discount
+    { x: 80,  O: 161, H: 163, L: 148, C: 150 },
+    { x: 93,  O: 150, H: 153, L: 136, C: 140 },          // back to EQ
+    { x: 106, O: 140, H: 142, L: 128, C: 130 },          // discount
+    { x: 119, O: 130, H: 132, L: 118, C: 120 },          // deep discount
+    // Bounce from discount
+    { x: 132, O: 120, H: 126, L: 118, C: 124 },
+    { x: 145, O: 124, H: 135, L: 122, C: 133, bw: 10 }, // BUY impulse
+    { x: 158, O: 133, H: 144, L: 131, C: 141, bw: 10 }, // back through EQ
+    { x: 171, O: 141, H: 150, L: 140, C: 147 },          // premium again
+  ];
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="#060b10" rx="8" />
+
+      {/* Zone fills */}
+      <rect x="4" y={shY} width="180" height={eqY - shY} fill="#e0555510" />
+      <rect x="4" y={eqY} width="180" height={slY - eqY} fill="#22d3a50e" />
+
+      {/* SH / SL boundary lines */}
+      <line x1="4" y1={shY} x2="184" y2={shY} stroke="#e05555" strokeWidth="0.7" strokeDasharray="4 2" opacity="0.35" />
+      <line x1="4" y1={slY} x2="184" y2={slY} stroke="#22d3a5" strokeWidth="0.7" strokeDasharray="4 2" opacity="0.35" />
+
+      {/* EQ 50% — main divider */}
+      <line x1="4" y1={eqY} x2="184" y2={eqY} stroke="#f5c842" strokeWidth="1.2" strokeDasharray="6 3" opacity="0.65" />
+
+      {/* Candles */}
+      {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
+        const bull  = C >= O;
+        const col   = bull ? '#22d3a5' : '#e05555';
+        const bodyY = py(Math.max(O, C));
+        const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="1" opacity="0.75" />
+            <rect x={x - bw / 2} y={bodyY} width={bw} height={bodyH} fill={col} rx="0.5" opacity="0.95" />
+          </g>
+        );
+      })}
+
+      {/* Zone labels */}
+      <text x="8" y={shY + 14} fontFamily="'Space Mono', monospace" fontSize="7.5" fill="#e05555" letterSpacing="0.06em" opacity="0.75">PREMIUM</text>
+      <text x="8" y={eqY + 14} fontFamily="'Space Mono', monospace" fontSize="7.5" fill="#22d3a5" letterSpacing="0.06em" opacity="0.75">DISCOUNT</text>
+
+      {/* ↓ SELL annotation above SH candle */}
+      <text x="66" y="11" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#e05555" opacity="0.9">↓ SELL</text>
+      <line x1="66" y1="13" x2="66" y2="17" stroke="#e05555" strokeWidth="0.6" opacity="0.4" />
+
+      {/* ↑ BUY annotation below deep-discount candles */}
+      <text x="138" y={slY - 6} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#22d3a5" opacity="0.9">↑ BUY</text>
+      <line x1="138" y1={slY - 14} x2="138" y2={slY - 11} stroke="#22d3a5" strokeWidth="0.6" opacity="0.4" />
+
+      {/* EQ label */}
+      <text x="183" y={eqY - 3} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#f5c842" opacity="0.85">EQ 50%</text>
+
+      {/* SH / SL tiny labels */}
+      <text x="183" y={shY + 5.5} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="5" fill="#e05555" opacity="0.45">SH</text>
+      <text x="183" y={slY - 2.5} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="5" fill="#22d3a5" opacity="0.45">SL</text>
+
+      {/* Watermark */}
+      <text x="6" y="154" fontFamily="'Space Mono', monospace" fontSize="5" fill="#172030" letterSpacing="0.1em">PREMIUM &amp; DISCOUNT</text>
+    </svg>
+  );
+}
+
 // ─── exports ────────────────────────────────────────────────────────────────
 
 export const CHARTS = {
-  fvg:           FVGChart,
-  displacement:  DisplacementChart,
-  mss:           MSSChart,
-  order_block:   OrderBlockChart,
-  daily_bias:    DailyBiasChart,
+  fvg:              FVGChart,
+  displacement:     DisplacementChart,
+  mss:              MSSChart,
+  order_block:      OrderBlockChart,
+  daily_bias:       DailyBiasChart,
+  premium_discount: PremiumDiscountChart,
 };
