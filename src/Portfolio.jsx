@@ -11,6 +11,7 @@ import MissionNotification from './MissionNotification.jsx';
 import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
 import FounderBadge, { isFounder } from './FounderBadge.jsx';
+import PortfolioTutorial from './PortfolioTutorial.jsx';
 
 const TYPE_COLORS = {
   stock:     '#378ADD',
@@ -340,39 +341,11 @@ export default function Portfolio({ onBack, onViewProfile }) {
     setLoading(false);
   }
 
-  // ── Welcome ──────────────────────────────────────────────────────
+  // ── Tutorial (first visit) ───────────────────────────────────────
   if (showWelcome) return (
-    <div id="gtm-root" style={{ position: 'relative' }}>
+    <div id="gtm-root" style={{ position: 'relative', minHeight: '100dvh', background: '#0a0c0f' }}>
       <div className="scanlines" />
-      <div style={{ padding: '48px 28px', position: 'relative', zIndex: 2 }}>
-        <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', marginBottom: '32px', display: 'block' }}>
-          {t.game.menu}
-        </button>
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div style={{ fontSize: '56px', marginBottom: '16px' }}>💼</div>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px', color: '#f0f0f0', marginBottom: '8px' }}>Portfolio Mode</div>
-          <div style={{ fontSize: '11px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{t.portfolio.sub}</div>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '40px' }}>
-          {[
-            { emoji: '💵', title: '$50,000',                    desc: t.portfolio.welcomePoint1 },
-            { emoji: '📊', title: t.portfolio.welcomePoint2title, desc: t.portfolio.welcomePoint2 },
-            { emoji: '📈', title: t.portfolio.welcomePoint3title, desc: t.portfolio.welcomePoint3 },
-            { emoji: '🎓', title: t.portfolio.welcomePoint4title, desc: t.portfolio.welcomePoint4 },
-          ].map((item, i) => (
-            <div key={i} style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', padding: '16px', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px' }}>
-              <div style={{ fontSize: '24px', flexShrink: 0 }}>{item.emoji}</div>
-              <div>
-                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: '#f0f0f0', marginBottom: '4px' }}>{item.title}</div>
-                <div style={{ fontSize: '10px', color: '#4a5568', lineHeight: 1.6 }}>{item.desc}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-        <button onClick={dismissWelcome} style={{ width: '100%', padding: '16px', background: 'rgba(55,138,221,0.08)', border: '1px solid #378ADD', borderRadius: '8px', color: '#378ADD', fontFamily: "'Space Mono', monospace", fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer' }}>
-          {t.portfolio.welcomeStart} →
-        </button>
-      </div>
+      <PortfolioTutorial onDone={dismissWelcome} />
     </div>
   );
 
