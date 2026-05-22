@@ -111,7 +111,7 @@ export default function Portfolio({ onBack, onViewProfile }) {
   const [showFriendPicker, setShowFriendPicker] = useState(false);
   const [duelLoading, setDuelLoading]       = useState(false);
   const [duelMsg, setDuelMsg]               = useState('');
-  const [showWelcome, setShowWelcome]       = useState(() => !localStorage.getItem('tradara_portfolio_welcomed'));
+  const [showWelcome, setShowWelcome]       = useState(false);
   const [inputMode, setInputMode]           = useState(() => localStorage.getItem('tradara_portfolio_input_mode') || 'units');
   const chartRef = useRef(null);
 
@@ -120,6 +120,13 @@ export default function Portfolio({ onBack, onViewProfile }) {
   function dismissWelcome() {
     localStorage.setItem('tradara_portfolio_welcomed', 'true');
     setShowWelcome(false);
+    const tok = localStorage.getItem('tradara_token');
+    if (tok) {
+      fetch(`${SERVER}/portfolio/tutorial-seen`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${tok}` },
+      }).catch(() => {});
+    }
   }
 
   function tryUnlockPortfolioBadge(id) {
@@ -141,6 +148,10 @@ export default function Portfolio({ onBack, onViewProfile }) {
       const portfolioData = await portfolioRes.json();
       setPrices(pricesData);
       setPortfolio(portfolioData);
+      if (!portfolioData.tutorialSeen && !localStorage.getItem('tradara_portfolio_welcomed')) {
+        setShowWelcome(true);
+        return;
+      }
       setScreen('main');
 
       const tv = portfolioData.cash + (portfolioData.positions || []).reduce((s, pos) => {

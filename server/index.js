@@ -87,6 +87,7 @@ const UserSchema = new mongoose.Schema({
   username:        { type: String, unique: true, sparse: true, default: null },
   customAvatar:    { type: String, default: null },
   activeCosmetics: { type: mongoose.Schema.Types.Mixed, default: {} },
+  portfolioTutorialSeen: { type: Boolean, default: false },
 });
 
 const TournamentSchema = new mongoose.Schema({
@@ -1495,7 +1496,34 @@ app.get('/portfolio', async (req, res) => {
     if (!portfolio) {
       portfolio = await Portfolio.create({ userId: decoded.id, cash: 50000, positions: [], transactions: [] });
     }
-    res.json(portfolio);
+    const user = await User.findById(decoded.id).select('portfolioTutorialSeen');
+    const obj = portfolio.toObject();
+    obj.tutorialSeen = user?.portfolioTutorialSeen ?? false;
+    res.json(obj);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/portfolio/tutorial-seen', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    await User.findByIdAndUpdate(decoded.id, { portfolioTutorialSeen: true });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/admin/reset-portfolio-tutorial/:username', async (req, res) => {
+  const key = req.headers['x-admin-secret'];
+  if (!ADMIN_SECRET || key !== ADMIN_SECRET) return res.status(403).json({ error: 'Forbidden' });
+  try {
+    const user = await User.findOneAndUpdate({ username: req.params.username }, { portfolioTutorialSeen: false });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json({ ok: true, username: req.params.username });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
