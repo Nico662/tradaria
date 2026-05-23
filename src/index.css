@@ -416,26 +416,79 @@ html, body {
 
 /* ── Light mode ───────────────────────────────────── */
 #root.light-mode { background: #f0f2f5; }
-#root.light-mode #gtm-root {
-  background: #f0f2f5 !important;
-  color: #0a0c0f;
-}
-#root.light-mode #gtm-root .header,
-#root.light-mode #gtm-root .asset-bar,
-#root.light-mode #gtm-root .streak-bar {
-  border-color: #e2e8f0;
-  background: #ffffff;
-}
-#root.light-mode #gtm-root .mode-card {
-  background: #ffffff;
-  border-color: #e2e8f0;
-  color: #0a0c0f;
-}
-#root.light-mode #gtm-root .mode-title { color: #0a0c0f; }
-#root.light-mode #gtm-root .mode-sub   { color: #6b7a8d; }
-#root.light-mode #gtm-root .trade-btn  { background: #ffffff; border-color: #e2e8f0; color: #0a0c0f; }
-#root.light-mode #gtm-root .result-card { background: #ffffff; }
-#root.light-mode #gtm-root .stat-val   { color: #0a0c0f; }
-#root.light-mode #gtm-root .ticker-tape { color: #6b7a8d; border-color: #e2e8f0; }
+
+/* Base */
+#root.light-mode #gtm-root { background: #f0f2f5 !important; color: #0a0c0f; }
+
+/* Headers y barras */
+#root.light-mode #gtm-root .header { background: #ffffff; border-color: #e2e8f0; }
+#root.light-mode #gtm-root .asset-bar { background: #ffffff; border-color: #e2e8f0; }
+#root.light-mode #gtm-root .streak-bar { background: #f8f9fa; border-color: #e2e8f0; }
+#root.light-mode #gtm-root .cat-bar { background: #ffffff; border-color: #e2e8f0; }
+#root.light-mode #gtm-root .ticker-tape { background: #ffffff; border-color: #e2e8f0; color: #9aa5b4; }
+
+/* Texto */
+#root.light-mode #gtm-root .logo { color: #0a0c0f; }
 #root.light-mode #gtm-root .asset-name { color: #0a0c0f; }
-#root.light-mode #gtm-root .timeframe-badge { background: #e2e8f0; color: #6b7a8d; border-color: #cbd5e0; }
+#root.light-mode #gtm-root .stat-val { color: #0a0c0f; }
+#root.light-mode #gtm-root .stat-label { color: #4a5568; }
+#root.light-mode #gtm-root .phase-label { color: #9aa5b4; }
+#root.light-mode #gtm-root .prompt-text { color: #4a5568; }
+
+/* Cards de modos en Home */
+#root.light-mode #gtm-root .mode-card { background: #ffffff; border-color: #e2e8f0; }
+#root.light-mode #gtm-root .mode-title { color: #0a0c0f; }
+#root.light-mode #gtm-root .mode-sub { color: #4a5568; }
+#root.light-mode #gtm-root .mode-card.active:hover { background: rgba(34,211,165,0.06); border-color: #22d3a5; }
+
+/* Botones de trade */
+#root.light-mode #gtm-root .trade-btn { background: #ffffff; border-color: #e2e8f0; color: #0a0c0f; }
+#root.light-mode #gtm-root .btn-sublabel { color: #4a5568; }
+#root.light-mode #gtm-root .next-btn { background: #f8f9fa; border-color: #e2e8f0; color: #4a5568; }
+#root.light-mode #gtm-root .next-btn:hover { border-color: #0a0c0f; color: #0a0c0f; }
+
+/* Result card */
+#root.light-mode #gtm-root .result-card { background: #ffffff; border-color: #e2e8f0; }
+#root.light-mode #gtm-root .result-detail { color: #4a5568; }
+
+/* Streak dots */
+#root.light-mode #gtm-root .streak-dot { background: #e2e8f0; border-color: #cbd5e0; }
+
+/* Timeframe badge */
+#root.light-mode #gtm-root .timeframe-badge { background: #f8f9fa; border-color: #e2e8f0; color: #4a5568; }
+
+/* Cat buttons */
+#root.light-mode #gtm-root .cat-btn { border-color: #e2e8f0; color: #4a5568; }
+#root.light-mode #gtm-root .cat-btn:hover { border-color: #9aa5b4; color: #0a0c0f; }
+#root.light-mode #gtm-root .cat-btn.active { border-color: #22d3a5; color: #22d3a5; background: rgba(34,211,165,0.06); }
+
+/* Lang buttons */
+#root.light-mode #gtm-root .lang-btn { color: #4a5568; }
+#root.light-mode #gtm-root .lang-btn.active { border-color: #e2e8f0; color: #0a0c0f; }
+
+/* Scanlines — desactivar en modo claro */
+#root.light-mode #gtm-root .scanlines { display: none; }
+
+/* Inline backgrounds oscuros */
+#root.light-mode #gtm-root [style*="background: #0f141b"],
+#root.light-mode #gtm-root [style*="background: #0a0c0f"],
+#root.light-mode #gtm-root [style*="background:#0f141b"],
+#root.light-mode #gtm-root [style*="background:#0a0c0f"] {
+  background: #ffffff !important;
+}
+
+/* Bordes oscuros inline */
+#root.light-mode #gtm-root [style*="border: 1px solid #1e2530"],
+#root.light-mode #gtm-root [style*="border-color: #1e2530"],
+#root.light-mode #gtm-root [style*="borderColor: #1e2530"] {
+  border-color: #e2e8f0 !important;
+}
+
+/* Texto inline */
+#root.light-mode #gtm-root [style*="color: #4a5568"] { color: #4a5568 !important; }
+#root.light-mode #gtm-root [style*="color: #3a4455"] { color: #9aa5b4 !important; }
+#root.light-mode #gtm-root [style*="color: #2a3345"] { color: #cbd5e0 !important; }
+#root.light-mode #gtm-root [style*="color: #e2e8f0"] { color: #0a0c0f !important; }
+#root.light-mode #gtm-root [style*="color: #f0f0f0"] { color: #0a0c0f !important; }
+#root.light-mode #gtm-root [style*="color: #8899b0"] { color: #4a5568 !important; }
+#root.light-mode #gtm-root [style*="color: #6b7a8d"] { color: #4a5568 !important; }
