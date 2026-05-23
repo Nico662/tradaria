@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
+import { useLang } from './LangContext.jsx';
 import UserAvatar from './UserAvatar.jsx';
 import FounderBadge, { isFounder } from './FounderBadge.jsx';
 import { SERVER } from './config.js';
@@ -10,6 +11,8 @@ function formatCash(n) {
 
 export default function League({ leagueId, onBack }) {
   const { user } = useAuth();
+  const { t } = useLang();
+  const tl = t.leagues;
   const [data, setData]       = useState(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied]   = useState(false);
@@ -37,7 +40,7 @@ export default function League({ leagueId, onBack }) {
 
   function share() {
     if (!data) return;
-    const text = `Únete a mi liga "${data.name}" en Tradara con el código: ${data.code} — tradara.dev`;
+    const text = tl.shareText.replace('{name}', data.name).replace('{code}', data.code);
     if (navigator.share) {
       navigator.share({ text }).catch(() => {});
     } else {
@@ -48,7 +51,7 @@ export default function League({ leagueId, onBack }) {
   }
 
   async function leave() {
-    if (!window.confirm('¿Seguro que quieres abandonar esta liga?')) return;
+    if (!window.confirm(tl.confirmLeave)) return;
     setBusy(true);
     try {
       await fetch(`${SERVER}/leagues/${leagueId}/leave`, {
@@ -60,7 +63,7 @@ export default function League({ leagueId, onBack }) {
   }
 
   async function deleteLeague() {
-    if (!window.confirm('¿Eliminar esta liga? No se puede deshacer.')) return;
+    if (!window.confirm(tl.confirmDelete)) return;
     setBusy(true);
     try {
       await fetch(`${SERVER}/leagues/${leagueId}`, {
@@ -83,8 +86,8 @@ export default function League({ leagueId, onBack }) {
 
   if (!data || data.error) return (
     <div id="gtm-root" style={{ minHeight: '100dvh', background: '#0a0c0f', padding: '48px 20px' }}>
-      <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}>← back</button>
-      <div style={{ textAlign: 'center', padding: '60px 0', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '11px' }}>Liga no encontrada</div>
+      <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}>{tl.back}</button>
+      <div style={{ textAlign: 'center', padding: '60px 0', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '11px' }}>{tl.notFound}</div>
     </div>
   );
 
@@ -93,7 +96,7 @@ export default function League({ leagueId, onBack }) {
       <div className="scanlines" />
       <div style={{ padding: '48px 20px 48px', position: 'relative', zIndex: 2 }}>
 
-        <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', marginBottom: '24px', display: 'block' }}>← back</button>
+        <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', marginBottom: '24px', display: 'block' }}>{tl.back}</button>
 
         {/* Header */}
         <div style={{ marginBottom: '28px' }}>
@@ -106,14 +109,14 @@ export default function League({ leagueId, onBack }) {
               </button>
             </div>
             <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#4a5568' }}>
-              desde {new Date(data.startDate + 'T00:00:00').toLocaleDateString()}
-              {daysLeft !== null && ` · ${daysLeft}d restantes`}
+              {tl.since} {new Date(data.startDate + 'T00:00:00').toLocaleDateString()}
+              {daysLeft !== null && ` · ${daysLeft}${tl.daysLeft}`}
             </span>
           </div>
         </div>
 
         {/* Ranking */}
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#6b7a8d', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '12px' }}>Ranking · {data.ranking.length} participantes</div>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#6b7a8d', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '12px' }}>{tl.rankingLabel} · {data.ranking.length} {tl.participants}</div>
 
         {data.ranking.map((entry, i) => {
           const posColor = i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#3a4455';
@@ -129,7 +132,7 @@ export default function League({ leagueId, onBack }) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
                   <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: entry.isYou ? '#22d3a5' : '#f0f0f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
                   {isFounder(entry.username) && <FounderBadge size={10} />}
-                  {entry.isYou && <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: '#22d3a560' }}>· tú</span>}
+                  {entry.isYou && <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: '#22d3a560' }}>{tl.youTag}</span>}
                 </div>
                 <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#4a5568' }}>{formatCash(entry.totalValue)}</div>
               </div>
@@ -148,15 +151,15 @@ export default function League({ leagueId, onBack }) {
         {/* Footer */}
         <div style={{ marginTop: '28px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <button onClick={share} style={{ width: '100%', padding: '13px', background: 'rgba(34,211,165,0.06)', border: '1px solid #22d3a5', borderRadius: '8px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-            📤 Compartir código
+            {tl.shareCode}
           </button>
           {data.isOwner ? (
             <button onClick={deleteLeague} disabled={busy} style={{ width: '100%', padding: '12px', background: 'transparent', border: '1px solid #f0545430', borderRadius: '8px', color: '#f05454', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', opacity: 0.65 }}>
-              {busy ? '...' : 'Eliminar liga'}
+              {busy ? '...' : tl.deleteLeague}
             </button>
           ) : (
             <button onClick={leave} disabled={busy} style={{ width: '100%', padding: '12px', background: 'transparent', border: '1px solid #2a3345', borderRadius: '8px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-              {busy ? '...' : 'Abandonar liga'}
+              {busy ? '...' : tl.leaveLeague}
             </button>
           )}
         </div>
