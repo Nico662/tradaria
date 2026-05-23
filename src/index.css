@@ -413,3 +413,29 @@ html, body {
 .chart-area > div {
   height: 100% !important;
 }
+
+/* ── Light mode ───────────────────────────────────── */
+#root.light-mode { background: #f0f2f5; }
+#root.light-mode #gtm-root {
+  background: #f0f2f5 !important;
+  color: #0a0c0f;
+}
+#root.light-mode #gtm-root .header,
+#root.light-mode #gtm-root .asset-bar,
+#root.light-mode #gtm-root .streak-bar {
+  border-color: #e2e8f0;
+  background: #ffffff;
+}
+#root.light-mode #gtm-root .mode-card {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  color: #0a0c0f;
+}
+#root.light-mode #gtm-root .mode-title { color: #0a0c0f; }
+#root.light-mode #gtm-root .mode-sub   { color: #6b7a8d; }
+#root.light-mode #gtm-root .trade-btn  { background: #ffffff; border-color: #e2e8f0; color: #0a0c0f; }
+#root.light-mode #gtm-root .result-card { background: #ffffff; }
+#root.light-mode #gtm-root .stat-val   { color: #0a0c0f; }
+#root.light-mode #gtm-root .ticker-tape { color: #6b7a8d; border-color: #e2e8f0; }
+#root.light-mode #gtm-root .asset-name { color: #0a0c0f; }
+#root.light-mode #gtm-root .timeframe-badge { background: #e2e8f0; color: #6b7a8d; border-color: #cbd5e0; }

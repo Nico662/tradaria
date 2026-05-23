@@ -104,13 +104,22 @@ export default function Home({ onSelect }) {
 
         {/* Top bar */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <button onClick={() => onSelect('shop')}
-            style={{ background: 'transparent', border: '1px solid #1e2530', borderRadius: '8px', padding: '6px 12px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = '#f5c842'}
-            onMouseLeave={e => e.currentTarget.style.borderColor = '#1e2530'}
-          >
-            🛍️ {t.home.shop ?? 'Shop'}
-          </button>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <button onClick={() => onSelect('shop')}
+              style={{ background: 'transparent', border: '1px solid #1e2530', borderRadius: '8px', padding: '6px 12px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = '#f5c842'}
+              onMouseLeave={e => e.currentTarget.style.borderColor = '#1e2530'}
+            >
+              🛍️ {t.home.shop ?? 'Shop'}
+            </button>
+            <button onClick={() => onSelect('settings')}
+              style={{ background: 'transparent', border: '1px solid #1e2530', borderRadius: '8px', padding: '6px 10px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '12px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = '#6b7a8d'}
+              onMouseLeave={e => e.currentTarget.style.borderColor = '#1e2530'}
+            >
+              ⚙️
+            </button>
+          </div>
           <button onClick={() => onSelect('friends')}
             style={{ background: 'transparent', border: '1px solid #1e2530', borderRadius: '8px', padding: '6px 12px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             onMouseEnter={e => e.currentTarget.style.borderColor = '#22d3a5'}

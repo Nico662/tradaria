@@ -31,6 +31,7 @@ import Landing from './Landing.jsx';
 import Stats from './Stats.jsx';
 import { incrementMission, recordModePlayed, incrementWeeklyMission, recordWeeklyModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
+import Settings from './Settings.jsx';
 
 
 const CATEGORIES = [
@@ -134,7 +135,14 @@ export default function App() {
      if (!root) return;
      root.classList.remove('theme_matrix', 'theme_blood', 'theme_gold', 'theme_midnight');
      if (activeCosmetics?.theme) root.classList.add(activeCosmetics.theme);
-   }, [activeCosmetics?.theme]); 
+   }, [activeCosmetics?.theme]);
+
+  useEffect(() => {
+    const mode = localStorage.getItem('tradara_theme_mode') || 'dark';
+    const root = document.getElementById('root');
+    if (mode === 'light') root.classList.add('light-mode');
+    else root.classList.remove('light-mode');
+  }, []);
   function analyzeCandles(candles) {
   if (!candles || candles.length < 5) return null;
    const last5    = candles.slice(-5);
@@ -567,6 +575,7 @@ export default function App() {
           else if (mode === 'shop')       setScreen('shop');
           else if (mode === 'portfolio') setScreen('portfolio');
           else if (mode === 'friends')   setScreen('friends');
+          else if (mode === 'settings')  setScreen('settings');
           else {
             setScreen('game');
             if (!localStorage.getItem('tradara_tutorial_done')) setShowTutorial(true);
@@ -592,6 +601,7 @@ export default function App() {
   if (screen === 'tournament') return <><Tournament onBack={() => setScreen('home')} onViewProfile={(uname) => { setPublicProfileUsername(uname); setScreen('public_profile'); window.history.pushState({}, '', `/u/${uname}`); }} />{challengeOverlay}</>;
   if (screen === 'survival')   return <><Survival   onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'shop')       return <><Shop       onBack={() => setScreen('home')} />{challengeOverlay}</>;
+  if (screen === 'settings')   return <><Settings   onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'portfolio')  return <><Portfolio  onBack={() => setScreen('home')} onViewProfile={(uname) => { setPublicProfileUsername(uname); setScreen('public_profile'); window.history.pushState({}, '', `/u/${uname}`); }} onOpenLeague={(id) => { setLeagueId(id); setScreen('league'); }} />{challengeOverlay}</>;
   if (screen === 'league')     return <><League leagueId={leagueId} onBack={() => setScreen('portfolio')} />{challengeOverlay}</>;
   if (screen === 'friends') return (
