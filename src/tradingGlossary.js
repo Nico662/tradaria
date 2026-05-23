@@ -146,6 +146,7 @@ export const GLOSSARY = [
       de: 'Stops über wichtigen Hochs. Der Preis steigt oft zuerst, um diese Liquidität zu nehmen, bevor er fällt.',
     },
     emoji: '⬆️',
+    chartId: 'buyside_liquidity',
     example: {
       en: 'Price swept BSL above last week\'s high before reversing 3%.',
       es: 'El precio barrió la BSL sobre el máximo semanal antes de revertirse un 3%.',

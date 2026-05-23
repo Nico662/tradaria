@@ -496,13 +496,91 @@ function PremiumDiscountChart() {
   );
 }
 
+// ─── Buyside Liquidity Chart ─────────────────────────────────────────────────
+
+function BuysideLiquidityChart() {
+  // price range 120–170, y range 12–148  (scale 2.72 px/unit)
+  const py = p => 12 + (170 - p) * 136 / 50;
+
+  const bslLevel = 158;
+  const bslY     = py(bslLevel);
+
+  const candles = [
+    // Rally that creates the swing high
+    { x: 14,  O: 130, H: 134, L: 128, C: 132 },
+    { x: 27,  O: 132, H: 142, L: 130, C: 140 },
+    { x: 40,  O: 140, H: 158, L: 138, C: 142, bw: 10 }, // swing high at BSL
+    // Pullback and consolidation below BSL
+    { x: 53,  O: 142, H: 145, L: 133, C: 135 },
+    { x: 66,  O: 135, H: 140, L: 132, C: 138 },
+    { x: 79,  O: 138, H: 146, L: 136, C: 143 },
+    { x: 92,  O: 143, H: 153, L: 141, C: 150 },
+    { x: 105, O: 150, H: 157, L: 148, C: 153 }, // just below BSL
+    // BSL sweep — wick spikes above 158, closes back below
+    { x: 118, O: 153, H: 168, L: 151, C: 155, bw: 10 },
+    // Reversal after sweep
+    { x: 131, O: 155, H: 157, L: 144, C: 146 },
+    { x: 144, O: 146, H: 148, L: 137, C: 139 },
+    { x: 157, O: 139, H: 141, L: 130, C: 132 },
+  ];
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="#060b10" rx="8" />
+
+      {/* Grid */}
+      {[40, 65, 90, 115, 140].map(y => (
+        <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
+      ))}
+
+      {/* Liquidity pool shading above BSL */}
+      <rect x="4" y={bslY - 14} width="180" height="14" fill="#378ADD0c" />
+
+      {/* BSL level line */}
+      <line x1="4" y1={bslY} x2="182" y2={bslY} stroke="#378ADD" strokeWidth="1" strokeDasharray="4 2.5" opacity="0.65" />
+
+      {/* Candles */}
+      {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
+        const bull  = C >= O;
+        const col   = bull ? '#22d3a5' : '#e05555';
+        const bodyY = py(Math.max(O, C));
+        const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="1" opacity="0.75" />
+            <rect x={x - bw / 2} y={bodyY} width={bw} height={bodyH} fill={col} rx="0.5" opacity="0.95" />
+          </g>
+        );
+      })}
+
+      {/* "stops above" label inside the liquidity zone */}
+      <text x="8" y={bslY - 4} fontFamily="'Space Mono', monospace" fontSize="4.8" fill="#378ADD" opacity="0.55" letterSpacing="0.08em">stops above</text>
+
+      {/* BSL label — right side */}
+      <text x="182" y={bslY + 5.5} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="8" fontWeight="bold" fill="#378ADD" opacity="0.9">BSL</text>
+
+      {/* Sweep annotation above sweep candle */}
+      <text x="118" y="9" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#f5c842" opacity="0.9">↑ sweep</text>
+      <line x1="118" y1="11" x2="118" y2="15" stroke="#f5c842" strokeWidth="0.6" opacity="0.4" />
+
+      {/* Reversal annotation above reversal candles */}
+      <text x="144" y="9" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#e05555" opacity="0.9">↓ reversal</text>
+      <line x1="144" y1="11" x2="144" y2="15" stroke="#e05555" strokeWidth="0.6" opacity="0.4" />
+
+      {/* Watermark */}
+      <text x="6" y="154" fontFamily="'Space Mono', monospace" fontSize="5" fill="#172030" letterSpacing="0.1em">BUY-SIDE LIQUIDITY</text>
+    </svg>
+  );
+}
+
 // ─── exports ────────────────────────────────────────────────────────────────
 
 export const CHARTS = {
-  fvg:              FVGChart,
-  displacement:     DisplacementChart,
-  mss:              MSSChart,
-  order_block:      OrderBlockChart,
-  daily_bias:       DailyBiasChart,
-  premium_discount: PremiumDiscountChart,
+  fvg:                FVGChart,
+  displacement:       DisplacementChart,
+  mss:                MSSChart,
+  order_block:        OrderBlockChart,
+  daily_bias:         DailyBiasChart,
+  premium_discount:   PremiumDiscountChart,
+  buyside_liquidity:  BuysideLiquidityChart,
 };
