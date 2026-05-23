@@ -8,18 +8,18 @@ const SHOP_ITEMS = {
     { id: 'frame_gold',     name: 'Gold Frame',     desc: { en: 'Exclusive gold border',     es: 'Borde dorado exclusivo',      de: 'Exklusiver Goldrahmen'     }, price: 2.99, emoji: '🥇', color: '#f5c842' },
     { id: 'frame_neon',     name: 'Neon Frame',     desc: { en: 'Glowing neon border',       es: 'Borde neón brillante',        de: 'Leuchtender Neonrahmen'    }, price: 1.99, emoji: '💚', color: '#22d3a5' },
     { id: 'frame_fire',     name: 'Fire Frame',     desc: { en: 'Animated fire border',      es: 'Borde de fuego animado',      de: 'Animierter Feuerrahmen'    }, price: 3.99, emoji: '🔥', color: '#f05454' },
-    { id: 'frame_diamond',  name: 'Diamond Frame',  desc: { en: 'Diamond pattern border',    es: 'Borde con patrón de diamante',de: 'Diamantmuster-Rahmen'      }, price: 4.99, emoji: '💎', color: '#8899b0' },
+    { id: 'frame_diamond',  name: 'Diamond Frame',  desc: { en: 'Diamond pattern border',    es: 'Borde con patrón de diamante',de: 'Diamantmuster-Rahmen'      }, price: 4.99, emoji: '💎', color: 'var(--t3)' },
   ],
   themes: [
     { id: 'theme_matrix',   name: 'Matrix',         desc: { en: 'Green on black',            es: 'Verde sobre negro',           de: 'Grün auf Schwarz'          }, price: 1.99, emoji: '🟩', color: '#22d3a5' },
     { id: 'theme_blood',    name: 'Blood Market',   desc: { en: 'Red dark theme',            es: 'Tema oscuro rojo',            de: 'Rotes dunkles Theme'       }, price: 1.99, emoji: '🩸', color: '#f05454' },
     { id: 'theme_gold',     name: 'Gold Rush',      desc: { en: 'Gold and black theme',      es: 'Tema dorado y negro',         de: 'Gold und Schwarz Theme'    }, price: 2.99, emoji: '✨', color: '#f5c842' },
-    { id: 'theme_midnight', name: 'Midnight',       desc: { en: 'Deep blue dark theme',      es: 'Tema azul oscuro profundo',   de: 'Tiefblaues dunkles Theme'  }, price: 1.99, emoji: '🌙', color: '#6b7a8d' },
+    { id: 'theme_midnight', name: 'Midnight',       desc: { en: 'Deep blue dark theme',      es: 'Tema azul oscuro profundo',   de: 'Tiefblaues dunkles Theme'  }, price: 1.99, emoji: '🌙', color: 'var(--t4)' },
   ],
   avatars: [
     { id: 'avatar_bull',    name: 'Bull',           desc: { en: 'Bullish trader avatar',     es: 'Avatar de trader alcista',    de: 'Bullen-Trader Avatar'      }, price: 0.99, emoji: '🐂', color: '#22d3a5' },
     { id: 'avatar_bear',    name: 'Bear',           desc: { en: 'Bearish trader avatar',     es: 'Avatar de trader bajista',    de: 'Bären-Trader Avatar'       }, price: 0.99, emoji: '🐻', color: '#f05454' },
-    { id: 'avatar_whale',   name: 'Whale',          desc: { en: 'Big money avatar',          es: 'Avatar de gran inversor',     de: 'Großinvestor Avatar'       }, price: 1.99, emoji: '🐋', color: '#8899b0' },
+    { id: 'avatar_whale',   name: 'Whale',          desc: { en: 'Big money avatar',          es: 'Avatar de gran inversor',     de: 'Großinvestor Avatar'       }, price: 1.99, emoji: '🐋', color: 'var(--t3)' },
     { id: 'avatar_robot',   name: 'AlgoBot',        desc: { en: 'Algorithm trader avatar',   es: 'Avatar de trader algorítmico',de: 'Algorithmus-Trader Avatar' }, price: 1.99, emoji: '🤖', color: '#f5c842' },
   ],
   effects: [
@@ -34,7 +34,7 @@ const FRAME_STYLES = {
   frame_gold:    { border: '2px solid #f5c842', boxShadow: '0 0 8px rgba(245,200,66,0.6)' },
   frame_neon:    { border: '2px solid #22d3a5', boxShadow: '0 0 8px rgba(34,211,165,0.6)' },
   frame_fire:    { border: '2px solid #f05454', boxShadow: '0 0 8px rgba(240,84,84,0.6)' },
-  frame_diamond: { border: '2px solid #8899b0', boxShadow: '0 0 8px rgba(136,153,176,0.6)' },
+  frame_diamond: { border: '2px solid var(--t3)', boxShadow: '0 0 8px rgba(136,153,176,0.6)' },
 };
 
 const THEME_COLORS = {
@@ -113,7 +113,7 @@ function PreviewFrame({ item, userAvatar }) {
         {userAvatar ? (
           <img src={userAvatar} style={{ width: '48px', height: '48px', borderRadius: '50%', ...FRAME_STYLES[item.id] }} />
         ) : (
-          <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#1a2030', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', ...FRAME_STYLES[item.id] }}>
+          <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--bg-card2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', ...FRAME_STYLES[item.id] }}>
             👤
           </div>
         )}
@@ -177,7 +177,7 @@ function PreviewTheme({ item }) {
 function PreviewAvatar({ item }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '12px 0 4px' }}>
-      <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#1a2030', border: `1px solid ${item.color}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px' }}>
+      <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--bg-card2)', border: `1px solid ${item.color}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px' }}>
         {AVATAR_EMOJIS[item.id]}
       </div>
     </div>
@@ -354,11 +354,11 @@ export default function Shop({ onBack }) {
       <div className="scanlines" />
       <div style={{ position: 'relative', zIndex: 2 }}>
 
-        <div style={{ padding: '14px 20px 13px', borderBottom: '1px solid #1e2530', display: 'flex', alignItems: 'center', gap: '12px', background: 'linear-gradient(180deg, rgba(245,200,66,0.025) 0%, transparent 100%)' }}>
+        <div style={{ padding: '14px 20px 13px', borderBottom: '1px solid var(--bd)', display: 'flex', alignItems: 'center', gap: '12px', background: 'linear-gradient(180deg, rgba(245,200,66,0.025) 0%, transparent 100%)' }}>
           <button onClick={onBack}
-            style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', transition: 'color 0.15s' }}
-            onMouseEnter={e => e.target.style.color = '#e2e8f0'}
-            onMouseLeave={e => e.target.style.color = '#3a4455'}
+            style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', transition: 'color 0.15s' }}
+            onMouseEnter={e => e.target.style.color = 'var(--t2)'}
+            onMouseLeave={e => e.target.style.color = 'var(--t6)'}
           >{t.shop.back}</button>
           <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '15px', color: '#f5c842', letterSpacing: '0.06em', textShadow: '0 0 20px rgba(245,200,66,0.25)' }}>
             🛍️ {t.home.shop}
@@ -370,9 +370,9 @@ export default function Shop({ onBack }) {
             <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
               style={{
                 padding: '6px 14px', borderRadius: '20px', whiteSpace: 'nowrap',
-                border: `1px solid ${activeCategory === cat.id ? '#22d3a5' : '#2a3345'}`,
+                border: `1px solid ${activeCategory === cat.id ? '#22d3a5' : 'var(--bd2)'}`,
                 background: activeCategory === cat.id ? 'rgba(34,211,165,0.08)' : 'transparent',
-                color: activeCategory === cat.id ? '#22d3a5' : '#4a5568',
+                color: activeCategory === cat.id ? '#22d3a5' : 'var(--t5)',
                 fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700,
                 letterSpacing: '0.08em', cursor: 'pointer', textTransform: 'uppercase',
               }}>
@@ -388,15 +388,15 @@ export default function Shop({ onBack }) {
 
             return (
               <div key={item.id} style={{
-                background: '#0f141b',
-                border: `1px solid ${equipped ? item.color : '#1e2530'}`,
+                background: 'var(--bg-card)',
+                border: `1px solid ${equipped ? item.color : 'var(--bd)'}`,
                 borderRadius: '10px',
                 padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px',
                 transition: 'border-color 0.2s, box-shadow 0.2s, transform 0.2s',
                 boxShadow: equipped ? `0 0 20px ${item.color}22, 0 4px 20px rgba(0,0,0,0.4)` : 'none',
               }}
                 onMouseEnter={e => { if (!equipped) { e.currentTarget.style.borderColor = item.color; e.currentTarget.style.boxShadow = `0 8px 28px rgba(0,0,0,0.5)`; e.currentTarget.style.transform = 'translateY(-2px)'; } }}
-                onMouseLeave={e => { if (!equipped) { e.currentTarget.style.borderColor = '#1e2530'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; } }}
+                onMouseLeave={e => { if (!equipped) { e.currentTarget.style.borderColor = 'var(--bd)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; } }}
               >
                 {activeCategory === 'frames'  && <PreviewFrame  item={item} userAvatar={user?.customAvatar || user?.avatar} />}
                 {activeCategory === 'themes'  && <PreviewTheme  item={item} />}
@@ -406,7 +406,7 @@ export default function Shop({ onBack }) {
                 <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '12px', color: item.color, textAlign: 'center' }}>
                   {item.name}
                 </div>
-                <div style={{ fontSize: '9px', color: '#4a5568', textAlign: 'center', letterSpacing: '0.04em' }}>
+                <div style={{ fontSize: '9px', color: 'var(--t5)', textAlign: 'center', letterSpacing: '0.04em' }}>
                   {item.desc[lang] || item.desc.en}
                 </div>
 
@@ -416,7 +416,7 @@ export default function Shop({ onBack }) {
                     background: equipped ? item.color : 'transparent',
                     border: `1px solid ${item.color}`,
                     borderRadius: '6px',
-                    color: equipped ? '#0a0c0f' : item.color,
+                    color: equipped ? 'var(--bg-page)' : item.color,
                     fontFamily: "'Space Mono', monospace", fontSize: '10px',
                     fontWeight: 700, letterSpacing: '0.06em', cursor: 'pointer',
                     transition: 'all 0.15s',
@@ -426,10 +426,10 @@ export default function Shop({ onBack }) {
                 ) : (
                   <button onClick={() => handleBuy(item.id)} disabled={loading === item.id} style={{
                     width: '100%', padding: '8px', marginTop: '4px',
-                    background: loading === item.id ? '#1a2030' : 'rgba(34,211,165,0.08)',
-                    border: `1px solid ${loading === item.id ? '#2a3345' : item.color}`,
+                    background: loading === item.id ? 'var(--bg-card2)' : 'rgba(34,211,165,0.08)',
+                    border: `1px solid ${loading === item.id ? 'var(--bd2)' : item.color}`,
                     borderRadius: '6px',
-                    color: loading === item.id ? '#4a5568' : item.color,
+                    color: loading === item.id ? 'var(--t5)' : item.color,
                     fontFamily: "'Space Mono', monospace", fontSize: '10px',
                     fontWeight: 700, letterSpacing: '0.06em', cursor: loading === item.id ? 'not-allowed' : 'pointer',
                     transition: 'all 0.15s',

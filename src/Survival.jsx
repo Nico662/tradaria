@@ -217,7 +217,7 @@ export default function Survival({ onBack }) {
   const shareSurvival = async () => {
     const el = document.getElementById('share-card-survival');
     if (!el) return;
-    const canvas = await html2canvas(el, { backgroundColor: '#0a0c0f', scale: 2 });
+    const canvas = await html2canvas(el, { backgroundColor: 'var(--bg-page)', scale: 2 });
     const link = document.createElement('a');
     link.download = 'tradara-survival.png';
     link.href = canvas.toDataURL();
@@ -239,15 +239,15 @@ export default function Survival({ onBack }) {
           <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '36px', color: '#f05454', marginBottom: '4px' }}>
             {t.survival.gameOver}
           </div>
-          <div style={{ fontSize: '10px', color: '#3a4455', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '32px' }}>
+          <div style={{ fontSize: '10px', color: 'var(--t6)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '32px' }}>
             {t.survival.title} · {round - 1} {t.survival.roundsSurvived}
           </div>
 
-          <div style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '12px', padding: '28px 24px', marginBottom: '20px' }}>
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '12px', padding: '28px 24px', marginBottom: '20px' }}>
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '52px', color: '#f5c842', letterSpacing: '-0.02em', lineHeight: 1 }}>
               {score}
             </div>
-            <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '4px' }}>
+            <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '4px' }}>
               {t.survival.finalScore}
             </div>
             {isNewHS && (
@@ -255,17 +255,17 @@ export default function Survival({ onBack }) {
                 {t.survival.newHighscore}
               </div>
             )}
-            <div style={{ fontSize: '11px', color: '#3a4455', marginTop: '4px' }}>{t.survival.best}: {highscore}</div>
+            <div style={{ fontSize: '11px', color: 'var(--t6)', marginTop: '4px' }}>{t.survival.best}: {highscore}</div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginTop: '20px', marginBottom: '16px' }}>
               {[
-                { label: 'rounds',   value: round - 1,      color: '#e2e8f0' },
+                { label: 'rounds',   value: round - 1,      color: 'var(--t2)' },
                 { label: 'correct',  value: wins,           color: '#22d3a5' },
                 { label: 'accuracy', value: accuracy + '%', color: '#f5c842' },
               ].map(s => (
-                <div key={s.label} style={{ background: '#0a0c0f', border: '1px solid #1e2530', borderRadius: '8px', padding: '10px 8px' }}>
+                <div key={s.label} style={{ background: 'var(--bg-page)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '10px 8px' }}>
                   <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: s.color }}>{s.value}</div>
-                  <div style={{ fontSize: '8px', color: '#4a5568', letterSpacing: '0.06em', textTransform: 'uppercase', marginTop: '2px' }}>{s.label}</div>
+                  <div style={{ fontSize: '8px', color: 'var(--t5)', letterSpacing: '0.06em', textTransform: 'uppercase', marginTop: '2px' }}>{s.label}</div>
                 </div>
               ))}
             </div>
@@ -283,13 +283,13 @@ export default function Survival({ onBack }) {
               {t.survival.playAgain}
             </button>
             <button onClick={onBack}
-              style={{ flex: 1, padding: '14px', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '6px', color: '#8899b0', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+              style={{ flex: 1, padding: '14px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t3)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
               {t.survival.menu}
             </button>
           </div>
           {personalStats && (
-            <div style={{ marginTop: '10px', padding: '12px 16px', background: '#0a0c0f', border: '1px solid #1e2530', borderRadius: '8px' }}>
-              <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px', fontFamily: "'Space Mono', monospace" }}>{t.stats.myHistory}</div>
+            <div style={{ marginTop: '10px', padding: '12px 16px', background: 'var(--bg-page)', border: '1px solid var(--bd)', borderRadius: '8px' }}>
+              <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px', fontFamily: "'Space Mono', monospace" }}>{t.stats.myHistory}</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
                 {[
                   { label: t.stats.games,       value: personalStats.totalGames },
@@ -298,7 +298,7 @@ export default function Survival({ onBack }) {
                 ].map(s => (
                   <div key={s.label} style={{ textAlign: 'center' }}>
                     <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#22d3a5' }}>{s.value}</div>
-                    <div style={{ fontSize: '8px', color: '#3a4455', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '2px' }}>{s.label}</div>
+                    <div style={{ fontSize: '8px', color: 'var(--t6)', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '2px' }}>{s.label}</div>
                   </div>
                 ))}
               </div>
@@ -309,15 +309,15 @@ export default function Survival({ onBack }) {
             📸 {t.daily.share}
           </button>
         </div>
-        <div id="share-card-survival" style={{ position: 'absolute', left: '-9999px', top: 0, width: '320px', background: '#0a0c0f', border: '1px solid #f05454', borderRadius: '12px', padding: '28px 24px', fontFamily: "'Space Mono', monospace" }}>
-          <div style={{ fontSize: '10px', color: '#3a4455', letterSpacing: '0.1em', marginBottom: '16px' }}>☠️ TRADARA SURVIVAL</div>
+        <div id="share-card-survival" style={{ position: 'absolute', left: '-9999px', top: 0, width: '320px', background: 'var(--bg-page)', border: '1px solid #f05454', borderRadius: '12px', padding: '28px 24px', fontFamily: "'Space Mono', monospace" }}>
+          <div style={{ fontSize: '10px', color: 'var(--t6)', letterSpacing: '0.1em', marginBottom: '16px' }}>☠️ TRADARA SURVIVAL</div>
           <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '48px', color: '#f5c842', letterSpacing: '-0.02em', lineHeight: 1, marginBottom: '4px' }}>{score}</div>
-          <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '16px' }}>{t.survival.finalScore}</div>
+          <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '16px' }}>{t.survival.finalScore}</div>
           {isNewHS && <div style={{ fontSize: '10px', color: '#22d3a5', marginBottom: '8px' }}>{t.survival.newHighscore}</div>}
           <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
-            <div><span style={{ fontSize: '16px', fontWeight: 800, color: '#e2e8f0' }}>{round - 1}</span><div style={{ fontSize: '8px', color: '#4a5568' }}>rounds</div></div>
-            <div><span style={{ fontSize: '16px', fontWeight: 800, color: '#22d3a5' }}>{wins}</span><div style={{ fontSize: '8px', color: '#4a5568' }}>correct</div></div>
-            <div><span style={{ fontSize: '16px', fontWeight: 800, color: '#f5c842' }}>{accuracy}%</span><div style={{ fontSize: '8px', color: '#4a5568' }}>accuracy</div></div>
+            <div><span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--t2)' }}>{round - 1}</span><div style={{ fontSize: '8px', color: 'var(--t5)' }}>rounds</div></div>
+            <div><span style={{ fontSize: '16px', fontWeight: 800, color: '#22d3a5' }}>{wins}</span><div style={{ fontSize: '8px', color: 'var(--t5)' }}>correct</div></div>
+            <div><span style={{ fontSize: '16px', fontWeight: 800, color: '#f5c842' }}>{accuracy}%</span><div style={{ fontSize: '8px', color: 'var(--t5)' }}>accuracy</div></div>
           </div>
           <div style={{ fontSize: '9px', color: '#22d3a5', letterSpacing: '0.1em', marginTop: '8px' }}>tradara.dev</div>
         </div>
@@ -334,9 +334,9 @@ export default function Survival({ onBack }) {
       <div className="header" style={{ display: 'grid', gridTemplateColumns: '80px 1fr 80px', alignItems: 'center', padding: '12px 20px 10px' }}>
         {/* Back */}
         <button onClick={onBack}
-          style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', padding: 0, textAlign: 'left', transition: 'color 0.15s' }}
-          onMouseEnter={e => e.target.style.color = '#e2e8f0'}
-          onMouseLeave={e => e.target.style.color = '#3a4455'}
+          style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', padding: 0, textAlign: 'left', transition: 'color 0.15s' }}
+          onMouseEnter={e => e.target.style.color = 'var(--t2)'}
+          onMouseLeave={e => e.target.style.color = 'var(--t6)'}
         >{t.survival.back}</button>
 
         {/* Centered title */}
@@ -344,14 +344,14 @@ export default function Survival({ onBack }) {
           <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: '#f05454', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(240,84,84,0.2)' }}>
             ☠️ {t.survival.title}
           </div>
-          <div style={{ fontSize: '8px', color: '#3a4455', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: "'Space Mono', monospace" }}>
+          <div style={{ fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: "'Space Mono', monospace" }}>
             SURVIVAL MODE
           </div>
         </div>
 
         {/* Stats right */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
-          <span style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.06em' }}>{t.game.score}</span>
+          <span style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.06em' }}>{t.game.score}</span>
           <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#f5c842', textShadow: '0 0 14px rgba(245,200,66,0.35)' }}>{score}</span>
         </div>
       </div>
@@ -381,7 +381,7 @@ export default function Survival({ onBack }) {
       </div>
       {/* Lives below chart */}
       <div style={{ padding: '8px 20px 4px', position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px' }}>
-        <span style={{ fontSize: '8px', color: '#3a4455', letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: "'Space Mono', monospace" }}>LIVES</span>
+        <span style={{ fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: "'Space Mono', monospace" }}>LIVES</span>
         <div style={{ display: 'flex', gap: '10px' }}>
           {Array.from({ length: MAX_LIVES }, (_, i) => (
             <span key={i} style={{
@@ -393,20 +393,20 @@ export default function Survival({ onBack }) {
             }}>❤️</span>
           ))}
         </div>
-        <span style={{ fontSize: '8px', color: '#3a4455', letterSpacing: '0.18em', fontFamily: "'Space Mono', monospace" }}>R·{round}</span>
+        <span style={{ fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.18em', fontFamily: "'Space Mono', monospace" }}>R·{round}</span>
       </div>
 
       <div style={{ padding: '6px 20px 0', position: 'relative', zIndex: 2, display: 'flex', gap: '6px' }}>
-        <div style={{ flex: 1, background: '#0f141b', border: '1px solid #1e2530', borderRadius: '6px', padding: '7px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '8px', color: '#4a5568', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t.game.round}</span>
-          <span style={{ fontSize: '11px', color: '#f0f0f0', fontWeight: 700 }}>{round}</span>
+        <div style={{ flex: 1, background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '6px', padding: '7px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: '8px', color: 'var(--t5)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t.game.round}</span>
+          <span style={{ fontSize: '11px', color: 'var(--t1)', fontWeight: 700 }}>{round}</span>
         </div>
-        <div style={{ flex: 1, background: '#0f141b', border: '1px solid #1e2530', borderRadius: '6px', padding: '7px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '8px', color: '#4a5568', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t.game.score}</span>
+        <div style={{ flex: 1, background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '6px', padding: '7px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: '8px', color: 'var(--t5)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t.game.score}</span>
           <span style={{ fontSize: '11px', color: '#f5c842', fontWeight: 700 }}>{score}</span>
         </div>
-        <div style={{ flex: 1, background: '#0f141b', border: '1px solid #1e2530', borderRadius: '6px', padding: '7px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '8px', color: '#4a5568', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t.survival.best}</span>
+        <div style={{ flex: 1, background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '6px', padding: '7px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: '8px', color: 'var(--t5)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t.survival.best}</span>
           <span style={{ fontSize: '11px', color: '#22d3a5', fontWeight: 700 }}>{highscore}</span>
         </div>
       </div>
@@ -464,15 +464,15 @@ export default function Survival({ onBack }) {
         </div>
       )}
 
-      <div style={{ padding: '12px 20px', borderTop: '1px solid #1e2530', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', position: 'relative', zIndex: 2 }}>
+      <div style={{ padding: '12px 20px', borderTop: '1px solid var(--bd)', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', position: 'relative', zIndex: 2 }}>
         {[
           { label: t.game.correct, value: history.filter(h => h === 'win').length,  color: '#22d3a5' },
           { label: t.game.wrong,   value: history.filter(h => h === 'lose').length, color: '#f05454' },
           { label: t.survival.best, value: highscore,                               color: '#f5c842' },
         ].map(s => (
-          <div key={s.label} style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px', padding: '10px 8px', textAlign: 'center' }}>
+          <div key={s.label} style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '10px 8px', textAlign: 'center' }}>
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: s.color }}>{s.value}</div>
-            <div style={{ fontSize: '8px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: '2px' }}>{s.label}</div>
+            <div style={{ fontSize: '8px', color: 'var(--t5)', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: '2px' }}>{s.label}</div>
           </div>
         ))}
       </div>

@@ -63,7 +63,7 @@ export default function NotificationBanner() {
       position: 'fixed', bottom: '20px', left: '50%',
       transform: 'translateX(-50%)',
       width: 'calc(100% - 40px)', maxWidth: '400px',
-      background: '#0f141b', border: '1px solid #22d3a5',
+      background: 'var(--bg-card)', border: '1px solid #22d3a5',
       borderRadius: '12px', padding: '16px 20px',
       zIndex: 9998, boxShadow: '0 0 24px rgba(34,211,165,0.15)',
       animation: 'slideUp 0.3s ease',
@@ -71,10 +71,10 @@ export default function NotificationBanner() {
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
         <div style={{ fontSize: '24px' }}>⚡</div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: '#f0f0f0', marginBottom: '4px' }}>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: 'var(--t1)', marginBottom: '4px' }}>
             Daily Challenge notifications
           </div>
-          <div style={{ fontSize: '10px', color: '#4a5568', lineHeight: 1.5 }}>
+          <div style={{ fontSize: '10px', color: 'var(--t5)', lineHeight: 1.5 }}>
             Get notified every day when the new chart drops.
           </div>
         </div>
@@ -85,7 +85,7 @@ export default function NotificationBanner() {
              Allow
         </button>
         <button onClick={dismiss}
-          style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid #2a3345', borderRadius: '6px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>
+          style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>
           Not now
         </button>
       </div>

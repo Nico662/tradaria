@@ -36,7 +36,7 @@ export default function ChallengeNotification({ challenge, onAccept, onReject })
       top: '80px',
       left: '50%',
       zIndex: 99999,
-      background: '#0f141b',
+      background: 'var(--bg-card)',
       border: '1px solid #22d3a5',
       borderRadius: '12px',
       padding: '16px 20px',
@@ -50,10 +50,10 @@ export default function ChallengeNotification({ challenge, onAccept, onReject })
           ⚔️
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '12px', color: '#f0f0f0', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '12px', color: 'var(--t1)', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             @{challenge.challengerUsername}
           </div>
-          <div style={{ fontSize: '10px', color: '#4a5568', fontFamily: "'Space Mono', monospace", marginTop: '2px' }}>
+          <div style={{ fontSize: '10px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", marginTop: '2px' }}>
             {t.challenge.challenges}
           </div>
         </div>
@@ -62,7 +62,7 @@ export default function ChallengeNotification({ challenge, onAccept, onReject })
         </div>
       </div>
 
-      <div style={{ height: '2px', background: '#1e2530', borderRadius: '1px', marginBottom: '14px', overflow: 'hidden' }}>
+      <div style={{ height: '2px', background: 'var(--bd)', borderRadius: '1px', marginBottom: '14px', overflow: 'hidden' }}>
         <div style={{ height: '100%', background: timeLeft <= 10 ? '#f05454' : '#22d3a5', borderRadius: '1px', width: `${(timeLeft / 30) * 100}%`, transition: 'width 1s linear, background 0.3s' }} />
       </div>
 

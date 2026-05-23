@@ -25,7 +25,7 @@ function DetailScreen({ onClose }) {
   return (
     <div style={{
       position: 'fixed', inset: 0,
-      background: '#080c11',
+      background: 'var(--bg-page)',
       zIndex: 9999,
       overflowY: 'auto',
     }}>
@@ -34,20 +34,20 @@ function DetailScreen({ onClose }) {
         {/* Back */}
         <button
           onClick={onClose}
-          style={{ background: 'transparent', border: 'none', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer', letterSpacing: '0.08em', padding: '8px 0', marginBottom: '28px', display: 'block' }}
+          style={{ background: 'transparent', border: 'none', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer', letterSpacing: '0.08em', padding: '8px 0', marginBottom: '28px', display: 'block' }}
           onMouseEnter={e => e.currentTarget.style.color = '#22d3a5'}
-          onMouseLeave={e => e.currentTarget.style.color = '#4a5568'}
+          onMouseLeave={e => e.currentTarget.style.color = 'var(--t5)'}
         >
           {LABELS.back[lang]}
         </button>
 
         {/* Header */}
-        <div style={{ fontSize: '8px', color: '#2a3345', letterSpacing: '0.22em', textTransform: 'uppercase', fontFamily: "'Space Mono', monospace", marginBottom: '20px' }}>
+        <div style={{ fontSize: '8px', color: 'var(--bd2)', letterSpacing: '0.22em', textTransform: 'uppercase', fontFamily: "'Space Mono', monospace", marginBottom: '20px' }}>
           {LABELS.header[lang]}
         </div>
 
         {/* ── Daily missions ── */}
-        <div style={{ fontSize: '7px', color: '#2a3345', letterSpacing: '0.2em', textTransform: 'uppercase', fontFamily: "'Space Mono', monospace", marginBottom: '12px' }}>
+        <div style={{ fontSize: '7px', color: 'var(--bd2)', letterSpacing: '0.2em', textTransform: 'uppercase', fontFamily: "'Space Mono', monospace", marginBottom: '12px' }}>
           {LABELS.daily[lang]}
         </div>
 
@@ -59,12 +59,12 @@ function DetailScreen({ onClose }) {
             const title = m.title[lang] || m.title.en;
             const desc  = m.desc[lang]  || m.desc.en;
             return (
-              <div key={m.id} style={{ background: done ? 'rgba(34,211,165,0.04)' : '#0f141b', border: `1px solid ${done ? 'rgba(34,211,165,0.2)' : '#1e2530'}`, borderRadius: '8px', padding: '12px 14px' }}>
+              <div key={m.id} style={{ background: done ? 'rgba(34,211,165,0.04)' : 'var(--bg-card)', border: `1px solid ${done ? 'rgba(34,211,165,0.2)' : 'var(--bd)'}`, borderRadius: '8px', padding: '12px 14px' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1 }}>
                     {done
                       ? <span style={{ fontSize: '10px', color: '#22d3a5', flexShrink: 0 }}>✓</span>
-                      : <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#2a3345', display: 'inline-block', flexShrink: 0, marginTop: '2px' }} />
+                      : <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--bd2)', display: 'inline-block', flexShrink: 0, marginTop: '2px' }} />
                     }
                     <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, color: done ? '#22d3a5' : '#c8d4e0', letterSpacing: '0.02em', lineHeight: 1.3 }}>
                       {title}
@@ -78,10 +78,10 @@ function DetailScreen({ onClose }) {
                   {desc}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ flex: 1, height: '3px', background: '#1a2030', borderRadius: '2px', overflow: 'hidden' }}>
+                  <div style={{ flex: 1, height: '3px', background: 'var(--bg-card2)', borderRadius: '2px', overflow: 'hidden' }}>
                     <div style={{ width: `${pct}%`, height: '100%', background: done ? '#22d3a5' : 'rgba(34,211,165,0.45)', borderRadius: '2px', transition: 'width 0.3s ease' }} />
                   </div>
-                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: '#2a3345', flexShrink: 0 }}>
+                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'var(--bd2)', flexShrink: 0 }}>
                     {progress}/{m.target}
                   </span>
                 </div>
@@ -91,14 +91,14 @@ function DetailScreen({ onClose }) {
         </div>
 
         {/* Divider */}
-        <div style={{ height: '1px', background: '#1a2030', marginBottom: '20px' }} />
+        <div style={{ height: '1px', background: 'var(--bg-card2)', marginBottom: '20px' }} />
 
         {/* ── Weekly mission ── */}
         <div style={{ fontSize: '7px', color: '#4a3a10', letterSpacing: '0.2em', textTransform: 'uppercase', fontFamily: "'Space Mono', monospace", marginBottom: '12px' }}>
           {LABELS.weekly[lang]}
         </div>
 
-        <div style={{ background: '#0f141b', border: `1px solid ${weeklyCompleted ? '#22d3a544' : '#f5c84233'}`, borderTop: `2px solid ${weeklyCompleted ? '#22d3a5' : '#f5c842'}`, borderRadius: '8px', padding: '14px 16px', position: 'relative' }}>
+        <div style={{ background: 'var(--bg-card)', border: `1px solid ${weeklyCompleted ? '#22d3a544' : '#f5c84233'}`, borderTop: `2px solid ${weeklyCompleted ? '#22d3a5' : '#f5c842'}`, borderRadius: '8px', padding: '14px 16px', position: 'relative' }}>
           <div style={{ position: 'absolute', top: '10px', right: '12px', fontSize: '7px', color: weeklyCompleted ? '#22d3a5' : '#f5c842', border: `1px solid ${weeklyCompleted ? '#22d3a533' : '#f5c84233'}`, borderRadius: '3px', padding: '2px 6px', letterSpacing: '0.08em', fontFamily: "'Space Mono', monospace" }}>
             {LABELS.weekly[lang]}
           </div>
@@ -163,8 +163,8 @@ export default function MissionsCard() {
         flex: 1,
         minWidth: 0,
         alignSelf: 'stretch',
-        background: '#0f141b',
-        border: '1px solid #1e2530',
+        background: 'var(--bg-card)',
+        border: '1px solid var(--bd)',
         borderTop: '2px solid #22d3a5',
         borderRadius: '8px',
         padding: '10px 12px 12px',
@@ -173,7 +173,7 @@ export default function MissionsCard() {
         flexDirection: 'column',
       }}>
         {/* Header */}
-        <div style={{ fontSize: '6px', color: '#2a3345', letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: "'Space Mono', monospace", marginBottom: '8px' }}>
+        <div style={{ fontSize: '6px', color: 'var(--bd2)', letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: "'Space Mono', monospace", marginBottom: '8px' }}>
           {LABELS.header[lang]}
         </div>
 
@@ -189,7 +189,7 @@ export default function MissionsCard() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '3px' }}>
                   {done
                     ? <span style={{ fontSize: '8px', color: '#22d3a5', flexShrink: 0, lineHeight: 1 }}>✓</span>
-                    : <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#2a3345', display: 'inline-block', flexShrink: 0 }} />
+                    : <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--bd2)', display: 'inline-block', flexShrink: 0 }} />
                   }
                   <span style={{
                     fontFamily: "'Space Mono', monospace",
@@ -206,7 +206,7 @@ export default function MissionsCard() {
                     {title}
                   </span>
                 </div>
-                <div style={{ height: '2px', background: '#1a2030', borderRadius: '1px', overflow: 'hidden', marginLeft: '10px' }}>
+                <div style={{ height: '2px', background: 'var(--bg-card2)', borderRadius: '1px', overflow: 'hidden', marginLeft: '10px' }}>
                   <div style={{ width: `${pct}%`, height: '100%', background: done ? '#22d3a5' : 'rgba(34,211,165,0.35)', borderRadius: '1px', transition: 'width 0.3s ease' }} />
                 </div>
               </div>
@@ -215,7 +215,7 @@ export default function MissionsCard() {
         </div>
 
         {/* Weekly teaser */}
-        <div style={{ borderTop: '1px solid #1a2030', paddingTop: '6px', marginBottom: '8px' }}>
+        <div style={{ borderTop: '1px solid var(--bd)', paddingTop: '6px', marginBottom: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             {weeklyDone
               ? <span style={{ fontSize: '8px', color: '#22d3a5', flexShrink: 0, lineHeight: 1 }}>✓</span>

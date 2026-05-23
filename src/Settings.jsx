@@ -39,14 +39,14 @@ function Toggle({ on, onChange }) {
       onClick={onChange}
       style={{
         width: '44px', height: '24px', borderRadius: '12px',
-        background: on ? '#22d3a5' : '#2a3345',
+        background: on ? '#22d3a5' : 'var(--bd2)',
         cursor: 'pointer', position: 'relative',
         transition: 'background 0.2s', flexShrink: 0,
       }}
     >
       <div style={{
         width: '18px', height: '18px', borderRadius: '50%',
-        background: '#f0f0f0', position: 'absolute', top: '3px',
+        background: 'var(--t1)', position: 'absolute', top: '3px',
         left: on ? '23px' : '3px', transition: 'left 0.2s',
         boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
       }} />
@@ -56,7 +56,7 @@ function Toggle({ on, onChange }) {
 
 function SectionLabel({ text }) {
   return (
-    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#4a5568', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '10px' }}>
+    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '10px' }}>
       {text}
     </div>
   );
@@ -64,7 +64,7 @@ function SectionLabel({ text }) {
 
 function Card({ children }) {
   return (
-    <div style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px', overflow: 'hidden', marginBottom: '24px' }}>
+    <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', overflow: 'hidden', marginBottom: '24px' }}>
       {children}
     </div>
   );
@@ -72,8 +72,8 @@ function Card({ children }) {
 
 function Row({ label, children, last }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: last ? 'none' : '1px solid #1a2030', gap: '12px' }}>
-      <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#e2e8f0' }}>{label}</span>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: last ? 'none' : '1px solid var(--bd)', gap: '12px' }}>
+      <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: 'var(--t2)' }}>{label}</span>
       {children}
     </div>
   );
@@ -108,7 +108,7 @@ export default function Settings({ onBack }) {
   }
 
   return (
-    <div id="gtm-root" style={{ minHeight: '100dvh', background: '#0a0c0f' }}>
+    <div id="gtm-root" style={{ minHeight: '100dvh', background: 'var(--bg-page)' }}>
       <div className="scanlines" />
       <div style={{ padding: '48px 20px 60px', position: 'relative', zIndex: 2 }}>
 
@@ -119,11 +119,11 @@ export default function Settings({ onBack }) {
           }} />
         )}
 
-        <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', marginBottom: '28px', display: 'block' }}>
+        <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', marginBottom: '28px', display: 'block' }}>
           {s.back}
         </button>
 
-        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '24px', color: '#f0f0f0', marginBottom: '32px' }}>
+        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '24px', color: 'var(--t1)', marginBottom: '32px' }}>
           {s.title}
         </div>
 
@@ -144,8 +144,8 @@ export default function Settings({ onBack }) {
                 <button key={l} onClick={() => setLang(l)} style={{
                   padding: '6px 14px', borderRadius: '6px',
                   background: lang === l ? 'rgba(34,211,165,0.12)' : 'transparent',
-                  border: `1px solid ${lang === l ? '#22d3a5' : '#2a3345'}`,
-                  color: lang === l ? '#22d3a5' : '#4a5568',
+                  border: `1px solid ${lang === l ? '#22d3a5' : 'var(--bd2)'}`,
+                  color: lang === l ? '#22d3a5' : 'var(--t5)',
                   fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700,
                   letterSpacing: '0.08em', cursor: 'pointer',
                 }}>
@@ -189,8 +189,8 @@ export default function Settings({ onBack }) {
                     {user.username ? `@${user.username}` : '—'}
                   </span>
                   <button onClick={() => setShowUsernameModal(true)} style={{
-                    padding: '4px 10px', background: 'transparent', border: '1px solid #2a3345',
-                    borderRadius: '5px', color: '#4a5568', fontFamily: "'Space Mono', monospace",
+                    padding: '4px 10px', background: 'transparent', border: '1px solid var(--bd2)',
+                    borderRadius: '5px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace",
                     fontSize: '9px', cursor: 'pointer', letterSpacing: '0.06em',
                   }}>
                     {s.edit}
@@ -216,7 +216,7 @@ export default function Settings({ onBack }) {
         <SectionLabel text={s.about} />
         <Card>
           <Row label={s.builtBy}>
-            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#4a5568' }}>© 2025</span>
+            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t5)' }}>© 2025</span>
           </Row>
           <Row label="tradara.dev" last>
             <a href="https://tradara.dev" target="_blank" rel="noopener noreferrer"

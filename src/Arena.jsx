@@ -424,9 +424,9 @@ export default function Arena({ onBack, challengeRoomCode }) {
       <div className="scanlines" />
       <div style={{ padding: '40px 28px', position: 'relative', zIndex: 2 }}>
         <button onClick={goBack}
-          style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', marginBottom: '32px', display: 'block' }}
-          onMouseEnter={e => e.target.style.color = '#e2e8f0'}
-          onMouseLeave={e => e.target.style.color = '#3a4455'}
+          style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', marginBottom: '32px', display: 'block' }}
+          onMouseEnter={e => e.target.style.color = 'var(--t2)'}
+          onMouseLeave={e => e.target.style.color = 'var(--t6)'}
         >{t.game.menu}</button>
 
         <div style={{ position: 'absolute', top: '14px', right: '20px', zIndex: 10 }}>
@@ -440,46 +440,46 @@ export default function Arena({ onBack, challengeRoomCode }) {
         </div>
 
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '30px', color: '#f0f0f0', marginBottom: '8px', textShadow: '0 0 40px rgba(240,84,84,0.2)' }}>{t.arena.title}</div>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '30px', color: 'var(--t1)', marginBottom: '8px', textShadow: '0 0 40px rgba(240,84,84,0.2)' }}>{t.arena.title}</div>
           <div style={{ fontSize: '10px', color: '#5a6a7d', letterSpacing: '0.15em', textTransform: 'uppercase' }}>{t.arena.sub}</div>
         </div>
 
         <div style={{ marginBottom: '20px' }}>
-          <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>{t.arena.yourName}</div>
+          <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>{t.arena.yourName}</div>
           <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="..." maxLength={16}
-            style={{ width: '100%', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '6px', padding: '12px 14px', color: '#e2e8f0', fontFamily: "'Space Mono', monospace", fontSize: '13px', outline: 'none' }} />
+            style={{ width: '100%', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '6px', padding: '12px 14px', color: 'var(--t2)', fontFamily: "'Space Mono', monospace", fontSize: '13px', outline: 'none' }} />
         </div>
 
         {status && <div style={{ fontSize: '10px', color: '#f05454', marginBottom: '12px' }}>{status}</div>}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <button onClick={findRandom} disabled={!name.trim()}
-            style={{ width: '100%', padding: '16px', background: name.trim() ? 'rgba(34,211,165,0.08)' : '#0f141b', border: `1px solid ${name.trim() ? '#22d3a5' : '#2a3345'}`, borderRadius: '8px', color: name.trim() ? '#22d3a5' : '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: name.trim() ? 'pointer' : 'not-allowed', transition: 'all 0.18s', boxShadow: name.trim() ? '0 0 20px rgba(34,211,165,0.08)' : 'none' }}
+            style={{ width: '100%', padding: '16px', background: name.trim() ? 'rgba(34,211,165,0.08)' : 'var(--bg-card)', border: `1px solid ${name.trim() ? '#22d3a5' : 'var(--bd2)'}`, borderRadius: '8px', color: name.trim() ? '#22d3a5' : 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: name.trim() ? 'pointer' : 'not-allowed', transition: 'all 0.18s', boxShadow: name.trim() ? '0 0 20px rgba(34,211,165,0.08)' : 'none' }}
             onMouseEnter={e => { if (name.trim()) { e.currentTarget.style.background = 'rgba(34,211,165,0.14)'; e.currentTarget.style.boxShadow = '0 0 28px rgba(34,211,165,0.18), 0 8px 20px rgba(0,0,0,0.4)'; e.currentTarget.style.transform = 'translateY(-2px)'; } }}
-            onMouseLeave={e => { e.currentTarget.style.background = name.trim() ? 'rgba(34,211,165,0.08)' : '#0f141b'; e.currentTarget.style.boxShadow = name.trim() ? '0 0 20px rgba(34,211,165,0.08)' : 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = name.trim() ? 'rgba(34,211,165,0.08)' : 'var(--bg-card)'; e.currentTarget.style.boxShadow = name.trim() ? '0 0 20px rgba(34,211,165,0.08)' : 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
           >
             ⚡ {t.arena.findMatch}
           </button>
           <button onClick={createRoom} disabled={!name.trim()}
-            style={{ width: '100%', padding: '14px', background: '#0f141b', border: `1px solid ${name.trim() ? '#2a3345' : '#1e2530'}`, borderRadius: '8px', color: name.trim() ? '#8899b0' : '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: name.trim() ? 'pointer' : 'not-allowed', transition: 'all 0.18s' }}
+            style={{ width: '100%', padding: '14px', background: 'var(--bg-card)', border: `1px solid ${name.trim() ? 'var(--bd2)' : 'var(--bd)'}`, borderRadius: '8px', color: name.trim() ? 'var(--t3)' : 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: name.trim() ? 'pointer' : 'not-allowed', transition: 'all 0.18s' }}
             onMouseEnter={e => { if (name.trim()) { e.currentTarget.style.borderColor = '#f05454'; e.currentTarget.style.color = '#f05454'; } }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = name.trim() ? '#2a3345' : '#1e2530'; e.currentTarget.style.color = name.trim() ? '#8899b0' : '#3a4455'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = name.trim() ? 'var(--bd2)' : 'var(--bd)'; e.currentTarget.style.color = name.trim() ? 'var(--t3)' : 'var(--t6)'; }}
           >
             🔒 {t.arena.createRoom}
           </button>
           <div style={{ display: 'flex', gap: '8px' }}>
             <input type="text" value={joinCode} onChange={e => setJoinCode(e.target.value.toUpperCase())} onKeyDown={e => e.key === 'Enter' && joinRoom()} placeholder="XKQZ" maxLength={4}
-              style={{ flex: 1, background: '#0f141b', border: '1px solid #2a3345', borderRadius: '6px', padding: '12px 14px', color: '#e2e8f0', fontFamily: "'Space Mono', monospace", fontSize: '16px', outline: 'none', letterSpacing: '0.2em', textAlign: 'center', textTransform: 'uppercase' }} />
+              style={{ flex: 1, background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '6px', padding: '12px 14px', color: 'var(--t2)', fontFamily: "'Space Mono', monospace", fontSize: '16px', outline: 'none', letterSpacing: '0.2em', textAlign: 'center', textTransform: 'uppercase' }} />
             <button onClick={joinRoom} disabled={!name.trim() || joinCode.length < 4}
-              style={{ padding: '12px 20px', background: name.trim() && joinCode.length >= 4 ? 'rgba(245,200,66,0.08)' : '#0f141b', border: `1px solid ${name.trim() && joinCode.length >= 4 ? '#f5c842' : '#2a3345'}`, borderRadius: '6px', color: name.trim() && joinCode.length >= 4 ? '#f5c842' : '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, cursor: name.trim() && joinCode.length >= 4 ? 'pointer' : 'not-allowed', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>
+              style={{ padding: '12px 20px', background: name.trim() && joinCode.length >= 4 ? 'rgba(245,200,66,0.08)' : 'var(--bg-card)', border: `1px solid ${name.trim() && joinCode.length >= 4 ? '#f5c842' : 'var(--bd2)'}`, borderRadius: '6px', color: name.trim() && joinCode.length >= 4 ? '#f5c842' : 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, cursor: name.trim() && joinCode.length >= 4 ? 'pointer' : 'not-allowed', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>
               {t.arena.joinRoom}
             </button>
           </div>
         </div>
 
-        <div style={{ marginTop: '20px', padding: '16px', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px' }}>
-          <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px' }}>{t.arena.howTitle}</div>
-          <div style={{ fontSize: '11px', color: '#4a5568', lineHeight: 1.8 }}>
+        <div style={{ marginTop: '20px', padding: '16px', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px' }}>
+          <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px' }}>{t.arena.howTitle}</div>
+          <div style={{ fontSize: '11px', color: 'var(--t5)', lineHeight: 1.8 }}>
             {t.arena.how1}<br/>{t.arena.how2}<br/>{t.arena.how3}<br/>{t.arena.how4}
           </div>
         </div>
@@ -492,7 +492,7 @@ export default function Arena({ onBack, challengeRoomCode }) {
     <div id="gtm-root" style={{ position: 'relative' }}>
       <div className="scanlines" />
       <div style={{ padding: '40px 28px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
-        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '24px', color: '#f0f0f0', marginBottom: '16px' }}>
+        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '24px', color: 'var(--t1)', marginBottom: '16px' }}>
           {status === 'waiting_for_friend' ? t.arena.roomCreated : status === 'JOINING_CHALLENGE' ? t.arena.joiningChallenge : t.arena.searching}
         </div>
         <div style={{ fontSize: '32px', marginBottom: '24px' }}>
@@ -500,39 +500,39 @@ export default function Arena({ onBack, challengeRoomCode }) {
         </div>
 
         {status === 'JOINING_CHALLENGE' && (
-          <div style={{ marginBottom: '24px', fontSize: '10px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+          <div style={{ marginBottom: '24px', fontSize: '10px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
             {t.arena.waitingForRival}
           </div>
         )}
 
         {status === 'waiting_for_friend' && roomCode ? (
           <div style={{ marginBottom: '24px' }}>
-            <div style={{ fontSize: '10px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '12px' }}>{t.arena.shareCode}</div>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '48px', color: '#22d3a5', letterSpacing: '0.3em', background: '#0f141b', border: '1px solid #22d3a5', borderRadius: '10px', padding: '16px 24px', display: 'inline-block' }}>
+            <div style={{ fontSize: '10px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '12px' }}>{t.arena.shareCode}</div>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '48px', color: '#22d3a5', letterSpacing: '0.3em', background: 'var(--bg-card)', border: '1px solid #22d3a5', borderRadius: '10px', padding: '16px 24px', display: 'inline-block' }}>
               {roomCode}
             </div>
-            <div style={{ marginTop: '12px', fontSize: '10px', color: '#3a4455', letterSpacing: '0.06em' }}>{t.arena.waitingFriend}</div>
+            <div style={{ marginTop: '12px', fontSize: '10px', color: 'var(--t6)', letterSpacing: '0.06em' }}>{t.arena.waitingFriend}</div>
           </div>
         ) : status !== 'JOINING_CHALLENGE' ? (
           <>
-            <div style={{ fontSize: '10px', color: '#3a4455', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '32px' }}>
+            <div style={{ fontSize: '10px', color: 'var(--t6)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '32px' }}>
               {t.arena.playingAs} <span style={{ color: '#22d3a5' }}>{name}</span>
             </div>
-            <div style={{ marginBottom: '24px', padding: '20px', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '10px' }}>
-              <div style={{ fontSize: '10px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '12px' }}>{t.arena.noOpponents}</div>
+            <div style={{ marginBottom: '24px', padding: '20px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '10px' }}>
+              <div style={{ fontSize: '10px', color: 'var(--t5)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '12px' }}>{t.arena.noOpponents}</div>
               <button onClick={startBotGame}
                 style={{ width: '100%', padding: '14px', background: 'rgba(245,200,66,0.08)', border: '1px solid #f5c842', borderRadius: '6px', color: '#f5c842', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer' }}
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(245,200,66,0.15)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'rgba(245,200,66,0.08)'}>
                 🤖 {t.arena.vsBot}
               </button>
-              <div style={{ marginTop: '10px', fontSize: '10px', color: '#3a4455', lineHeight: 1.6 }}>{t.arena.vsBotSub}</div>
+              <div style={{ marginTop: '10px', fontSize: '10px', color: 'var(--t6)', lineHeight: 1.6 }}>{t.arena.vsBotSub}</div>
             </div>
           </>
         ) : null}
 
         <button onClick={goBack}
-          style={{ background: 'transparent', border: '1px solid #2a3345', borderRadius: '6px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '10px', padding: '8px 16px', cursor: 'pointer', letterSpacing: '0.06em' }}>
+          style={{ background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '10px', padding: '8px 16px', cursor: 'pointer', letterSpacing: '0.06em' }}>
           {t.arena.cancel}
         </button>
       </div>
@@ -551,19 +551,19 @@ export default function Arena({ onBack, challengeRoomCode }) {
         <div className="scanlines" />
 
         {/* Header con scores + botón abandonar integrado */}
-        <div style={{ padding: '10px 16px', borderBottom: '1px solid #1e2530', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', zIndex: 2 }}>
+        <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--bd)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', zIndex: 2 }}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', minWidth: '70px' }}>
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#22d3a5' }}>{myScore}</div>
-            <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.06em' }}>{name.toUpperCase()}</div>
+            <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.06em' }}>{name.toUpperCase()}</div>
             <button onClick={goBack}
-              style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.06em', padding: '2px 0', marginTop: '2px', minHeight: '24px', minWidth: '44px' }}
+              style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.06em', padding: '2px 0', marginTop: '2px', minHeight: '24px', minWidth: '44px' }}
               onMouseEnter={e => e.target.style.color = '#f05454'}
-              onMouseLeave={e => e.target.style.color = '#3a4455'}
+              onMouseLeave={e => e.target.style.color = 'var(--t6)'}
             >{t.arena.forfeit}</button>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-            <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{t.game.round.toLowerCase()} {round}/{total}</div>
+            <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{t.game.round.toLowerCase()} {round}/{total}</div>
             {phase === 'choose' && (
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: timeLeft <= 5 ? '#f05454' : '#f5c842' }}>
                 {timeLeft}s
@@ -573,7 +573,7 @@ export default function Arena({ onBack, challengeRoomCode }) {
 
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', minWidth: '70px' }}>
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#f05454' }}>{oppScore}</div>
-            <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.06em' }}>
+            <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.06em' }}>
               {opponent.toUpperCase()}
               {isBotGame && <span style={{ color: '#f5c842', marginLeft: '4px' }}>🤖</span>}
             </div>
@@ -589,15 +589,15 @@ export default function Arena({ onBack, challengeRoomCode }) {
           <ArenaChart candles={gameData.visible} future={phase === 'result' ? gameData.future : null} assetName={gameData.asset} />
         </div>
        <div style={{ padding: '8px 16px', position: 'relative', zIndex: 2, display: 'flex', gap: '8px' }}>
-        <div style={{ flex: 1, background: '#0f141b', border: '1px solid #1e2530', borderRadius: '6px', padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '8px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{name}</span>
+        <div style={{ flex: 1, background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '6px', padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: '8px', color: 'var(--t5)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{name}</span>
           <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: '#22d3a5' }}>{myScore}</span>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 8px' }}>
-          <span style={{ fontSize: '9px', color: '#2a3345', fontFamily: "'Space Mono', monospace" }}>vs</span>
+          <span style={{ fontSize: '9px', color: 'var(--bd2)', fontFamily: "'Space Mono', monospace" }}>vs</span>
         </div>
-        <div style={{ flex: 1, background: '#0f141b', border: '1px solid #1e2530', borderRadius: '6px', padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '8px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{opponent}</span>
+        <div style={{ flex: 1, background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '6px', padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: '8px', color: 'var(--t5)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{opponent}</span>
           <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: '#f05454' }}>{oppScore}</span>
         </div>
       </div>
@@ -622,7 +622,7 @@ export default function Arena({ onBack, challengeRoomCode }) {
         )}
 
         {phase === 'waiting_opponent' && (
-          <div style={{ padding: '16px 20px', textAlign: 'center', fontSize: '10px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+          <div style={{ padding: '16px 20px', textAlign: 'center', fontSize: '10px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
             {isBotGame ? t.arena.botThinking : status}
           </div>
         )}
@@ -635,7 +635,7 @@ export default function Arena({ onBack, challengeRoomCode }) {
                   <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: myResult?.win ? '#22d3a5' : '#f05454' }}>
                     {myResult?.win ? t.arena.correct : t.arena.incorrect}
                   </div>
-                  <div style={{ fontSize: '9px', color: '#4a5568', marginTop: '2px' }}>
+                  <div style={{ fontSize: '9px', color: 'var(--t5)', marginTop: '2px' }}>
                     {t.arena.youPlayed}: {myResult?.choice?.toUpperCase()} · {t.arena.oppPlayed}: {oppResult?.choice?.toUpperCase()}
                   </div>
                 </div>
@@ -643,11 +643,11 @@ export default function Arena({ onBack, challengeRoomCode }) {
                   {myResult?.win ? '+100' : '±0'}
                 </div>
               </div>
-              <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.06em' }}>
+              <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.06em' }}>
                 {t.game.price} {result.direction === 'up' ? t.arena.priceUp : result.direction === 'down' ? t.arena.priceDown : t.arena.priceFlat} {result.pctMove > 0 ? '+' : ''}{result.pctMove.toFixed(2)}%
               </div>
               {!isBotGame && (
-                <div style={{ marginTop: '8px', fontSize: '9px', color: '#3a4455', textAlign: 'center', letterSpacing: '0.06em' }}>
+                <div style={{ marginTop: '8px', fontSize: '9px', color: 'var(--t6)', textAlign: 'center', letterSpacing: '0.06em' }}>
                   {t.arena.nextRound}
                 </div>
               )}
@@ -656,17 +656,17 @@ export default function Arena({ onBack, challengeRoomCode }) {
         )}
 
         {!isBotGame && chatMsg && (
-          <div style={{ position: 'absolute', top: '60px', right: '16px', zIndex: 20, background: '#1a2030', border: '1px solid #2a3345', borderRadius: '8px', padding: '8px 12px', fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#e2e8f0', maxWidth: '160px' }}>
+          <div style={{ position: 'absolute', top: '60px', right: '16px', zIndex: 20, background: 'var(--bg-card2)', border: '1px solid var(--bd2)', borderRadius: '8px', padding: '8px 12px', fontFamily: "'Space Mono', monospace", fontSize: '11px', color: 'var(--t2)', maxWidth: '160px' }}>
             <span style={{ color: '#22d3a5', fontSize: '9px' }}>{chatMsg.from}</span>
             <div>{chatMsg.msg}</div>
           </div>
         )}
 
         {!isBotGame && showChat && (
-          <div style={{ position: 'absolute', bottom: '60px', right: '16px', zIndex: 20, background: '#0f141b', border: '1px solid #2a3345', borderRadius: '10px', padding: '10px', display: 'flex', flexWrap: 'wrap', gap: '6px', maxWidth: '200px' }}>
+          <div style={{ position: 'absolute', bottom: '60px', right: '16px', zIndex: 20, background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '10px', padding: '10px', display: 'flex', flexWrap: 'wrap', gap: '6px', maxWidth: '200px' }}>
             {['👍', '😂', '🔥', 'gg', 'wp', '😤'].map(msg => (
               <button key={msg} onClick={() => sendChat(msg)}
-                style={{ background: '#1a2030', border: '1px solid #2a3345', borderRadius: '6px', padding: '6px 10px', color: '#e2e8f0', fontFamily: "'Space Mono', monospace", fontSize: '13px', cursor: 'pointer' }}>
+                style={{ background: 'var(--bg-card2)', border: '1px solid var(--bd2)', borderRadius: '6px', padding: '6px 10px', color: 'var(--t2)', fontFamily: "'Space Mono', monospace", fontSize: '13px', cursor: 'pointer' }}>
                 {msg}
               </button>
             ))}
@@ -675,7 +675,7 @@ export default function Arena({ onBack, challengeRoomCode }) {
 
         {!isBotGame && (
           <button onClick={() => setShowChat(s => !s)}
-            style={{ position: 'absolute', bottom: '36px', right: '16px', zIndex: 20, background: '#1a2030', border: '1px solid #2a3345', borderRadius: '50%', width: '36px', height: '36px', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            style={{ position: 'absolute', bottom: '36px', right: '16px', zIndex: 20, background: 'var(--bg-card2)', border: '1px solid var(--bd2)', borderRadius: '50%', width: '36px', height: '36px', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             💬
           </button>
         )}
@@ -701,16 +701,16 @@ export default function Arena({ onBack, challengeRoomCode }) {
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '36px', color: iWon ? '#22d3a5' : '#f05454', marginBottom: '4px' }}>
               {iWon ? t.arena.won : t.arena.forfeited}
             </div>
-            <div style={{ fontSize: '10px', color: '#3a4455', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '32px' }}>
+            <div style={{ fontSize: '10px', color: 'var(--t6)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '32px' }}>
               {iWon ? t.arena.forfeitWon : t.arena.forfeitLost}
             </div>
             <div style={{ display: 'flex', gap: '10px' }}>
               <button onClick={() => { setScreen('lobby'); setResult(null); setScores({}); setFinalData(null); resetBotState(); }}
-                style={{ flex: 1, padding: '14px', background: '#0f141b', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+                style={{ flex: 1, padding: '14px', background: 'var(--bg-card)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
                 {t.arena.rematch}
               </button>
               <button onClick={goBack}
-                style={{ flex: 1, padding: '14px', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '6px', color: '#8899b0', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+                style={{ flex: 1, padding: '14px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t3)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
                 {t.arena.menu}
               </button>
             </div>
@@ -732,7 +732,7 @@ export default function Arena({ onBack, challengeRoomCode }) {
           <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '36px', color: iWon ? '#22d3a5' : isDraw ? '#f5c842' : '#f05454', marginBottom: '4px' }}>
             {iWon ? t.arena.won : isDraw ? t.arena.draw : t.arena.lost}
           </div>
-          <div style={{ fontSize: '10px', color: '#3a4455', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '32px' }}>
+          <div style={{ fontSize: '10px', color: 'var(--t6)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '32px' }}>
             {iWon ? t.arena.wonSub : isDraw ? t.arena.drawSub : t.arena.lostSub}
           </div>
 
@@ -743,12 +743,12 @@ export default function Arena({ onBack, challengeRoomCode }) {
           )}
 
           <div style={{ display: 'flex', gap: '12px', marginBottom: '32px' }}>
-            <div style={{ flex: 1, background: '#0f141b', border: '1px solid #22d3a5', borderRadius: '10px', padding: '20px' }}>
-              <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>{name}</div>
+            <div style={{ flex: 1, background: 'var(--bg-card)', border: '1px solid #22d3a5', borderRadius: '10px', padding: '20px' }}>
+              <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>{name}</div>
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '32px', color: '#22d3a5' }}>{myScore}</div>
             </div>
-            <div style={{ flex: 1, background: '#0f141b', border: '1px solid #f05454', borderRadius: '10px', padding: '20px' }}>
-              <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>
+            <div style={{ flex: 1, background: 'var(--bg-card)', border: '1px solid #f05454', borderRadius: '10px', padding: '20px' }}>
+              <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>
                 {opponent} {isBotGame && '🤖'}
               </div>
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '32px', color: '#f05454' }}>{oppScore}</div>
@@ -768,14 +768,14 @@ export default function Arena({ onBack, challengeRoomCode }) {
               </button>
             )}
             <button onClick={() => { setScreen('lobby'); setResult(null); setScores({}); setFinalData(null); resetBotState(); }}
-              style={{ flex: 1, padding: '14px', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '6px', color: '#8899b0', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+              style={{ flex: 1, padding: '14px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t3)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
               {t.arena.menu}
             </button>
           </div>
 
           {!isBotGame && rematchState === 'waiting' && (
-            <div style={{ padding: '16px', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '8px', marginBottom: '10px' }}>
-              <div style={{ fontSize: '10px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            <div style={{ padding: '16px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '8px', marginBottom: '10px' }}>
+              <div style={{ fontSize: '10px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                 {t.arena.waitingRematch}
               </div>
             </div>
@@ -792,7 +792,7 @@ export default function Arena({ onBack, challengeRoomCode }) {
                   ✓ {t.arena.accept}
                 </button>
                 <button onClick={goBack}
-                  style={{ flex: 1, padding: '14px', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '6px', color: '#8899b0', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+                  style={{ flex: 1, padding: '14px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t3)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
                   {t.arena.decline}
                 </button>
               </div>
@@ -800,7 +800,7 @@ export default function Arena({ onBack, challengeRoomCode }) {
           )}
 
           {!isBotGame && rematchState === 'countdown' && (
-            <div style={{ padding: '20px', background: '#0f141b', border: '1px solid #22d3a5', borderRadius: '8px', marginBottom: '10px' }}>
+            <div style={{ padding: '20px', background: 'var(--bg-card)', border: '1px solid #22d3a5', borderRadius: '8px', marginBottom: '10px' }}>
               <div style={{ fontSize: '10px', color: '#22d3a5', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
                 {t.arena.rematchStarting}
               </div>
@@ -811,8 +811,8 @@ export default function Arena({ onBack, challengeRoomCode }) {
           )}
 
           {personalStats && (
-            <div style={{ marginTop: '4px', padding: '12px 16px', background: '#0a0c0f', border: '1px solid #1e2530', borderRadius: '8px' }}>
-              <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px', fontFamily: "'Space Mono', monospace" }}>{t.stats.myHistory}</div>
+            <div style={{ marginTop: '4px', padding: '12px 16px', background: 'var(--bg-page)', border: '1px solid var(--bd)', borderRadius: '8px' }}>
+              <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px', fontFamily: "'Space Mono', monospace" }}>{t.stats.myHistory}</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
                 {[
                   { label: t.stats.games,       value: personalStats.totalGames },
@@ -821,7 +821,7 @@ export default function Arena({ onBack, challengeRoomCode }) {
                 ].map(s => (
                   <div key={s.label} style={{ textAlign: 'center' }}>
                     <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#22d3a5' }}>{s.value}</div>
-                    <div style={{ fontSize: '8px', color: '#3a4455', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '2px' }}>{s.label}</div>
+                    <div style={{ fontSize: '8px', color: 'var(--t6)', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '2px' }}>{s.label}</div>
                   </div>
                 ))}
               </div>
@@ -831,7 +831,7 @@ export default function Arena({ onBack, challengeRoomCode }) {
           <button onClick={async () => {
             const el = document.getElementById('share-card-arena');
             if (!el) return;
-            const canvas = await html2canvas(el, { backgroundColor: '#0a0c0f', scale: 2 });
+            const canvas = await html2canvas(el, { backgroundColor: 'var(--bg-page)', scale: 2 });
             const link = document.createElement('a');
             link.download = 'tradara-arena.png';
             link.href = canvas.toDataURL();
@@ -841,20 +841,20 @@ export default function Arena({ onBack, challengeRoomCode }) {
             📸 {t.daily.share}
           </button>
         </div>
-        <div id="share-card-arena" style={{ position: 'absolute', left: '-9999px', top: 0, width: '320px', background: '#0a0c0f', border: `1px solid ${iWon ? '#22d3a5' : isDraw ? '#f5c842' : '#f05454'}`, borderRadius: '12px', padding: '28px 24px', fontFamily: "'Space Mono', monospace" }}>
-          <div style={{ fontSize: '10px', color: '#3a4455', letterSpacing: '0.1em', marginBottom: '16px' }}>⚡ TRADARA ARENA</div>
+        <div id="share-card-arena" style={{ position: 'absolute', left: '-9999px', top: 0, width: '320px', background: 'var(--bg-page)', border: `1px solid ${iWon ? '#22d3a5' : isDraw ? '#f5c842' : '#f05454'}`, borderRadius: '12px', padding: '28px 24px', fontFamily: "'Space Mono', monospace" }}>
+          <div style={{ fontSize: '10px', color: 'var(--t6)', letterSpacing: '0.1em', marginBottom: '16px' }}>⚡ TRADARA ARENA</div>
           <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px', color: iWon ? '#22d3a5' : isDraw ? '#f5c842' : '#f05454', marginBottom: '20px' }}>
             {iWon ? t.arena.won : isDraw ? t.arena.draw : t.arena.lost}
           </div>
           <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
             <div style={{ flex: 1, textAlign: 'center' }}>
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '32px', color: '#22d3a5' }}>{myScore}</div>
-              <div style={{ fontSize: '9px', color: '#3a4455', marginTop: '2px' }}>{name}</div>
+              <div style={{ fontSize: '9px', color: 'var(--t6)', marginTop: '2px' }}>{name}</div>
             </div>
-            <div style={{ alignSelf: 'center', fontSize: '14px', color: '#3a4455' }}>vs</div>
+            <div style={{ alignSelf: 'center', fontSize: '14px', color: 'var(--t6)' }}>vs</div>
             <div style={{ flex: 1, textAlign: 'center' }}>
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '32px', color: '#f05454' }}>{oppScore}</div>
-              <div style={{ fontSize: '9px', color: '#3a4455', marginTop: '2px' }}>{opponent}</div>
+              <div style={{ fontSize: '9px', color: 'var(--t6)', marginTop: '2px' }}>{opponent}</div>
             </div>
           </div>
           <div style={{ fontSize: '9px', color: '#22d3a5', letterSpacing: '0.1em', marginTop: '8px' }}>tradara.dev</div>
@@ -889,7 +889,7 @@ function ArenaChart({ candles, future, assetName }) {
       chart = createChart(containerRef.current, {
         width:  containerRef.current.clientWidth,
         height: getChartHeight(),
-        layout: { background: { color: 'transparent' }, textColor: '#3a4455' },
+        layout: { background: { color: 'transparent' }, textColor: 'var(--t6)' },
         grid: { vertLines: { color: 'rgba(255,255,255,0.03)' }, horzLines: { color: 'rgba(255,255,255,0.04)' } },
         rightPriceScale: { borderColor: 'transparent' },
         timeScale: { borderColor: 'transparent', barSpacing: 14, rightOffset: 3, visible: false },

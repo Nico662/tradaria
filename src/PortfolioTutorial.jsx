@@ -25,12 +25,12 @@ function BuySellVisual() {
       <div style={{ flex: 1, padding: '14px 10px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '10px', textAlign: 'center' }}>
         <div style={{ fontSize: '18px', marginBottom: '4px' }}>▲</div>
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: '#22d3a5', fontWeight: 700 }}>BUY</div>
-        <div style={{ fontSize: '8px', color: '#4a5568', marginTop: '3px' }}>Open long</div>
+        <div style={{ fontSize: '8px', color: 'var(--t5)', marginTop: '3px' }}>Open long</div>
       </div>
       <div style={{ flex: 1, padding: '14px 10px', background: 'rgba(240,84,84,0.08)', border: '1px solid #f05454', borderRadius: '10px', textAlign: 'center' }}>
         <div style={{ fontSize: '18px', marginBottom: '4px' }}>▼</div>
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: '#f05454', fontWeight: 700 }}>SELL</div>
-        <div style={{ fontSize: '8px', color: '#4a5568', marginTop: '3px' }}>Close / short</div>
+        <div style={{ fontSize: '8px', color: 'var(--t5)', marginTop: '3px' }}>Close / short</div>
       </div>
     </div>
   );
@@ -61,15 +61,15 @@ function PnLChartVisual() {
 function RankingVisual() {
   const rows = [
     { pos: '🥇', name: '@alex_t', val: '+31.2%', color: '#f5c842' },
-    { pos: '🥈', name: '@sara_m', val: '+24.3%', color: '#8899b0' },
+    { pos: '🥈', name: '@sara_m', val: '+24.3%', color: 'var(--t3)' },
     { pos: '🥉', name: '@jcook',  val: '+19.8%', color: '#cd7f32' },
   ];
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
       {rows.map(r => (
-        <div key={r.pos} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', background: '#0a0c0f', border: `1px solid ${r.color}30`, borderRadius: '8px' }}>
+        <div key={r.pos} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', background: 'var(--bg-page)', border: `1px solid ${r.color}30`, borderRadius: '8px' }}>
           <span style={{ fontSize: '14px' }}>{r.pos}</span>
-          <span style={{ flex: 1, fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '11px', color: '#f0f0f0' }}>{r.name}</span>
+          <span style={{ flex: 1, fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '11px', color: 'var(--t1)' }}>{r.name}</span>
           <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#22d3a5', fontWeight: 700 }}>{r.val}</span>
         </div>
       ))}
@@ -80,20 +80,20 @@ function RankingVisual() {
 function LeagueVisual() {
   const rows = [
     { name: '@you',    val: '+18.4%', color: '#22d3a5', you: true  },
-    { name: '@sara_m', val: '+12.1%', color: '#f0f0f0', you: false },
-    { name: '@jcook',  val: '+7.3%',  color: '#f0f0f0', you: false },
+    { name: '@sara_m', val: '+12.1%', color: 'var(--t1)', you: false },
+    { name: '@jcook',  val: '+7.3%',  color: 'var(--t1)', you: false },
   ];
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-        <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: '#f0f0f0' }}>Liga de Amigos</span>
+        <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>Liga de Amigos</span>
         <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#22d3a5', fontWeight: 700, letterSpacing: '0.16em', padding: '3px 8px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a530', borderRadius: '4px' }}>AB3KX2</span>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         {rows.map((r, i) => (
-          <div key={r.name} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 10px', background: '#0a0c0f', border: `1px solid ${r.you ? '#22d3a540' : '#1e2530'}`, borderRadius: '6px' }}>
-            <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '12px', color: i === 0 ? '#f5c842' : '#3a4455', width: '16px' }}>{i === 0 ? '🥇' : `#${i + 1}`}</span>
-            <span style={{ flex: 1, fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '11px', color: r.you ? '#22d3a5' : '#f0f0f0' }}>{r.name}</span>
+          <div key={r.name} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 10px', background: 'var(--bg-page)', border: `1px solid ${r.you ? '#22d3a540' : 'var(--bd)'}`, borderRadius: '6px' }}>
+            <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '12px', color: i === 0 ? '#f5c842' : 'var(--t6)', width: '16px' }}>{i === 0 ? '🥇' : `#${i + 1}`}</span>
+            <span style={{ flex: 1, fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '11px', color: r.you ? '#22d3a5' : 'var(--t1)' }}>{r.name}</span>
             <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#22d3a5', fontWeight: 700 }}>{r.val}</span>
           </div>
         ))}
@@ -126,10 +126,10 @@ export default function PortfolioTutorial({ onDone }) {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9990, background: 'rgba(0,0,0,0.88)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-      <div style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '16px', padding: '28px 24px', maxWidth: '360px', width: '100%', position: 'relative', boxShadow: '0 0 40px rgba(55,138,221,0.12)' }}>
+      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '16px', padding: '28px 24px', maxWidth: '360px', width: '100%', position: 'relative', boxShadow: '0 0 40px rgba(55,138,221,0.12)' }}>
 
         {!current.final && (
-          <button onClick={dismiss} style={{ position: 'absolute', top: '16px', right: '16px', background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer', letterSpacing: '0.04em' }}>
+          <button onClick={dismiss} style={{ position: 'absolute', top: '16px', right: '16px', background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer', letterSpacing: '0.04em' }}>
             {p.tutSkip}
           </button>
         )}
@@ -144,23 +144,23 @@ export default function PortfolioTutorial({ onDone }) {
           {current.visual === 'ranking' && <div style={{ marginBottom: '20px' }}><RankingVisual /></div>}
           {current.visual === 'league'  && <div style={{ marginBottom: '20px' }}><LeagueVisual /></div>}
 
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: '#f0f0f0', marginBottom: '10px' }}>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: 'var(--t1)', marginBottom: '10px' }}>
             {current.title}
           </div>
-          <div style={{ fontSize: '12px', color: '#6b7a8d', lineHeight: 1.7, fontFamily: "'Space Mono', monospace" }}>
+          <div style={{ fontSize: '12px', color: 'var(--t4)', lineHeight: 1.7, fontFamily: "'Space Mono', monospace" }}>
             {current.body}
           </div>
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginBottom: '20px' }}>
           {STEPS.map((_, i) => (
-            <div key={i} style={{ width: '6px', height: '6px', borderRadius: '50%', background: i === step ? '#378ADD' : '#2a3345', transition: 'background 0.2s' }} />
+            <div key={i} style={{ width: '6px', height: '6px', borderRadius: '50%', background: i === step ? '#378ADD' : 'var(--bd2)', transition: 'background 0.2s' }} />
           ))}
         </div>
 
         <div style={{ display: 'flex', gap: '8px' }}>
           {step > 0 && (
-            <button onClick={() => setStep(s => s - 1)} style={{ flex: 1, padding: '12px', background: 'transparent', border: '1px solid #2a3345', borderRadius: '8px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em' }}>
+            <button onClick={() => setStep(s => s - 1)} style={{ flex: 1, padding: '12px', background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '8px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em' }}>
               {p.tutPrev}
             </button>
           )}

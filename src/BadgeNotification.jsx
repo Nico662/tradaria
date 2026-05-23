@@ -20,7 +20,7 @@ export default function BadgeNotification({ badge, onDone }) {
       opacity: visible ? 1 : 0,
       transition: 'transform 0.4s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s ease',
       zIndex: 9999,
-      background: '#0f141b',
+      background: 'var(--bg-card)',
       border: '1px solid #22d3a5',
       borderRadius: '12px',
       padding: '12px 20px',
@@ -35,10 +35,10 @@ export default function BadgeNotification({ badge, onDone }) {
         <div style={{ fontSize: '8px', color: '#22d3a5', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '2px' }}>
           badge unlocked
         </div>
-        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: '#f0f0f0' }}>
+        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: 'var(--t1)' }}>
           {badge.name}
         </div>
-        <div style={{ fontSize: '9px', color: '#4a5568', marginTop: '2px' }}>
+        <div style={{ fontSize: '9px', color: 'var(--t5)', marginTop: '2px' }}>
           {badge.desc}
         </div>
       </div>

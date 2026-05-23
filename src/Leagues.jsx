@@ -73,13 +73,13 @@ export default function Leagues({ onOpenLeague, onBack }) {
   if (!tok || !user) return (
     <div style={{ padding: '60px 20px', textAlign: 'center' }}>
       <div style={{ fontSize: '32px', marginBottom: '12px' }}>🏆</div>
-      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#4a5568' }}>{tl.signIn}</div>
+      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: 'var(--t5)' }}>{tl.signIn}</div>
     </div>
   );
 
   const viewBtn = (v, label) => (
     <button key={v} onClick={() => { setView(v); setMsg(null); }}
-      style={{ flex: 1, padding: '8px 4px', background: view === v ? 'rgba(34,211,165,0.08)' : 'transparent', border: `1px solid ${view === v ? '#22d3a5' : '#2a3345'}`, borderRadius: '6px', color: view === v ? '#22d3a5' : '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, letterSpacing: '0.04em', cursor: 'pointer' }}>
+      style={{ flex: 1, padding: '8px 4px', background: view === v ? 'rgba(34,211,165,0.08)' : 'transparent', border: `1px solid ${view === v ? '#22d3a5' : 'var(--bd2)'}`, borderRadius: '6px', color: view === v ? '#22d3a5' : 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, letterSpacing: '0.04em', cursor: 'pointer' }}>
       {label}
     </button>
   );
@@ -95,31 +95,31 @@ export default function Leagues({ onOpenLeague, onBack }) {
       {/* ── My leagues ── */}
       {view === 'list' && (
         loading ? (
-          <div style={{ textAlign: 'center', padding: '40px', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '10px' }}>...</div>
+          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '10px' }}>...</div>
         ) : leagues.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px 20px' }}>
             <div style={{ fontSize: '32px', marginBottom: '12px' }}>🏆</div>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: '#4a5568' }}>{tl.empty}</div>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#3a4455', marginTop: '6px' }}>{tl.emptySub}</div>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t5)' }}>{tl.empty}</div>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t6)', marginTop: '6px' }}>{tl.emptySub}</div>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {leagues.map(l => (
               <div key={l._id} onClick={() => onOpenLeague(l._id)}
-                style={{ padding: '14px', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px', cursor: 'pointer', transition: 'border-color 0.15s' }}
+                style={{ padding: '14px', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', cursor: 'pointer', transition: 'border-color 0.15s' }}
                 onMouseEnter={e => e.currentTarget.style.borderColor = '#22d3a540'}
-                onMouseLeave={e => e.currentTarget.style.borderColor = '#1e2530'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--bd)'}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                  <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: '#f0f0f0' }}>{l.name}</div>
+                  <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>{l.name}</div>
                   {l.isOwner && (
                     <span style={{ fontSize: '8px', fontFamily: "'Space Mono', monospace", color: '#f5c842', letterSpacing: '0.06em', padding: '2px 6px', background: 'rgba(245,200,66,0.08)', border: '1px solid rgba(245,200,66,0.2)', borderRadius: '4px' }}>{tl.owner}</span>
                   )}
                 </div>
                 <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#4a5568' }}>{l.memberCount} {l.memberCount === 1 ? tl.member : tl.members}</span>
+                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t5)' }}>{l.memberCount} {l.memberCount === 1 ? tl.member : tl.members}</span>
                   <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#22d3a560', letterSpacing: '0.12em' }}>{l.code}</span>
-                  {l.endDate && <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#4a5568' }}>{tl.until} {new Date(l.endDate + 'T00:00:00').toLocaleDateString()}</span>}
+                  {l.endDate && <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t5)' }}>{tl.until} {new Date(l.endDate + 'T00:00:00').toLocaleDateString()}</span>}
                 </div>
               </div>
             ))}
@@ -131,14 +131,14 @@ export default function Leagues({ onOpenLeague, onBack }) {
       {view === 'create' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#6b7a8d', letterSpacing: '0.1em', marginBottom: '6px', textTransform: 'uppercase' }}>{tl.nameLabel}</div>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t4)', letterSpacing: '0.1em', marginBottom: '6px', textTransform: 'uppercase' }}>{tl.nameLabel}</div>
             <input value={name} onChange={e => setName(e.target.value)} maxLength={30} placeholder={tl.namePlaceholder}
-              style={{ width: '100%', padding: '12px', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '6px', color: '#f0f0f0', fontFamily: "'Space Mono', monospace", fontSize: '12px', boxSizing: 'border-box', outline: 'none' }} />
+              style={{ width: '100%', padding: '12px', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '6px', color: 'var(--t1)', fontFamily: "'Space Mono', monospace", fontSize: '12px', boxSizing: 'border-box', outline: 'none' }} />
           </div>
           <div>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#6b7a8d', letterSpacing: '0.1em', marginBottom: '6px', textTransform: 'uppercase' }}>{tl.endDateLabel}</div>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t4)', letterSpacing: '0.1em', marginBottom: '6px', textTransform: 'uppercase' }}>{tl.endDateLabel}</div>
             <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
-              style={{ width: '100%', padding: '12px', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '6px', color: '#f0f0f0', fontFamily: "'Space Mono', monospace", fontSize: '12px', boxSizing: 'border-box', outline: 'none', colorScheme: 'dark' }} />
+              style={{ width: '100%', padding: '12px', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '6px', color: 'var(--t1)', fontFamily: "'Space Mono', monospace", fontSize: '12px', boxSizing: 'border-box', outline: 'none', colorScheme: 'dark' }} />
           </div>
           {msg && <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: msg.ok ? '#22d3a5' : '#f05454' }}>{msg.text}</div>}
           <button onClick={createLeague} disabled={submitting}
@@ -152,9 +152,9 @@ export default function Leagues({ onOpenLeague, onBack }) {
       {view === 'join' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#6b7a8d', letterSpacing: '0.1em', marginBottom: '6px', textTransform: 'uppercase' }}>{tl.codeLabel}</div>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t4)', letterSpacing: '0.1em', marginBottom: '6px', textTransform: 'uppercase' }}>{tl.codeLabel}</div>
             <input value={joinCode} onChange={e => setJoinCode(e.target.value.toUpperCase())} maxLength={6} placeholder="XXXXXX"
-              style={{ width: '100%', padding: '14px', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '22px', fontWeight: 700, letterSpacing: '0.22em', textAlign: 'center', boxSizing: 'border-box', outline: 'none' }} />
+              style={{ width: '100%', padding: '14px', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '22px', fontWeight: 700, letterSpacing: '0.22em', textAlign: 'center', boxSizing: 'border-box', outline: 'none' }} />
           </div>
           {msg && <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: msg.ok ? '#22d3a5' : '#f05454' }}>{msg.text}</div>}
           <button onClick={joinLeague} disabled={submitting}

@@ -159,10 +159,10 @@ export default function Tournament({ onBack, onViewProfile }) {
   if (phase === 'login') {
     return (
       <div style={{ padding: '48px 28px', textAlign: 'center' }}>
-        <button onClick={onBack} style={{ position: 'absolute', top: '20px', left: '16px', background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}>← menu</button>
+        <button onClick={onBack} style={{ position: 'absolute', top: '20px', left: '16px', background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}>← menu</button>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏆</div>
-        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '24px', color: '#f0f0f0', marginBottom: '8px' }}>{t.home.mode3}</div>
-        <div style={{ fontSize: '11px', color: '#4a5568', marginBottom: '32px' }}>{t.arena.searching}</div>
+        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '24px', color: 'var(--t1)', marginBottom: '8px' }}>{t.home.mode3}</div>
+        <div style={{ fontSize: '11px', color: 'var(--t5)', marginBottom: '32px' }}>{t.arena.searching}</div>
         <a href={`${SERVER}/auth/google`} style={{ display: 'inline-block', padding: '12px 24px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '8px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', textDecoration: 'none', fontWeight: 700 }}>
           Sign in with Google
         </a>
@@ -173,8 +173,8 @@ export default function Tournament({ onBack, onViewProfile }) {
   if (phase === 'loading') {
     return (
       <div style={{ padding: '48px 28px', textAlign: 'center' }}>
-        <button onClick={onBack} style={{ position: 'absolute', top: '20px', left: '16px', background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}>← menu</button>
-        <div style={{ fontSize: '11px', color: '#4a5568', fontFamily: "'Space Mono', monospace" }}>{t.game.reading}</div>
+        <button onClick={onBack} style={{ position: 'absolute', top: '20px', left: '16px', background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}>← menu</button>
+        <div style={{ fontSize: '11px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace" }}>{t.game.reading}</div>
       </div>
     );
   }
@@ -190,7 +190,7 @@ export default function Tournament({ onBack, onViewProfile }) {
             left: '16px',
             background: 'transparent',
             border: 'none',
-            color: '#3a4455',
+            color: 'var(--t6)',
             fontFamily: "'Space Mono', monospace",
             fontSize: '11px',
             cursor: 'pointer',
@@ -201,38 +201,38 @@ export default function Tournament({ onBack, onViewProfile }) {
             display: 'flex',
             alignItems: 'center',
           }}
-          onMouseEnter={e => e.currentTarget.style.color = '#e2e8f0'}
-          onMouseLeave={e => e.currentTarget.style.color = '#3a4455'}
+          onMouseEnter={e => e.currentTarget.style.color = 'var(--t2)'}
+          onMouseLeave={e => e.currentTarget.style.color = 'var(--t6)'}
         >← {t.game.menu.replace('← ', '')}</button>
 
         <div style={{ paddingTop: 'calc(52px + env(safe-area-inset-top))', paddingLeft: '28px', paddingRight: '28px' }}>
           <div style={{ textAlign: 'center', marginBottom: '24px' }}>
             <div style={{ fontSize: '32px', marginBottom: '8px' }}>🏆</div>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: '#f0f0f0' }}>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: 'var(--t1)' }}>
               {formatWeekId(weekId)}
             </div>
             {phase === 'finished' && (
               <div style={{ marginTop: '8px', fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '32px', color: '#f5c842' }}>{score}</div>
             )}
             {phase === 'already_played' && (
-              <div style={{ marginTop: '8px', fontSize: '11px', color: '#4a5568' }}>
+              <div style={{ marginTop: '8px', fontSize: '11px', color: 'var(--t5)' }}>
                 {t.gameover.finalScore}: <span style={{ color: '#f5c842', fontWeight: 700 }}>{alreadyScore}</span>
               </div>
             )}
           </div>
 
-          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#6b7a8d', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '12px' }}>Leaderboard</div>
+          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t4)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '12px' }}>Leaderboard</div>
 
           {leaderboard.map((entry, i) => {
             const displayName = entry.username ? `@${entry.username}` : entry.name;
             return (
-              <div key={entry._id} onClick={() => entry.username && onViewProfile && onViewProfile(entry.username)} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: '#0f141b', border: `1px solid ${i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#1e2530'}`, borderRadius: '8px', marginBottom: '8px', cursor: entry.username && onViewProfile ? 'pointer' : 'default' }}>
-                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#3a4455', width: '24px' }}>
+              <div key={entry._id} onClick={() => entry.username && onViewProfile && onViewProfile(entry.username)} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: 'var(--bg-card)', border: `1px solid ${i === 0 ? '#f5c842' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : 'var(--bd)'}`, borderRadius: '8px', marginBottom: '8px', cursor: entry.username && onViewProfile ? 'pointer' : 'default' }}>
+                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : 'var(--t6)', width: '24px' }}>
                   {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
                 </div>
                 <UserAvatar user={entry} size={24} showBadge />
                 <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
-                  <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</span>
+                  <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</span>
                   {isFounder(entry.username) && <FounderBadge size={11} />}
                 </div>
                 <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#22d3a5' }}>{entry.score}</div>
@@ -240,14 +240,14 @@ export default function Tournament({ onBack, onViewProfile }) {
             );
           })}
 
-          <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '9px', color: '#3a4455', fontFamily: "'Space Mono', monospace" }}>
+          <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '9px', color: 'var(--t6)', fontFamily: "'Space Mono', monospace" }}>
             New tournament every Monday
           </div>
 
           <button onClick={async () => {
             const el = document.getElementById('share-card-tournament');
             if (!el) return;
-            const canvas = await html2canvas(el, { backgroundColor: '#0a0c0f', scale: 2 });
+            const canvas = await html2canvas(el, { backgroundColor: 'var(--bg-page)', scale: 2 });
             const link = document.createElement('a');
             link.download = 'tradara-tournament.png';
             link.href = canvas.toDataURL();
@@ -259,13 +259,13 @@ export default function Tournament({ onBack, onViewProfile }) {
           </button>
         </div>
 
-        <div id="share-card-tournament" style={{ position: 'absolute', left: '-9999px', top: 0, width: '320px', background: '#0a0c0f', border: '1px solid #f5c842', borderRadius: '12px', padding: '28px 24px', fontFamily: "'Space Mono', monospace" }}>
-          <div style={{ fontSize: '10px', color: '#3a4455', letterSpacing: '0.1em', marginBottom: '16px' }}>🏆 TRADARA TOURNAMENT</div>
+        <div id="share-card-tournament" style={{ position: 'absolute', left: '-9999px', top: 0, width: '320px', background: 'var(--bg-page)', border: '1px solid #f5c842', borderRadius: '12px', padding: '28px 24px', fontFamily: "'Space Mono', monospace" }}>
+          <div style={{ fontSize: '10px', color: 'var(--t6)', letterSpacing: '0.1em', marginBottom: '16px' }}>🏆 TRADARA TOURNAMENT</div>
           <div style={{ fontSize: '11px', color: '#5a6a7d', marginBottom: '16px' }}>{formatWeekId(weekId)}</div>
           <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '48px', color: '#f5c842', letterSpacing: '-0.02em', lineHeight: 1, marginBottom: '4px' }}>
             {phase === 'finished' ? score : alreadyScore}
           </div>
-          <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '16px' }}>{t.gameover.finalScore}</div>
+          <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '16px' }}>{t.gameover.finalScore}</div>
           <div style={{ fontSize: '9px', color: '#f5c842', letterSpacing: '0.1em', marginTop: '8px' }}>tradara.dev</div>
         </div>
 
@@ -285,22 +285,22 @@ export default function Tournament({ onBack, onViewProfile }) {
       <div className="scanlines" />
       <div className="header" style={{ display: 'grid', gridTemplateColumns: '80px 1fr 80px', alignItems: 'center', padding: '12px 20px 10px' }}>
         <button onClick={onBack}
-          style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', padding: 0, textAlign: 'left', transition: 'color 0.15s' }}
-          onMouseEnter={e => e.target.style.color = '#e2e8f0'}
-          onMouseLeave={e => e.target.style.color = '#3a4455'}
+          style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', padding: 0, textAlign: 'left', transition: 'color 0.15s' }}
+          onMouseEnter={e => e.target.style.color = 'var(--t2)'}
+          onMouseLeave={e => e.target.style.color = 'var(--t6)'}
         >{t.game.menu}</button>
 
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: '#f5c842', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(245,200,66,0.2)' }}>
             🏆 {t.home.mode3.toUpperCase()}
           </div>
-          <div style={{ fontSize: '8px', color: '#3a4455', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: "'Space Mono', monospace" }}>
+          <div style={{ fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: "'Space Mono', monospace" }}>
             TOURNAMENT MODE
           </div>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
-          <span style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.06em' }}>{round + 1}/10</span>
+          <span style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.06em' }}>{round + 1}/10</span>
           <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#f5c842', textShadow: '0 0 14px rgba(245,200,66,0.35)' }}>{score}</span>
         </div>
       </div>

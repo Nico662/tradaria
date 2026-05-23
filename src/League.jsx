@@ -79,36 +79,36 @@ export default function League({ leagueId, onBack }) {
     : null;
 
   if (loading) return (
-    <div id="gtm-root" style={{ minHeight: '100dvh', background: '#0a0c0f', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#3a4455' }}>...</div>
+    <div id="gtm-root" style={{ minHeight: '100dvh', background: 'var(--bg-page)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: 'var(--t6)' }}>...</div>
     </div>
   );
 
   if (!data || data.error) return (
-    <div id="gtm-root" style={{ minHeight: '100dvh', background: '#0a0c0f', padding: '48px 20px' }}>
-      <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}>{tl.back}</button>
-      <div style={{ textAlign: 'center', padding: '60px 0', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '11px' }}>{tl.notFound}</div>
+    <div id="gtm-root" style={{ minHeight: '100dvh', background: 'var(--bg-page)', padding: '48px 20px' }}>
+      <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}>{tl.back}</button>
+      <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '11px' }}>{tl.notFound}</div>
     </div>
   );
 
   return (
-    <div id="gtm-root" style={{ minHeight: '100dvh', background: '#0a0c0f' }}>
+    <div id="gtm-root" style={{ minHeight: '100dvh', background: 'var(--bg-page)' }}>
       <div className="scanlines" />
       <div style={{ padding: '48px 20px 48px', position: 'relative', zIndex: 2 }}>
 
-        <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', marginBottom: '24px', display: 'block' }}>{tl.back}</button>
+        <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', marginBottom: '24px', display: 'block' }}>{tl.back}</button>
 
         {/* Header */}
         <div style={{ marginBottom: '28px' }}>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: '#f0f0f0', marginBottom: '10px' }}>{data.name}</div>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: 'var(--t1)', marginBottom: '10px' }}>{data.name}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 10px', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '6px' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 10px', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '6px' }}>
               <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '14px', color: '#22d3a5', fontWeight: 700, letterSpacing: '0.18em' }}>{data.code}</span>
-              <button onClick={copyCode} style={{ background: 'transparent', border: 'none', color: copied ? '#22d3a5' : '#3a4455', cursor: 'pointer', fontSize: '13px', lineHeight: 1, padding: '0 2px' }}>
+              <button onClick={copyCode} style={{ background: 'transparent', border: 'none', color: copied ? '#22d3a5' : 'var(--t6)', cursor: 'pointer', fontSize: '13px', lineHeight: 1, padding: '0 2px' }}>
                 {copied ? '✓' : '⎘'}
               </button>
             </div>
-            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#4a5568' }}>
+            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t5)' }}>
               {tl.since} {new Date(data.startDate + 'T00:00:00').toLocaleDateString()}
               {daysLeft !== null && ` · ${daysLeft}${tl.daysLeft}`}
             </span>
@@ -116,25 +116,25 @@ export default function League({ leagueId, onBack }) {
         </div>
 
         {/* Ranking */}
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#6b7a8d', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '12px' }}>{tl.rankingLabel} · {data.ranking.length} {tl.participants}</div>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t4)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '12px' }}>{tl.rankingLabel} · {data.ranking.length} {tl.participants}</div>
 
         {data.ranking.map((entry, i) => {
-          const posColor = i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#3a4455';
+          const posColor = i === 0 ? '#f5c842' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : 'var(--t6)';
           const diff     = entry.totalValue - entry.startValue;
           const name     = entry.username ? `@${entry.username}` : entry.name;
           return (
-            <div key={String(entry.userId)} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', background: '#0f141b', border: `1px solid ${entry.isYou ? '#22d3a5' : i === 0 ? '#f5c84235' : '#1e2530'}`, borderRadius: '8px', marginBottom: '8px', boxShadow: entry.isYou ? '0 0 0 1px #22d3a515' : 'none' }}>
+            <div key={String(entry.userId)} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', background: 'var(--bg-card)', border: `1px solid ${entry.isYou ? '#22d3a5' : i === 0 ? '#f5c84235' : 'var(--bd)'}`, borderRadius: '8px', marginBottom: '8px', boxShadow: entry.isYou ? '0 0 0 1px #22d3a515' : 'none' }}>
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: posColor, width: '24px', flexShrink: 0, textAlign: 'center' }}>
                 {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
               </div>
               <UserAvatar user={entry} size={24} showBadge />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
-                  <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: entry.isYou ? '#22d3a5' : '#f0f0f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
+                  <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: entry.isYou ? '#22d3a5' : 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
                   {isFounder(entry.username) && <FounderBadge size={10} />}
                   {entry.isYou && <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: '#22d3a560' }}>{tl.youTag}</span>}
                 </div>
-                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#4a5568' }}>{formatCash(entry.totalValue)}</div>
+                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t5)' }}>{formatCash(entry.totalValue)}</div>
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
                 <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '15px', color: entry.returnPct >= 0 ? '#22d3a5' : '#f05454' }}>
@@ -158,7 +158,7 @@ export default function League({ leagueId, onBack }) {
               {busy ? '...' : tl.deleteLeague}
             </button>
           ) : (
-            <button onClick={leave} disabled={busy} style={{ width: '100%', padding: '12px', background: 'transparent', border: '1px solid #2a3345', borderRadius: '8px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+            <button onClick={leave} disabled={busy} style={{ width: '100%', padding: '12px', background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '8px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
               {busy ? '...' : tl.leaveLeague}
             </button>
           )}

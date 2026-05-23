@@ -48,7 +48,7 @@ export default function LevelUpOverlay({ newLevel, prevLevel, onClose }) {
 
       {/* Card */}
       <div onClick={e => e.stopPropagation()} style={{
-        background: '#0f141b',
+        background: 'var(--bg-card)',
         border: '1px solid #f5c842',
         borderRadius: '20px',
         padding: '40px 32px',
@@ -103,7 +103,7 @@ export default function LevelUpOverlay({ newLevel, prevLevel, onClose }) {
           margin: '12px 0 20px',
           animation: 'luSlideUp 0.4s 0.6s both',
         }}>
-          <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#3a4455', textDecoration: 'line-through' }}>
+          <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: 'var(--t6)', textDecoration: 'line-through' }}>
             {prevLevel.icon} {prevLevel.name}
           </span>
           <span style={{ color: '#f5c842', fontSize: '14px' }}>→</span>
@@ -116,9 +116,9 @@ export default function LevelUpOverlay({ newLevel, prevLevel, onClose }) {
         <div style={{ animation: 'luSlideUp 0.4s 0.7s both' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
             <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#5a6a7d' }}>{xp} XP</span>
-            {next && <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#3a4455' }}>{next.xp} XP → {next.icon} {next.name}</span>}
+            {next && <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t6)' }}>{next.xp} XP → {next.icon} {next.name}</span>}
           </div>
-          <div style={{ height: '4px', background: '#1e2530', borderRadius: '2px', overflow: 'hidden' }}>
+          <div style={{ height: '4px', background: 'var(--bd)', borderRadius: '2px', overflow: 'hidden' }}>
             <div style={{ height: '100%', width: `${prog}%`, background: 'linear-gradient(90deg, #22d3a5, #f5c842)', borderRadius: '2px', transition: 'width 1s ease 0.8s' }} />
           </div>
         </div>

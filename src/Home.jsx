@@ -106,24 +106,24 @@ export default function Home({ onSelect }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <div style={{ display: 'flex', gap: '6px' }}>
             <button onClick={() => onSelect('shop')}
-              style={{ background: 'transparent', border: '1px solid #1e2530', borderRadius: '8px', padding: '6px 12px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              style={{ background: 'transparent', border: '1px solid var(--bd)', borderRadius: '8px', padding: '6px 12px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
               onMouseEnter={e => e.currentTarget.style.borderColor = '#f5c842'}
-              onMouseLeave={e => e.currentTarget.style.borderColor = '#1e2530'}
+              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--bd)'}
             >
               🛍️ {t.home.shop ?? 'Shop'}
             </button>
             <button onClick={() => onSelect('settings')}
-              style={{ background: 'transparent', border: '1px solid #1e2530', borderRadius: '8px', padding: '6px 10px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '12px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = '#6b7a8d'}
-              onMouseLeave={e => e.currentTarget.style.borderColor = '#1e2530'}
+              style={{ background: 'transparent', border: '1px solid var(--bd)', borderRadius: '8px', padding: '6px 10px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '12px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--t4)'}
+              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--bd)'}
             >
               ⚙️
             </button>
           </div>
           <button onClick={() => onSelect('friends')}
-            style={{ background: 'transparent', border: '1px solid #1e2530', borderRadius: '8px', padding: '6px 12px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+            style={{ background: 'transparent', border: '1px solid var(--bd)', borderRadius: '8px', padding: '6px 12px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             onMouseEnter={e => e.currentTarget.style.borderColor = '#22d3a5'}
-            onMouseLeave={e => e.currentTarget.style.borderColor = '#1e2530'}
+            onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--bd)'}
           >
             🤝 {t.friends.title}
           </button>
@@ -144,12 +144,12 @@ export default function Home({ onSelect }) {
                 {(user.customAvatar || user.avatar) ? (
                   <img src={user.customAvatar || user.avatar} style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', ...frameStyle }} />
                 ) : (
-                  <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#1a2030', ...frameStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>👤</div>
+                  <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--bg-card2)', ...frameStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>👤</div>
                 )}
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={avatarLoading}
-                  style={{ position: 'absolute', top: '-5px', right: '-5px', width: '13px', height: '13px', borderRadius: '50%', background: '#0f141b', border: '1px solid #3a4455', fontSize: '7px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, lineHeight: 1 }}
+                  style={{ position: 'absolute', top: '-5px', right: '-5px', width: '13px', height: '13px', borderRadius: '50%', background: 'var(--bg-card)', border: '1px solid var(--t6)', fontSize: '7px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, lineHeight: 1 }}
                 >
                   📷
                 </button>
@@ -157,7 +157,7 @@ export default function Home({ onSelect }) {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <span style={{ fontSize: '10px', color: '#8899b0', fontFamily: "'Space Mono', monospace", display: 'inline-flex', alignItems: 'center' }}>
+                  <span style={{ fontSize: '10px', color: 'var(--t3)', fontFamily: "'Space Mono', monospace", display: 'inline-flex', alignItems: 'center' }}>
                     {user.username ? `@${user.username}` : user.name}
                     {isFounder(user.username) && <FounderBadge size={12} />}
                   </span>
@@ -166,7 +166,7 @@ export default function Home({ onSelect }) {
                   )}
                 </div>
                 {user.username && (
-                  <span style={{ fontSize: '8px', color: '#3a4455', fontFamily: "'Space Mono', monospace" }}>
+                  <span style={{ fontSize: '8px', color: 'var(--t6)', fontFamily: "'Space Mono', monospace" }}>
                     {user.name}
                   </span>
                 )}
@@ -177,7 +177,7 @@ export default function Home({ onSelect }) {
                   + username
                 </button>
               )}
-              <button onClick={logout} style={{ background: 'transparent', border: '1px solid #2a3345', borderRadius: '6px', padding: '4px 10px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.06em' }}>
+              <button onClick={logout} style={{ background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '6px', padding: '4px 10px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.06em' }}>
                 logout
               </button>
             </div>
@@ -196,7 +196,7 @@ export default function Home({ onSelect }) {
               <rect x="25" y="40" width="50" height="110" rx="6" fill="#22d3a5"/>
               <line x1="50" y1="150" x2="50" y2="190" stroke="#22d3a5" strokeWidth="8" strokeLinecap="round"/>
             </svg>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '42px', letterSpacing: '-0.02em', color: '#f0f0f0', textShadow: '0 0 60px rgba(34,211,165,0.2), 0 2px 20px rgba(0,0,0,0.5)' }}>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '42px', letterSpacing: '-0.02em', color: 'var(--t1)', textShadow: '0 0 60px rgba(34,211,165,0.2), 0 2px 20px rgba(0,0,0,0.5)' }}>
               Tradara
             </div>
           </div>
@@ -216,7 +216,7 @@ export default function Home({ onSelect }) {
             )}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ fontSize: '12px' }}>{level.icon}</span>
-              <span style={{ fontSize: '9px', color: '#8899b0', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '9px', color: 'var(--t3)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                 {level.name} · {xp} XP
               </span>
             </div>
@@ -255,9 +255,9 @@ export default function Home({ onSelect }) {
 
           {/* Divider */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '2px 0' }}>
-            <div style={{ flex: 1, height: '1px', background: '#1a2030' }} />
-            <span style={{ fontSize: '8px', color: '#2a3345', letterSpacing: '0.18em', fontFamily: "'Space Mono', monospace" }}>{t.home.moreModes.toUpperCase()}</span>
-            <div style={{ flex: 1, height: '1px', background: '#1a2030' }} />
+            <div style={{ flex: 1, height: '1px', background: 'var(--bg-card2)' }} />
+            <span style={{ fontSize: '8px', color: 'var(--bd2)', letterSpacing: '0.18em', fontFamily: "'Space Mono', monospace" }}>{t.home.moreModes.toUpperCase()}</span>
+            <div style={{ flex: 1, height: '1px', background: 'var(--bg-card2)' }} />
           </div>
 
           <button className="mode-card active" onClick={() => onSelect('survival')} style={{ borderColor: '#f05454', background: 'rgba(240,84,84,0.04)', padding: '13px 16px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.15s both' }}>
@@ -271,15 +271,15 @@ export default function Home({ onSelect }) {
             <span className="mode-arrow" style={{ color: '#f05454' }}>→</span>
           </button>
 
-          <button className="mode-card active" onClick={() => onSelect('historical')} style={{ borderColor: '#8899b0', background: 'rgba(136,153,176,0.04)', padding: '13px 16px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.20s both' }}>
+          <button className="mode-card active" onClick={() => onSelect('historical')} style={{ borderColor: 'var(--t3)', background: 'rgba(136,153,176,0.04)', padding: '13px 16px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.20s both' }}>
             <div className="mode-card-left" style={{ gap: '12px' }}>
               <span className="mode-icon" style={{ fontSize: '20px' }}>📜</span>
               <div>
-                <div className="mode-title" style={{ color: '#8899b0', fontSize: '13px' }}>{t.home.mode5}</div>
+                <div className="mode-title" style={{ color: 'var(--t3)', fontSize: '13px' }}>{t.home.mode5}</div>
                 <div className="mode-sub">{t.home.mode5sub}</div>
               </div>
             </div>
-            <span className="mode-arrow" style={{ color: '#8899b0' }}>→</span>
+            <span className="mode-arrow" style={{ color: 'var(--t3)' }}>→</span>
           </button>
 
           <button className="mode-card active" onClick={() => onSelect('arena')} style={{ padding: '13px 16px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.25s both' }}>
@@ -321,25 +321,25 @@ export default function Home({ onSelect }) {
         <div style={{ textAlign: 'center', marginTop: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button onClick={() => onSelect('badges')}
-              style={{ flex: 1, background: 'transparent', border: '1px solid #1e2530', borderRadius: '8px', padding: '8px 16px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+              style={{ flex: 1, background: 'transparent', border: '1px solid var(--bd)', borderRadius: '8px', padding: '8px 16px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
               onMouseEnter={e => e.currentTarget.style.borderColor = '#22d3a5'}
-              onMouseLeave={e => e.currentTarget.style.borderColor = '#1e2530'}
+              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--bd)'}
             >
               🏅 {t.home.badges ?? 'Badges'} {unlockedCount > 0 && `· ${unlockedCount}`}
             </button>
             <button onClick={() => onSelect('stats')}
-              style={{ flex: 1, background: 'transparent', border: '1px solid #1e2530', borderRadius: '8px', padding: '8px 16px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+              style={{ flex: 1, background: 'transparent', border: '1px solid var(--bd)', borderRadius: '8px', padding: '8px 16px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
               onMouseEnter={e => e.currentTarget.style.borderColor = '#22d3a5'}
-              onMouseLeave={e => e.currentTarget.style.borderColor = '#1e2530'}
+              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--bd)'}
             >
               📊 {t.stats.title}
             </button>
           </div>
 
           <a href="https://ko-fi.com/tradaranicolasvidal" target="_blank" rel="noopener noreferrer"
-            style={{ background: 'transparent', border: '1px solid #1e2530', borderRadius: '8px', padding: '8px 16px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+            style={{ background: 'transparent', border: '1px solid var(--bd)', borderRadius: '8px', padding: '8px 16px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             onMouseEnter={e => e.currentTarget.style.borderColor = '#f5c842'}
-            onMouseLeave={e => e.currentTarget.style.borderColor = '#1e2530'}
+            onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--bd)'}
           >
             ☕ Support tradara
           </a>
@@ -353,13 +353,13 @@ export default function Home({ onSelect }) {
           </a>
 
           <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', alignItems: 'center' }}>
-            <span style={{ fontSize: '9px', color: '#2a3345', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: '9px', color: 'var(--bd2)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
               {t.home.version}
             </span>
             <button onClick={() => onSelect('legal')}
-              style={{ background: 'transparent', border: 'none', color: '#2a3345', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'underline' }}
-              onMouseEnter={e => e.target.style.color = '#6b7a8d'}
-              onMouseLeave={e => e.target.style.color = '#2a3345'}
+              style={{ background: 'transparent', border: 'none', color: 'var(--bd2)', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'underline' }}
+              onMouseEnter={e => e.target.style.color = 'var(--t4)'}
+              onMouseLeave={e => e.target.style.color = 'var(--bd2)'}
             >
               Legal
             </button>

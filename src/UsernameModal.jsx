@@ -47,11 +47,11 @@ export default function UsernameModal({ onDone }) {
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-      <div style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '12px', padding: '32px 28px', width: '100%', maxWidth: '380px' }}>
-        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: '#f0f0f0', marginBottom: '8px' }}>
+      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '12px', padding: '32px 28px', width: '100%', maxWidth: '380px' }}>
+        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: 'var(--t1)', marginBottom: '8px' }}>
           {t.username.title}
         </div>
-        <div style={{ fontSize: '10px', color: '#4a5568', letterSpacing: '0.06em', marginBottom: '24px' }}>
+        <div style={{ fontSize: '10px', color: 'var(--t5)', letterSpacing: '0.06em', marginBottom: '24px' }}>
           {t.username.hint}
         </div>
 
@@ -61,7 +61,7 @@ export default function UsernameModal({ onDone }) {
           onChange={e => checkUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
           placeholder={t.username.placeholder}
           maxLength={16}
-          style={{ width: '100%', background: '#0a0c0f', border: `1px solid ${available === true ? '#22d3a5' : available === false ? '#f05454' : '#2a3345'}`, borderRadius: '6px', padding: '12px 14px', color: '#e2e8f0', fontFamily: "'Space Mono', monospace", fontSize: '14px', outline: 'none', marginBottom: '8px', boxSizing: 'border-box' }}
+          style={{ width: '100%', background: 'var(--bg-page)', border: `1px solid ${available === true ? '#22d3a5' : available === false ? '#f05454' : 'var(--bd2)'}`, borderRadius: '6px', padding: '12px 14px', color: 'var(--t2)', fontFamily: "'Space Mono', monospace", fontSize: '14px', outline: 'none', marginBottom: '8px', boxSizing: 'border-box' }}
         />
 
         {status && (
@@ -73,7 +73,7 @@ export default function UsernameModal({ onDone }) {
         <button
           onClick={save}
           disabled={!available || saving}
-          style={{ width: '100%', padding: '14px', background: available ? 'rgba(34,211,165,0.08)' : '#0a0c0f', border: `1px solid ${available ? '#22d3a5' : '#2a3345'}`, borderRadius: '6px', color: available ? '#22d3a5' : '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: available ? 'pointer' : 'not-allowed' }}>
+          style={{ width: '100%', padding: '14px', background: available ? 'rgba(34,211,165,0.08)' : 'var(--bg-page)', border: `1px solid ${available ? '#22d3a5' : 'var(--bd2)'}`, borderRadius: '6px', color: available ? '#22d3a5' : 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: available ? 'pointer' : 'not-allowed' }}>
           {saving ? '...' : t.username.confirm}
         </button>
       </div>

@@ -17,7 +17,7 @@ export default function WeeklyMission() {
   return (
     <div style={{ margin: '0 20px 12px' }}>
       <div style={{
-        background: '#0f141b',
+        background: 'var(--bg-card)',
         border: `1px solid ${completed ? '#22d3a544' : '#f5c84233'}`,
         borderTop: `2px solid ${completed ? '#22d3a5' : '#f5c842'}`,
         borderRadius: '8px',

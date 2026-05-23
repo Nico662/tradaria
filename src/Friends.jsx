@@ -28,21 +28,21 @@ function FriendCard({ f, onChallenge, isChallenging, challengeStatus, onViewProf
     ? (challengeStatus === 'unavailable' ? 'rgba(240,84,84,0.08)' : 'rgba(245,200,66,0.08)')
     : 'rgba(34,211,165,0.08)';
   return (
-    <div style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+    <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
       <UserAvatar user={f} size={38} showBadge />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#f0f0f0', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: 'var(--t1)', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
           {f.username ? `@${f.username}` : f.name}
           {isFounder(f.username) && <FounderBadge size={11} />}
         </div>
-        <div style={{ fontSize: '9px', color: '#4a5568', fontFamily: "'Space Mono', monospace", marginTop: '2px' }}>
+        <div style={{ fontSize: '9px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", marginTop: '2px' }}>
           {level.icon} {level.name} · {f.xp || 0} XP
         </div>
         {f.username && onViewProfile && (
           <button onClick={() => onViewProfile(f.username)}
-            style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', padding: '2px 0', letterSpacing: '0.04em' }}
-            onMouseEnter={e => e.currentTarget.style.color = '#8899b0'}
-            onMouseLeave={e => e.currentTarget.style.color = '#3a4455'}
+            style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', padding: '2px 0', letterSpacing: '0.04em' }}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--t3)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--t6)'}
           >
             {t.friends.viewProfile}
           </button>
@@ -65,14 +65,14 @@ function PendingCard({ req, onAccept, onReject }) {
   const { t } = useLang();
   const level = getLevel(req.xp || 0);
   return (
-    <div style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+    <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
       <UserAvatar user={req} size={38} />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#f0f0f0', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: 'var(--t1)', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
           {req.username ? `@${req.username}` : req.name}
           {isFounder(req.username) && <FounderBadge size={11} />}
         </div>
-        <div style={{ fontSize: '9px', color: '#4a5568', fontFamily: "'Space Mono', monospace", marginTop: '2px' }}>
+        <div style={{ fontSize: '9px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", marginTop: '2px' }}>
           {level.icon} {level.name}
         </div>
       </div>
@@ -105,15 +105,15 @@ function SearchResultCard({ profile, onSendRequest }) {
   const sentRequest    = profile.friendshipStatus === 'pending' && profile.isRequester;
 
   return (
-    <div style={{ background: '#0f141b', border: '1px solid #22d3a5', borderRadius: '10px', padding: '14px' }}>
+    <div style={{ background: 'var(--bg-card)', border: '1px solid #22d3a5', borderRadius: '10px', padding: '14px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <UserAvatar user={profile} size={42} showBadge />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '12px', color: '#f0f0f0', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
+          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '12px', color: 'var(--t1)', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
             @{profile.username}
             {isFounder(profile.username) && <FounderBadge size={12} />}
           </div>
-          <div style={{ fontSize: '9px', color: '#4a5568', fontFamily: "'Space Mono', monospace", marginTop: '2px' }}>
+          <div style={{ fontSize: '9px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", marginTop: '2px' }}>
             {level.icon} {level.name} · {profile.xp || 0} XP
           </div>
           {profile.portfolioReturn !== null && profile.portfolioReturn !== undefined && (
@@ -126,7 +126,7 @@ function SearchResultCard({ profile, onSendRequest }) {
           {alreadyFriends ? (
             <span style={{ fontSize: '9px', color: '#22d3a5', fontFamily: "'Space Mono', monospace" }}>{t.friends.alreadyFriends}</span>
           ) : sentRequest ? (
-            <span style={{ fontSize: '9px', color: '#4a5568', fontFamily: "'Space Mono', monospace" }}>{t.friends.pending}</span>
+            <span style={{ fontSize: '9px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace" }}>{t.friends.pending}</span>
           ) : (
             <button
               onClick={() => onSendRequest(profile.username)}
@@ -280,7 +280,7 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
   }
 
   const sectionLabel = {
-    fontSize: '8px', color: '#3a4455', letterSpacing: '0.14em',
+    fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.14em',
     textTransform: 'uppercase', fontFamily: "'Space Mono', monospace", marginBottom: '8px',
   };
 
@@ -293,13 +293,13 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
           <button
             onClick={onBack}
-            style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', padding: 0 }}
-            onMouseEnter={e => e.currentTarget.style.color = '#e2e8f0'}
-            onMouseLeave={e => e.currentTarget.style.color = '#3a4455'}
+            style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', padding: 0 }}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--t2)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--t6)'}
           >
             {t.friends.back}
           </button>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: '#f0f0f0' }}>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: 'var(--t1)' }}>
             {t.friends.title}
           </div>
           {pending.length > 0 && (
@@ -317,16 +317,16 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
         )}
 
         {!user ? (
-          <div style={{ textAlign: 'center', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', padding: '60px 0' }}>
+          <div style={{ textAlign: 'center', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', padding: '60px 0' }}>
             {t.friends.signIn}
           </div>
         ) : (
           <>
             {/* Invite link */}
             {user?.username && (
-              <div style={{ marginBottom: '24px', padding: '14px 16px', background: 'rgba(34,211,165,0.03)', border: '1px dashed #2a3345', borderRadius: '10px' }}>
-                <div style={{ fontSize: '8px', color: '#3a4455', fontFamily: "'Space Mono', monospace", letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '6px' }}>{t.friends.inviteTitle}</div>
-                <div style={{ fontSize: '10px', color: '#4a5568', fontFamily: "'Space Mono', monospace", marginBottom: '10px', lineHeight: 1.6 }}>{t.friends.inviteSub}</div>
+              <div style={{ marginBottom: '24px', padding: '14px 16px', background: 'rgba(34,211,165,0.03)', border: '1px dashed var(--bd2)', borderRadius: '10px' }}>
+                <div style={{ fontSize: '8px', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '6px' }}>{t.friends.inviteTitle}</div>
+                <div style={{ fontSize: '10px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", marginBottom: '10px', lineHeight: 1.6 }}>{t.friends.inviteSub}</div>
                 <button
                   onClick={copyInviteLink}
                   style={{ width: '100%', padding: '9px', background: copiedInvite ? 'rgba(34,211,165,0.12)' : 'rgba(34,211,165,0.06)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', transition: 'background 0.15s' }}
@@ -344,19 +344,19 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
                 placeholder={t.friends.searchPlaceholder}
                 value={searchQ}
                 onChange={handleSearch}
-                style={{ width: '100%', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px', padding: '10px 14px', color: '#f0f0f0', fontFamily: "'Space Mono', monospace", fontSize: '12px', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s' }}
+                style={{ width: '100%', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '10px 14px', color: 'var(--t1)', fontFamily: "'Space Mono', monospace", fontSize: '12px', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s' }}
                 onFocus={e => e.currentTarget.style.borderColor = '#22d3a5'}
-                onBlur={e => e.currentTarget.style.borderColor = '#1e2530'}
+                onBlur={e => e.currentTarget.style.borderColor = 'var(--bd)'}
               />
               {searchLoading && (
-                <div style={{ marginTop: '8px', fontSize: '9px', color: '#3a4455', fontFamily: "'Space Mono', monospace" }}>{t.friends.searching}</div>
+                <div style={{ marginTop: '8px', fontSize: '9px', color: 'var(--t6)', fontFamily: "'Space Mono', monospace" }}>{t.friends.searching}</div>
               )}
               {searchResult && !searchLoading && (
                 <div style={{ marginTop: '8px' }}>
                   {searchResult.found ? (
                     <SearchResultCard profile={searchResult.user} onSendRequest={sendRequest} />
                   ) : (
-                    <div style={{ padding: '12px 14px', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px', fontSize: '11px', color: '#3a4455', fontFamily: "'Space Mono', monospace" }}>
+                    <div style={{ padding: '12px 14px', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', fontSize: '11px', color: 'var(--t6)', fontFamily: "'Space Mono', monospace" }}>
                       {t.friends.notFound}
                     </div>
                   )}
@@ -382,11 +382,11 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
                 {t.friends.myFriends}{friends.length > 0 ? ` · ${friends.length}` : ''}
               </div>
               {loading ? (
-                <div style={{ fontSize: '10px', color: '#3a4455', fontFamily: "'Space Mono', monospace" }}>{t.friends.loading}</div>
+                <div style={{ fontSize: '10px', color: 'var(--t6)', fontFamily: "'Space Mono', monospace" }}>{t.friends.loading}</div>
               ) : friends.length === 0 ? (
-                <div style={{ padding: '20px', textAlign: 'center', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '10px' }}>
+                <div style={{ padding: '20px', textAlign: 'center', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px' }}>
                   <div style={{ fontSize: '24px', marginBottom: '8px' }}>🤝</div>
-                  <div style={{ fontSize: '10px', color: '#3a4455', fontFamily: "'Space Mono', monospace", lineHeight: 1.6, marginBottom: '12px' }}>
+                  <div style={{ fontSize: '10px', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", lineHeight: 1.6, marginBottom: '12px' }}>
                     {t.friends.noFriends}<br />{t.friends.noFriendsSub}
                   </div>
                   {user?.username && (

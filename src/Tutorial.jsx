@@ -15,9 +15,9 @@ function CandlesSVG() {
           <rect x={c.x - 8} y={Math.min(c.open, c.close)} width="16" height={Math.abs(c.open - c.close)} fill={c.green ? '#22d3a5' : '#f05454'} rx="1" />
         </g>
       ))}
-      <text x="30"  y="92" fill="#4a5568" fontSize="8" textAnchor="middle" fontFamily="Space Mono, monospace">+4%</text>
-      <text x="60"  y="92" fill="#4a5568" fontSize="8" textAnchor="middle" fontFamily="Space Mono, monospace">-6%</text>
-      <text x="90"  y="92" fill="#4a5568" fontSize="8" textAnchor="middle" fontFamily="Space Mono, monospace">+5%</text>
+      <text x="30"  y="92" fill="var(--t5)" fontSize="8" textAnchor="middle" fontFamily="Space Mono, monospace">+4%</text>
+      <text x="60"  y="92" fill="var(--t5)" fontSize="8" textAnchor="middle" fontFamily="Space Mono, monospace">-6%</text>
+      <text x="90"  y="92" fill="var(--t5)" fontSize="8" textAnchor="middle" fontFamily="Space Mono, monospace">+5%</text>
     </svg>
   );
 }
@@ -34,7 +34,7 @@ function ButtonPreview() {
         <div key={b.label} style={{ flex: 1, padding: '10px 6px', background: b.bg, border: `1px solid ${b.color}`, borderRadius: '8px', textAlign: 'center', opacity: 0.9 }}>
           <div style={{ fontSize: '14px', color: b.color, marginBottom: '3px' }}>{b.icon}</div>
           <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: b.color, fontWeight: 700 }}>{b.label}</div>
-          <div style={{ fontSize: '8px', color: '#4a5568', marginTop: '2px' }}>{b.sub}</div>
+          <div style={{ fontSize: '8px', color: 'var(--t5)', marginTop: '2px' }}>{b.sub}</div>
         </div>
       ))}
     </div>
@@ -76,14 +76,14 @@ export default function Tutorial({ onDone }) {
       padding: '20px',
     }}>
       <div style={{
-        background: '#0f141b', border: '1px solid #1e2530', borderRadius: '16px',
+        background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '16px',
         padding: '28px 24px', maxWidth: '360px', width: '100%',
         position: 'relative', boxShadow: '0 0 40px rgba(34,211,165,0.1)',
       }}>
         {/* Skip button */}
         {!current.final && (
           <button onClick={dismiss}
-            style={{ position: 'absolute', top: '16px', right: '16px', background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer', letterSpacing: '0.04em' }}>
+            style={{ position: 'absolute', top: '16px', right: '16px', background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer', letterSpacing: '0.04em' }}>
             {t.tutorial.skip}
           </button>
         )}
@@ -99,10 +99,10 @@ export default function Tutorial({ onDone }) {
           {current.visual === 'buttons' && (
             <div style={{ marginBottom: '16px' }}><ButtonPreview /></div>
           )}
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: '#f0f0f0', marginBottom: '10px' }}>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: 'var(--t1)', marginBottom: '10px' }}>
             {current.title}
           </div>
-          <div style={{ fontSize: '12px', color: '#6b7a8d', lineHeight: 1.7, fontFamily: "'Space Mono', monospace" }}>
+          <div style={{ fontSize: '12px', color: 'var(--t4)', lineHeight: 1.7, fontFamily: "'Space Mono', monospace" }}>
             {current.body}
           </div>
         </div>
@@ -110,7 +110,7 @@ export default function Tutorial({ onDone }) {
         {/* Dots */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginBottom: '20px' }}>
           {STEPS.map((_, i) => (
-            <div key={i} style={{ width: '6px', height: '6px', borderRadius: '50%', background: i === step ? '#22d3a5' : '#2a3345', transition: 'background 0.2s' }} />
+            <div key={i} style={{ width: '6px', height: '6px', borderRadius: '50%', background: i === step ? '#22d3a5' : 'var(--bd2)', transition: 'background 0.2s' }} />
           ))}
         </div>
 
@@ -118,7 +118,7 @@ export default function Tutorial({ onDone }) {
         <div style={{ display: 'flex', gap: '8px' }}>
           {step > 0 && (
             <button onClick={prev}
-              style={{ flex: 1, padding: '12px', background: 'transparent', border: '1px solid #2a3345', borderRadius: '8px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em' }}>
+              style={{ flex: 1, padding: '12px', background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '8px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em' }}>
               {t.tutorial.prev}
             </button>
           )}
