@@ -301,6 +301,8 @@ export const LANGS = {
       tutStep5body: 'Compete on the global leaderboard ranked by portfolio return. A weekly ranking resets every Monday.',
       tutStep6title: 'Challenge Friends',
       tutStep6body: 'Send portfolio duels to friends. After 7 days, whoever grew their portfolio more wins.',
+      tutStep7title: 'Private Leagues',
+      tutStep7body: 'Create a private league with friends. Share a 6-letter code, everyone joins with their current portfolio, and the best return wins.',
       tutSkip: 'Skip', tutPrev: '← Back', tutNext: 'Next →', tutStart: 'Start Investing →',
     },
     shop: {
@@ -678,6 +680,8 @@ export const LANGS = {
       tutStep5body: 'Compite en el ranking global por rentabilidad de portfolio. Un ranking semanal se reinicia cada lunes.',
       tutStep6title: 'Reta a Amigos',
       tutStep6body: 'Envía duelos de portfolio a amigos. Tras 7 días, gana quien más haya hecho crecer su portfolio.',
+      tutStep7title: 'Ligas Privadas',
+      tutStep7body: 'Crea una liga privada con amigos. Comparte un código de 6 letras, cada uno se une con su portfolio actual y gana el que mejor rendimiento tenga.',
       tutSkip: 'Saltar', tutPrev: '← Atrás', tutNext: 'Siguiente →', tutStart: 'Empezar a invertir →',
     },
     shop: {
@@ -1055,6 +1059,8 @@ export const LANGS = {
       tutStep5body: 'Tritt in der globalen Rangliste nach Portfolio-Rendite an. Eine Wochenrangliste wird jeden Montag zurückgesetzt.',
       tutStep6title: 'Freunde herausfordern',
       tutStep6body: 'Schicke Portfolio-Duelle an Freunde. Nach 7 Tagen gewinnt, wer sein Portfolio am meisten wachsen ließ.',
+      tutStep7title: 'Private Ligen',
+      tutStep7body: 'Erstelle eine private Liga mit Freunden. Teile einen 6-Buchstaben-Code, jeder tritt mit seinem aktuellen Portfolio bei und wer die beste Rendite erzielt, gewinnt.',
       tutSkip: 'Überspringen', tutPrev: '← Zurück', tutNext: 'Weiter →', tutStart: 'Mit Investieren beginnen →',
     },
     shop: {

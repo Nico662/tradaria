@@ -77,6 +77,31 @@ function RankingVisual() {
   );
 }
 
+function LeagueVisual() {
+  const rows = [
+    { name: '@you',    val: '+18.4%', color: '#22d3a5', you: true  },
+    { name: '@sara_m', val: '+12.1%', color: '#f0f0f0', you: false },
+    { name: '@jcook',  val: '+7.3%',  color: '#f0f0f0', you: false },
+  ];
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+        <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: '#f0f0f0' }}>Liga de Amigos</span>
+        <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#22d3a5', fontWeight: 700, letterSpacing: '0.16em', padding: '3px 8px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a530', borderRadius: '4px' }}>AB3KX2</span>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        {rows.map((r, i) => (
+          <div key={r.name} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 10px', background: '#0a0c0f', border: `1px solid ${r.you ? '#22d3a540' : '#1e2530'}`, borderRadius: '6px' }}>
+            <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '12px', color: i === 0 ? '#f5c842' : '#3a4455', width: '16px' }}>{i === 0 ? '🥇' : `#${i + 1}`}</span>
+            <span style={{ flex: 1, fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '11px', color: r.you ? '#22d3a5' : '#f0f0f0' }}>{r.name}</span>
+            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#22d3a5', fontWeight: 700 }}>{r.val}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function PortfolioTutorial({ onDone }) {
   const { t } = useLang();
   const p = t.portfolio;
@@ -88,7 +113,8 @@ export default function PortfolioTutorial({ onDone }) {
     { icon: null,  title: p.tutStep3title, body: p.tutStep3body, visual: 'buysell' },
     { icon: null,  title: p.tutStep4title, body: p.tutStep4body, visual: 'chart' },
     { icon: null,  title: p.tutStep5title, body: p.tutStep5body, visual: 'ranking' },
-    { icon: '⚔️',  title: p.tutStep6title, body: p.tutStep6body, visual: null, final: true },
+    { icon: '⚔️',  title: p.tutStep6title, body: p.tutStep6body, visual: null },
+    { icon: null,  title: p.tutStep7title, body: p.tutStep7body, visual: 'league', final: true },
   ];
 
   const current = STEPS[step];
@@ -116,6 +142,7 @@ export default function PortfolioTutorial({ onDone }) {
           {current.visual === 'buysell' && <div style={{ marginBottom: '20px' }}><BuySellVisual /></div>}
           {current.visual === 'chart'   && <div style={{ marginBottom: '20px' }}><PnLChartVisual /></div>}
           {current.visual === 'ranking' && <div style={{ marginBottom: '20px' }}><RankingVisual /></div>}
+          {current.visual === 'league'  && <div style={{ marginBottom: '20px' }}><LeagueVisual /></div>}
 
           <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: '#f0f0f0', marginBottom: '10px' }}>
             {current.title}
