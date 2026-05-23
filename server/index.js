@@ -165,6 +165,21 @@ const PortfolioDuelSchema = new mongoose.Schema({
 });
 const PortfolioDuel = mongoose.model('PortfolioDuel', PortfolioDuelSchema);
 
+const LeagueSchema = new mongoose.Schema({
+  name:      { type: String, required: true, maxlength: 30 },
+  code:      { type: String, required: true, unique: true },
+  owner:     { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  members:   [{
+    userId:     { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    startValue: { type: Number, default: 50000 },
+    joinedAt:   { type: Date, default: Date.now },
+  }],
+  startDate: { type: String, required: true },
+  endDate:   { type: String, default: null },
+  createdAt: { type: Date, default: Date.now },
+});
+const League = mongoose.model('League', LeagueSchema);
+
 const Portfolio = mongoose.model('Portfolio', PortfolioSchema);
 const User       = mongoose.model('User', UserSchema);
 const Tournament = mongoose.model('Tournament', TournamentSchema);
@@ -1527,6 +1542,143 @@ app.post('/admin/reset-portfolio-tutorial/:username', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// ── Ligas ─────────────────────────────────────────────────────────────────────
+
+function generateLeagueCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+}
+
+app.post('/leagues/create', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const { name, endDate } = req.body;
+    if (!name || name.trim().length < 2) return res.status(400).json({ error: 'Nombre demasiado corto' });
+    let code, tries = 0;
+    do { code = generateLeagueCode(); tries++; }
+    while (await League.exists({ code }) && tries < 10);
+    const startValue = await getPortfolioValue(decoded.id);
+    const today      = new Date().toISOString().split('T')[0];
+    const league     = await League.create({
+      name: name.trim().slice(0, 30), code, owner: decoded.id,
+      members: [{ userId: decoded.id, startValue, joinedAt: new Date() }],
+      startDate: today, endDate: endDate || null,
+    });
+    res.json({ leagueId: league._id, code });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/leagues/join', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const { code } = req.body;
+    const league = await League.findOne({ code: (code || '').toUpperCase() });
+    if (!league) return res.status(404).json({ error: 'Liga no encontrada' });
+    if (league.members.some(m => m.userId.toString() === decoded.id))
+      return res.status(400).json({ error: 'Ya eres miembro de esta liga' });
+    const startValue = await getPortfolioValue(decoded.id);
+    league.members.push({ userId: decoded.id, startValue, joinedAt: new Date() });
+    await league.save();
+    res.json({ leagueId: league._id, name: league.name });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/leagues/mine', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const leagues  = await League.find({ 'members.userId': decoded.id });
+    res.json(leagues.map(l => ({
+      _id: l._id, name: l.name, code: l.code, owner: l.owner,
+      memberCount: l.members.length, startDate: l.startDate, endDate: l.endDate,
+      isOwner: l.owner.toString() === decoded.id,
+    })));
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/leagues/:leagueId/ranking', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const league  = await League.findById(req.params.leagueId);
+    if (!league) return res.status(404).json({ error: 'Liga no encontrada' });
+    if (!league.members.some(m => m.userId.toString() === decoded.id))
+      return res.status(403).json({ error: 'No eres miembro de esta liga' });
+    const priceMap = {};
+    await Promise.all(PORTFOLIO_ASSETS.map(async a => {
+      try {
+        const c = await redis.get(`price_v2:${a.symbol}`);
+        if (c) { const p = typeof c === 'string' ? JSON.parse(c) : c; priceMap[p.symbol] = p.price; }
+      } catch {}
+    }));
+    const memberIds = league.members.map(m => m.userId);
+    const [portfolios, users] = await Promise.all([
+      Portfolio.find({ userId: { $in: memberIds } }),
+      User.find({ _id: { $in: memberIds } }).select('name username avatar customAvatar activeCosmetics'),
+    ]);
+    const pMap = {}; portfolios.forEach(p => { pMap[p.userId.toString()] = p; });
+    const uMap = {}; users.forEach(u => { uMap[u._id.toString()] = u; });
+    const ranking = league.members.map(m => {
+      const uid  = m.userId.toString();
+      const u    = uMap[uid];
+      const port = pMap[uid];
+      let totalValue = m.startValue;
+      if (port) {
+        const invested = port.positions.reduce((s, pos) => s + (priceMap[pos.symbol] || pos.avgPrice) * pos.qty, 0);
+        totalValue = port.cash + invested;
+      }
+      return {
+        userId: m.userId, name: u?.name || 'Anonymous', username: u?.username || null,
+        avatar: u?.avatar || null, customAvatar: u?.customAvatar || null,
+        activeCosmetics: u?.activeCosmetics || {},
+        startValue: m.startValue, totalValue,
+        returnPct: ((totalValue - m.startValue) / m.startValue) * 100,
+        isYou: uid === decoded.id,
+      };
+    }).sort((a, b) => b.returnPct - a.returnPct);
+    res.json({
+      _id: league._id, name: league.name, code: league.code,
+      owner: league.owner, startDate: league.startDate, endDate: league.endDate,
+      isOwner: league.owner.toString() === decoded.id, ranking,
+    });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/leagues/:leagueId/leave', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const league  = await League.findById(req.params.leagueId);
+    if (!league) return res.status(404).json({ error: 'Liga no encontrada' });
+    if (league.owner.toString() === decoded.id)
+      return res.status(400).json({ error: 'El owner no puede abandonar la liga. Elimínala.' });
+    league.members = league.members.filter(m => m.userId.toString() !== decoded.id);
+    await league.save();
+    res.json({ ok: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/leagues/:leagueId', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const league  = await League.findById(req.params.leagueId);
+    if (!league) return res.status(404).json({ error: 'Liga no encontrada' });
+    if (league.owner.toString() !== decoded.id)
+      return res.status(403).json({ error: 'Solo el owner puede eliminar la liga' });
+    await League.findByIdAndDelete(req.params.leagueId);
+    res.json({ ok: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // Comprar

@@ -21,6 +21,7 @@ import Tournament from './Tournament.jsx';
 import Survival from './Survival.jsx';
 import Shop from './Shop.jsx';
 import Portfolio from './Portfolio.jsx';
+import League from './League.jsx';
 import Friends from './Friends.jsx';
 import EffectOverlay from './EffectOverlay.jsx';
 import ChallengeNotification from './ChallengeNotification.jsx';
@@ -54,6 +55,7 @@ export default function App() {
     const p = window.location.pathname;
     return p.startsWith('/u/') ? p.split('/u/')[1] || null : null;
   });
+  const [leagueId, setLeagueId] = useState(null);
   const [showLanding,  setShowLanding]  = useState(() => !localStorage.getItem('tradara_landing_seen'));
   const [showTutorial, setShowTutorial] = useState(false);
   const [category,    setCategory]  = useState('all');
@@ -590,7 +592,8 @@ export default function App() {
   if (screen === 'tournament') return <><Tournament onBack={() => setScreen('home')} onViewProfile={(uname) => { setPublicProfileUsername(uname); setScreen('public_profile'); window.history.pushState({}, '', `/u/${uname}`); }} />{challengeOverlay}</>;
   if (screen === 'survival')   return <><Survival   onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'shop')       return <><Shop       onBack={() => setScreen('home')} />{challengeOverlay}</>;
-  if (screen === 'portfolio')  return <><Portfolio  onBack={() => setScreen('home')} onViewProfile={(uname) => { setPublicProfileUsername(uname); setScreen('public_profile'); window.history.pushState({}, '', `/u/${uname}`); }} />{challengeOverlay}</>;
+  if (screen === 'portfolio')  return <><Portfolio  onBack={() => setScreen('home')} onViewProfile={(uname) => { setPublicProfileUsername(uname); setScreen('public_profile'); window.history.pushState({}, '', `/u/${uname}`); }} onOpenLeague={(id) => { setLeagueId(id); setScreen('league'); }} />{challengeOverlay}</>;
+  if (screen === 'league')     return <><League leagueId={leagueId} onBack={() => setScreen('portfolio')} />{challengeOverlay}</>;
   if (screen === 'friends') return (
     <>
       <Friends

@@ -12,6 +12,7 @@ import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
 import FounderBadge, { isFounder } from './FounderBadge.jsx';
 import PortfolioTutorial from './PortfolioTutorial.jsx';
+import Leagues from './Leagues.jsx';
 
 const TYPE_COLORS = {
   stock:     '#378ADD',
@@ -79,7 +80,7 @@ function getWeekStart() {
   return `${mon.getUTCDate().toString().padStart(2, '0')}/${(mon.getUTCMonth() + 1).toString().padStart(2, '0')}`;
 }
 
-export default function Portfolio({ onBack, onViewProfile }) {
+export default function Portfolio({ onBack, onViewProfile, onOpenLeague }) {
   const { user } = useAuth();
   const { t, lang } = useLang();
   const [screen, setScreen]                 = useState('loading');
@@ -715,6 +716,7 @@ export default function Portfolio({ onBack, onViewProfile }) {
           ['leaderboard', t.portfolio.ranking],
           ['duel',        t.portfolio.duelTab],
           ['history',     t.portfolio.history],
+          ['leagues',     t.portfolio.leagues],
         ].map(([id, label]) => (
           <button key={id} onClick={() => setTab(id)}
             style={{ flex: 1, padding: '12px 4px', background: 'transparent', border: 'none', borderBottom: `2px solid ${tab === id ? '#22d3a5' : 'transparent'}`, color: tab === id ? '#22d3a5' : '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '8px', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.15s' }}>
@@ -1027,6 +1029,11 @@ export default function Portfolio({ onBack, onViewProfile }) {
             ))
           )}
         </div>
+      )}
+
+      {/* ── Ligas ── */}
+      {tab === 'leagues' && (
+        <Leagues onOpenLeague={onOpenLeague} />
       )}
 
       {missionToast[0] && <MissionNotification data={missionToast[0]} onDone={() => setMissionToast(q => q.slice(1))} />}
