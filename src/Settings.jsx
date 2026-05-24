@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from './AuthContext';
 import { useLang } from './LangContext.jsx';
 import UsernameModal from './UsernameModal.jsx';
+import { SERVER } from './config.js';
 
 const STRINGS = {
   en: {
@@ -80,7 +81,7 @@ function Row({ label, children, last }) {
 }
 
 export default function Settings({ onBack }) {
-  const { user, logout, updateUser } = useAuth();
+  const { user, logout, updateUser, isPro } = useAuth();
   const { lang, setLang } = useLang();
   const s = STRINGS[lang] || STRINGS.en;
 
@@ -91,6 +92,26 @@ export default function Settings({ onBack }) {
     () => typeof Notification !== 'undefined' && Notification.permission === 'granted'
   );
   const [showUsernameModal, setShowUsernameModal] = useState(false);
+  const [cancelConfirm, setCancelConfirm] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [cancelDone, setCancelDone] = useState(false);
+
+  async function handleCancelSubscription() {
+    setCancelLoading(true);
+    try {
+      const token = localStorage.getItem('tradara_token');
+      const res   = await fetch(`${SERVER}/pro/cancel`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        updateUser({ isPro: false });
+        setCancelDone(true);
+        setCancelConfirm(false);
+      }
+    } catch {}
+    setCancelLoading(false);
+  }
 
   function toggleTheme() {
     const newMode = isDark ? 'light' : 'dark';
@@ -177,6 +198,78 @@ export default function Settings({ onBack }) {
             )}
           </div>
         </Card>
+
+        {/* Pro subscription */}
+        {isPro && (
+          <>
+            <SectionLabel text="Suscripción" />
+            <Card>
+              <Row label="Plan Pro · €3.99/mes" last={!cancelConfirm && !cancelDone}>
+                <span style={{ fontSize: '9px', color: '#22d3a5', background: 'rgba(34,211,165,0.1)', padding: '2px 8px', borderRadius: '4px', fontFamily: "'Space Mono', monospace", letterSpacing: '0.06em' }}>
+                  ⚡ ACTIVO
+                </span>
+              </Row>
+              {cancelDone ? (
+                <div style={{ padding: '12px 16px', fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t4)' }}>
+                  Suscripción cancelada. Seguirás teniendo acceso Pro hasta el fin del período.
+                </div>
+              ) : cancelConfirm ? (
+                <div style={{ padding: '12px 16px', borderTop: '1px solid var(--bd)' }}>
+                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t3)', marginBottom: '12px', lineHeight: 1.5 }}>
+                    ¿Estás seguro? Perderás el acceso Pro al finalizar el período actual.
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      onClick={handleCancelSubscription}
+                      disabled={cancelLoading}
+                      style={{
+                        flex: 1, padding: '10px',
+                        background: cancelLoading ? 'rgba(240,84,84,0.04)' : 'rgba(240,84,84,0.08)',
+                        border: '1px solid rgba(240,84,84,0.4)',
+                        borderRadius: '6px', color: '#f05454',
+                        fontFamily: "'Space Mono', monospace", fontSize: '9px',
+                        fontWeight: 700, letterSpacing: '0.06em',
+                        textTransform: 'uppercase', cursor: cancelLoading ? 'default' : 'pointer',
+                      }}
+                    >
+                      {cancelLoading ? 'Cancelando...' : 'Sí, cancelar'}
+                    </button>
+                    <button
+                      onClick={() => setCancelConfirm(false)}
+                      disabled={cancelLoading}
+                      style={{
+                        flex: 1, padding: '10px',
+                        background: 'transparent', border: '1px solid var(--bd2)',
+                        borderRadius: '6px', color: 'var(--t4)',
+                        fontFamily: "'Space Mono', monospace", fontSize: '9px',
+                        fontWeight: 700, letterSpacing: '0.06em',
+                        textTransform: 'uppercase', cursor: 'pointer',
+                      }}
+                    >
+                      Volver
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ padding: '12px 16px', borderTop: '1px solid var(--bd)' }}>
+                  <button
+                    onClick={() => setCancelConfirm(true)}
+                    style={{
+                      width: '100%', padding: '10px',
+                      background: 'transparent', border: '1px solid var(--bd2)',
+                      borderRadius: '6px', color: 'var(--t5)',
+                      fontFamily: "'Space Mono', monospace", fontSize: '9px',
+                      fontWeight: 700, letterSpacing: '0.06em',
+                      textTransform: 'uppercase', cursor: 'pointer',
+                    }}
+                  >
+                    Cancelar suscripción
+                  </button>
+                </div>
+              )}
+            </Card>
+          </>
+        )}
 
         {/* Account */}
         {user && (

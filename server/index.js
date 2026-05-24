@@ -88,8 +88,9 @@ const UserSchema = new mongoose.Schema({
   customAvatar:    { type: String, default: null },
   activeCosmetics: { type: mongoose.Schema.Types.Mixed, default: {} },
   portfolioTutorialSeen: { type: Boolean, default: false },
-  isPro:            { type: Boolean, default: false },
-  stripeCustomerId: { type: String,  default: null },
+  isPro:                 { type: Boolean, default: false },
+  stripeCustomerId:      { type: String,  default: null },
+  stripeSubscriptionId:  { type: String,  default: null },
 });
 
 const TournamentSchema = new mongoose.Schema({
@@ -693,7 +694,8 @@ app.post('/shop/webhook', express.raw({ type: 'application/json' }), async (req,
       try {
         await User.findByIdAndUpdate(userId, {
           isPro: true,
-          stripeCustomerId: session.customer,
+          stripeCustomerId:     session.customer,
+          stripeSubscriptionId: session.subscription,
         });
         console.log(`User ${userId} is now Pro`);
       } catch (err) { console.error('Pro activation error:', err.message); }
@@ -760,6 +762,27 @@ app.post('/pro/checkout', async (req, res) => {
   } catch (err) {
     console.error('Pro checkout error:', err.message);
     res.status(500).json({ error: 'Checkout failed' });
+  }
+});
+
+app.post('/pro/cancel', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const user = await User.findById(decoded.id);
+    if (!user || !user.isPro) return res.status(400).json({ error: 'No active subscription' });
+    if (!user.stripeSubscriptionId) return res.status(400).json({ error: 'No subscription ID on file' });
+    await stripe.subscriptions.cancel(user.stripeSubscriptionId);
+    await User.findByIdAndUpdate(decoded.id, {
+      isPro: false,
+      stripeSubscriptionId: null,
+    });
+    console.log(`Pro cancelled for user ${decoded.id}`);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Pro cancel error:', err.message);
+    res.status(500).json({ error: 'Cancellation failed' });
   }
 });
 
