@@ -348,7 +348,7 @@ async function getPrice(asset) {
         symbol:    asset.symbol,
         name:      asset.name,
         type:      asset.type,
-        price:     data.c,
+        price:     data.c || data.pc,
         change:    data.dp,
         prevClose: data.pc,
       };
