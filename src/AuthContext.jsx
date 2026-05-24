@@ -191,8 +191,10 @@ export function AuthProvider({ children }) {
     setUser(prev => prev ? { ...prev, ...updates } : prev);
   }
 
+  const isPro = user?.isPro || false;
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, syncProgress, purchases, activeCosmetics, equipCosmetic, unequipCosmetic, updateUser, checkLevelUp }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, syncProgress, purchases, activeCosmetics, equipCosmetic, unequipCosmetic, updateUser, checkLevelUp, isPro }}>
       {children}
       {levelUpData && <LevelUpOverlay {...levelUpData} onClose={() => setLevelUpData(null)} />}
     </AuthContext.Provider>

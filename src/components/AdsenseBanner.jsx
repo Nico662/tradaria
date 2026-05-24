@@ -1,6 +1,9 @@
 import { useEffect, useRef } from 'react';
+import { useAuth } from '../AuthContext';
 
 export default function AdsenseBanner({ slot = 'auto', style: extraStyle = {} }) {
+  const { isPro } = useAuth();
+  if (isPro) return null;
   const ref  = useRef(null);
   const done = useRef(false);
 

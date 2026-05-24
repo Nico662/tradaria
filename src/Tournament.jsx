@@ -31,6 +31,8 @@ export default function Tournament({ onBack, onViewProfile }) {
   const [alreadyScore, setAlreadyScore] = useState(null);
   const [newBadge, setNewBadge] = useState(null);
   const [missionToast, setMissionToast] = useState(null);
+  const [paidTournaments, setPaidTournaments] = useState([]);
+  const [joiningId, setJoiningId] = useState(null);
   const chartRef = useRef(null);
 
   const currentRound = rounds[round];
@@ -51,7 +53,31 @@ export default function Tournament({ onBack, onViewProfile }) {
     base: () => 100,
   } : null, [currentRound]);
 
-  useEffect(() => { init(); }, []);
+  useEffect(() => { init(); fetchPaidTournaments(); }, []);
+
+  async function fetchPaidTournaments() {
+    try {
+      const res  = await fetch(`${SERVER}/tournaments`);
+      const data = await res.json();
+      if (data.paid) setPaidTournaments(data.paid);
+    } catch {}
+  }
+
+  async function joinPaidTournament(tournamentId) {
+    if (!user) return;
+    setJoiningId(tournamentId);
+    try {
+      const token = localStorage.getItem('tradara_token');
+      const res   = await fetch(`${SERVER}/tournament/paid/join`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tournamentId }),
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+    } catch {}
+    setJoiningId(null);
+  }
 
   async function init() {
     if (!user) { setPhase('login'); return; }
@@ -243,6 +269,52 @@ export default function Tournament({ onBack, onViewProfile }) {
           <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '9px', color: 'var(--t6)', fontFamily: "'Space Mono', monospace" }}>
             New tournament every Monday
           </div>
+
+          {/* Torneos de pago */}
+          {paidTournaments.length > 0 && (
+            <div style={{ marginTop: '28px' }}>
+              <div style={{ fontSize: '9px', color: '#f5c842', letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: "'Space Mono', monospace", marginBottom: '12px' }}>
+                🏆 Torneos de Pago — Premio €10
+              </div>
+              {paidTournaments.map(pt => {
+                const spots    = pt.maxPlayers - pt.players.length;
+                const isFull   = pt.status === 'active' || spots <= 0;
+                const alreadyIn = pt.players.map(String).includes(String(user?._id || user?.id));
+                return (
+                  <div key={pt._id} style={{ padding: '14px 16px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '10px', marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <div>
+                        <div style={{ fontSize: '11px', color: 'var(--t2)', fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>
+                          Entrada €{pt.entryFee} · Premio €{pt.prize}
+                        </div>
+                        <div style={{ fontSize: '9px', color: isFull ? '#22d3a5' : 'var(--t5)', marginTop: '3px' }}>
+                          {isFull ? '⚡ Activo' : `${pt.players.length}/${pt.maxPlayers} jugadores`}
+                        </div>
+                      </div>
+                      <div style={{ width: '80px', height: '6px', background: 'var(--bd)', borderRadius: '3px', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${(pt.players.length / pt.maxPlayers) * 100}%`, background: isFull ? '#22d3a5' : '#f5c842', borderRadius: '3px', transition: 'width 0.4s' }} />
+                      </div>
+                    </div>
+                    {!isFull && !alreadyIn && user && (
+                      <button
+                        onClick={() => joinPaidTournament(String(pt._id))}
+                        disabled={joiningId === String(pt._id)}
+                        style={{ width: '100%', padding: '10px', background: 'rgba(245,200,66,0.08)', border: '1px solid #f5c842', borderRadius: '6px', color: '#f5c842', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
+                      >
+                        {joiningId === String(pt._id) ? 'Cargando...' : `Unirse por €${pt.entryFee}`}
+                      </button>
+                    )}
+                    {alreadyIn && (
+                      <div style={{ fontSize: '10px', color: '#22d3a5', textAlign: 'center', fontFamily: "'Space Mono', monospace" }}>✓ Ya estás apuntado</div>
+                    )}
+                    {!user && (
+                      <div style={{ fontSize: '10px', color: 'var(--t5)', textAlign: 'center' }}>Inicia sesión para unirte</div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           <button onClick={async () => {
             const el = document.getElementById('share-card-tournament');

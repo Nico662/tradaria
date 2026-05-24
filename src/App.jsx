@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { io } from 'socket.io-client';
 import { SERVER } from './config.js';
 import AdsenseBanner from './components/AdsenseBanner.jsx';
+import Pricing from './Pricing.jsx';
 import { ASSETS } from './assets.js';
 import Chart, { generateCandles } from "./Chart";
 import Home from "./Home";
@@ -579,6 +580,7 @@ export default function App() {
           else if (mode === 'portfolio') setScreen('portfolio');
           else if (mode === 'friends')   setScreen('friends');
           else if (mode === 'settings')  setScreen('settings');
+          else if (mode === 'pricing')   setScreen('pricing');
           else {
             setScreen('game');
             if (!localStorage.getItem('tradara_tutorial_done')) setShowTutorial(true);
@@ -596,6 +598,7 @@ export default function App() {
       {challengeOverlay}
     </>
   );
+  if (screen === 'pricing')    return <><Pricing    onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'legal')      return <><Legal      onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'badges')     return <><Badges     onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'stats')      return <><Stats      onBack={() => setScreen('home')} />{challengeOverlay}</>;

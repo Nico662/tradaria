@@ -88,12 +88,25 @@ const UserSchema = new mongoose.Schema({
   customAvatar:    { type: String, default: null },
   activeCosmetics: { type: mongoose.Schema.Types.Mixed, default: {} },
   portfolioTutorialSeen: { type: Boolean, default: false },
+  isPro:            { type: Boolean, default: false },
+  stripeCustomerId: { type: String,  default: null },
 });
 
 const TournamentSchema = new mongoose.Schema({
   weekId:    { type: String, required: true, unique: true },
   assets:    { type: Array, default: [] },
   createdAt: { type: Date, default: Date.now },
+});
+
+const PaidTournamentSchema = new mongoose.Schema({
+  entryFee:   { type: Number, default: 2 },
+  prize:      { type: Number, default: 10 },
+  maxPlayers: { type: Number, default: 10 },
+  players:    [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  status:     { type: String, enum: ['waiting', 'active', 'finished'], default: 'waiting' },
+  winner:     { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  payoutStatus: { type: String, enum: ['pending', 'paid', 'none'], default: 'none' },
+  createdAt:  { type: Date, default: Date.now },
 });
 
 const ScoreSchema = new mongoose.Schema({
@@ -180,11 +193,12 @@ const LeagueSchema = new mongoose.Schema({
 });
 const League = mongoose.model('League', LeagueSchema);
 
-const Portfolio = mongoose.model('Portfolio', PortfolioSchema);
-const User       = mongoose.model('User', UserSchema);
-const Tournament = mongoose.model('Tournament', TournamentSchema);
-const Score      = mongoose.model('Score', ScoreSchema);
-const Stats      = mongoose.model('Stats', StatsSchema);
+const Portfolio       = mongoose.model('Portfolio', PortfolioSchema);
+const User            = mongoose.model('User', UserSchema);
+const Tournament      = mongoose.model('Tournament', TournamentSchema);
+const PaidTournament  = mongoose.model('PaidTournament', PaidTournamentSchema);
+const Score           = mongoose.model('Score', ScoreSchema);
+const Stats           = mongoose.model('Stats', StatsSchema);
 
 const FriendshipSchema = new mongoose.Schema({
   requester: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -499,6 +513,7 @@ app.get('/auth/me', async (req, res) => {
       dailyResult:     user.dailyResult  || null,
       customAvatar:    user.customAvatar || null,
       activeCosmetics: user.activeCosmetics || {},
+      isPro:           user.isPro || false,
     });
   } catch (err) {
     res.status(401).json({ error: 'Invalid token' });
@@ -644,7 +659,7 @@ app.post('/shop/checkout', async (req, res) => {
       mode: 'payment',
       success_url: `${CLIENT_URL}?purchase=success&item=${itemId}`,
       cancel_url:  `${CLIENT_URL}?purchase=cancelled`,
-      metadata: { userId: decoded.id, itemId },
+      metadata: { userId: String(decoded.id), itemId, type: 'shop' },
     });
     res.json({ url: stripeSession.url });
   } catch (err) {
@@ -661,17 +676,156 @@ app.post('/shop/webhook', express.raw({ type: 'application/json' }), async (req,
   } catch (err) {
     return res.status(400).json({ error: err.message });
   }
+
   if (event.type === 'checkout.session.completed') {
-    const stripeSession = event.data.object;
-    const { userId, itemId } = stripeSession.metadata;
-    try {
-      await User.findByIdAndUpdate(userId, { $addToSet: { purchases: itemId } });
-      console.log(`User ${userId} purchased ${itemId}`);
-    } catch (err) {
-      console.error('Error saving purchase:', err.message);
+    const session = event.data.object;
+    const { userId, itemId, type: metaType, tournamentId } = session.metadata || {};
+
+    // Shop item purchase
+    if (metaType === 'shop' && userId && itemId) {
+      try {
+        await User.findByIdAndUpdate(userId, { $addToSet: { purchases: itemId } });
+      } catch (err) { console.error('Error saving purchase:', err.message); }
+    }
+
+    // Pro subscription activated
+    if (session.mode === 'subscription' && userId) {
+      try {
+        await User.findByIdAndUpdate(userId, {
+          isPro: true,
+          stripeCustomerId: session.customer,
+        });
+        console.log(`User ${userId} is now Pro`);
+      } catch (err) { console.error('Pro activation error:', err.message); }
+    }
+
+    // Paid tournament entry
+    if (metaType === 'tournament_entry' && userId && tournamentId) {
+      try {
+        const pt = await PaidTournament.findById(tournamentId);
+        if (pt && pt.status === 'waiting' && !pt.players.map(String).includes(userId)) {
+          pt.players.push(userId);
+          if (pt.players.length >= pt.maxPlayers) {
+            pt.status = 'active';
+            // Notify all subscribers that a paid tournament is starting
+            const subs = await loadSubscriptions();
+            const payload = JSON.stringify({
+              title: '⚔️ Torneo de pago — ¡COMIENZA!',
+              body:  `El torneo de €${pt.entryFee} con premio de €${pt.prize} ya tiene 10 jugadores. ¡Entra a jugar!`,
+              url:   '/?screen=tournament',
+            });
+            subs.forEach(sub => webpush.sendNotification(sub, payload).catch(() => {}));
+          }
+          await pt.save();
+        }
+      } catch (err) { console.error('Tournament entry error:', err.message); }
     }
   }
+
+  // Pro subscription cancelled
+  if (event.type === 'customer.subscription.deleted') {
+    const customerId = event.data.object.customer;
+    try {
+      await User.findOneAndUpdate({ stripeCustomerId: customerId }, { isPro: false });
+      console.log(`Pro cancelled for customer ${customerId}`);
+    } catch (err) { console.error('Pro cancellation error:', err.message); }
+  }
+
   res.json({ received: true });
+});
+
+// ── Pro routes ────────────────────────────────────────────────────
+app.post('/pro/checkout', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [{
+        price_data: {
+          currency: 'eur',
+          product_data: { name: 'Tradara Pro', description: 'Suscripción mensual — sin anuncios, regeneración de vidas, badge Pro y más.' },
+          unit_amount: 399,
+          recurring: { interval: 'month' },
+        },
+        quantity: 1,
+      }],
+      mode: 'subscription',
+      success_url: `${CLIENT_URL}?pro=success`,
+      cancel_url:  `${CLIENT_URL}?pro=cancelled`,
+      metadata: { userId: String(decoded.id), type: 'pro_subscription' },
+    });
+    res.json({ url: session.url });
+  } catch (err) {
+    console.error('Pro checkout error:', err.message);
+    res.status(500).json({ error: 'Checkout failed' });
+  }
+});
+
+// ── Paid tournament routes ────────────────────────────────────────
+app.get('/tournaments', async (req, res) => {
+  try {
+    const paid = await PaidTournament.find({ status: { $in: ['waiting', 'active'] } })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .lean();
+    // Auto-create a waiting paid tournament if none exist
+    if (paid.filter(t => t.status === 'waiting').length === 0) {
+      const created = await PaidTournament.create({});
+      paid.unshift(created.toObject());
+    }
+    res.json({ paid });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/tournament/paid/join', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded      = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const { tournamentId } = req.body;
+    const pt = await PaidTournament.findById(tournamentId);
+    if (!pt) return res.status(404).json({ error: 'Tournament not found' });
+    if (pt.status !== 'waiting') return res.status(400).json({ error: 'Tournament not open' });
+    if (pt.players.map(String).includes(String(decoded.id)))
+      return res.status(400).json({ error: 'Already joined' });
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [{
+        price_data: {
+          currency: 'eur',
+          product_data: { name: `Torneo Tradara — entrada €${pt.entryFee}`, description: `Premio al ganador: €${pt.prize}` },
+          unit_amount: pt.entryFee * 100,
+        },
+        quantity: 1,
+      }],
+      mode: 'payment',
+      success_url: `${CLIENT_URL}?tournament=success`,
+      cancel_url:  `${CLIENT_URL}?tournament=cancelled`,
+      metadata: { userId: String(decoded.id), type: 'tournament_entry', tournamentId: String(pt._id) },
+    });
+    res.json({ url: session.url });
+  } catch (err) {
+    console.error('Tournament join error:', err.message);
+    res.status(500).json({ error: 'Join failed' });
+  }
+});
+
+app.post('/tournament/paid/:id/winner', async (req, res) => {
+  if (req.query.key !== 'tr4d4r4_adm1n') return res.status(403).json({ error: 'forbidden' });
+  try {
+    const { userId } = req.body;
+    const pt = await PaidTournament.findByIdAndUpdate(req.params.id, {
+      winner: userId, status: 'finished', payoutStatus: 'pending',
+    }, { new: true });
+    res.json({ ok: true, tournament: pt });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.get('/shop/purchases', async (req, res) => {

@@ -22,7 +22,7 @@ function randomAsset() {
 
 export default function Survival({ onBack }) {
   const { t, lang } = useLang();
-  const { syncProgress, activeCosmetics, checkLevelUp } = useAuth();
+  const { syncProgress, activeCosmetics, checkLevelUp, isPro } = useAuth();
 
   const [phase,       setPhase]      = useState('choose');
   const [asset,       setAsset]      = useState(() => randomAsset());
@@ -140,6 +140,11 @@ export default function Survival({ onBack }) {
       playLose();
       setLiveLost(true);
       setTimeout(() => setLiveLost(false), 600);
+    }
+
+    // Pro: regenerate 1 life after a correct round if lives < MAX_LIVES
+    if (isPro && win && !neutral && newLives < MAX_LIVES) {
+      setLives(l => Math.min(l + 1, MAX_LIVES));
     }
 
     if (win && streak + 1 >= 5)  tryUnlockBadge('sniper');
