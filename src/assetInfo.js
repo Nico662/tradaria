@@ -525,6 +525,15 @@ export const ASSET_INFO = {
     de: 'Ferrari ist die mächtigste Luxusmarke der Welt und verkauft Exklusivität genauso wie Autos.',
     fact: { en: 'Makes fewer than 15,000 cars per year', es: 'Fabrica menos de 15.000 coches al año', de: 'Produziert weniger als 15.000 Autos pro Jahr' },
   },
+  ORAN: {
+    sector: 'Telecommunications',
+    country: 'France',
+    cap: '$28B',
+    en: 'Orange S.A. is one of Europe\'s largest telecom operators, serving 300+ million customers in 26 countries.',
+    es: 'Orange S.A. es uno de los mayores operadores de telecomunicaciones de Europa, con más de 300 millones de clientes en 26 países.',
+    de: 'Orange S.A. ist einer der größten Telekommunikationsbetreiber Europas und bedient 300+ Millionen Kunden in 26 Ländern.',
+    fact: { en: '300M+ customers across 26 countries', es: 'Más de 300 millones de clientes en 26 países', de: 'Über 300 Mio. Kunden in 26 Ländern' },
+  },
 
   // ── Índices y ETFs ────────────────────────────────────────────────
   SPY: {

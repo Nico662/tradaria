@@ -285,6 +285,7 @@ const PORTFOLIO_ASSETS = [
   { symbol: 'ALIZF', name: 'Allianz',            type: 'stock', source: 'finnhub' },
   { symbol: 'BAYZF', name: 'Bayer',              type: 'stock', source: 'finnhub' },
   { symbol: 'RACE', name: 'Ferrari', type: 'stock', source: 'finnhub' },
+  { symbol: 'ORAN', name: 'Orange S.A.',           type: 'stock', source: 'finnhub' },
   // ── Índices y ETFs ────────────────────────────────────────────────
   { symbol: 'SPY',   name: 'S&P 500',            type: 'index', source: 'finnhub' },
   { symbol: 'QQQ',   name: 'NASDAQ 100',         type: 'index', source: 'finnhub' },
