@@ -120,6 +120,19 @@ export default function Home({ onSelect }) {
             >
               ⚙️
             </button>
+            {isPro ? (
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '6px 10px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '8px', fontSize: '9px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", letterSpacing: '0.06em' }}>
+                ⚡ Pro
+              </div>
+            ) : (
+              <button onClick={() => onSelect('pricing')}
+                style={{ background: 'rgba(34,211,165,0.06)', border: '1px solid #22d3a5', borderRadius: '8px', padding: '6px 10px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(34,211,165,0.14)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'rgba(34,211,165,0.06)'}
+              >
+                ⚡ Pro
+              </button>
+            )}
           </div>
           <button onClick={() => onSelect('friends')}
             style={{ background: 'transparent', border: '1px solid var(--bd)', borderRadius: '8px', padding: '6px 12px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
@@ -336,20 +349,6 @@ export default function Home({ onSelect }) {
               📊 {t.stats.title}
             </button>
           </div>
-
-          {isPro ? (
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 14px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '8px', fontSize: '9px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", letterSpacing: '0.08em' }}>
-              ⚡ Tradara Pro
-            </div>
-          ) : (
-            <button onClick={() => onSelect('pricing')}
-              style={{ background: 'rgba(34,211,165,0.06)', border: '1px solid #22d3a5', borderRadius: '8px', padding: '8px 16px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase' }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(34,211,165,0.12)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'rgba(34,211,165,0.06)'}
-            >
-              ⚡ Hazte Pro — €3.99/mes
-            </button>
-          )}
 
           <a href="https://ko-fi.com/tradaranicolasvidal" target="_blank" rel="noopener noreferrer"
             style={{ background: 'transparent', border: '1px solid var(--bd)', borderRadius: '8px', padding: '8px 16px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
