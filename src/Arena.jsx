@@ -1,6 +1,7 @@
 import { io } from 'socket.io-client';
 import { useState, useEffect, useRef } from 'react';
 import html2canvas from 'html2canvas';
+import AdsenseBanner from './components/AdsenseBanner.jsx';
 import { createChart, CandlestickSeries } from 'lightweight-charts';
 import { useLang } from './LangContext.jsx';
 import { LANGS } from './i18n.js';
@@ -530,6 +531,8 @@ export default function Arena({ onBack, challengeRoomCode }) {
             </div>
           </>
         ) : null}
+
+        <AdsenseBanner style={{ marginBottom: '16px' }} />
 
         <button onClick={goBack}
           style={{ background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '10px', padding: '8px 16px', cursor: 'pointer', letterSpacing: '0.06em' }}>

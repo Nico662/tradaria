@@ -2,6 +2,7 @@ import { useLang } from './LangContext';
 import { useState, useEffect, useRef } from 'react';
 import MissionsCard from './MissionsCard.jsx';
 import WordOfTheDay from './WordOfTheDay.jsx';
+import AdsenseBanner from './components/AdsenseBanner.jsx';
 import { SERVER } from './config.js';
 import { getUnlocked } from './badges.js';
 import { getXP, getLevel } from './levels.js';
@@ -351,6 +352,8 @@ export default function Home({ onSelect }) {
               style={{ height: '54px', width: 'auto' }}
             />
           </a>
+
+          <AdsenseBanner style={{ width: '100%', maxWidth: '468px' }} />
 
           <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', alignItems: 'center' }}>
             <span style={{ fontSize: '9px', color: 'var(--bd2)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
