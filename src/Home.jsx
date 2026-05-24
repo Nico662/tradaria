@@ -18,7 +18,7 @@ const TOURNAMENT_SUB = {
 };
 
 export default function Home({ onSelect }) {
-  const { lang, setLang, t } = useLang();
+  const { lang, t } = useLang();
   const [dailyStreak] = useState(() => parseInt(localStorage.getItem('tradara_daily_streak') || '0'));
   const unlockedCount = getUnlocked().length;
   const xp    = getXP();
@@ -103,51 +103,45 @@ export default function Home({ onSelect }) {
 
       <div style={{ padding: '48px 28px 32px', position: 'relative', zIndex: 2 }}>
 
-        {/* Top bar */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <div style={{ display: 'flex', gap: '6px' }}>
-            <button onClick={() => onSelect('shop')}
-              style={{ background: 'transparent', border: '1px solid var(--bd)', borderRadius: '8px', padding: '6px 12px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = '#f5c842'}
-              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--bd)'}
-            >
-              🛍️ {t.home.shop ?? 'Shop'}
-            </button>
-            <button onClick={() => onSelect('settings')}
-              style={{ background: 'transparent', border: '1px solid var(--bd)', borderRadius: '8px', padding: '6px 10px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '12px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--t4)'}
-              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--bd)'}
-            >
-              ⚙️
-            </button>
-            {isPro ? (
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '6px 10px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '8px', fontSize: '9px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", letterSpacing: '0.06em' }}>
-                ⚡ Pro
-              </div>
-            ) : (
-              <button onClick={() => onSelect('pricing')}
-                style={{ background: 'rgba(34,211,165,0.06)', border: '1px solid #22d3a5', borderRadius: '8px', padding: '6px 10px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(34,211,165,0.14)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'rgba(34,211,165,0.06)'}
-              >
-                ⚡ Pro
-              </button>
-            )}
-          </div>
+        {/* Top bar — 2×2 grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '24px' }}>
+          <button onClick={() => onSelect('shop')}
+            style={{ background: 'transparent', border: '1px solid var(--bd)', borderRadius: '8px', padding: '8px 12px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = '#f5c842'}
+            onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--bd)'}
+          >
+            🛍️ {t.home.shop ?? 'Tienda'}
+          </button>
+
           <button onClick={() => onSelect('friends')}
-            style={{ background: 'transparent', border: '1px solid var(--bd)', borderRadius: '8px', padding: '6px 12px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+            style={{ background: 'transparent', border: '1px solid var(--bd)', borderRadius: '8px', padding: '8px 12px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
             onMouseEnter={e => e.currentTarget.style.borderColor = '#22d3a5'}
             onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--bd)'}
           >
             🤝 {t.friends.title}
           </button>
-          <div className="lang-selector">
-            {['en', 'es', 'de'].map(l => (
-              <button key={l} className={`lang-btn${lang === l ? ' active' : ''}`} onClick={() => setLang(l)}>
-                {l.toUpperCase()}
-              </button>
-            ))}
-          </div>
+
+          <button onClick={() => onSelect('settings')}
+            style={{ background: 'transparent', border: '1px solid var(--bd)', borderRadius: '8px', padding: '8px 12px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--t4)'}
+            onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--bd)'}
+          >
+            ⚙️ {t.settings?.title ?? 'Ajustes'}
+          </button>
+
+          {isPro ? (
+            <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '8px 12px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '8px', fontSize: '9px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              ⚡ Tradara Pro
+            </div>
+          ) : (
+            <button onClick={() => onSelect('pricing')}
+              style={{ background: 'rgba(34,211,165,0.07)', border: '1px solid #22d3a5', borderRadius: '8px', padding: '8px 12px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px', boxShadow: '0 0 12px rgba(34,211,165,0.08)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(34,211,165,0.14)'; e.currentTarget.style.boxShadow = '0 0 18px rgba(34,211,165,0.15)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(34,211,165,0.07)'; e.currentTarget.style.boxShadow = '0 0 12px rgba(34,211,165,0.08)'; }}
+            >
+              ⚡ Hazte Pro
+            </button>
+          )}
         </div>
 
         {/* User */}
