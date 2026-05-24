@@ -1873,8 +1873,10 @@ app.get('/portfolio/candles/:symbol', async (req, res) => {
         open:  q.open, high: q.high, low: q.low, close: q.close,
       }));
     } else {
+      const yahooSymbolMap = { 'ORAN': 'ORA.PA', 'IDEXY': 'ITX.MC', 'ALIZF': 'ALV.DE', 'BAYZF': 'BAYN.DE' };
+      const yahooSym = yahooSymbolMap[symbol] || symbol;
       const d = new Date(); d.setFullYear(d.getFullYear() - 1);
-      const result = await yf.chart(symbol, { interval: '1d', period1: d.toISOString().split('T')[0] });
+      const result = await yf.chart(yahooSym, { interval: '1d', period1: d.toISOString().split('T')[0] });
       candles = result.quotes.filter(q => q.open && q.high && q.low && q.close).map(q => ({
         time:  Math.floor(new Date(q.date).getTime() / 1000),
         open:  q.open, high: q.high, low: q.low, close: q.close,
