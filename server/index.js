@@ -285,7 +285,7 @@ const PORTFOLIO_ASSETS = [
   { symbol: 'ALIZF', name: 'Allianz',            type: 'stock', source: 'finnhub' },
   { symbol: 'BAYZF', name: 'Bayer',              type: 'stock', source: 'finnhub' },
   { symbol: 'RACE', name: 'Ferrari', type: 'stock', source: 'finnhub' },
-  { symbol: 'ORAN', name: 'Orange S.A.',           type: 'stock', source: 'finnhub' },
+  { symbol: 'ORAN', name: 'Orange S.A.',           type: 'stock', source: 'yahoo'   },
   // ── Índices y ETFs ────────────────────────────────────────────────
   { symbol: 'SPY',   name: 'S&P 500',            type: 'index', source: 'finnhub' },
   { symbol: 'QQQ',   name: 'NASDAQ 100',         type: 'index', source: 'finnhub' },
@@ -340,6 +340,21 @@ async function getPrice(asset) {
         price:     coin.usd,
         change:    coin.usd_24h_change,
         prevClose: coin.usd / (1 + coin.usd_24h_change / 100),
+      };
+    } else if (asset.source === 'yahoo') {
+      const yahooQuoteMap = { 'ORAN': 'ORA.PA', 'IDEXY': 'ITX.MC', 'ALIZF': 'ALV.DE', 'BAYZF': 'BAYN.DE' };
+      const yahooSym = yahooQuoteMap[asset.symbol] || asset.symbol;
+      const q = await yf.quote(yahooSym);
+      const price     = q.regularMarketPrice || q.regularMarketPreviousClose || 0;
+      const prevClose = q.regularMarketPreviousClose || price;
+      const change    = prevClose ? ((price - prevClose) / prevClose) * 100 : 0;
+      return {
+        symbol:    asset.symbol,
+        name:      asset.name,
+        type:      asset.type,
+        price,
+        change,
+        prevClose,
       };
     } else {
       const res  = await fetch(`https://finnhub.io/api/v1/quote?symbol=${asset.symbol}&token=${FINNHUB_KEY}`);
