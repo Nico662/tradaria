@@ -14,8 +14,8 @@ import UserAvatar, { AVATAR_EMOJIS } from './UserAvatar.jsx';
 import { incrementMission, recordModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
 
-export default function Tournament({ onBack, onViewProfile }) {
-  const { user, syncProgress, activeCosmetics } = useAuth();
+export default function Tournament({ onBack, onViewProfile, onGoPricing }) {
+  const { user, syncProgress, activeCosmetics, isPro } = useAuth();
   const { t, lang } = useLang();
   const [activeEffect, setActiveEffect] = useState(false);
   function triggerEffect() { setActiveEffect(true); setTimeout(() => setActiveEffect(false), 1500); }
@@ -65,6 +65,7 @@ export default function Tournament({ onBack, onViewProfile }) {
 
   async function joinPaidTournament(tournamentId) {
     if (!user) return;
+    if (!isPro) { onGoPricing?.(); return; }
     setJoiningId(tournamentId);
     try {
       const token = localStorage.getItem('tradara_token');

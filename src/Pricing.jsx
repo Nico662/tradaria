@@ -20,7 +20,7 @@ const PRO_FEATURES = [
   'Estadísticas avanzadas (próximamente)',
 ];
 
-export default function Pricing({ onBack }) {
+export default function Pricing({ onBack, fromTournament }) {
   const { user, isPro } = useAuth();
   const [loading, setLoading] = useState(false);
   const [msg, setMsg]         = useState('');
@@ -59,6 +59,15 @@ export default function Pricing({ onBack }) {
             Planes
           </div>
         </div>
+
+        {fromTournament && !isPro && (
+          <div style={{ marginBottom: '20px', padding: '14px 16px', background: 'rgba(245,200,66,0.08)', border: '1px solid #f5c842', borderRadius: '8px' }}>
+            <div style={{ fontSize: '12px', color: '#f5c842', fontFamily: "'Space Mono', monospace", fontWeight: 700, marginBottom: '4px' }}>🏆 Torneos de Pago</div>
+            <div style={{ fontSize: '11px', color: 'var(--t4)', lineHeight: 1.5 }}>
+              Los torneos de pago son una función exclusiva de Tradara Pro. Hazte Pro para poder unirte y competir por premios reales.
+            </div>
+          </div>
+        )}
 
         {isPro && (
           <div style={{ marginBottom: '20px', padding: '12px 16px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '8px', textAlign: 'center' }}>

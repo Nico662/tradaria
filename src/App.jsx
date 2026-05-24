@@ -84,6 +84,7 @@ export default function App() {
   const gameStartRef     = useRef(Date.now());
   const wonCatsRef       = useRef(new Set());
   const [chartReady, setChartReady] = useState(false);
+  const [pricingFromTournament, setPricingFromTournament] = useState(false);
 
   const { syncProgress, activeCosmetics = {}, user, checkLevelUp } = useAuth();
   const { lang, setLang, t } = useLang();
@@ -598,13 +599,13 @@ export default function App() {
       {challengeOverlay}
     </>
   );
-  if (screen === 'pricing')    return <><Pricing    onBack={() => setScreen('home')} />{challengeOverlay}</>;
+  if (screen === 'pricing')    return <><Pricing    onBack={() => { setScreen('home'); setPricingFromTournament(false); }} fromTournament={pricingFromTournament} />{challengeOverlay}</>;
   if (screen === 'legal')      return <><Legal      onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'badges')     return <><Badges     onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'stats')      return <><Stats      onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'daily')      return <><Daily      onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'historical') return <><Historical onBack={() => setScreen('home')} />{challengeOverlay}</>;
-  if (screen === 'tournament') return <><Tournament onBack={() => setScreen('home')} onViewProfile={(uname) => { setPublicProfileUsername(uname); setScreen('public_profile'); window.history.pushState({}, '', `/u/${uname}`); }} />{challengeOverlay}</>;
+  if (screen === 'tournament') return <><Tournament onBack={() => setScreen('home')} onViewProfile={(uname) => { setPublicProfileUsername(uname); setScreen('public_profile'); window.history.pushState({}, '', `/u/${uname}`); }} onGoPricing={() => { setPricingFromTournament(true); setScreen('pricing'); }} />{challengeOverlay}</>;
   if (screen === 'survival')   return <><Survival   onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'shop')       return <><Shop       onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'settings')   return <><Settings   onBack={() => setScreen('home')} />{challengeOverlay}</>;
