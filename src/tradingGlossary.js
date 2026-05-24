@@ -166,6 +166,7 @@ export const GLOSSARY = [
       de: 'Stops unter wichtigen Tiefs. Der Markt tendiert dazu, diese zu suchen, bevor er nach oben abprallt.',
     },
     emoji: '⬇️',
+    chartId: 'sellside_liquidity',
     example: {
       en: 'After sweeping SSL below the daily low, price reversed and gained 2%.',
       es: 'Tras barrer la SSL bajo el mínimo diario, el precio revirtió y ganó un 2%.',

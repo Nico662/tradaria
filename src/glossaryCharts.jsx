@@ -573,6 +573,83 @@ function BuysideLiquidityChart() {
   );
 }
 
+// ─── Sellside Liquidity Chart ────────────────────────────────────────────────
+
+function SellsideLiquidityChart() {
+  // price range 120–172, y range 12–148  (scale 2.615 px/unit)
+  const py = p => 12 + (172 - p) * 136 / 52;
+
+  const sslLevel = 134;
+  const sslY     = py(sslLevel);
+
+  const candles = [
+    // Drop that creates the swing low at SSL
+    { x: 14,  O: 164, H: 170, L: 158, C: 160 },
+    { x: 27,  O: 160, H: 162, L: 149, C: 151 },
+    { x: 40,  O: 151, H: 153, L: 134, C: 138, bw: 10 }, // swing low — wick at SSL
+    // Consolidation above SSL (stops accumulate below)
+    { x: 53,  O: 138, H: 147, L: 136, C: 144 },
+    { x: 66,  O: 144, H: 149, L: 141, C: 143 },
+    { x: 79,  O: 143, H: 147, L: 138, C: 140 },
+    { x: 92,  O: 140, H: 145, L: 136, C: 142 },
+    { x: 105, O: 142, H: 145, L: 136, C: 138 }, // pressing toward SSL
+    // Sweep — wick dips below SSL, body closes above
+    { x: 118, O: 137, H: 140, L: 123, C: 135, bw: 10 },
+    // Reversal after stops cleared
+    { x: 131, O: 135, H: 147, L: 133, C: 145 },
+    { x: 144, O: 145, H: 157, L: 143, C: 155, bw: 10 },
+    { x: 157, O: 155, H: 164, L: 153, C: 162, bw: 10 },
+  ];
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="#060b10" rx="8" />
+
+      {/* Grid */}
+      {[40, 65, 90, 115, 140].map(y => (
+        <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
+      ))}
+
+      {/* Liquidity pool shading below SSL */}
+      <rect x="4" y={sslY} width="180" height="15" fill="#f5c8420c" />
+
+      {/* SSL level line */}
+      <line x1="4" y1={sslY} x2="182" y2={sslY} stroke="#f5c842" strokeWidth="1" strokeDasharray="4 2.5" opacity="0.65" />
+
+      {/* Candles */}
+      {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
+        const bull  = C >= O;
+        const col   = bull ? '#22d3a5' : '#e05555';
+        const bodyY = py(Math.max(O, C));
+        const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="1" opacity="0.75" />
+            <rect x={x - bw / 2} y={bodyY} width={bw} height={bodyH} fill={col} rx="0.5" opacity="0.95" />
+          </g>
+        );
+      })}
+
+      {/* "stops below" label inside the liquidity zone */}
+      <text x="8" y={sslY + 11} fontFamily="'Space Mono', monospace" fontSize="4.8" fill="#f5c842" opacity="0.55" letterSpacing="0.08em">stops below</text>
+
+      {/* SSL label — right side */}
+      <text x="182" y={sslY - 3} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="8" fontWeight="bold" fill="#f5c842" opacity="0.9">SSL</text>
+
+      {/* Sweep annotation above sweep candle */}
+      <text x="118" y="9" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#f5c842" opacity="0.9">↓ sweep</text>
+      <line x1="118" y1="11" x2="118" y2="15" stroke="#f5c842" strokeWidth="0.6" opacity="0.4" />
+
+      {/* Reversal annotation above reversal candles */}
+      <text x="148" y="9" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#22d3a5" opacity="0.9">↑ reversal</text>
+      <line x1="144" y1="11" x2="144" y2="15" stroke="#22d3a5" strokeWidth="0.6" opacity="0.4" />
+
+      {/* Watermark */}
+      <text x="6" y="154" fontFamily="'Space Mono', monospace" fontSize="5" fill="#172030" letterSpacing="0.1em">SELL-SIDE LIQUIDITY</text>
+    </svg>
+  );
+}
+
 // ─── exports ────────────────────────────────────────────────────────────────
 
 export const CHARTS = {
@@ -583,4 +660,5 @@ export const CHARTS = {
   daily_bias:         DailyBiasChart,
   premium_discount:   PremiumDiscountChart,
   buyside_liquidity:  BuysideLiquidityChart,
+  sellside_liquidity: SellsideLiquidityChart,
 };
