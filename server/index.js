@@ -1411,6 +1411,41 @@ cron.schedule('0 7 * * *', async () => {
   }
 });
 
+cron.schedule('0 20 * * *', async () => {
+  console.log('Sending streak danger notifications...');
+  const today = new Date().toISOString().split('T')[0];
+
+  const usersAtRisk = await User.find({
+    dailyStreak: { $gt: 0 },
+    $or: [
+      { lastPlayed: { $ne: today } },
+      { lastPlayed: null }
+    ]
+  });
+
+  for (const user of usersAtRisk) {
+    try {
+      const subRaw = await redis.get(`push_user_sub:${user._id}`);
+      if (!subRaw) continue;
+      const sub = JSON.parse(subRaw);
+
+      const payload = JSON.stringify({
+        title: '⚡ Tu racha está en peligro',
+        body:  `Llevas ${user.dailyStreak} días seguidos. Te quedan 3 horas para mantenerla.`,
+        url:   'https://tradara.dev',
+      });
+
+      await webpush.sendNotification(sub, payload).catch(async err => {
+        if (err.statusCode === 410) await redis.del(`push_user_sub:${user._id}`);
+      });
+    } catch (e) {
+      console.error('Streak danger notification error:', e.message);
+    }
+  }
+
+  console.log(`Streak danger notifications sent to ${usersAtRisk.length} users`);
+});
+
 cron.schedule('0 0 * * *', async () => {
   const today = new Date().toISOString().split('T')[0];
   const expiredDuels = await PortfolioDuel.find({ status: 'active', endDate: { $lte: today } });
@@ -1862,6 +1897,54 @@ app.post('/portfolio/snapshot', async (req, res) => {
       { upsert: true }
     );
     res.json({ ok: true });
+
+    // Check if user has surpassed someone in the leaderboard
+    try {
+      const weekId = getWeekId();
+
+      const allPortfolios = await Portfolio.find({}).populate('userId', 'name username avatar');
+      const prices = {};
+      for (const asset of PORTFOLIO_ASSETS) {
+        try {
+          const cached = await redis.get(`price_v2:${asset.symbol}`);
+          if (cached) prices[asset.symbol] = (typeof cached === 'string' ? JSON.parse(cached) : cached).price;
+        } catch {}
+      }
+
+      const ranking = allPortfolios.map(p => {
+        const invested   = p.positions.reduce((s, pos) => s + (prices[pos.symbol] || pos.avgPrice) * pos.qty, 0);
+        const totalValue = p.cash + invested;
+        const returnPct  = ((totalValue - 50000) / 50000) * 100;
+        return { userId: p.userId?._id, name: p.userId?.username || p.userId?.name, totalValue, returnPct };
+      }).filter(p => p.userId).sort((a, b) => b.returnPct - a.returnPct);
+
+      const myRank = ranking.findIndex(r => r.userId.toString() === decoded.id.toString());
+      const myData = ranking[myRank];
+
+      if (myRank > 0) {
+        const surpassedUser = ranking[myRank - 1];
+        const prevRankKey   = `prev_rank:${decoded.id}`;
+        const prevRank      = parseInt(await redis.get(prevRankKey) || '999');
+
+        if (myRank < prevRank && surpassedUser.userId) {
+          const subRaw = await redis.get(`push_user_sub:${surpassedUser.userId}`);
+          if (subRaw) {
+            const sub     = JSON.parse(subRaw);
+            const myName  = `@${myData.name}`;
+            const payload = JSON.stringify({
+              title: '📉 Te han superado en el ranking',
+              body:  `${myName} te ha superado. Su portfolio: ${myData.returnPct >= 0 ? '+' : ''}${myData.returnPct.toFixed(1)}% · El tuyo: ${surpassedUser.returnPct >= 0 ? '+' : ''}${surpassedUser.returnPct.toFixed(1)}%`,
+              url:   'https://tradara.dev',
+            });
+            await webpush.sendNotification(sub, payload).catch(() => {});
+          }
+        }
+
+        await redis.set(`prev_rank:${decoded.id}`, myRank.toString(), { ex: 86400 });
+      }
+    } catch (e) {
+      console.error('Leaderboard notification error:', e.message);
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
