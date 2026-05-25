@@ -196,6 +196,7 @@ export const GLOSSARY = [
       es: 'BOS sigue la tendencia (continuación); CHoCH va en contra (reversión). En alcista, BOS = precio rompe un máximo anterior.',
       de: 'BOS folgt dem Trend (Fortsetzung); CHoCH geht dagegen (Umkehr).',
     },
+    chartId: 'bos',
   },
   {
     word: { en: 'Liquidity Sweep', es: 'Barrido de Liquidez', de: 'Liquiditäts-Sweep' },

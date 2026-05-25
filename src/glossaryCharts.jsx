@@ -650,6 +650,93 @@ function SellsideLiquidityChart() {
   );
 }
 
+// ─── Break of Structure Chart ────────────────────────────────────────────────
+
+function BOSChart() {
+  const py = p => 14 + (165 - p) * 134 / 45;
+
+  const bosLevel = 140;
+  const bosY     = py(bosLevel);
+
+  const candles = [
+    { x: 14,  O: 123, H: 127, L: 120, C: 125 },
+    { x: 27,  O: 125, H: 132, L: 123, C: 130 },
+    { x: 40,  O: 130, H: 140, L: 128, C: 137, bw: 10 }, // HH1 — creates BOS level
+    { x: 53,  O: 137, H: 140, L: 130, C: 132 },          // pullback (HL)
+    { x: 66,  O: 132, H: 135, L: 129, C: 134 },
+    { x: 80,  O: 134, H: 138, L: 132, C: 136 },
+    { x: 94,  O: 136, H: 150, L: 135, C: 148, bw: 10 }, // BOS — breaks above 140
+    { x: 108, O: 148, H: 155, L: 146, C: 152 },
+    { x: 122, O: 152, H: 160, L: 150, C: 157 },
+    { x: 136, O: 157, H: 164, L: 155, C: 162 },
+  ];
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="#060b10" rx="8" />
+
+      {/* Grid */}
+      {[40, 65, 90, 115, 140].map(y => (
+        <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
+      ))}
+
+      {/* Prior HH level — resistance until break, then flips to support */}
+      <line x1="36" y1={bosY} x2="91" y2={bosY} stroke="#e05555" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.65" />
+      <line x1="91" y1={bosY} x2="182" y2={bosY} stroke="#22d3a5" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.25" />
+
+      {/* Candles */}
+      {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
+        const bull  = C >= O;
+        const col   = bull ? '#22d3a5' : '#e05555';
+        const bodyY = py(Math.max(O, C));
+        const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="1" opacity="0.75" />
+            <rect x={x - bw / 2} y={bodyY} width={bw} height={bodyH} fill={col} rx="0.5" opacity="0.95" />
+          </g>
+        );
+      })}
+
+      {/* HH label above swing-high candle */}
+      <text
+        x="40" y={py(142)}
+        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        fontSize="5.5" fill="#e05555" opacity="0.8"
+      >HH</text>
+
+      {/* HL label below pullback candle */}
+      <text
+        x="53" y={py(128) + 1}
+        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        fontSize="5.5" fill="#22d3a5" opacity="0.7"
+      >HL</text>
+
+      {/* Prior HH label just before BOS candle */}
+      <text
+        x="90" y={bosY - 3}
+        textAnchor="end" fontFamily="'Space Mono', monospace"
+        fontSize="4.8" fill="#e05555" opacity="0.55"
+      >prior HH</text>
+
+      {/* ↑ BOS annotation above breakout candle */}
+      <text
+        x="94" y="11"
+        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        fontSize="5.5" fill="#22d3a5" opacity="0.9"
+      >↑ BOS</text>
+      <line x1="94" y1="13" x2="94" y2="17" stroke="#22d3a5" strokeWidth="0.6" opacity="0.4" />
+
+      {/* Watermark */}
+      <text
+        x="6" y="154"
+        fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#172030" letterSpacing="0.1em"
+      >BULLISH BOS</text>
+    </svg>
+  );
+}
+
 // ─── exports ────────────────────────────────────────────────────────────────
 
 export const CHARTS = {
@@ -661,4 +748,5 @@ export const CHARTS = {
   premium_discount:   PremiumDiscountChart,
   buyside_liquidity:  BuysideLiquidityChart,
   sellside_liquidity: SellsideLiquidityChart,
+  bos:                BOSChart,
 };
