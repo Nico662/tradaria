@@ -15,7 +15,7 @@ import { incrementMission, recordModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
 
 export default function Tournament({ onBack, onViewProfile, onGoPricing }) {
-  const { user, syncProgress, activeCosmetics, isPro } = useAuth();
+  const { user, syncProgress, activeCosmetics } = useAuth();
   const { t, lang } = useLang();
   const [activeEffect, setActiveEffect] = useState(false);
   function triggerEffect() { setActiveEffect(true); setTimeout(() => setActiveEffect(false), 1500); }
@@ -65,7 +65,6 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing }) {
 
   async function joinPaidTournament(tournamentId) {
     if (!user) return;
-    if (!isPro) { onGoPricing?.(); return; }
     setJoiningId(tournamentId);
     try {
       const token = localStorage.getItem('tradara_token');
