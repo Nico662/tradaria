@@ -564,16 +564,44 @@ function AcademyDashboard({ academyId, onBack }) {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {tournaments.map(t => {
-                const { label, color } = tournamentStatus(t);
+                const status     = tournamentStatus(t);
+                const isActive   = status.label === 'activo';
+                const isFinished = status.label === 'finalizado';
+                const badgeLabel = isActive ? 'EN CURSO' : isFinished ? 'FINALIZADO' : 'PRÓXIMO';
+
+                const entries = (t.participants || [])
+                  .map(p => {
+                    const s = students.find(st => String(st.id) === String(p.userId));
+                    return { name: s?.name || '—', score: p.score || 0, gamesPlayed: p.gamesPlayed || 0 };
+                  })
+                  .sort((a, b) => b.score - a.score);
+
+                const showBoard = (isActive || isFinished) && entries.length > 0;
+
                 return (
                   <div key={t._id} style={{
                     background: 'var(--bg-card)', border: '1px solid var(--bd)',
-                    borderRadius: '8px', padding: '12px 14px',
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
+                    borderRadius: '8px', overflow: 'hidden',
                   }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '13px', color: 'var(--t1)', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {t.name}
+                    {/* Header */}
+                    <div style={{ padding: '12px 14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                        <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '13px', color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '60%' }}>
+                          {t.name}
+                        </span>
+                        <span style={{
+                          fontFamily: "'Space Mono', monospace", fontSize: '8px', fontWeight: 700,
+                          letterSpacing: '0.08em', padding: '3px 7px', borderRadius: '4px',
+                          color: status.color, background: `${status.color}18`,
+                          border: `1px solid ${status.color}40`, flexShrink: 0,
+                        }}>
+                          {badgeLabel}
+                        </span>
+                        {isFinished && (
+                          <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'var(--t5)', flexShrink: 0 }}>
+                            {new Date(t.endsAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </span>
+                        )}
                       </div>
                       <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t5)' }}>
                         {new Date(t.startsAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
@@ -582,14 +610,98 @@ function AcademyDashboard({ academyId, onBack }) {
                         {' · '}{t.participants?.length || 0} participantes
                       </div>
                     </div>
-                    <span style={{
-                      fontFamily: "'Space Mono', monospace", fontSize: '8px', fontWeight: 700,
-                      letterSpacing: '0.08em', padding: '3px 8px', borderRadius: '4px',
-                      color, background: `${color}18`, border: `1px solid ${color}40`,
-                      flexShrink: 0,
-                    }}>
-                      {label.toUpperCase()}
-                    </span>
+
+                    {/* Podium — finished only */}
+                    {isFinished && entries.length > 0 && (
+                      <div style={{ borderTop: '1px solid var(--bd)', padding: '12px 14px 10px' }}>
+                        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px' }}>
+                          Podio
+                        </div>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          {entries.slice(0, 3).map((e, i) => (
+                            <div key={i} style={{
+                              flex: 1, padding: '9px 8px', textAlign: 'center',
+                              background: i === 0 ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.015)',
+                              border: `1px solid ${i === 0 ? 'rgba(255,255,255,0.1)' : 'var(--bd)'}`,
+                              borderRadius: '6px',
+                            }}>
+                              <div style={{
+                                fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700,
+                                color: i === 0 ? 'var(--t2)' : i === 1 ? 'var(--t3)' : 'var(--t4)',
+                                marginBottom: '4px',
+                              }}>
+                                {i + 1}º
+                              </div>
+                              <div style={{
+                                fontFamily: "'Syne', sans-serif", fontWeight: 700,
+                                fontSize: '11px', color: i === 0 ? 'var(--t1)' : 'var(--t3)',
+                                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                              }}>
+                                {e.name}
+                              </div>
+                              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t5)', marginTop: '3px' }}>
+                                {e.score} pts
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Full leaderboard */}
+                    {showBoard && (
+                      <div style={{ borderTop: '1px solid var(--bd)' }}>
+                        <div style={{
+                          display: 'grid', gridTemplateColumns: '26px 1fr 52px 48px',
+                          gap: '8px', padding: '7px 14px',
+                          borderBottom: '1px solid var(--bd)',
+                        }}>
+                          {['#', 'Nombre', 'Score', 'Part.'].map((h, i) => (
+                            <div key={i} style={{
+                              fontFamily: "'Space Mono', monospace", fontSize: '8px',
+                              color: 'var(--t6)', letterSpacing: '0.08em',
+                              textAlign: i === 0 || i >= 2 ? 'center' : 'left',
+                            }}>
+                              {h}
+                            </div>
+                          ))}
+                        </div>
+                        {entries.map((e, i) => (
+                          <div key={i} style={{
+                            display: 'grid', gridTemplateColumns: '26px 1fr 52px 48px',
+                            gap: '8px', padding: '9px 14px', alignItems: 'center',
+                            borderBottom: i < entries.length - 1 ? '1px solid var(--bd)' : 'none',
+                            background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.012)',
+                          }}>
+                            <div style={{
+                              fontFamily: "'Space Mono', monospace", fontSize: '10px',
+                              color: i === 0 ? 'var(--t2)' : 'var(--t5)',
+                              textAlign: 'center', fontWeight: i === 0 ? 700 : 400,
+                            }}>
+                              {i + 1}
+                            </div>
+                            <div style={{
+                              fontFamily: "'Space Mono', monospace", fontSize: '11px',
+                              color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                            }}>
+                              {e.name}
+                            </div>
+                            <div style={{
+                              fontFamily: "'Space Mono', monospace", fontSize: '10px',
+                              color: '#22d3a5', textAlign: 'center', fontWeight: 700,
+                            }}>
+                              {e.score}
+                            </div>
+                            <div style={{
+                              fontFamily: "'Space Mono', monospace", fontSize: '10px',
+                              color: 'var(--t4)', textAlign: 'center',
+                            }}>
+                              {e.gamesPlayed}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               })}
