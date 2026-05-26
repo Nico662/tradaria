@@ -65,6 +65,8 @@ router.post('/join', requireAuth, async (req, res) => {
       return res.status(403).json({ error: 'Academia llena' });
 
     const userId = req.user._id.toString();
+    if (academy.ownerId.toString() === userId)
+      return res.status(409).json({ error: 'Ya eres el propietario de esta academia' });
     if (academy.students.some(s => s.toString() === userId))
       return res.status(409).json({ error: 'Ya eres miembro de esta academia' });
 
@@ -201,12 +203,9 @@ router.post('/:id/tournament/:tournamentId/score', requireAuth, async (req, res)
 
     const uid = req.user._id;
     const idx = tournament.participants.findIndex(p => p.userId.toString() === uid.toString());
-    if (idx === -1) {
-      tournament.participants.push({ userId: uid, score, gamesPlayed: 1 });
-    } else {
-      tournament.participants[idx].gamesPlayed += 1;
-      if (score > tournament.participants[idx].score) tournament.participants[idx].score = score;
-    }
+    if (idx !== -1)
+      return res.status(409).json({ error: 'Ya has jugado este torneo', alreadyPlayed: true });
+    tournament.participants.push({ userId: uid, score, gamesPlayed: 1 });
     await tournament.save();
     res.json({ ok: true });
   } catch (err) { res.status(500).json({ error: err.message }); }

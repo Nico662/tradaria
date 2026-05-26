@@ -50,6 +50,9 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
   }, [String(academyId)]);
 
   const myId = String(user?._id || user?.id || '');
+  const alreadyPlayedTournament = tournament
+    ? (tournament.participants || []).some(p => String(p.userId?._id || p.userId) === myId)
+    : false;
 
   if (loading) return (
     <div id="gtm-root" style={{ background: 'var(--bg-page)' }}>
@@ -239,18 +242,33 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
 
               {/* Play button */}
               <div style={{ padding: '14px 16px', borderTop: '1px solid var(--bd)' }}>
-                <button
-                  onClick={() => onPlayTournament && onPlayTournament(String(academyId), String(tournament._id))}
-                  style={{
-                    width: '100%', padding: '12px',
-                    background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5',
-                    borderRadius: '8px', color: '#22d3a5',
-                    fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700,
-                    letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer',
-                  }}
-                >
-                  🏆 Jugar torneo
-                </button>
+                {alreadyPlayedTournament ? (
+                  <button
+                    onClick={() => onPlayTournament && onPlayTournament(String(academyId), String(tournament._id))}
+                    style={{
+                      width: '100%', padding: '12px',
+                      background: 'transparent', border: '1px solid rgba(34,211,165,0.3)',
+                      borderRadius: '8px', color: 'var(--t4)',
+                      fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700,
+                      letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer',
+                    }}
+                  >
+                    ✓ Ya jugaste — Ver resultados
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => onPlayTournament && onPlayTournament(String(academyId), String(tournament._id))}
+                    style={{
+                      width: '100%', padding: '12px',
+                      background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5',
+                      borderRadius: '8px', color: '#22d3a5',
+                      fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700,
+                      letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer',
+                    }}
+                  >
+                    🏆 Jugar torneo
+                  </button>
+                )}
               </div>
             </div>
           )}

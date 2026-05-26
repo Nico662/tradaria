@@ -94,7 +94,21 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
 
   async function init() {
     if (!user) { setPhase('login'); return; }
-    if (!academyTournamentId) {
+    if (academyTournamentId && academyId) {
+      const token = localStorage.getItem('tradara_token');
+      const tourRes  = await fetch(`${SERVER}/academy/${academyId}/tournament/active`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const tourData = await tourRes.json();
+      if (tourData.active) {
+        setAcademyTournamentData(tourData.tournament);
+        const myId = String(user._id || user.id || '');
+        const alreadyPlayed = (tourData.tournament.participants || []).some(
+          p => String(p.userId?._id || p.userId) === myId
+        );
+        if (alreadyPlayed) { setPhase('already_played'); return; }
+      }
+    } else {
       const token = localStorage.getItem('tradara_token');
       const playedRes = await fetch(`${SERVER}/tournament/played`, {
         headers: { Authorization: `Bearer ${token}` },
