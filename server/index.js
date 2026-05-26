@@ -59,16 +59,29 @@ const redis = new Redis({
 });
 
 // ── MongoDB ───────────────────────────────────────────────────────
-mongoose.connect(MONGODB_URI)
+mongoose.connect(MONGODB_URI, { autoIndex: false })
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB error:', err));
 
 mongoose.connection.once('open', async () => {
   try {
-    await mongoose.connection.collection('users').dropIndex('username_1');
-    console.log('Índice username_1 dropeado — se recreará con sparse');
+    const collection = mongoose.connection.collection('users');
+
+    try {
+      await collection.dropIndex('username_1');
+      console.log('Índice username_1 antiguo eliminado');
+    } catch (e) {
+      console.log('No había índice username_1 previo');
+    }
+
+    await collection.createIndex(
+      { username: 1 },
+      { unique: true, sparse: true, name: 'username_1' }
+    );
+    console.log('Índice username_1 creado correctamente con sparse');
+
   } catch (e) {
-    console.log('Índice username_1 no existía, continuando');
+    console.error('Error gestionando índice username:', e);
   }
 });
 
@@ -93,7 +106,7 @@ const UserSchema = new mongoose.Schema({
   },
   createdAt: { type: Date, default: Date.now },
   lastLogin: { type: Date, default: Date.now },
-  username:        { type: String, unique: true, sparse: true },
+  username:        { type: String, default: null },
   customAvatar:    { type: String, default: null },
   activeCosmetics: { type: mongoose.Schema.Types.Mixed, default: {} },
   portfolioTutorialSeen: { type: Boolean, default: false },
