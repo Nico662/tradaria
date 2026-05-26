@@ -187,6 +187,31 @@ router.get('/:id/export', requireTeacher, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ── POST /academy/:id/tournament/:tournamentId/score ─────────────
+router.post('/:id/tournament/:tournamentId/score', requireAuth, async (req, res) => {
+  try {
+    const { score } = req.body;
+    if (typeof score !== 'number') return res.status(400).json({ error: 'score requerido' });
+
+    const tournament = await AcademyTournament.findOne({
+      _id:       req.params.tournamentId,
+      academyId: req.params.id,
+    });
+    if (!tournament) return res.status(404).json({ error: 'Torneo no encontrado' });
+
+    const uid = req.user._id;
+    const idx = tournament.participants.findIndex(p => p.userId.toString() === uid.toString());
+    if (idx === -1) {
+      tournament.participants.push({ userId: uid, score, gamesPlayed: 1 });
+    } else {
+      tournament.participants[idx].gamesPlayed += 1;
+      if (score > tournament.participants[idx].score) tournament.participants[idx].score = score;
+    }
+    await tournament.save();
+    res.json({ ok: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // ── GET /academy/:id/tournament/active ───────────────────────────
 router.get('/:id/tournament/active', requireAuth, async (req, res) => {
   try {

@@ -14,7 +14,7 @@ import UserAvatar, { AVATAR_EMOJIS } from './UserAvatar.jsx';
 import { incrementMission, recordModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
 
-export default function Tournament({ onBack, onViewProfile, onGoPricing }) {
+export default function Tournament({ onBack, onViewProfile, onGoPricing, academyTournamentId = null, academyId = null }) {
   const { user, syncProgress, activeCosmetics } = useAuth();
   const { t, lang } = useLang();
   const [activeEffect, setActiveEffect] = useState(false);
@@ -81,16 +81,18 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing }) {
 
   async function init() {
     if (!user) { setPhase('login'); return; }
-    const token = localStorage.getItem('tradara_token');
-    const playedRes = await fetch(`${SERVER}/tournament/played`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const playedData = await playedRes.json();
-    if (playedData.played) {
-      setAlreadyScore(playedData.score);
-      await loadLeaderboard();
-      setPhase('already_played');
-      return;
+    if (!academyTournamentId) {
+      const token = localStorage.getItem('tradara_token');
+      const playedRes = await fetch(`${SERVER}/tournament/played`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const playedData = await playedRes.json();
+      if (playedData.played) {
+        setAlreadyScore(playedData.score);
+        await loadLeaderboard();
+        setPhase('already_played');
+        return;
+      }
     }
     const res  = await fetch(`${SERVER}/tournament`);
     const data = await res.json();
@@ -154,11 +156,19 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing }) {
       const token = localStorage.getItem('tradara_token');
       const cosmetics = JSON.parse(localStorage.getItem('tradara_cosmetics') || '{}');
       const cosmeticAvatar = cosmetics.avatar ? AVATAR_EMOJIS[cosmetics.avatar] : null;
-      await fetch(`${SERVER}/tournament/score`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ score: finalScore, rounds: history, cosmeticAvatar }),
-      });
+      if (academyTournamentId && academyId) {
+        await fetch(`${SERVER}/academy/${academyId}/tournament/${academyTournamentId}/score`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ score: finalScore }),
+        });
+      } else {
+        await fetch(`${SERVER}/tournament/score`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ score: finalScore, rounds: history, cosmeticAvatar }),
+        });
+      }
       const xpGained = Math.floor(finalScore / 10);
       const newXP = addXP(xpGained);
       const badges = JSON.parse(localStorage.getItem('tradara_badges') || '[]');

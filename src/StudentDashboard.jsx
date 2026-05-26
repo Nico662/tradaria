@@ -17,7 +17,7 @@ function Medal({ pos }) {
   return <span style={{ color: 'var(--t5)' }}>#{pos}</span>;
 }
 
-export default function StudentDashboard({ onBack }) {
+export default function StudentDashboard({ onBack, onPlayTournament }) {
   const { user } = useAuth();
   const tok        = localStorage.getItem('tradara_token');
   const academyId  = user?.academyId;
@@ -236,6 +236,22 @@ export default function StudentDashboard({ onBack }) {
                     );
                   })
               )}
+
+              {/* Play button */}
+              <div style={{ padding: '14px 16px', borderTop: '1px solid var(--bd)' }}>
+                <button
+                  onClick={() => onPlayTournament && onPlayTournament(String(academyId), String(tournament._id))}
+                  style={{
+                    width: '100%', padding: '12px',
+                    background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5',
+                    borderRadius: '8px', color: '#22d3a5',
+                    fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700,
+                    letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer',
+                  }}
+                >
+                  🏆 Jugar torneo
+                </button>
+              </div>
             </div>
           )}
         </div>
