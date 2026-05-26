@@ -137,6 +137,15 @@ export default function Home({ onSelect }) {
                 🏫 Academia
               </button>
             )}
+            {user && user.role !== 'teacher' && !user.academyId && (
+              <button onClick={() => onSelect('join_academy')}
+                style={{ background: 'rgba(34,211,165,0.07)', border: '1px solid rgba(34,211,165,0.35)', borderRadius: '6px', padding: '4px 9px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '8px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(34,211,165,0.14)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'rgba(34,211,165,0.07)'}
+              >
+                + Academia
+              </button>
+            )}
           </div>
 
           {isPro ? (
