@@ -36,6 +36,7 @@ import MissionNotification from './MissionNotification.jsx';
 import Settings from './Settings.jsx';
 import JoinAcademy from './JoinAcademy.jsx';
 import TeacherDashboard from './TeacherDashboard.jsx';
+import StudentDashboard from './StudentDashboard.jsx';
 
 
 const CATEGORIES = [
@@ -584,8 +585,9 @@ export default function App() {
           else if (mode === 'friends')   setScreen('friends');
           else if (mode === 'settings')  setScreen('settings');
           else if (mode === 'pricing')          setScreen('pricing');
-          else if (mode === 'join_academy')     setScreen('join_academy');
+          else if (mode === 'join_academy')      setScreen('join_academy');
           else if (mode === 'teacher_dashboard') setScreen('teacher_dashboard');
+          else if (mode === 'student_dashboard') setScreen('student_dashboard');
           else {
             setScreen('game');
             if (!localStorage.getItem('tradara_tutorial_done')) setShowTutorial(true);
@@ -615,7 +617,8 @@ export default function App() {
   if (screen === 'settings')   return <><Settings   onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'portfolio')  return <><Portfolio  onBack={() => setScreen('home')} onViewProfile={(uname) => { setPublicProfileUsername(uname); setScreen('public_profile'); window.history.pushState({}, '', `/u/${uname}`); }} onOpenLeague={(id) => { setLeagueId(id); setScreen('league'); }} />{challengeOverlay}</>;
   if (screen === 'league')          return <><League leagueId={leagueId} onBack={() => setScreen('portfolio')} />{challengeOverlay}</>;
-  if (screen === 'join_academy')    return <JoinAcademy onBack={() => setScreen('home')} />;
+  if (screen === 'join_academy')     return <JoinAcademy onBack={() => setScreen('home')} />;
+  if (screen === 'student_dashboard') return <StudentDashboard onBack={() => setScreen('home')} />;
   if (screen === 'teacher_dashboard') return user?.role === 'teacher'
     ? <TeacherDashboard academyId={String(user.academyId)} onBack={() => setScreen('home')} />
     : null;

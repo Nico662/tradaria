@@ -92,15 +92,17 @@ router.get('/preview', async (req, res) => {
 });
 
 // ── GET /academy/:id/dashboard ────────────────────────────────────
-router.get('/:id/dashboard', requireTeacher, async (req, res) => {
+router.get('/:id/dashboard', requireAuth, async (req, res) => {
   if (!req.params.id || req.params.id === 'null' || req.params.id === 'undefined') {
     return res.status(400).json({ error: 'Academy ID no válido' });
   }
   try {
     const academy = await Academy.findById(req.params.id).populate('students', 'name email dailyStreak lastLogin');
     if (!academy) return res.status(404).json({ error: 'Academia no encontrada' });
-    if (academy.ownerId.toString() !== req.user._id.toString())
-      return res.status(403).json({ error: 'No autorizado' });
+    const uid      = req.user._id.toString();
+    const isOwner  = academy.ownerId.toString() === uid;
+    const isMember = academy.students.some(s => s._id.toString() === uid);
+    if (!isOwner && !isMember) return res.status(403).json({ error: 'No autorizado' });
 
     const GameHistory = mongoose.model('GameHistory');
 
@@ -182,6 +184,20 @@ router.get('/:id/export', requireTeacher, async (req, res) => {
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="alumnos-${academy.slug}.csv"`);
     res.send(csv);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── GET /academy/:id/tournament/active ───────────────────────────
+router.get('/:id/tournament/active', requireAuth, async (req, res) => {
+  try {
+    const now        = new Date();
+    const tournament = await AcademyTournament.findOne({
+      academyId: req.params.id,
+      startsAt:  { $lte: now },
+      endsAt:    { $gte: now },
+    }).populate('participants.userId', 'name username');
+    if (!tournament) return res.json({ active: false });
+    res.json({ active: true, tournament });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
