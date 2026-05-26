@@ -91,6 +91,9 @@ const UserSchema = new mongoose.Schema({
   isPro:                 { type: Boolean, default: false },
   stripeCustomerId:      { type: String,  default: null },
   stripeSubscriptionId:  { type: String,  default: null },
+  academyId:             { type: mongoose.Schema.Types.ObjectId, ref: 'Academy', default: null },
+  role:                  { type: String,  enum: ['student', 'teacher'], default: 'student' },
+  isAcademyPro:          { type: Boolean, default: false },
 });
 
 const TournamentSchema = new mongoose.Schema({
@@ -2548,6 +2551,8 @@ app.get('/u/:username', async (req, res) => {
     });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
+
+app.use('/academy', require('./routes/academy'));
 
 app.get('/', (req, res) => res.json({ status: 'ok' }));
 // ── Start ─────────────────────────────────────────────────────────
