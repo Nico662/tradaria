@@ -76,7 +76,18 @@ router.post('/join', requireAuth, async (req, res) => {
       isAcademyPro: academy.plan !== null,
     });
 
-    res.json({ success: true, academy: { name: academy.name, slug: academy.slug } });
+    res.json({ success: true, academy: { _id: academy._id, name: academy.name, slug: academy.slug } });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── GET /academy/preview?code= ───────────────────────────────────
+router.get('/preview', async (req, res) => {
+  const { code } = req.query;
+  if (!code) return res.status(400).json({ error: 'code requerido' });
+  try {
+    const academy = await Academy.findOne({ joinCode: code.toUpperCase() }, 'name');
+    if (!academy) return res.status(404).json({ error: 'Código no válido' });
+    res.json({ name: academy.name });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -168,6 +179,15 @@ router.get('/:id/export', requireTeacher, async (req, res) => {
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="alumnos-${academy.slug}.csv"`);
     res.send(csv);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── GET /academy/:id/name ─────────────────────────────────────────
+router.get('/:id/name', async (req, res) => {
+  try {
+    const academy = await Academy.findById(req.params.id, 'name');
+    if (!academy) return res.status(404).json({ error: 'Academia no encontrada' });
+    res.json({ name: academy.name });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 

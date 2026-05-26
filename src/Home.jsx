@@ -27,6 +27,17 @@ export default function Home({ onSelect }) {
   const [showUsernameModal, setShowUsernameModal] = useState(false);
   const [avatarLoading, setAvatarLoading] = useState(false);
   const fileInputRef = useRef(null);
+  const [academyName, setAcademyName] = useState(() => localStorage.getItem('academy_name') || null);
+
+  useEffect(() => {
+    if (!user?.academyId || !user?.isAcademyPro || academyName) return;
+    const tok = localStorage.getItem('tradara_token');
+    if (!tok) return;
+    fetch(`${SERVER}/academy/${user.academyId}/name`, { headers: { Authorization: `Bearer ${tok}` } })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.name) { setAcademyName(d.name); localStorage.setItem('academy_name', d.name); } })
+      .catch(() => {});
+  }, [user?.academyId, user?.isAcademyPro]);
 
   const frameStyle = FRAME_STYLES[activeCosmetics.frame] || { border: '1px solid #22d3a5' };
 
@@ -117,6 +128,15 @@ export default function Home({ onSelect }) {
                 onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--bd)'}
               >{icon}</button>
             ))}
+            {user?.role === 'teacher' && (
+              <button onClick={() => onSelect('teacher_dashboard')}
+                style={{ background: 'rgba(34,211,165,0.07)', border: '1px solid rgba(34,211,165,0.35)', borderRadius: '6px', padding: '4px 9px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '8px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(34,211,165,0.14)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'rgba(34,211,165,0.07)'}
+              >
+                🏫 Academia
+              </button>
+            )}
           </div>
 
           {isPro ? (
@@ -166,6 +186,11 @@ export default function Home({ onSelect }) {
                 {user.username && (
                   <span style={{ fontSize: '8px', color: 'var(--t6)', fontFamily: "'Space Mono', monospace" }}>
                     {user.name}
+                  </span>
+                )}
+                {user.academyId && user.isAcademyPro && academyName && (
+                  <span style={{ fontSize: '7px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", letterSpacing: '0.06em', background: 'rgba(34,211,165,0.08)', border: '1px solid rgba(34,211,165,0.2)', borderRadius: '4px', padding: '2px 6px', alignSelf: 'flex-start' }}>
+                    ALUMNO — {academyName}
                   </span>
                 )}
               </div>

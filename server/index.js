@@ -518,6 +518,9 @@ app.get('/auth/me', async (req, res) => {
       customAvatar:    user.customAvatar || null,
       activeCosmetics: user.activeCosmetics || {},
       isPro:           user.isPro || false,
+      role:            user.role        || 'student',
+      academyId:       user.academyId   || null,
+      isAcademyPro:    user.isAcademyPro || false,
     });
   } catch (err) {
     res.status(401).json({ error: 'Invalid token' });
