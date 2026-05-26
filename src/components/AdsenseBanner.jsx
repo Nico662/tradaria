@@ -3,19 +3,20 @@ import { useAuth } from '../AuthContext';
 
 export default function AdsenseBanner({ slot = 'auto', style: extraStyle = {} }) {
   const { isPro } = useAuth();
-  if (isPro) return null;
   const ref  = useRef(null);
   const done = useRef(false);
 
   useEffect(() => {
-    if (done.current) return;
+    if (isPro || done.current) return;
     done.current = true;
     try {
       const adsByGoogle = window.adsbygoogle || [];
       adsByGoogle.push({});
       window.adsbygoogle = adsByGoogle;
     } catch {}
-  }, []);
+  }, [isPro]);
+
+  if (isPro) return null;
 
   return (
     <div style={{ textAlign: 'center', ...extraStyle }}>

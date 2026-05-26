@@ -96,6 +96,21 @@ export function AuthProvider({ children }) {
         const data = await res.json();
         setUser(data);
 
+        // Asociar suscripción push con el userId cuando el usuario se carga
+        if (data.id && 'serviceWorker' in navigator) {
+          navigator.serviceWorker.ready.then(reg =>
+            reg.pushManager.getSubscription().then(sub => {
+              if (sub) {
+                fetch(`${SERVER}/push/subscribe`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ ...sub.toJSON(), userId: data.id }),
+                }).catch(() => {});
+              }
+            })
+          ).catch(() => {});
+        }
+
         // Sincronizar cosméticos desde el servidor
         if (data.activeCosmetics && Object.keys(data.activeCosmetics).length > 0) {
           setActiveCosmetics(data.activeCosmetics);

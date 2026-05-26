@@ -199,7 +199,8 @@ export default function Daily({ onBack }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
-    fetch(`${SERVER}/stats/share`, { method: 'POST' }).catch(() => {});
+    const tok = localStorage.getItem('tradara_token');
+    if (tok) fetch(`${SERVER}/stats/share`, { method: 'POST', headers: { Authorization: `Bearer ${tok}` } }).catch(() => {});
     const prevXP = getXP(); checkLevelUp(prevXP, addXP(5));
     const shares = parseInt(localStorage.getItem('tradara_share_count') || '0') + 1;
     localStorage.setItem('tradara_share_count', String(shares));

@@ -215,7 +215,7 @@ const Friendship = mongoose.model('Friendship', FriendshipSchema);
 
 const GameHistorySchema = new mongoose.Schema({
   userId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  mode:      { type: String, enum: ['guess', 'survival', 'daily', 'arena', 'tournament'], required: true },
+  mode:      { type: String, enum: ['guess', 'survival', 'daily', 'arena', 'tournament', 'historical', 'portfolio'], required: true },
   score:     { type: Number, default: 0 },
   correct:   { type: Number, default: 0 },
   wrong:     { type: Number, default: 0 },

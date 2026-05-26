@@ -227,7 +227,8 @@ export default function Survival({ onBack }) {
     link.download = 'tradara-survival.png';
     link.href = canvas.toDataURL();
     link.click();
-    fetch(`${SERVER}/stats/share`, { method: 'POST' }).catch(() => {});
+    const tok = localStorage.getItem('tradara_token');
+    if (tok) fetch(`${SERVER}/stats/share`, { method: 'POST', headers: { Authorization: `Bearer ${tok}` } }).catch(() => {});
     addXP(5);
   };
 

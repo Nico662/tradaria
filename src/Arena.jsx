@@ -95,6 +95,7 @@ export default function Arena({ onBack, challengeRoomCode }) {
   const botOuterTimerRef  = useRef(null);
   const botInnerTimerRef  = useRef(null);
   const effectTimerRef    = useRef(null);
+  const isBotGameRef      = useRef(false);
 
   const [isBotGame,        setIsBotGame]        = useState(false);
   const [botName,          setBotName]           = useState('');
@@ -161,7 +162,7 @@ export default function Arena({ onBack, challengeRoomCode }) {
       setTimeLeft(prev => {
         if (prev <= 1) {
           clearInterval(timerRef.current);
-          if (isBotGame) makeBotChoice('skip');
+          if (isBotGameRef.current) makeBotChoice('skip');
           else makeChoice('skip');
           return 0;
         }
@@ -172,6 +173,7 @@ export default function Arena({ onBack, challengeRoomCode }) {
 
   function startBotGame() {
     if (!name.trim()) return;
+    isBotGameRef.current = true;
     socketRef.current?.disconnect();
     const bot = BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)];
     setBotName(bot);
@@ -269,6 +271,7 @@ export default function Arena({ onBack, challengeRoomCode }) {
   }
 
   function resetBotState() {
+    isBotGameRef.current = false;
     setIsBotGame(false);
     setBotName('');
     setMyBotScore(0);
@@ -839,7 +842,8 @@ export default function Arena({ onBack, challengeRoomCode }) {
             link.download = 'tradara-arena.png';
             link.href = canvas.toDataURL();
             link.click();
-            fetch(`${SERVER}/stats/share`, { method: 'POST' }).catch(() => {});
+            const tok = localStorage.getItem('tradara_token');
+            if (tok) fetch(`${SERVER}/stats/share`, { method: 'POST', headers: { Authorization: `Bearer ${tok}` } }).catch(() => {});
           }} style={{ marginTop: '4px', width: '100%', padding: '12px', background: 'rgba(34,211,165,0.06)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
             📸 {t.daily.share}
           </button>

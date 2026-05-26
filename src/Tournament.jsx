@@ -387,7 +387,8 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
             link.download = 'tradara-tournament.png';
             link.href = canvas.toDataURL();
             link.click();
-            fetch(`${SERVER}/stats/share`, { method: 'POST' }).catch(() => {});
+            const tok = localStorage.getItem('tradara_token');
+            if (tok) fetch(`${SERVER}/stats/share`, { method: 'POST', headers: { Authorization: `Bearer ${tok}` } }).catch(() => {});
             addXP(5);
           }} style={{ marginTop: '16px', width: '100%', padding: '12px', background: 'rgba(245,200,66,0.06)', border: '1px solid #f5c842', borderRadius: '6px', color: '#f5c842', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
             📸 {t.daily.share}
