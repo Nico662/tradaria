@@ -33,7 +33,20 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
   const [missionToast, setMissionToast] = useState(null);
   const [paidTournaments, setPaidTournaments] = useState([]);
   const [joiningId, setJoiningId] = useState(null);
+  const [academyTournamentData, setAcademyTournamentData] = useState(null);
   const chartRef = useRef(null);
+
+  async function loadAcademyTournament() {
+    if (!academyId) return;
+    const token = localStorage.getItem('tradara_token');
+    try {
+      const res  = await fetch(`${SERVER}/academy/${academyId}/tournament/active`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.active) setAcademyTournamentData(data.tournament);
+    } catch {}
+  }
 
   const currentRound = rounds[round];
 
@@ -173,7 +186,11 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
       const newXP = addXP(xpGained);
       const badges = JSON.parse(localStorage.getItem('tradara_badges') || '[]');
       syncProgress(newXP, badges);
-      await loadLeaderboard();
+      if (academyTournamentId && academyId) {
+        await loadAcademyTournament();
+      } else {
+        await loadLeaderboard();
+      }
       setPhase('finished');
       const mr = incrementMission('play_tournament');
       if (mr.completed) setMissionToast({ xpEarned: mr.xpEarned, title: mr.mission.title });
@@ -245,7 +262,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
           <div style={{ textAlign: 'center', marginBottom: '24px' }}>
             <div style={{ fontSize: '32px', marginBottom: '8px' }}>🏆</div>
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: 'var(--t1)' }}>
-              {formatWeekId(weekId)}
+              {academyTournamentId && academyTournamentData ? academyTournamentData.name : formatWeekId(weekId)}
             </div>
             {phase === 'finished' && (
               <div style={{ marginTop: '8px', fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '32px', color: '#f5c842' }}>{score}</div>
@@ -259,29 +276,51 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
 
           <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t4)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '12px' }}>Leaderboard</div>
 
-          {leaderboard.map((entry, i) => {
-            const displayName = entry.username ? `@${entry.username}` : entry.name;
-            return (
-              <div key={entry._id} onClick={() => entry.username && onViewProfile && onViewProfile(entry.username)} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: 'var(--bg-card)', border: `1px solid ${i === 0 ? '#f5c842' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : 'var(--bd)'}`, borderRadius: '8px', marginBottom: '8px', cursor: entry.username && onViewProfile ? 'pointer' : 'default' }}>
-                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : 'var(--t6)', width: '24px' }}>
-                  {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
-                </div>
-                <UserAvatar user={entry} size={24} showBadge />
-                <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
-                  <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</span>
-                  {isFounder(entry.username) && <FounderBadge size={11} />}
-                </div>
-                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#22d3a5' }}>{entry.score}</div>
+          {academyTournamentId ? (
+            academyTournamentData
+              ? [...(academyTournamentData.participants || [])].sort((a, b) => b.score - a.score).map((p, i) => {
+                  const name = p.userId?.username ? `@${p.userId.username}` : (p.userId?.name || '—');
+                  const rankColor = i === 0 ? '#f5c842' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : 'var(--bd)';
+                  const numColor  = i === 0 ? '#f5c842' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : 'var(--t6)';
+                  return (
+                    <div key={String(p.userId?._id ?? i)} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: 'var(--bg-card)', border: `1px solid ${rankColor}`, borderRadius: '8px', marginBottom: '8px' }}>
+                      <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: numColor, width: '24px' }}>
+                        {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
+                      </div>
+                      <div style={{ flex: 1, fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {name}
+                      </div>
+                      <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#22d3a5' }}>{p.score}</div>
+                    </div>
+                  );
+                })
+              : <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t6)', textAlign: 'center', padding: '16px 0' }}>cargando...</div>
+          ) : (
+            <>
+              {leaderboard.map((entry, i) => {
+                const displayName = entry.username ? `@${entry.username}` : entry.name;
+                return (
+                  <div key={entry._id} onClick={() => entry.username && onViewProfile && onViewProfile(entry.username)} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: 'var(--bg-card)', border: `1px solid ${i === 0 ? '#f5c842' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : 'var(--bd)'}`, borderRadius: '8px', marginBottom: '8px', cursor: entry.username && onViewProfile ? 'pointer' : 'default' }}>
+                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : 'var(--t6)', width: '24px' }}>
+                      {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
+                    </div>
+                    <UserAvatar user={entry} size={24} showBadge />
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
+                      <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</span>
+                      {isFounder(entry.username) && <FounderBadge size={11} />}
+                    </div>
+                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#22d3a5' }}>{entry.score}</div>
+                  </div>
+                );
+              })}
+              <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '9px', color: 'var(--t6)', fontFamily: "'Space Mono', monospace" }}>
+                New tournament every Monday
               </div>
-            );
-          })}
-
-          <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '9px', color: 'var(--t6)', fontFamily: "'Space Mono', monospace" }}>
-            New tournament every Monday
-          </div>
+            </>
+          )}
 
           {/* Torneos de pago */}
-          {paidTournaments.length > 0 && (
+          {!academyTournamentId && paidTournaments.length > 0 && (
             <div style={{ marginTop: '28px' }}>
               <div style={{ fontSize: '9px', color: '#f5c842', letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: "'Space Mono', monospace", marginBottom: '12px' }}>
                 🏆 Torneos de Pago — Premio €10
