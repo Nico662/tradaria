@@ -63,6 +63,15 @@ mongoose.connect(MONGODB_URI)
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB error:', err));
 
+mongoose.connection.once('open', async () => {
+  try {
+    await mongoose.connection.collection('users').dropIndex('username_1');
+    console.log('Índice username_1 dropeado — se recreará con sparse');
+  } catch (e) {
+    console.log('Índice username_1 no existía, continuando');
+  }
+});
+
 const UserSchema = new mongoose.Schema({
   googleId:  { type: String, required: true, unique: true },
   email:     { type: String, required: true },
@@ -84,7 +93,7 @@ const UserSchema = new mongoose.Schema({
   },
   createdAt: { type: Date, default: Date.now },
   lastLogin: { type: Date, default: Date.now },
-  username:        { type: String, unique: true, sparse: true, default: null },
+  username:        { type: String, unique: true, sparse: true },
   customAvatar:    { type: String, default: null },
   activeCosmetics: { type: mongoose.Schema.Types.Mixed, default: {} },
   portfolioTutorialSeen: { type: Boolean, default: false },
