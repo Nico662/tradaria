@@ -93,6 +93,9 @@ router.get('/preview', async (req, res) => {
 
 // ── GET /academy/:id/dashboard ────────────────────────────────────
 router.get('/:id/dashboard', requireTeacher, async (req, res) => {
+  if (!req.params.id || req.params.id === 'null' || req.params.id === 'undefined') {
+    return res.status(400).json({ error: 'Academy ID no válido' });
+  }
   try {
     const academy = await Academy.findById(req.params.id).populate('students', 'name email dailyStreak lastLogin');
     if (!academy) return res.status(404).json({ error: 'Academia no encontrada' });

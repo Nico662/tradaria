@@ -78,9 +78,90 @@ function FieldInput({ label, type = 'text', value, onChange, placeholder }) {
   );
 }
 
-// ── Main component ────────────────────────────────────────────────
-export default function TeacherDashboard({ academyId, onBack }) {
-  useAuth();
+// ── Create academy screen (shown when teacher has no academy yet) ──
+function CreateAcademyScreen({ onBack, onCreated }) {
+  const tok = localStorage.getItem('tradara_token');
+  const [name,        setName]        = useState('');
+  const [submitting,  setSubmitting]  = useState(false);
+  const [err,         setErr]         = useState(null);
+
+  async function handleCreate() {
+    if (!name.trim() || name.trim().length < 2) return setErr('El nombre es demasiado corto');
+    setSubmitting(true);
+    setErr(null);
+    try {
+      const res  = await fetch(`${SERVER}/academy/create`, {
+        method:  'POST',
+        headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ name: name.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setErr(data.error || 'Error al crear'); setSubmitting(false); return; }
+      onCreated(data);
+    } catch { setErr('Error de red'); }
+    setSubmitting(false);
+  }
+
+  return (
+    <div id="gtm-root" style={{ background: 'var(--bg-page)', minHeight: '100dvh' }}>
+      <div className="scanlines" />
+      <div style={{ padding: '48px 20px 60px', position: 'relative', zIndex: 2 }}>
+        <button onClick={onBack} style={backBtnStyle}>← volver</button>
+
+        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: 'var(--t1)', marginBottom: '6px' }}>
+          Crea tu academia
+        </div>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t5)', marginBottom: '32px' }}>
+          Ponle nombre y empieza a invitar alumnos
+        </div>
+
+        <div style={{ marginBottom: '14px' }}>
+          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t4)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
+            Nombre de la academia
+          </div>
+          <input
+            value={name}
+            onChange={e => { setName(e.target.value); setErr(null); }}
+            onKeyDown={e => e.key === 'Enter' && handleCreate()}
+            placeholder="ej. Tradara Academy Madrid"
+            maxLength={60}
+            style={{
+              width: '100%', padding: '13px 14px',
+              background: 'var(--bg-card)', border: '1px solid var(--bd)',
+              borderRadius: '8px', color: 'var(--t1)',
+              fontFamily: "'Space Mono', monospace", fontSize: '13px',
+              outline: 'none', boxSizing: 'border-box',
+            }}
+          />
+        </div>
+
+        {err && (
+          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: '#f05454', marginBottom: '12px' }}>
+            {err}
+          </div>
+        )}
+
+        <button
+          onClick={handleCreate}
+          disabled={submitting}
+          style={{
+            width: '100%', padding: '13px',
+            background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5',
+            borderRadius: '8px', color: '#22d3a5',
+            fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700,
+            letterSpacing: '0.06em', textTransform: 'uppercase',
+            cursor: submitting ? 'default' : 'pointer', opacity: submitting ? 0.6 : 1,
+          }}
+        >
+          {submitting ? '...' : 'Crear academia'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Dashboard content (academyId guaranteed valid) ────────────────
+function AcademyDashboard({ academyId, onBack }) {
   const tok = localStorage.getItem('tradara_token');
 
   const [academy,    setAcademy]    = useState(null);
@@ -486,6 +567,27 @@ export default function TeacherDashboard({ academyId, onBack }) {
       )}
     </div>
   );
+}
+
+// ── Router: create vs dashboard ───────────────────────────────────
+export default function TeacherDashboard({ academyId: academyIdProp, onBack }) {
+  const { updateUser } = useAuth();
+  const resolvedId = academyIdProp && academyIdProp !== 'null' && academyIdProp !== 'undefined'
+    ? academyIdProp : null;
+  const [activeId, setActiveId] = useState(resolvedId);
+
+  if (!activeId) {
+    return (
+      <CreateAcademyScreen
+        onBack={onBack}
+        onCreated={(academy) => {
+          updateUser({ academyId: academy._id, role: 'teacher' });
+          setActiveId(String(academy._id));
+        }}
+      />
+    );
+  }
+  return <AcademyDashboard academyId={activeId} onBack={onBack} />;
 }
 
 const backBtnStyle = {
