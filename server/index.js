@@ -60,30 +60,26 @@ const redis = new Redis({
 
 // ── MongoDB ───────────────────────────────────────────────────────
 mongoose.connect(MONGODB_URI, { autoIndex: false })
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.error('MongoDB error:', err));
-
-mongoose.connection.once('open', async () => {
-  try {
-    const collection = mongoose.connection.collection('users');
-
+  .then(async () => {
+    console.log('MongoDB connected');
     try {
-      await collection.dropIndex('username_1');
-      console.log('Índice username_1 antiguo eliminado');
+      const collection = mongoose.connection.collection('users');
+      try {
+        await collection.dropIndex('username_1');
+        console.log('Índice username_1 antiguo eliminado');
+      } catch (e) {
+        console.log('No había índice username_1 previo');
+      }
+      await collection.createIndex(
+        { username: 1 },
+        { unique: true, sparse: true, name: 'username_1' }
+      );
+      console.log('Índice username_1 creado correctamente con sparse');
     } catch (e) {
-      console.log('No había índice username_1 previo');
+      console.error('Error gestionando índice username:', e);
     }
-
-    await collection.createIndex(
-      { username: 1 },
-      { unique: true, sparse: true, name: 'username_1' }
-    );
-    console.log('Índice username_1 creado correctamente con sparse');
-
-  } catch (e) {
-    console.error('Error gestionando índice username:', e);
-  }
-});
+  })
+  .catch(err => console.error('MongoDB error:', err));
 
 const UserSchema = new mongoose.Schema({
   googleId:  { type: String, required: true, unique: true },
