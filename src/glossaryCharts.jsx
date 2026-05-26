@@ -650,6 +650,87 @@ function SellsideLiquidityChart() {
   );
 }
 
+// ─── Liquidity Sweep Chart ──────────────────────────────────────────────────
+
+function LiquiditySweepChart() {
+  // price range 118–168, y range 14–148  (scale 2.68 px/unit)
+  const py = p => 14 + (168 - p) * 134 / 50;
+
+  const sweepLevel = 158;
+  const sweepY     = py(sweepLevel);
+
+  const candles = [
+    // Rally builds swing high at 158
+    { x: 14,  O: 128, H: 133, L: 125, C: 131 },
+    { x: 27,  O: 131, H: 140, L: 129, C: 138 },
+    { x: 40,  O: 138, H: 150, L: 136, C: 148 },
+    { x: 53,  O: 148, H: 158, L: 146, C: 152, bw: 10 }, // swing HIGH — BSL created
+    // Consolidation below level (stops accumulate above)
+    { x: 66,  O: 152, H: 156, L: 148, C: 150 },
+    { x: 79,  O: 150, H: 155, L: 147, C: 153 },
+    { x: 92,  O: 153, H: 157, L: 150, C: 155 },
+    // Sweep — wick above 158, body closes back below
+    { x: 106, O: 155, H: 165, L: 153, C: 156, bw: 10 },
+    // Reversal after stops cleared
+    { x: 120, O: 156, H: 157, L: 144, C: 146 },
+    { x: 134, O: 146, H: 148, L: 136, C: 138 },
+    { x: 148, O: 138, H: 140, L: 128, C: 130 },
+    { x: 162, O: 130, H: 132, L: 121, C: 123 },
+  ];
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="#060b10" rx="8" />
+
+      {/* Grid */}
+      {[40, 65, 90, 115, 140].map(y => (
+        <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
+      ))}
+
+      {/* Liquidity pool shading above sweep level */}
+      <rect x="50" y={sweepY - 18} width="56" height="18" fill="#f5c84210" />
+
+      {/* Sweep level — yellow before break, faint red after (held as resistance) */}
+      <line x1="50" y1={sweepY} x2="103" y2={sweepY} stroke="#f5c842" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.65" />
+      <line x1="103" y1={sweepY} x2="182" y2={sweepY} stroke="#e05555" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.28" />
+
+      {/* Candles */}
+      {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
+        const bull  = C >= O;
+        const col   = bull ? '#22d3a5' : '#e05555';
+        const bodyY = py(Math.max(O, C));
+        const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="1" opacity="0.75" />
+            <rect x={x - bw / 2} y={bodyY} width={bw} height={bodyH} fill={col} rx="0.5" opacity="0.95" />
+          </g>
+        );
+      })}
+
+      {/* "stops above" label inside liquidity zone */}
+      <text x="76" y={sweepY - 6} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#f5c842" opacity="0.5" letterSpacing="0.06em">stops above</text>
+
+      {/* SH label above swing-high candle */}
+      <text x="53" y={py(160)} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#f5c842" opacity="0.8">SH</text>
+
+      {/* ↑ sweep annotation above sweep candle wick */}
+      <text x="106" y="9" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#f5c842" opacity="0.9">↑ sweep</text>
+      <line x1="106" y1="11" x2="106" y2="15" stroke="#f5c842" strokeWidth="0.6" opacity="0.4" />
+
+      {/* ↓ reversal annotation */}
+      <text x="134" y="9" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#e05555" opacity="0.9">↓ reversal</text>
+      <line x1="120" y1="11" x2="120" y2="15" stroke="#e05555" strokeWidth="0.6" opacity="0.4" />
+
+      {/* BSL label — right side */}
+      <text x="182" y={sweepY + 5.5} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="8" fontWeight="bold" fill="#f5c842" opacity="0.9">BSL</text>
+
+      {/* Watermark */}
+      <text x="6" y="154" fontFamily="'Space Mono', monospace" fontSize="5" fill="#172030" letterSpacing="0.1em">LIQUIDITY SWEEP</text>
+    </svg>
+  );
+}
+
 // ─── Break of Structure Chart ────────────────────────────────────────────────
 
 function BOSChart() {
@@ -746,7 +827,8 @@ export const CHARTS = {
   order_block:        OrderBlockChart,
   daily_bias:         DailyBiasChart,
   premium_discount:   PremiumDiscountChart,
-  buyside_liquidity:  BuysideLiquidityChart,
-  sellside_liquidity: SellsideLiquidityChart,
-  bos:                BOSChart,
+  buyside_liquidity:   BuysideLiquidityChart,
+  sellside_liquidity:  SellsideLiquidityChart,
+  bos:                 BOSChart,
+  liquidity_sweep:     LiquiditySweepChart,
 };

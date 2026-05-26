@@ -216,6 +216,7 @@ export const GLOSSARY = [
       es: 'Tras un barrido, espera confirmación de la reversión antes de entrar en dirección contraria. El barrido crea las condiciones para el trade real.',
       de: 'Nach einem Sweep warte auf Bestätigung der Umkehr vor dem Einstieg in die entgegengesetzte Richtung.',
     },
+    chartId: 'liquidity_sweep',
   },
   {
     word: { en: 'Change of Character', es: 'Cambio de Carácter (CHoCH)', de: 'Charakterwechsel (CHoCH)' },
