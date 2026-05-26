@@ -1115,14 +1115,24 @@ app.get('/tournament/leaderboard', async (req, res) => {
     const weekId = getWeekId();
     const scores = await Score.find({ weekId }).sort({ score: -1 }).limit(100)
       .populate('userId', 'username name avatar customAvatar activeCosmetics');
-    const result = scores.map(s => ({
+    const allScores = scores.map(s => ({
       ...s.toObject(),
       name:            s.userId?.username ? `@${s.userId.username}` : (s.name || s.userId?.name),
       avatar:          s.userId?.avatar || s.avatar,
       customAvatar:    s.userId?.customAvatar || null,
       activeCosmetics: s.userId?.activeCosmetics || {},
     }));
-    res.json({ weekId, scores: result });
+    const top10 = allScores.slice(0, 10);
+    let userPosition = null;
+    const { userId } = req.query;
+    if (userId) {
+      const idx = allScores.findIndex(s => String(s.userId?._id || s.userId) === String(userId));
+      if (idx >= 10) {
+        const u = allScores[idx];
+        userPosition = { rank: idx + 1, score: u.score, name: u.name, username: u.username, avatar: u.avatar, customAvatar: u.customAvatar, activeCosmetics: u.activeCosmetics };
+      }
+    }
+    res.json({ weekId, scores: top10, userPosition });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -1910,10 +1920,16 @@ app.get('/leagues/:leagueId/ranking', async (req, res) => {
         isYou: uid === decoded.id,
       };
     }).sort((a, b) => b.returnPct - a.returnPct);
+    const top10 = ranking.slice(0, 10);
+    let userPosition = null;
+    const userIdx = ranking.findIndex(e => e.isYou);
+    if (userIdx >= 10) {
+      userPosition = { rank: userIdx + 1, ...ranking[userIdx] };
+    }
     res.json({
       _id: league._id, name: league.name, code: league.code,
       owner: league.owner, startDate: league.startDate, endDate: league.endDate,
-      isOwner: league.owner.toString() === decoded.id, ranking,
+      isOwner: league.owner.toString() === decoded.id, ranking: top10, userPosition,
     });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -2217,7 +2233,7 @@ app.get('/portfolio/leaderboard', async (req, res) => {
     const priceMap   = {};
     prices.filter(Boolean).forEach(p => { priceMap[p.symbol] = p.price; });
 
-    const leaderboard = portfolios.map(p => {
+    const allLeaderboard = portfolios.map(p => {
       const invested = p.positions.reduce((s, pos) => {
         const price = priceMap[pos.symbol] || pos.avgPrice;
         return s + price * pos.qty;
@@ -2225,6 +2241,7 @@ app.get('/portfolio/leaderboard', async (req, res) => {
       const totalValue = p.cash + invested;
       const returnPct  = ((totalValue - 50000) / 50000) * 100;
       return {
+        userId:          String(p.userId?._id || ''),
         name:            p.userId?.username || p.userId?.name || 'Anonymous',
         username:        p.userId?.username || null,
         avatar:          p.userId?.avatar || null,
@@ -2235,11 +2252,20 @@ app.get('/portfolio/leaderboard', async (req, res) => {
         cash:            p.cash,
       };
     })
-    .filter(p => p.totalValue !== 50000) // solo los que han operado
-    .sort((a, b) => b.returnPct - a.returnPct)
-    .slice(0, 20);
+    .filter(p => p.totalValue !== 50000)
+    .sort((a, b) => b.returnPct - a.returnPct);
 
-    res.json(leaderboard);
+    const top10 = allLeaderboard.slice(0, 10);
+    let userPosition = null;
+    const { userId } = req.query;
+    if (userId) {
+      const idx = allLeaderboard.findIndex(p => p.userId === String(userId));
+      if (idx >= 10) {
+        const u = allLeaderboard[idx];
+        userPosition = { rank: idx + 1, returnPct: u.returnPct, totalValue: u.totalValue, name: u.name, username: u.username, avatar: u.avatar, customAvatar: u.customAvatar, activeCosmetics: u.activeCosmetics };
+      }
+    }
+    res.json({ leaderboard: top10, userPosition });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -2286,13 +2312,14 @@ app.get('/portfolio/weekly/leaderboard', async (req, res) => {
     const prices = await Promise.all(PORTFOLIO_ASSETS.map(a => getPrice(a).catch(() => null)));
     prices.filter(Boolean).forEach(p => { priceMap[p.symbol] = p.price; });
 
-    const leaderboard = records.map(record => {
+    const allLeaderboard = records.map(record => {
       const p = portfolios.find(p => p.userId.equals(record.userId._id));
       if (!p) return null;
       const invested   = p.positions.reduce((s, pos) => s + (priceMap[pos.symbol] || pos.avgPrice) * pos.qty, 0);
       const totalValue = (p.cash || 0) + (invested || 0);
       const startValue = record.startValue || 50000;
       return {
+        userId:          String(record.userId._id),
         name:            record.userId.username || record.userId.name,
         username:        record.userId.username || null,
         avatar:          record.userId.avatar,
@@ -2301,9 +2328,19 @@ app.get('/portfolio/weekly/leaderboard', async (req, res) => {
         totalValue,
         weeklyReturn: ((totalValue - startValue) / startValue) * 100,
       };
-    }).filter(Boolean).sort((a, b) => b.weeklyReturn - a.weeklyReturn).slice(0, 20);
+    }).filter(Boolean).sort((a, b) => b.weeklyReturn - a.weeklyReturn);
 
-    res.json({ weekId, leaderboard });
+    const top10 = allLeaderboard.slice(0, 10);
+    let userPosition = null;
+    const { userId } = req.query;
+    if (userId) {
+      const idx = allLeaderboard.findIndex(p => p.userId === String(userId));
+      if (idx >= 10) {
+        const u = allLeaderboard[idx];
+        userPosition = { rank: idx + 1, weeklyReturn: u.weeklyReturn, totalValue: u.totalValue, name: u.name, username: u.username, avatar: u.avatar, customAvatar: u.customAvatar, activeCosmetics: u.activeCosmetics };
+      }
+    }
+    res.json({ weekId, leaderboard: top10, userPosition });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 

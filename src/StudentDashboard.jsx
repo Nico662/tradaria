@@ -135,60 +135,106 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
                   ))}
                 </div>
 
-                {students.map((s, i) => {
-                  const isMe = String(s.id) === myId;
+                {(() => {
+                  const top10 = students.slice(0, 10);
+                  const myIdx = students.findIndex(s => String(s.id) === myId);
+                  const myOutside = myIdx >= 10 ? students[myIdx] : null;
                   return (
-                    <div key={s.id} style={{
-                      display: 'grid', gridTemplateColumns: '36px 1fr 44px 52px',
-                      gap: '8px', padding: '10px 14px', alignItems: 'center',
-                      borderBottom: i < students.length - 1 ? '1px solid var(--bd)' : 'none',
-                      background: isMe
-                        ? 'rgba(34,211,165,0.06)'
-                        : i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.012)',
-                      borderLeft: isMe ? '2px solid #22d3a5' : '2px solid transparent',
-                    }}>
-                      {/* Position */}
-                      <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', textAlign: 'center' }}>
-                        <Medal pos={i + 1} />
-                      </div>
-
-                      {/* Name */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
-                        <div style={{
-                          width: '22px', height: '22px', borderRadius: '50%', flexShrink: 0,
-                          background: isMe ? 'rgba(34,211,165,0.2)' : 'rgba(255,255,255,0.05)',
-                          border: `1px solid ${isMe ? 'rgba(34,211,165,0.4)' : 'var(--bd2)'}`,
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '9px',
-                          color: isMe ? '#22d3a5' : 'var(--t4)',
-                        }}>
-                          {(s.name || '?')[0].toUpperCase()}
-                        </div>
-                        <span style={{
-                          fontFamily: "'Space Mono', monospace", fontSize: '11px',
-                          color: isMe ? '#22d3a5' : 'var(--t1)',
-                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                          fontWeight: isMe ? 700 : 400,
-                        }}>
-                          {s.name}{isMe && ' (tú)'}
-                        </span>
-                      </div>
-
-                      {/* Games */}
-                      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t4)', textAlign: 'center' }}>
-                        {s.gamesPlayed}
-                      </div>
-
-                      {/* Accuracy */}
-                      <div style={{
-                        fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, textAlign: 'center',
-                        color: s.avgAccuracy >= 70 ? '#22d3a5' : s.avgAccuracy >= 50 ? '#f5c842' : 'var(--t4)',
-                      }}>
-                        {s.gamesPlayed > 0 ? `${s.avgAccuracy}%` : '—'}
-                      </div>
-                    </div>
+                    <>
+                      {top10.map((s, i) => {
+                        const isMe = String(s.id) === myId;
+                        return (
+                          <div key={s.id} style={{
+                            display: 'grid', gridTemplateColumns: '36px 1fr 44px 52px',
+                            gap: '8px', padding: '10px 14px', alignItems: 'center',
+                            borderBottom: i < top10.length - 1 || myOutside ? '1px solid var(--bd)' : 'none',
+                            background: isMe ? 'rgba(34,211,165,0.07)' : i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.012)',
+                            borderLeft: isMe ? '2px solid rgba(34,211,165,0.6)' : '2px solid transparent',
+                          }}>
+                            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', textAlign: 'center' }}>
+                              <Medal pos={i + 1} />
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
+                              <div style={{
+                                width: '22px', height: '22px', borderRadius: '50%', flexShrink: 0,
+                                background: isMe ? 'rgba(34,211,165,0.2)' : 'rgba(255,255,255,0.05)',
+                                border: `1px solid ${isMe ? 'rgba(34,211,165,0.4)' : 'var(--bd2)'}`,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '9px',
+                                color: isMe ? '#22d3a5' : 'var(--t4)',
+                              }}>
+                                {(s.name || '?')[0].toUpperCase()}
+                              </div>
+                              <span style={{
+                                fontFamily: "'Space Mono', monospace", fontSize: '11px',
+                                color: isMe ? '#22d3a5' : 'var(--t1)',
+                                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                                fontWeight: isMe ? 700 : 400,
+                              }}>
+                                {s.name}
+                              </span>
+                              {isMe && <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(34,211,165,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>}
+                            </div>
+                            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t4)', textAlign: 'center' }}>
+                              {s.gamesPlayed}
+                            </div>
+                            <div style={{
+                              fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, textAlign: 'center',
+                              color: s.avgAccuracy >= 70 ? '#22d3a5' : s.avgAccuracy >= 50 ? '#f5c842' : 'var(--t4)',
+                            }}>
+                              {s.gamesPlayed > 0 ? `${s.avgAccuracy}%` : '—'}
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {myOutside && (
+                        <>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 14px' }}>
+                            <div style={{ flex: 1, height: '1px', background: 'var(--bd)' }} />
+                            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t6)' }}>···</span>
+                            <div style={{ flex: 1, height: '1px', background: 'var(--bd)' }} />
+                          </div>
+                          <div style={{
+                            display: 'grid', gridTemplateColumns: '36px 1fr 44px 52px',
+                            gap: '8px', padding: '10px 14px', alignItems: 'center',
+                            borderBottom: 'none',
+                            background: 'rgba(34,211,165,0.07)',
+                            borderLeft: '2px solid rgba(34,211,165,0.6)',
+                          }}>
+                            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', textAlign: 'center', color: 'var(--t5)' }}>
+                              #{myIdx + 1}
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
+                              <div style={{
+                                width: '22px', height: '22px', borderRadius: '50%', flexShrink: 0,
+                                background: 'rgba(34,211,165,0.2)',
+                                border: '1px solid rgba(34,211,165,0.4)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '9px',
+                                color: '#22d3a5',
+                              }}>
+                                {(myOutside.name || '?')[0].toUpperCase()}
+                              </div>
+                              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#22d3a5', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 700 }}>
+                                {myOutside.name}
+                              </span>
+                              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(34,211,165,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>
+                            </div>
+                            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t4)', textAlign: 'center' }}>
+                              {myOutside.gamesPlayed}
+                            </div>
+                            <div style={{
+                              fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, textAlign: 'center',
+                              color: myOutside.avgAccuracy >= 70 ? '#22d3a5' : myOutside.avgAccuracy >= 50 ? '#f5c842' : 'var(--t4)',
+                            }}>
+                              {myOutside.gamesPlayed > 0 ? `${myOutside.avgAccuracy}%` : '—'}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </>
                   );
-                })}
+                })()}
               </>
             )}
           </div>
@@ -232,34 +278,73 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
                 <div style={{ padding: '24px 16px', textAlign: 'center', fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t5)' }}>
                   Aún no hay participantes
                 </div>
-              ) : (
-                [...(tournament.participants || [])]
-                  .sort((a, b) => b.score - a.score)
-                  .map((p, i) => {
-                    const name = p.userId?.name || p.userId?.username || '—';
-                    const pid  = String(p.userId?._id || p.userId);
-                    const isMe = pid === myId;
-                    return (
-                      <div key={pid} style={{
-                        display: 'flex', alignItems: 'center', gap: '10px',
-                        padding: '10px 16px',
-                        borderBottom: i < tournament.participants.length - 1 ? '1px solid var(--bd)' : 'none',
-                        background: isMe ? 'rgba(34,211,165,0.06)' : 'transparent',
-                        borderLeft: isMe ? '2px solid #22d3a5' : '2px solid transparent',
-                      }}>
-                        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', width: '28px', textAlign: 'center' }}>
-                          <Medal pos={i + 1} />
-                        </div>
-                        <div style={{ flex: 1, fontFamily: "'Space Mono', monospace", fontSize: '11px', color: isMe ? '#22d3a5' : 'var(--t1)', fontWeight: isMe ? 700 : 400 }}>
-                          {name}{isMe && ' (tú)'}
-                        </div>
-                        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: '#22d3a5' }}>
-                          {p.score}
-                        </div>
-                      </div>
-                    );
-                  })
-              )}
+              ) : (() => {
+                  const sorted = [...(tournament.participants || [])].sort((a, b) => b.score - a.score);
+                  const top10  = sorted.slice(0, 10);
+                  const myIdx  = sorted.findIndex(p => String(p.userId?._id || p.userId) === myId);
+                  const myOutside = myIdx >= 10 ? sorted[myIdx] : null;
+                  return (
+                    <>
+                      {top10.map((p, i) => {
+                        const name = p.userId?.name || p.userId?.username || '—';
+                        const pid  = String(p.userId?._id || p.userId);
+                        const isMe = pid === myId;
+                        return (
+                          <div key={pid} style={{
+                            display: 'flex', alignItems: 'center', gap: '10px',
+                            padding: '10px 16px',
+                            borderBottom: i < top10.length - 1 || myOutside ? '1px solid var(--bd)' : 'none',
+                            background: isMe ? 'rgba(34,211,165,0.07)' : 'transparent',
+                            borderLeft: isMe ? '2px solid rgba(34,211,165,0.6)' : '2px solid transparent',
+                          }}>
+                            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', width: '28px', textAlign: 'center' }}>
+                              <Medal pos={i + 1} />
+                            </div>
+                            <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
+                              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: isMe ? '#22d3a5' : 'var(--t1)', fontWeight: isMe ? 700 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {name}
+                              </span>
+                              {isMe && <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(34,211,165,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>}
+                            </div>
+                            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: '#22d3a5' }}>
+                              {p.score}
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {myOutside && (
+                        <>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 16px' }}>
+                            <div style={{ flex: 1, height: '1px', background: 'var(--bd)' }} />
+                            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t6)' }}>···</span>
+                            <div style={{ flex: 1, height: '1px', background: 'var(--bd)' }} />
+                          </div>
+                          <div style={{
+                            display: 'flex', alignItems: 'center', gap: '10px',
+                            padding: '10px 16px',
+                            borderBottom: 'none',
+                            background: 'rgba(34,211,165,0.07)',
+                            borderLeft: '2px solid rgba(34,211,165,0.6)',
+                          }}>
+                            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', width: '28px', textAlign: 'center', color: 'var(--t5)' }}>
+                              #{myIdx + 1}
+                            </div>
+                            <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
+                              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#22d3a5', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {myOutside.userId?.name || myOutside.userId?.username || '—'}
+                              </span>
+                              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(34,211,165,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>
+                            </div>
+                            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: '#22d3a5' }}>
+                              {myOutside.score}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </>
+                  );
+                })()
+              }
 
               {/* Play button */}
               <div style={{ padding: '14px 16px', borderTop: '1px solid var(--bd)' }}>

@@ -123,7 +123,7 @@ export default function League({ leagueId, onBack }) {
           const diff     = entry.totalValue - entry.startValue;
           const name     = entry.username ? `@${entry.username}` : entry.name;
           return (
-            <div key={String(entry.userId)} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', background: 'var(--bg-card)', border: `1px solid ${entry.isYou ? '#22d3a5' : i === 0 ? '#f5c84235' : 'var(--bd)'}`, borderRadius: '8px', marginBottom: '8px', boxShadow: entry.isYou ? '0 0 0 1px #22d3a515' : 'none' }}>
+            <div key={String(entry.userId)} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', background: entry.isYou ? 'rgba(34,211,165,0.07)' : 'var(--bg-card)', border: `1px solid ${entry.isYou ? 'rgba(34,211,165,0.6)' : i === 0 ? '#f5c84235' : 'var(--bd)'}`, borderLeft: entry.isYou ? '2px solid rgba(34,211,165,0.6)' : undefined, borderRadius: '8px', marginBottom: '8px' }}>
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: posColor, width: '24px', flexShrink: 0, textAlign: 'center' }}>
                 {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
               </div>
@@ -132,7 +132,7 @@ export default function League({ leagueId, onBack }) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
                   <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: entry.isYou ? '#22d3a5' : 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
                   {isFounder(entry.username) && <FounderBadge size={10} />}
-                  {entry.isYou && <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: '#22d3a560' }}>{tl.youTag}</span>}
+                  {entry.isYou && <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(34,211,165,0.6)', marginLeft: '4px' }}>YOU</span>}
                 </div>
                 <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t5)' }}>{formatCash(entry.totalValue)}</div>
               </div>
@@ -147,6 +147,39 @@ export default function League({ leagueId, onBack }) {
             </div>
           );
         })}
+        {data.userPosition && (() => {
+          const up   = data.userPosition;
+          const diff = up.totalValue - up.startValue;
+          const name = up.username ? `@${up.username}` : up.name;
+          return (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 0', margin: '4px 0' }}>
+                <div style={{ flex: 1, height: '1px', background: 'var(--bd)' }} />
+                <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t6)' }}>···</span>
+                <div style={{ flex: 1, height: '1px', background: 'var(--bd)' }} />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', background: 'rgba(34,211,165,0.07)', border: '1px solid rgba(34,211,165,0.6)', borderLeft: '2px solid rgba(34,211,165,0.6)', borderRadius: '8px', marginBottom: '8px' }}>
+                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--t6)', width: '24px', flexShrink: 0, textAlign: 'center' }}>#{up.rank}</div>
+                <UserAvatar user={up} size={24} showBadge />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
+                    <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#22d3a5', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
+                    <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(34,211,165,0.6)', marginLeft: '4px' }}>YOU</span>
+                  </div>
+                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t5)' }}>{formatCash(up.totalValue)}</div>
+                </div>
+                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                  <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '15px', color: up.returnPct >= 0 ? '#22d3a5' : '#f05454' }}>
+                    {up.returnPct >= 0 ? '+' : ''}{up.returnPct.toFixed(2)}%
+                  </div>
+                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: diff >= 0 ? '#22d3a570' : '#f0545470' }}>
+                    {diff >= 0 ? '+' : '-'}{formatCash(diff)}
+                  </div>
+                </div>
+              </div>
+            </>
+          );
+        })()}
 
         {/* Footer */}
         <div style={{ marginTop: '28px', display: 'flex', flexDirection: 'column', gap: '8px' }}>

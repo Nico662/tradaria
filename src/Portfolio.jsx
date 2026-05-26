@@ -104,6 +104,8 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague }) {
   const [portfolioHistory, setPortfolioHistory] = useState([]);
   const [leaderboard, setLeaderboard]       = useState([]);
   const [weeklyLeaderboard, setWeeklyLeaderboard] = useState([]);
+  const [userPositionGlobal, setUserPositionGlobal] = useState(null);
+  const [userPositionWeekly, setUserPositionWeekly] = useState(null);
   const [weeklyWeekId, setWeeklyWeekId]     = useState('');
   const [lbTab, setLbTab]                   = useState('global');
   const [activeDuel, setActiveDuel]         = useState(null);
@@ -178,17 +180,24 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague }) {
         if (Array.isArray(data)) setPortfolioHistory(data);
       }).catch(() => {});
 
-      fetch(`${SERVER}/portfolio/leaderboard`)
+      const uid = user?._id || user?.id || '';
+      fetch(`${SERVER}/portfolio/leaderboard${uid ? `?userId=${uid}` : ''}`)
         .then(r => r.json())
-        .then(data => { if (Array.isArray(data)) setLeaderboard(data); })
+        .then(data => {
+          if (data.leaderboard) {
+            setLeaderboard(data.leaderboard);
+            setUserPositionGlobal(data.userPosition || null);
+          }
+        })
         .catch(() => {});
 
-      fetch(`${SERVER}/portfolio/weekly/leaderboard`, {
+      fetch(`${SERVER}/portfolio/weekly/leaderboard${uid ? `?userId=${uid}` : ''}`, {
         headers: { Authorization: `Bearer ${tok}` },
       }).then(r => r.json()).then(data => {
         if (data.leaderboard) {
           setWeeklyLeaderboard(data.leaderboard);
           setWeeklyWeekId(data.weekId || '');
+          setUserPositionWeekly(data.userPosition || null);
         }
       }).catch(() => {});
 
@@ -850,26 +859,58 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague }) {
                 <div style={{ fontSize: '11px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace" }}>{t.portfolio.noLeaderboard}</div>
               </div>
             ) : (
-              leaderboard.map((entry, i) => (
-                <div key={i} onClick={() => entry.username && onViewProfile && onViewProfile(entry.username)} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: 'var(--bg-card)', border: `1px solid ${i === 0 ? '#f5c842' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : 'var(--bd)'}`, borderRadius: '8px', marginBottom: '8px', cursor: entry.username && onViewProfile ? 'pointer' : 'default' }}>
-                  <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : 'var(--t6)', width: '24px', flexShrink: 0 }}>
-                    {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
-                  </div>
-                  <UserAvatar user={entry} size={24} showBadge />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
-                      {entry.username ? `@${entry.username}` : entry.name}
-                      {isFounder(entry.username) && <FounderBadge size={11} />}
+              <>
+                {leaderboard.map((entry, i) => {
+                  const myId = String(user?._id || user?.id || '');
+                  const isMe = myId && String(entry.userId) === myId;
+                  return (
+                    <div key={i} onClick={() => !isMe && entry.username && onViewProfile && onViewProfile(entry.username)} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: isMe ? 'rgba(34,211,165,0.07)' : 'var(--bg-card)', border: `1px solid ${i === 0 ? '#f5c842' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : isMe ? 'rgba(34,211,165,0.6)' : 'var(--bd)'}`, borderLeft: isMe ? '2px solid rgba(34,211,165,0.6)' : undefined, borderRadius: '8px', marginBottom: '8px', cursor: !isMe && entry.username && onViewProfile ? 'pointer' : 'default' }}>
+                      <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : 'var(--t6)', width: '24px', flexShrink: 0 }}>
+                        {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
+                      </div>
+                      <UserAvatar user={entry} size={24} showBadge />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: isMe ? '#22d3a5' : 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
+                          {entry.username ? `@${entry.username}` : entry.name}
+                          {isFounder(entry.username) && <FounderBadge size={11} />}
+                          {isMe && <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(34,211,165,0.6)', marginLeft: '6px', flexShrink: 0 }}>YOU</span>}
+                        </div>
+                        <div style={{ fontSize: '9px', color: 'var(--t5)' }}>{formatCash(entry.totalValue)}</div>
+                      </div>
+                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: entry.returnPct >= 0 ? '#22d3a5' : '#f05454' }}>
+                          {entry.returnPct >= 0 ? '+' : ''}{entry.returnPct.toFixed(2)}%
+                        </div>
+                      </div>
                     </div>
-                    <div style={{ fontSize: '9px', color: 'var(--t5)' }}>{formatCash(entry.totalValue)}</div>
-                  </div>
-                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: entry.returnPct >= 0 ? '#22d3a5' : '#f05454' }}>
-                      {entry.returnPct >= 0 ? '+' : ''}{entry.returnPct.toFixed(2)}%
+                  );
+                })}
+                {userPositionGlobal && (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 0', margin: '4px 0' }}>
+                      <div style={{ flex: 1, height: '1px', background: 'var(--bd)' }} />
+                      <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t6)' }}>···</span>
+                      <div style={{ flex: 1, height: '1px', background: 'var(--bd)' }} />
                     </div>
-                  </div>
-                </div>
-              ))
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: 'rgba(34,211,165,0.07)', border: '1px solid rgba(34,211,165,0.6)', borderLeft: '2px solid rgba(34,211,165,0.6)', borderRadius: '8px', marginBottom: '8px' }}>
+                      <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--t6)', width: '24px', flexShrink: 0 }}>#{userPositionGlobal.rank}</div>
+                      <UserAvatar user={userPositionGlobal} size={24} showBadge />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#22d3a5', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
+                          {userPositionGlobal.username ? `@${userPositionGlobal.username}` : userPositionGlobal.name}
+                          <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(34,211,165,0.6)', marginLeft: '6px', flexShrink: 0 }}>YOU</span>
+                        </div>
+                        <div style={{ fontSize: '9px', color: 'var(--t5)' }}>{formatCash(userPositionGlobal.totalValue)}</div>
+                      </div>
+                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: userPositionGlobal.returnPct >= 0 ? '#22d3a5' : '#f05454' }}>
+                          {userPositionGlobal.returnPct >= 0 ? '+' : ''}{userPositionGlobal.returnPct.toFixed(2)}%
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </>
             )
           ) : (
             weeklyLeaderboard.length === 0 ? (
@@ -878,27 +919,60 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague }) {
                 <div style={{ fontSize: '11px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace" }}>{t.portfolio.noWeeklyData}</div>
               </div>
             ) : (
-              weeklyLeaderboard.map((entry, i) => (
-                <div key={i} onClick={() => entry.username && onViewProfile && onViewProfile(entry.username)} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: 'var(--bg-card)', border: `1px solid ${i === 0 ? '#f5c842' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : 'var(--bd)'}`, borderRadius: '8px', marginBottom: '8px', cursor: entry.username && onViewProfile ? 'pointer' : 'default' }}>
-                  <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : 'var(--t6)', width: '24px', flexShrink: 0 }}>
-                    {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
-                  </div>
-                  <UserAvatar user={entry} size={24} showBadge />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
-                      {entry.username ? `@${entry.username}` : entry.name}
-                      {isFounder(entry.username) && <FounderBadge size={11} />}
+              <>
+                {weeklyLeaderboard.map((entry, i) => {
+                  const myId = String(user?._id || user?.id || '');
+                  const isMe = myId && String(entry.userId) === myId;
+                  return (
+                    <div key={i} onClick={() => !isMe && entry.username && onViewProfile && onViewProfile(entry.username)} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: isMe ? 'rgba(34,211,165,0.07)' : 'var(--bg-card)', border: `1px solid ${i === 0 ? '#f5c842' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : isMe ? 'rgba(34,211,165,0.6)' : 'var(--bd)'}`, borderLeft: isMe ? '2px solid rgba(34,211,165,0.6)' : undefined, borderRadius: '8px', marginBottom: '8px', cursor: !isMe && entry.username && onViewProfile ? 'pointer' : 'default' }}>
+                      <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : 'var(--t6)', width: '24px', flexShrink: 0 }}>
+                        {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
+                      </div>
+                      <UserAvatar user={entry} size={24} showBadge />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: isMe ? '#22d3a5' : 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
+                          {entry.username ? `@${entry.username}` : entry.name}
+                          {isFounder(entry.username) && <FounderBadge size={11} />}
+                          {isMe && <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(34,211,165,0.6)', marginLeft: '6px', flexShrink: 0 }}>YOU</span>}
+                        </div>
+                        <div style={{ fontSize: '9px', color: 'var(--t5)' }}>{formatCash(entry.totalValue ?? 0)}</div>
+                      </div>
+                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: (entry.weeklyReturn ?? 0) >= 0 ? '#22d3a5' : '#f05454' }}>
+                          {(entry.weeklyReturn ?? 0) >= 0 ? '+' : ''}{(entry.weeklyReturn ?? 0).toFixed(2)}%
+                        </div>
+                        <div style={{ fontSize: '8px', color: 'var(--t5)' }}>{t.portfolio.thisWeek}</div>
+                      </div>
                     </div>
-                    <div style={{ fontSize: '9px', color: 'var(--t5)' }}>{formatCash(entry.totalValue ?? 0)}</div>
-                  </div>
-                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: (entry.weeklyReturn ?? 0) >= 0 ? '#22d3a5' : '#f05454' }}>
-                      {(entry.weeklyReturn ?? 0) >= 0 ? '+' : ''}{(entry.weeklyReturn ?? 0).toFixed(2)}%
+                  );
+                })}
+                {userPositionWeekly && (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 0', margin: '4px 0' }}>
+                      <div style={{ flex: 1, height: '1px', background: 'var(--bd)' }} />
+                      <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t6)' }}>···</span>
+                      <div style={{ flex: 1, height: '1px', background: 'var(--bd)' }} />
                     </div>
-                    <div style={{ fontSize: '8px', color: 'var(--t5)' }}>{t.portfolio.thisWeek}</div>
-                  </div>
-                </div>
-              ))
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: 'rgba(34,211,165,0.07)', border: '1px solid rgba(34,211,165,0.6)', borderLeft: '2px solid rgba(34,211,165,0.6)', borderRadius: '8px', marginBottom: '8px' }}>
+                      <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--t6)', width: '24px', flexShrink: 0 }}>#{userPositionWeekly.rank}</div>
+                      <UserAvatar user={userPositionWeekly} size={24} showBadge />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#22d3a5', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
+                          {userPositionWeekly.username ? `@${userPositionWeekly.username}` : userPositionWeekly.name}
+                          <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(34,211,165,0.6)', marginLeft: '6px', flexShrink: 0 }}>YOU</span>
+                        </div>
+                        <div style={{ fontSize: '9px', color: 'var(--t5)' }}>{formatCash(userPositionWeekly.totalValue ?? 0)}</div>
+                      </div>
+                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: (userPositionWeekly.weeklyReturn ?? 0) >= 0 ? '#22d3a5' : '#f05454' }}>
+                          {(userPositionWeekly.weeklyReturn ?? 0) >= 0 ? '+' : ''}{(userPositionWeekly.weeklyReturn ?? 0).toFixed(2)}%
+                        </div>
+                        <div style={{ fontSize: '8px', color: 'var(--t5)' }}>{t.portfolio.thisWeek}</div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </>
             )
           )}
         </div>
