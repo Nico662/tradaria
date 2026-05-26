@@ -150,6 +150,15 @@ export default function App() {
     if (mode === 'light') root.classList.add('light-mode');
     else root.classList.remove('light-mode');
   }, []);
+
+  useEffect(() => {
+    if (!user?.role) return;
+    const params  = new URLSearchParams(window.location.search);
+    const payment = params.get('payment');
+    if ((payment === 'success' || payment === 'cancelled') && user.role === 'teacher') {
+      setScreen('teacher_dashboard');
+    }
+  }, [user?.role]);
   function analyzeCandles(candles) {
   if (!candles || candles.length < 5) return null;
    const last5    = candles.slice(-5);

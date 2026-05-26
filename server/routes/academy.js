@@ -1,9 +1,12 @@
 const express        = require('express');
 const jwt            = require('jsonwebtoken');
 const mongoose       = require('mongoose');
+const Stripe         = require('stripe');
 const Academy        = require('../models/Academy');
 const AcademyTournament = require('../models/AcademyTournament');
 const requireTeacher = require('../middleware/requireTeacher');
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const router = express.Router();
 
@@ -231,6 +234,67 @@ router.get('/:id/name', async (req, res) => {
     const academy = await Academy.findById(req.params.id, 'name');
     if (!academy) return res.status(404).json({ error: 'Academia no encontrada' });
     res.json({ name: academy.name });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── POST /academy/subscribe ───────────────────────────────────────
+router.post('/subscribe', requireAuth, async (req, res) => {
+  try {
+    const { academyId, plan } = req.body;
+    if (!academyId || !['starter', 'pro'].includes(plan))
+      return res.status(400).json({ error: 'academyId y plan requeridos' });
+
+    const academy = await Academy.findById(academyId);
+    if (!academy) return res.status(404).json({ error: 'Academia no encontrada' });
+    if (academy.ownerId.toString() !== req.user._id.toString())
+      return res.status(403).json({ error: 'No autorizado' });
+
+    const priceId = plan === 'pro'
+      ? process.env.STRIPE_ACADEMY_PRO_PRICE_ID
+      : process.env.STRIPE_ACADEMY_STARTER_PRICE_ID;
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      mode: 'subscription',
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: 'https://tradara.dev/teacher-dashboard?payment=success',
+      cancel_url:  'https://tradara.dev/teacher-dashboard?payment=cancelled',
+      metadata: { academyId: String(academy._id), plan },
+    });
+    res.json({ url: session.url });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── GET /academy/:id/status ───────────────────────────────────────
+router.get('/:id/status', requireAuth, async (req, res) => {
+  try {
+    if (!req.params.id || req.params.id === 'null' || req.params.id === 'undefined')
+      return res.status(400).json({ error: 'Academy ID no válido' });
+
+    const academy = await Academy.findById(req.params.id);
+    if (!academy) return res.status(404).json({ error: 'Academia no encontrada' });
+
+    const now = new Date();
+
+    // Auto-expire trial
+    if (academy.trialEndsAt && academy.trialEndsAt < now && !academy.stripeSubscriptionId && academy.isActive) {
+      academy.isActive = false;
+      await academy.save();
+      const User = mongoose.model('User');
+      await User.updateMany({ _id: { $in: academy.students } }, { isAcademyPro: false });
+    }
+
+    const trialDaysLeft = academy.trialEndsAt
+      ? Math.max(0, Math.ceil((new Date(academy.trialEndsAt) - now) / 86400000))
+      : null;
+
+    res.json({
+      isActive:             academy.isActive,
+      plan:                 academy.plan,
+      trialEndsAt:          academy.trialEndsAt,
+      trialDaysLeft,
+      hasSubscription:      !!academy.stripeSubscriptionId,
+    });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 

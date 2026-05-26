@@ -173,6 +173,9 @@ function AcademyDashboard({ academyId, onBack }) {
   const [form,       setForm]       = useState({ name: '', startsAt: '', endsAt: '' });
   const [submitting, setSubmitting] = useState(false);
   const [formErr,    setFormErr]    = useState(null);
+  const [planModal,  setPlanModal]  = useState(false);
+  const [activating, setActivating] = useState(null);
+  const [toast,      setToast]      = useState(null);
 
   useEffect(() => {
     if (!tok) { setLoading(false); return; }
@@ -184,6 +187,41 @@ function AcademyDashboard({ academyId, onBack }) {
       .catch(e  => setError(String(e)))
       .finally(() => setLoading(false));
   }, [academyId]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('payment') === 'success') {
+      setToast('¡Plan activado correctamente!');
+      setTimeout(() => setToast(null), 4000);
+    }
+  }, []);
+
+  async function handleSubscribe(plan) {
+    setActivating(plan);
+    try {
+      const res  = await fetch(`${SERVER}/academy/subscribe`, {
+        method:  'POST',
+        headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ academyId, plan }),
+      });
+      const data = await res.json();
+      if (data.url) { window.location.href = data.url; return; }
+      setFormErr(data.error || 'Error al activar plan');
+    } catch { setFormErr('Error de red'); }
+    setActivating(null);
+  }
+
+  async function handlePortal() {
+    try {
+      const res  = await fetch(`${SERVER}/stripe/academy-portal`, {
+        method:  'POST',
+        headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ academyId }),
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+    } catch {}
+  }
 
   async function handleCopy() {
     try {
@@ -256,12 +294,14 @@ function AcademyDashboard({ academyId, onBack }) {
     </div>
   );
 
-  const plan      = PLAN_STYLE[academy.plan] || PLAN_STYLE.starter;
-  const daysLeft  = academy.trialEndsAt
-    ? Math.ceil((new Date(academy.trialEndsAt) - Date.now()) / 86400000)
+  const plan        = PLAN_STYLE[academy.plan] || PLAN_STYLE.starter;
+  const hasSub      = !!academy.stripeSubscriptionId;
+  const trialActive = !hasSub && academy.isActive && academy.trialEndsAt && new Date(academy.trialEndsAt) > Date.now();
+  const expired     = !hasSub && !academy.isActive;
+  const daysLeft    = academy.trialEndsAt
+    ? Math.max(0, Math.ceil((new Date(academy.trialEndsAt) - Date.now()) / 86400000))
     : null;
-  const showTrial = daysLeft !== null && daysLeft > 0;
-  const students  = academy.students || [];
+  const students    = academy.students || [];
   const tournaments = academy.tournaments || [];
 
   return (
@@ -288,18 +328,82 @@ function AcademyDashboard({ academyId, onBack }) {
             </span>
           </div>
 
-          {/* Trial banner */}
-          {showTrial && (
+          {/* Paid plan — active */}
+          {hasSub && (
             <div style={{
-              display: 'flex', alignItems: 'center', gap: '8px',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px',
+              padding: '9px 12px', marginBottom: '14px',
+              background: 'rgba(34,211,165,0.06)', border: '1px solid rgba(34,211,165,0.25)',
+              borderRadius: '8px',
+            }}>
+              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: '#22d3a5' }}>
+                ✓ PLAN {plan.label} — Activo
+              </span>
+              <button
+                onClick={handlePortal}
+                style={{
+                  background: 'transparent', border: '1px solid rgba(34,211,165,0.4)',
+                  borderRadius: '5px', color: '#22d3a5',
+                  fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700,
+                  letterSpacing: '0.06em', textTransform: 'uppercase',
+                  padding: '5px 10px', cursor: 'pointer',
+                }}
+              >
+                Gestionar
+              </button>
+            </div>
+          )}
+
+          {/* Trial active */}
+          {trialActive && (
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px',
               padding: '9px 12px', marginBottom: '14px',
               background: 'rgba(245,200,66,0.06)', border: '1px solid rgba(245,200,66,0.25)',
               borderRadius: '8px',
             }}>
-              <span style={{ fontSize: '12px' }}>⏳</span>
               <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: '#f5c842' }}>
-                Prueba gratuita — quedan <strong>{daysLeft}</strong> {daysLeft === 1 ? 'día' : 'días'}
+                ⏳ Prueba gratuita — quedan <strong>{daysLeft}</strong> {daysLeft === 1 ? 'día' : 'días'}
               </span>
+              <button
+                onClick={() => setPlanModal(true)}
+                style={{
+                  background: 'rgba(245,200,66,0.1)', border: '1px solid rgba(245,200,66,0.4)',
+                  borderRadius: '5px', color: '#f5c842',
+                  fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700,
+                  letterSpacing: '0.06em', textTransform: 'uppercase',
+                  padding: '5px 10px', cursor: 'pointer',
+                }}
+              >
+                Activar plan
+              </button>
+            </div>
+          )}
+
+          {/* Trial expired */}
+          {expired && (
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px',
+              padding: '11px 14px', marginBottom: '14px',
+              background: 'rgba(240,84,84,0.08)', border: '1px solid rgba(240,84,84,0.35)',
+              borderRadius: '8px',
+            }}>
+              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: '#f05454', lineHeight: 1.5 }}>
+                Tu prueba gratuita ha expirado. Activa un plan para que tus alumnos puedan seguir accediendo.
+              </span>
+              <button
+                onClick={() => setPlanModal(true)}
+                style={{
+                  flexShrink: 0,
+                  background: 'rgba(240,84,84,0.12)', border: '1px solid rgba(240,84,84,0.5)',
+                  borderRadius: '5px', color: '#f05454',
+                  fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700,
+                  letterSpacing: '0.06em', textTransform: 'uppercase',
+                  padding: '7px 12px', cursor: 'pointer',
+                }}
+              >
+                Activar ahora
+              </button>
             </div>
           )}
 
@@ -340,6 +444,8 @@ function AcademyDashboard({ academyId, onBack }) {
           </div>
         </div>
 
+        {/* ── Expired overlay ── */}
+        <div style={{ opacity: expired ? 0.4 : 1, pointerEvents: expired ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
         {/* ── Student table ── */}
         <div style={{ marginBottom: '32px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
@@ -490,7 +596,88 @@ function AcademyDashboard({ academyId, onBack }) {
             </div>
           )}
         </div>
+        </div>{/* end expired overlay wrapper */}
       </div>
+
+      {/* ── Plan selection modal ── */}
+      {planModal && (
+        <div
+          onClick={e => e.target === e.currentTarget && setPlanModal(false)}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '20px', zIndex: 150,
+          }}
+        >
+          <div style={{
+            background: 'var(--bg-card)', border: '1px solid var(--bd2)',
+            borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '360px',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
+          }}>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: 'var(--t1)', marginBottom: '4px' }}>
+              Activa tu plan
+            </div>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t5)', marginBottom: '20px' }}>
+              Elige el plan que mejor se adapte a tu academia
+            </div>
+
+            {[
+              { id: 'starter', label: 'Aula Starter', price: '29€/mes', desc: 'Hasta 25 alumnos', color: 'var(--t3)', bg: 'rgba(100,115,130,0.08)' },
+              { id: 'pro',     label: 'Aula Pro',     price: '59€/mes', desc: 'Hasta 60 alumnos', color: '#22d3a5', bg: 'rgba(34,211,165,0.06)' },
+            ].map(p => (
+              <div key={p.id} style={{
+                padding: '14px', marginBottom: '10px',
+                background: p.bg, border: `1px solid ${p.color}40`,
+                borderRadius: '8px',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                  <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: p.color }}>
+                    {p.label}
+                  </span>
+                  <span style={{ fontFamily: "'Space Mono', monospace", fontWeight: 700, fontSize: '12px', color: p.color }}>
+                    {p.price}
+                  </span>
+                </div>
+                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t5)', marginBottom: '12px' }}>
+                  {p.desc}
+                </div>
+                <button
+                  onClick={() => handleSubscribe(p.id)}
+                  disabled={!!activating}
+                  style={{
+                    width: '100%', padding: '9px',
+                    background: p.bg, border: `1px solid ${p.color}`,
+                    borderRadius: '6px', color: p.color,
+                    fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700,
+                    letterSpacing: '0.06em', textTransform: 'uppercase',
+                    cursor: activating ? 'default' : 'pointer', opacity: activating === p.id ? 0.6 : 1,
+                  }}
+                >
+                  {activating === p.id ? '...' : 'Seleccionar'}
+                </button>
+              </div>
+            ))}
+
+            {formErr && (
+              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: '#f05454', marginTop: '8px' }}>
+                {formErr}
+              </div>
+            )}
+
+            <button
+              onClick={() => setPlanModal(false)}
+              style={{
+                width: '100%', marginTop: '10px', padding: '10px',
+                background: 'transparent', border: '1px solid var(--bd2)',
+                borderRadius: '6px', color: 'var(--t5)',
+                fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer',
+              }}
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── Create tournament modal ── */}
       {modal && (
@@ -563,6 +750,19 @@ function AcademyDashboard({ academyId, onBack }) {
               </Btn>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ── Toast ── */}
+      {toast && (
+        <div style={{
+          position: 'fixed', bottom: '28px', left: '50%', transform: 'translateX(-50%)',
+          background: '#22d3a5', color: '#0a0a0a',
+          padding: '12px 22px', borderRadius: '8px',
+          fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700,
+          zIndex: 400, whiteSpace: 'nowrap', boxShadow: '0 4px 20px rgba(34,211,165,0.3)',
+        }}>
+          ✓ {toast}
         </div>
       )}
     </div>

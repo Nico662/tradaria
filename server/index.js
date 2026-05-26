@@ -686,7 +686,7 @@ app.post('/shop/webhook', express.raw({ type: 'application/json' }), async (req,
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
-    const { userId, itemId, type: metaType, tournamentId } = session.metadata || {};
+    const { userId, itemId, type: metaType, tournamentId, academyId, plan: academyPlan } = session.metadata || {};
 
     // Shop item purchase
     if (metaType === 'shop' && userId && itemId) {
@@ -696,7 +696,7 @@ app.post('/shop/webhook', express.raw({ type: 'application/json' }), async (req,
     }
 
     // Pro subscription activated
-    if (session.mode === 'subscription' && userId) {
+    if (session.mode === 'subscription' && userId && !academyId) {
       try {
         await User.findByIdAndUpdate(userId, {
           isPro: true,
@@ -705,6 +705,26 @@ app.post('/shop/webhook', express.raw({ type: 'application/json' }), async (req,
         });
         console.log(`User ${userId} is now Pro`);
       } catch (err) { console.error('Pro activation error:', err.message); }
+    }
+
+    // Academy subscription activated
+    if (session.mode === 'subscription' && academyId) {
+      try {
+        const Academy = mongoose.model('Academy');
+        const maxStudents = academyPlan === 'pro' ? 60 : 25;
+        const academy = await Academy.findByIdAndUpdate(academyId, {
+          isActive:             true,
+          stripeCustomerId:     session.customer,
+          stripeSubscriptionId: session.subscription,
+          plan:                 academyPlan || 'starter',
+          maxStudents,
+          trialEndsAt:          null,
+        }, { new: true });
+        if (academy) {
+          await User.updateMany({ _id: { $in: academy.students } }, { isAcademyPro: true });
+          console.log(`Academy ${academyId} activated on plan ${academyPlan}`);
+        }
+      } catch (err) { console.error('Academy activation error:', err.message); }
     }
 
     // Paid tournament entry
@@ -730,13 +750,25 @@ app.post('/shop/webhook', express.raw({ type: 'application/json' }), async (req,
     }
   }
 
-  // Pro subscription cancelled
+  // Subscription cancelled (Pro user or Academy)
   if (event.type === 'customer.subscription.deleted') {
-    const customerId = event.data.object.customer;
+    const customerId     = event.data.object.customer;
+    const subscriptionId = event.data.object.id;
     try {
       await User.findOneAndUpdate({ stripeCustomerId: customerId }, { isPro: false });
       console.log(`Pro cancelled for customer ${customerId}`);
     } catch (err) { console.error('Pro cancellation error:', err.message); }
+    try {
+      const Academy = mongoose.model('Academy');
+      const academy = await Academy.findOne({ stripeSubscriptionId: subscriptionId });
+      if (academy) {
+        academy.isActive = false;
+        academy.stripeSubscriptionId = null;
+        await academy.save();
+        await User.updateMany({ _id: { $in: academy.students } }, { isAcademyPro: false });
+        console.log(`Academy ${academy._id} subscription cancelled`);
+      }
+    } catch (err) { console.error('Academy cancellation error:', err.message); }
   }
 
   res.json({ received: true });
@@ -2556,6 +2588,50 @@ app.get('/u/:username', async (req, res) => {
 });
 
 app.use('/academy', require('./routes/academy'));
+
+// ── Stripe academy billing portal ─────────────────────────────────
+app.post('/stripe/academy-portal', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded  = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const { academyId } = req.body;
+    const Academy  = mongoose.model('Academy');
+    const academy  = await Academy.findById(academyId);
+    if (!academy) return res.status(404).json({ error: 'Academia no encontrada' });
+    if (academy.ownerId.toString() !== decoded.id)
+      return res.status(403).json({ error: 'No autorizado' });
+    if (!academy.stripeCustomerId)
+      return res.status(400).json({ error: 'No hay suscripción activa' });
+    const session = await stripe.billingPortal.sessions.create({
+      customer:   academy.stripeCustomerId,
+      return_url: 'https://tradara.dev/teacher-dashboard',
+    });
+    res.json({ url: session.url });
+  } catch (err) {
+    console.error('Academy portal error:', err.message);
+    res.status(500).json({ error: 'Portal failed' });
+  }
+});
+
+// ── Academy trial expiry cron (every 24h) ─────────────────────────
+setInterval(async () => {
+  try {
+    const Academy = mongoose.model('Academy');
+    const expired = await Academy.find({
+      trialEndsAt:          { $lt: new Date() },
+      isActive:             true,
+      stripeSubscriptionId: null,
+    });
+    for (const academy of expired) {
+      academy.isActive = false;
+      await academy.save();
+      await User.updateMany({ _id: { $in: academy.students } }, { isAcademyPro: false });
+      console.log(`Academy ${academy._id} trial expired`);
+    }
+    if (expired.length) console.log(`Expired ${expired.length} academy trial(s)`);
+  } catch (err) { console.error('Trial expiry cron error:', err.message); }
+}, 24 * 60 * 60 * 1000);
 
 app.get('/', (req, res) => res.json({ status: 'ok' }));
 // ── Start ─────────────────────────────────────────────────────────

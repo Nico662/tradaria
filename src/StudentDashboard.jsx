@@ -23,10 +23,11 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
   const academyId  = user?.academyId;
   const academyName = localStorage.getItem('academy_name') || 'Mi Academia';
 
-  const [students,   setStudents]   = useState([]);
-  const [tournament, setTournament] = useState(undefined); // undefined=loading, false=none
-  const [loading,    setLoading]    = useState(true);
-  const [error,      setError]      = useState(null);
+  const [students,      setStudents]      = useState([]);
+  const [tournament,    setTournament]    = useState(undefined); // undefined=loading, false=none
+  const [academyStatus, setAcademyStatus] = useState(null);
+  const [loading,       setLoading]       = useState(true);
+  const [error,         setError]         = useState(null);
 
   useEffect(() => {
     if (!tok || !academyId) { setLoading(false); return; }
@@ -39,11 +40,16 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
       fetch(`${SERVER}/academy/${academyId}/tournament/active`, {
         headers: { Authorization: `Bearer ${tok}` },
       }).then(r => r.ok ? r.json() : null).catch(() => null),
+
+      fetch(`${SERVER}/academy/${academyId}/status`, {
+        headers: { Authorization: `Bearer ${tok}` },
+      }).then(r => r.ok ? r.json() : null).catch(() => null),
     ])
-      .then(([dash, tour]) => {
+      .then(([dash, tour, status]) => {
         const sorted = [...(dash.students || [])].sort((a, b) => b.avgAccuracy - a.avgAccuracy);
         setStudents(sorted);
         setTournament(tour?.active ? tour.tournament : false);
+        setAcademyStatus(status);
       })
       .catch(e => setError(String(e)))
       .finally(() => setLoading(false));
@@ -78,6 +84,21 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
 
         {/* ── Back ── */}
         <button onClick={onBack} style={backBtn}>← volver</button>
+
+        {/* ── Expired banner ── */}
+        {academyStatus && !academyStatus.isActive && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '10px',
+            padding: '11px 14px', marginBottom: '20px',
+            background: 'rgba(240,84,84,0.08)', border: '1px solid rgba(240,84,84,0.35)',
+            borderRadius: '8px',
+          }}>
+            <span style={{ fontSize: '14px' }}>⚠️</span>
+            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: '#f05454', lineHeight: 1.5 }}>
+              Tu academia ha expirado. El profesor debe activar un plan para continuar.
+            </span>
+          </div>
+        )}
 
         {/* ── Header ── */}
         <div style={{ marginBottom: '28px' }}>
@@ -242,33 +263,52 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
 
               {/* Play button */}
               <div style={{ padding: '14px 16px', borderTop: '1px solid var(--bd)' }}>
-                {alreadyPlayedTournament ? (
-                  <button
-                    onClick={() => onPlayTournament && onPlayTournament(String(academyId), String(tournament._id))}
-                    style={{
-                      width: '100%', padding: '12px',
-                      background: 'transparent', border: '1px solid rgba(34,211,165,0.3)',
-                      borderRadius: '8px', color: 'var(--t4)',
-                      fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700,
-                      letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer',
-                    }}
-                  >
-                    ✓ Ya jugaste — Ver resultados
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => onPlayTournament && onPlayTournament(String(academyId), String(tournament._id))}
-                    style={{
-                      width: '100%', padding: '12px',
-                      background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5',
-                      borderRadius: '8px', color: '#22d3a5',
-                      fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700,
-                      letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer',
-                    }}
-                  >
-                    🏆 Jugar torneo
-                  </button>
-                )}
+                {(() => {
+                  const academyExpired = academyStatus && !academyStatus.isActive;
+                  if (academyExpired) {
+                    return (
+                      <button disabled style={{
+                        width: '100%', padding: '12px',
+                        background: 'transparent', border: '1px solid rgba(240,84,84,0.3)',
+                        borderRadius: '8px', color: 'rgba(240,84,84,0.5)',
+                        fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700,
+                        letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'default',
+                      }}>
+                        Academia inactiva
+                      </button>
+                    );
+                  }
+                  if (alreadyPlayedTournament) {
+                    return (
+                      <button
+                        onClick={() => onPlayTournament && onPlayTournament(String(academyId), String(tournament._id))}
+                        style={{
+                          width: '100%', padding: '12px',
+                          background: 'transparent', border: '1px solid rgba(34,211,165,0.3)',
+                          borderRadius: '8px', color: 'var(--t4)',
+                          fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700,
+                          letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer',
+                        }}
+                      >
+                        ✓ Ya jugaste — Ver resultados
+                      </button>
+                    );
+                  }
+                  return (
+                    <button
+                      onClick={() => onPlayTournament && onPlayTournament(String(academyId), String(tournament._id))}
+                      style={{
+                        width: '100%', padding: '12px',
+                        background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5',
+                        borderRadius: '8px', color: '#22d3a5',
+                        fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700,
+                        letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer',
+                      }}
+                    >
+                      🏆 Jugar torneo
+                    </button>
+                  );
+                })()}
               </div>
             </div>
           )}
