@@ -236,6 +236,7 @@ export const GLOSSARY = [
       es: 'Un CHoCH en temporalidad menor dentro de una zona premium/descuento es señal de entrada fuerte. Es la versión contraria al BOS.',
       de: 'Ein CHoCH in einem niedrigeren Zeitrahmen in einer Premium/Discount-Zone ist ein starkes Einstiegssignal.',
     },
+    chartId: 'choch',
   },
   {
     word: { en: 'OTE (Optimal Trade Entry)', es: 'OTE (Entrada Óptima)', de: 'OTE (Optimaler Einstieg)' },

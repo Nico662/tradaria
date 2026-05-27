@@ -171,7 +171,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague }) {
       fetch(`${SERVER}/portfolio/weekly/start`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ value: tv }),
+        body: JSON.stringify({ totalValue: tv }),
       }).catch(() => {});
 
       fetch(`${SERVER}/portfolio/history`, {

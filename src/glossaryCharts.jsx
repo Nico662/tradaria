@@ -818,6 +818,75 @@ function BOSChart() {
   );
 }
 
+// ─── Change of Character Chart ──────────────────────────────────────────────
+
+function CHoCHChart() {
+  const py = p => 14 + (165 - p) * 134 / 45;
+
+  const chochLevel = 150;
+  const chochY     = py(chochLevel);
+
+  const candles = [
+    { x: 10,  O: 153, H: 158, L: 150, C: 151 }, // LH1 ≈ 158
+    { x: 23,  O: 151, H: 153, L: 144, C: 145 }, // drop
+    { x: 36,  O: 145, H: 148, L: 141, C: 147 }, // bullish bounce
+    { x: 49,  O: 147, H: 150, L: 143, C: 144 }, // LH2 = 150 ← CHoCH level
+    { x: 62,  O: 144, H: 146, L: 137, C: 138 }, // LL1
+    { x: 75,  O: 138, H: 140, L: 133, C: 135 }, // LL2
+    { x: 88,  O: 135, H: 139, L: 133, C: 138 }, // reversal start
+    { x: 101, O: 138, H: 143, L: 137, C: 142 }, // bullish
+    { x: 114, O: 142, H: 151, L: 141, C: 150 }, // approaching level
+    { x: 127, O: 150, H: 157, L: 149, C: 156, bw: 10 }, // ↑ CHoCH break
+    { x: 141, O: 156, H: 162, L: 155, C: 160 }, // continuation
+    { x: 154, O: 160, H: 165, L: 159, C: 163 }, // continuation
+  ];
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="#060b10" rx="8" />
+
+      {/* Grid */}
+      {[40, 65, 90, 115, 140].map(y => (
+        <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
+      ))}
+
+      {/* CHoCH level (LH2) — resistance before break, then flips support */}
+      <line x1="45" y1={chochY} x2="124" y2={chochY} stroke="#e05555" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.65" />
+      <line x1="124" y1={chochY} x2="182" y2={chochY} stroke="#22d3a5" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.25" />
+
+      {/* Candles */}
+      {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
+        const bull  = C >= O;
+        const col   = bull ? '#22d3a5' : '#e05555';
+        const bodyY = py(Math.max(O, C));
+        const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="1" opacity="0.75" />
+            <rect x={x - bw / 2} y={bodyY} width={bw} height={bodyH} fill={col} rx="0.5" opacity="0.95" />
+          </g>
+        );
+      })}
+
+      {/* LH1 */}
+      <text x="10" y={py(160)} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#e05555" opacity="0.75">LH1</text>
+
+      {/* LH2 / CHoCH level label */}
+      <text x="47" y={chochY - 3} textAnchor="start" fontFamily="'Space Mono', monospace" fontSize="4.8" fill="#e05555" opacity="0.6">LH2 · CHoCH</text>
+
+      {/* LL2 */}
+      <text x="75" y={py(131)} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#22d3a5" opacity="0.7">LL2</text>
+
+      {/* ↑ CHoCH annotation */}
+      <text x="127" y="11" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#22d3a5" opacity="0.9">↑ CHoCH</text>
+      <line x1="127" y1="13" x2="127" y2="17" stroke="#22d3a5" strokeWidth="0.6" opacity="0.4" />
+
+      {/* Watermark */}
+      <text x="6" y="154" fontFamily="'Space Mono', monospace" fontSize="5" fill="#172030" letterSpacing="0.1em">CHANGE OF CHARACTER</text>
+    </svg>
+  );
+}
+
 // ─── exports ────────────────────────────────────────────────────────────────
 
 export const CHARTS = {
@@ -831,4 +900,5 @@ export const CHARTS = {
   sellside_liquidity:  SellsideLiquidityChart,
   bos:                 BOSChart,
   liquidity_sweep:     LiquiditySweepChart,
+  choch:               CHoCHChart,
 };
