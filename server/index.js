@@ -115,6 +115,7 @@ const PaidTournamentSchema = new mongoose.Schema({
   entryFee:   { type: Number, default: 2 },
   prize:      { type: Number, default: 10 },
   maxPlayers: { type: Number, default: 10 },
+  totalPot:   { type: Number, default: 20 },
   players:    [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   status:     { type: String, enum: ['waiting', 'active', 'finished'], default: 'waiting' },
   winner:     { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
@@ -740,7 +741,7 @@ app.post('/shop/webhook', express.raw({ type: 'application/json' }), async (req,
             const subs = await loadSubscriptions();
             const payload = JSON.stringify({
               title: '⚔️ Torneo de pago — ¡COMIENZA!',
-              body:  `El torneo de €${pt.entryFee} con premio de €${pt.prize} ya tiene 10 jugadores. ¡Entra a jugar!`,
+              body:  `El torneo de €${pt.entryFee} con premio de €${pt.prize} ya tiene ${pt.maxPlayers} jugadores. ¡Entra a jugar!`,
               url:   '/?screen=tournament',
             });
             subs.forEach(sub => webpush.sendNotification(sub, payload).catch(() => {}));
@@ -826,6 +827,27 @@ app.post('/pro/cancel', async (req, res) => {
 });
 
 // ── Paid tournament routes ────────────────────────────────────────
+app.post('/tournament/paid/create', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const { maxParticipants } = req.body;
+    const n = Number(maxParticipants);
+    if (!Number.isInteger(n) || n < 2 || n > 10) {
+      return res.status(400).json({ error: 'maxParticipants must be an integer between 2 and 10' });
+    }
+    const entryFee = 2;
+    const totalPot = entryFee * n;
+    const prize    = totalPot / 2;
+    const pt = await PaidTournament.create({ entryFee, maxPlayers: n, totalPot, prize });
+    res.json({ ok: true, tournament: pt });
+  } catch (err) {
+    console.error('Create tournament error:', err.message);
+    res.status(500).json({ error: 'Create failed' });
+  }
+});
+
 app.get('/tournaments', async (req, res) => {
   try {
     const paid = await PaidTournament.find({ status: { $in: ['waiting', 'active'] } })

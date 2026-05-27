@@ -16,7 +16,6 @@ const PRO_FEATURES = [
   'Survival — regeneración de vidas ⚡',
   'Sin anuncios',
   'Badge Pro en el perfil',
-  'Torneos de pago (€2 entrada, €10 premio)',
   'Estadísticas avanzadas (próximamente)',
 ];
 
@@ -59,15 +58,6 @@ export default function Pricing({ onBack, fromTournament }) {
             Planes
           </div>
         </div>
-
-        {fromTournament && !isPro && (
-          <div style={{ marginBottom: '20px', padding: '14px 16px', background: 'rgba(245,200,66,0.08)', border: '1px solid #f5c842', borderRadius: '8px' }}>
-            <div style={{ fontSize: '12px', color: '#f5c842', fontFamily: "'Space Mono', monospace", fontWeight: 700, marginBottom: '4px' }}>🏆 Torneos de Pago</div>
-            <div style={{ fontSize: '11px', color: 'var(--t4)', lineHeight: 1.5 }}>
-              Los torneos de pago son una función exclusiva de Tradara Pro. Hazte Pro para poder unirte y competir por premios reales.
-            </div>
-          </div>
-        )}
 
         {isPro && (
           <div style={{ marginBottom: '20px', padding: '12px 16px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '8px', textAlign: 'center' }}>
@@ -142,7 +132,7 @@ export default function Pricing({ onBack, fromTournament }) {
             🏆 Torneos de Pago
           </div>
           <div style={{ fontSize: '11px', color: 'var(--t5)', lineHeight: 1.6 }}>
-            Únete por <strong style={{ color: 'var(--t3)' }}>€2</strong> y compite con otros 9 jugadores. El ganador se lleva <strong style={{ color: '#f5c842' }}>€10</strong>. Los torneos comienzan automáticamente cuando se completan 10 jugadores.
+            Únete por <strong style={{ color: 'var(--t3)' }}>€2</strong> y compite con otros jugadores. El ganador se lleva <strong style={{ color: '#f5c842' }}>la mitad del bote</strong>. El creador elige cuántos participantes (2–10). Para todos los usuarios.
           </div>
         </div>
 

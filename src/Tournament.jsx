@@ -34,6 +34,9 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
   const [missionToast, setMissionToast] = useState(null);
   const [paidTournaments, setPaidTournaments] = useState([]);
   const [joiningId, setJoiningId] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createParticipants, setCreateParticipants] = useState(6);
+  const [creating, setCreating] = useState(false);
   const [academyTournamentData, setAcademyTournamentData] = useState(null);
   const chartRef = useRef(null);
 
@@ -75,6 +78,28 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
       const data = await res.json();
       if (data.paid) setPaidTournaments(data.paid);
     } catch {}
+  }
+
+  async function createPaidTournament() {
+    if (!user) return;
+    const n = parseInt(createParticipants, 10);
+    if (!Number.isInteger(n) || n < 2 || n > 10) return;
+    setCreating(true);
+    try {
+      const token = localStorage.getItem('tradara_token');
+      const res = await fetch(`${SERVER}/tournament/paid/create`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ maxParticipants: n }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setShowCreateModal(false);
+        setCreateParticipants(6);
+        await fetchPaidTournaments();
+      }
+    } catch {}
+    setCreating(false);
   }
 
   async function joinPaidTournament(tournamentId) {
@@ -396,7 +421,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
           {!academyTournamentId && paidTournaments.length > 0 && (
             <div style={{ marginTop: '28px' }}>
               <div style={{ fontSize: '9px', color: '#f5c842', letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: "'Space Mono', monospace", marginBottom: '12px' }}>
-                🏆 Torneos de Pago — Premio €10
+                🏆 Torneos de Pago
               </div>
               {paidTournaments.map(pt => {
                 const spots    = pt.maxPlayers - pt.players.length;
@@ -435,6 +460,69 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                   </div>
                 );
               })}
+
+              {user && (
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  style={{ width: '100%', padding: '10px', background: 'transparent', border: '1px dashed var(--bd2)', borderRadius: '8px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer', letterSpacing: '0.04em' }}
+                >
+                  ➕ Crear torneo
+                </button>
+              )}
+            </div>
+          )}
+
+          {showCreateModal && (
+            <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,12,15,0.88)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: '20px' }}>
+              <div style={{ width: '100%', maxWidth: '340px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '12px', padding: '24px' }}>
+                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '15px', color: 'var(--t1)', marginBottom: '20px' }}>
+                  Crear torneo de pago
+                </div>
+
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{ fontSize: '9px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", marginBottom: '8px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                    Número de participantes
+                  </div>
+                  <input
+                    type="number"
+                    min={2}
+                    max={10}
+                    value={createParticipants}
+                    onChange={e => {
+                      const v = parseInt(e.target.value, 10);
+                      setCreateParticipants(isNaN(v) ? '' : v);
+                    }}
+                    style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-page)', border: '1px solid var(--bd)', borderRadius: '6px', color: 'var(--t1)', fontFamily: "'Space Mono', monospace", fontSize: '14px', boxSizing: 'border-box', outline: 'none' }}
+                  />
+                </div>
+
+                {Number.isInteger(createParticipants) && createParticipants >= 2 && createParticipants <= 10 && (
+                  <div style={{ padding: '12px 14px', background: 'rgba(245,200,66,0.06)', border: '1px solid rgba(245,200,66,0.18)', borderRadius: '8px', marginBottom: '20px' }}>
+                    <div style={{ fontSize: '10px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", lineHeight: 1.8 }}>
+                      {createParticipants} jugadores × €2 entrada = <span style={{ color: '#f5c842' }}>€{createParticipants * 2} en el bote</span>
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#f5c842', fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>
+                      Premio para el ganador: €{createParticipants}
+                    </div>
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    onClick={() => { setShowCreateModal(false); setCreateParticipants(6); }}
+                    style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid var(--bd)', borderRadius: '6px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer' }}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={createPaidTournament}
+                    disabled={creating || !(Number.isInteger(createParticipants) && createParticipants >= 2 && createParticipants <= 10)}
+                    style={{ flex: 1, padding: '10px', background: 'rgba(245,200,66,0.1)', border: '1px solid #f5c842', borderRadius: '6px', color: '#f5c842', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', cursor: (creating || !(Number.isInteger(createParticipants) && createParticipants >= 2 && createParticipants <= 10)) ? 'default' : 'pointer', opacity: (creating || !(Number.isInteger(createParticipants) && createParticipants >= 2 && createParticipants <= 10)) ? 0.4 : 1 }}
+                  >
+                    {creating ? 'Creando...' : 'Crear'}
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
