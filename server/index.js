@@ -116,6 +116,7 @@ const PaidTournamentSchema = new mongoose.Schema({
   prize:      { type: Number, default: 10 },
   maxPlayers: { type: Number, default: 10 },
   totalPot:   { type: Number, default: 20 },
+  createdBy:  { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   players:    [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   status:     { type: String, enum: ['waiting', 'active', 'finished'], default: 'waiting' },
   winner:     { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
@@ -840,11 +841,29 @@ app.post('/tournament/paid/create', async (req, res) => {
     const entryFee = 2;
     const totalPot = entryFee * n;
     const prize    = totalPot / 2;
-    const pt = await PaidTournament.create({ entryFee, maxPlayers: n, totalPot, prize });
+    const pt = await PaidTournament.create({ entryFee, maxPlayers: n, totalPot, prize, createdBy: decoded.id });
     res.json({ ok: true, tournament: pt });
   } catch (err) {
     console.error('Create tournament error:', err.message);
     res.status(500).json({ error: 'Create failed' });
+  }
+});
+
+app.delete('/tournament/paid/:id', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const pt = await PaidTournament.findById(req.params.id);
+    if (!pt) return res.status(404).json({ error: 'Tournament not found' });
+    if (String(pt.createdBy) !== String(decoded.id)) return res.status(403).json({ error: 'Not the creator' });
+    if (pt.players.length > 0) return res.status(400).json({ error: 'Cannot delete a tournament with players' });
+    if (pt.status !== 'waiting') return res.status(400).json({ error: 'Cannot delete an active or finished tournament' });
+    await PaidTournament.findByIdAndDelete(req.params.id);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Delete tournament error:', err.message);
+    res.status(500).json({ error: 'Delete failed' });
   }
 });
 
