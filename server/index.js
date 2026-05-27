@@ -2313,10 +2313,12 @@ async function updateWeeklyScore(userId, portfolio) {
     const weekId     = getWeekId();
     await PortfolioWeekly.findOneAndUpdate(
       { weekId, userId },
-      { $set: { score: totalValue }, $setOnInsert: { weekId, userId } },
-      { upsert: true }
+      { weekId, userId, score: totalValue },
+      { upsert: true, new: true }
     );
-  } catch {}
+  } catch (e) {
+    console.error('updateWeeklyScore error:', e.message);
+  }
 }
 
 app.post('/portfolio/weekly/start', async (req, res) => {
