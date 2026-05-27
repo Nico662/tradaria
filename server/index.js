@@ -169,14 +169,6 @@ const PortfolioHistorySchema = new mongoose.Schema({
 PortfolioHistorySchema.index({ userId: 1, date: 1 }, { unique: true });
 const PortfolioHistory = mongoose.model('PortfolioHistory', PortfolioHistorySchema);
 
-const PortfolioWeeklySchema = new mongoose.Schema({
-  weekId:    { type: String, required: true },
-  userId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  score:     { type: Number, default: 0 },
-  createdAt: { type: Date, default: Date.now },
-});
-PortfolioWeeklySchema.index({ weekId: 1, userId: 1 }, { unique: true });
-const PortfolioWeekly = mongoose.model('PortfolioWeekly', PortfolioWeeklySchema);
 
 const PortfolioDuelSchema = new mongoose.Schema({
   challenger: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -1998,7 +1990,6 @@ app.post('/portfolio/buy', async (req, res) => {
     }
     portfolio.transactions.push({ symbol, name: asset.name, type: asset.type, action: 'buy', qty, price, total });
     await portfolio.save();
-    updateWeeklyScore(decoded.id, portfolio).catch(() => {});
     res.json({ ok: true, cash: portfolio.cash });
   } catch (err) {
     console.error('Buy error:', err.message);
@@ -2025,7 +2016,6 @@ app.post('/portfolio/sell', async (req, res) => {
       portfolio.positions = portfolio.positions.filter(p => p.symbol !== symbol);
       portfolio.transactions.push({ symbol, name: position.name, type: position.type, action: 'sell', qty: position.qty, price: position.avgPrice, total: refund });
       await portfolio.save();
-      updateWeeklyScore(decoded.id, portfolio).catch(() => {});
       return res.json({ ok: true, cash: portfolio.cash, refunded: true });
     }
     const priceData = await getPrice(asset);
@@ -2042,7 +2032,6 @@ app.post('/portfolio/sell', async (req, res) => {
     }
     portfolio.transactions.push({ symbol, name: asset.name, type: asset.type, action: 'sell', qty, price, total, avgPrice: position?.avgPrice ?? price });
     await portfolio.save();
-    updateWeeklyScore(decoded.id, portfolio).catch(() => {});
     res.json({ ok: true, cash: portfolio.cash });
   } catch (err) {
     console.error('Sell error:', err.message);
@@ -2282,7 +2271,6 @@ app.get('/portfolio/leaderboard', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-// ── Portfolio weekly leaderboard ──────────────────────────────────
 async function getPortfolioValue(userId) {
   try {
     const portfolio = await Portfolio.findOne({ userId });
@@ -2299,77 +2287,6 @@ async function getPortfolioValue(userId) {
   } catch { return 50000; }
 }
 
-async function updateWeeklyScore(userId, portfolio) {
-  try {
-    const priceMap = {};
-    await Promise.all(PORTFOLIO_ASSETS.map(async a => {
-      try {
-        const c = await redis.get(`price_v2:${a.symbol}`);
-        if (c) { const p = typeof c === 'string' ? JSON.parse(c) : c; priceMap[p.symbol] = p.price; }
-      } catch {}
-    }));
-    const invested   = portfolio.positions.reduce((s, pos) => s + (priceMap[pos.symbol] || pos.avgPrice) * pos.qty, 0);
-    const totalValue = portfolio.cash + invested;
-    const weekId     = getWeekId();
-    await PortfolioWeekly.findOneAndUpdate(
-      { weekId, userId },
-      { $set: { score: totalValue } },
-      { upsert: true, new: true }
-    );
-  } catch (e) {
-    console.error('updateWeeklyScore error:', e.message);
-  }
-}
-
-app.post('/portfolio/weekly/start', async (req, res) => {
-  const auth = req.headers.authorization;
-  if (!auth) return res.status(401).json({ error: 'No token' });
-  try {
-    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const weekId  = getWeekId();
-    await PortfolioWeekly.findOneAndUpdate(
-      { weekId, userId: decoded.id },
-      { $setOnInsert: { weekId, userId: decoded.id } },
-      { upsert: true }
-    );
-    res.json({ ok: true, weekId });
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.get('/portfolio/weekly/leaderboard', async (req, res) => {
-  try {
-    const weekId  = getWeekId();
-    const records = await PortfolioWeekly
-      .find({ weekId, score: { $gt: 0 } })
-      .sort({ score: -1 })
-      .populate('userId', 'name avatar customAvatar username activeCosmetics');
-
-    const allLeaderboard = records
-      .filter(r => r.userId)
-      .map(r => ({
-        userId:          String(r.userId._id),
-        name:            r.userId.username || r.userId.name,
-        username:        r.userId.username || null,
-        avatar:          r.userId.avatar,
-        customAvatar:    r.userId.customAvatar || null,
-        activeCosmetics: r.userId.activeCosmetics || {},
-        totalValue:      r.score,
-        weeklyReturn:    ((r.score - 50000) / 50000) * 100,
-      }));
-
-    const top10 = allLeaderboard.slice(0, 10);
-    let userPosition = null;
-    const { userId } = req.query;
-    if (userId) {
-      const idx = allLeaderboard.findIndex(p => p.userId === String(userId));
-      if (idx >= 10) {
-        const u = allLeaderboard[idx];
-        userPosition = { rank: idx + 1, totalValue: u.totalValue, weeklyReturn: u.weeklyReturn, name: u.name, username: u.username, avatar: u.avatar, customAvatar: u.customAvatar, activeCosmetics: u.activeCosmetics };
-      }
-    }
-    res.json({ weekId, leaderboard: top10, userPosition });
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
 
 // ── Portfolio duels ───────────────────────────────────────────────
 app.post('/portfolio/duel/challenge', async (req, res) => {

@@ -103,11 +103,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague }) {
   const [loadingCandles, setLoadingCandles] = useState(false);
   const [portfolioHistory, setPortfolioHistory] = useState([]);
   const [leaderboard, setLeaderboard]       = useState([]);
-  const [weeklyLeaderboard, setWeeklyLeaderboard] = useState([]);
   const [userPositionGlobal, setUserPositionGlobal] = useState(null);
-  const [userPositionWeekly, setUserPositionWeekly] = useState(null);
-  const [weeklyWeekId, setWeeklyWeekId]     = useState('');
-  const [lbTab, setLbTab]                   = useState('global');
   const [activeDuel, setActiveDuel]         = useState(null);
   const [pendingDuels, setPendingDuels]     = useState([]);
   const [duelFriends, setDuelFriends]       = useState([]);
@@ -168,12 +164,6 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague }) {
         body: JSON.stringify({ totalValue: tv }),
       }).catch(() => {});
 
-      fetch(`${SERVER}/portfolio/weekly/start`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ totalValue: tv }),
-      }).catch(() => {});
-
       fetch(`${SERVER}/portfolio/history`, {
         headers: { Authorization: `Bearer ${tok}` },
       }).then(r => r.json()).then(data => {
@@ -190,16 +180,6 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague }) {
           }
         })
         .catch(() => {});
-
-      fetch(`${SERVER}/portfolio/weekly/leaderboard${uid ? `?userId=${uid}` : ''}`, {
-        headers: { Authorization: `Bearer ${tok}` },
-      }).then(r => r.json()).then(data => {
-        if (data.leaderboard) {
-          setWeeklyLeaderboard(data.leaderboard);
-          setWeeklyWeekId(data.weekId || '');
-          setUserPositionWeekly(data.userPosition || null);
-        }
-      }).catch(() => {});
 
       fetch(`${SERVER}/portfolio/duel/active`, {
         headers: { Authorization: `Bearer ${tok}` },
@@ -836,24 +816,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague }) {
       {/* ── Leaderboard ── */}
       {tab === 'leaderboard' && (
         <div style={{ padding: '16px 20px 40px', position: 'relative', zIndex: 2 }}>
-          {/* Global / Semanal subtabs */}
-          <div style={{ display: 'flex', gap: '6px', marginBottom: '16px' }}>
-            {[['global', t.portfolio.global], ['weekly', t.portfolio.weekly]].map(([id, label]) => (
-              <button key={id} onClick={() => setLbTab(id)}
-                style={{ padding: '6px 16px', borderRadius: '20px', border: `1px solid ${lbTab === id ? '#22d3a5' : 'var(--bd2)'}`, background: lbTab === id ? 'rgba(34,211,165,0.08)' : 'transparent', color: lbTab === id ? '#22d3a5' : 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, cursor: 'pointer' }}>
-                {label}
-              </button>
-            ))}
-          </div>
-
-          {lbTab === 'weekly' && weeklyWeekId && (
-            <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.06em', marginBottom: '10px', textAlign: 'center' }}>
-              {t.portfolio.weekOf} {getWeekStart()}
-            </div>
-          )}
-
-          {lbTab === 'global' ? (
-            leaderboard.length === 0 ? (
+          {leaderboard.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '60px 20px' }}>
                 <div style={{ fontSize: '32px', marginBottom: '12px' }}>🏆</div>
                 <div style={{ fontSize: '11px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace" }}>{t.portfolio.noLeaderboard}</div>
@@ -906,68 +869,6 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague }) {
                         <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: userPositionGlobal.returnPct >= 0 ? '#22d3a5' : '#f05454' }}>
                           {userPositionGlobal.returnPct >= 0 ? '+' : ''}{userPositionGlobal.returnPct.toFixed(2)}%
                         </div>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </>
-            )
-          ) : (
-            weeklyLeaderboard.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-                <div style={{ fontSize: '32px', marginBottom: '12px' }}>📅</div>
-                <div style={{ fontSize: '11px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace" }}>{t.portfolio.noWeeklyData}</div>
-              </div>
-            ) : (
-              <>
-                {weeklyLeaderboard.map((entry, i) => {
-                  const myId = String(user?._id || user?.id || '');
-                  const isMe = myId && String(entry.userId) === myId;
-                  return (
-                    <div key={i} onClick={() => !isMe && entry.username && onViewProfile && onViewProfile(entry.username)} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: isMe ? 'rgba(34,211,165,0.07)' : 'var(--bg-card)', border: `1px solid ${i === 0 ? '#f5c842' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : isMe ? 'rgba(34,211,165,0.6)' : 'var(--bd)'}`, borderLeft: isMe ? '2px solid rgba(34,211,165,0.6)' : undefined, borderRadius: '8px', marginBottom: '8px', cursor: !isMe && entry.username && onViewProfile ? 'pointer' : 'default' }}>
-                      <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : 'var(--t6)', width: '24px', flexShrink: 0 }}>
-                        {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
-                      </div>
-                      <UserAvatar user={entry} size={24} showBadge />
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: isMe ? '#22d3a5' : 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
-                          {entry.username ? `@${entry.username}` : entry.name}
-                          {isFounder(entry.username) && <FounderBadge size={11} />}
-                          {isMe && <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(34,211,165,0.6)', marginLeft: '6px', flexShrink: 0 }}>YOU</span>}
-                        </div>
-                        <div style={{ fontSize: '9px', color: 'var(--t5)' }}>{formatCash(entry.totalValue ?? 0)}</div>
-                      </div>
-                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: (entry.weeklyReturn ?? 0) >= 0 ? '#22d3a5' : '#f05454' }}>
-                          {(entry.weeklyReturn ?? 0) >= 0 ? '+' : ''}{(entry.weeklyReturn ?? 0).toFixed(2)}%
-                        </div>
-                        <div style={{ fontSize: '8px', color: 'var(--t5)' }}>{t.portfolio.thisWeek}</div>
-                      </div>
-                    </div>
-                  );
-                })}
-                {userPositionWeekly && (
-                  <>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 0', margin: '4px 0' }}>
-                      <div style={{ flex: 1, height: '1px', background: 'var(--bd)' }} />
-                      <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t6)' }}>···</span>
-                      <div style={{ flex: 1, height: '1px', background: 'var(--bd)' }} />
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: 'rgba(34,211,165,0.07)', border: '1px solid rgba(34,211,165,0.6)', borderLeft: '2px solid rgba(34,211,165,0.6)', borderRadius: '8px', marginBottom: '8px' }}>
-                      <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--t6)', width: '24px', flexShrink: 0 }}>#{userPositionWeekly.rank}</div>
-                      <UserAvatar user={userPositionWeekly} size={24} showBadge />
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#22d3a5', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
-                          {userPositionWeekly.username ? `@${userPositionWeekly.username}` : userPositionWeekly.name}
-                          <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(34,211,165,0.6)', marginLeft: '6px', flexShrink: 0 }}>YOU</span>
-                        </div>
-                        <div style={{ fontSize: '9px', color: 'var(--t5)' }}>{formatCash(userPositionWeekly.totalValue ?? 0)}</div>
-                      </div>
-                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: (userPositionWeekly.weeklyReturn ?? 0) >= 0 ? '#22d3a5' : '#f05454' }}>
-                          {(userPositionWeekly.weeklyReturn ?? 0) >= 0 ? '+' : ''}{(userPositionWeekly.weeklyReturn ?? 0).toFixed(2)}%
-                        </div>
-                        <div style={{ fontSize: '8px', color: 'var(--t5)' }}>{t.portfolio.thisWeek}</div>
                       </div>
                     </div>
                   </>
