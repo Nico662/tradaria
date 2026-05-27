@@ -93,6 +93,7 @@ const UserSchema = new mongoose.Schema({
   },
   createdAt: { type: Date, default: Date.now },
   lastLogin: { type: Date, default: Date.now },
+  username:        { type: String, sparse: true },
   customAvatar:    { type: String, default: null },
   activeCosmetics: { type: mongoose.Schema.Types.Mixed, default: {} },
   portfolioTutorialSeen: { type: Boolean, default: false },
@@ -449,20 +450,20 @@ passport.use(new GoogleStrategy({
   callbackURL:  'https://tradara-production.up.railway.app/auth/google/callback',
 }, async (accessToken, refreshToken, profile, done) => {
   try {
-    let user = await User.findOne({ googleId: profile.id });
-    if (!user) {
-      user = await User.create({
-        googleId: profile.id,
-        email:    profile.emails[0].value,
-        name:     profile.displayName,
-        avatar:   profile.photos[0]?.value,
-      });
-      console.log('New user created:', user.email);
-    } else {
-      user.lastLogin = new Date();
-      await user.save();
+    const existingUser = await User.findOne({ googleId: profile.id });
+    if (existingUser) {
+      existingUser.lastLogin = new Date();
+      await existingUser.save();
+      return done(null, existingUser);
     }
-    return done(null, user);
+    const newUser = await User.create({
+      googleId: profile.id,
+      email:    profile.emails[0].value,
+      name:     profile.displayName,
+      avatar:   profile.photos[0]?.value,
+    });
+    console.log('New user created:', newUser.email);
+    return done(null, newUser);
   } catch (err) {
     return done(err, null);
   }
@@ -626,9 +627,9 @@ app.post('/auth/username/set', async (req, res) => {
     if (!/^[a-zA-Z0-9_]{3,16}$/.test(username)) {
       return res.status(400).json({ error: 'Solo letras, números y _ (3-16 caracteres)' });
     }
-    const existing = await User.findOne({ username: username.toLowerCase() });
+    const existing = await User.findOne({ username: username.toLowerCase(), _id: { $ne: decoded.id } });
     if (existing) return res.status(400).json({ error: 'Username ya en uso' });
-    await User.findByIdAndUpdate(decoded.id, { username: username.toLowerCase() }, { strict: false });
+    await User.findByIdAndUpdate(decoded.id, { username: username.toLowerCase() });
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
