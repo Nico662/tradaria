@@ -37,6 +37,9 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createParticipants, setCreateParticipants] = useState(6);
   const [creating, setCreating] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+  const [deleteError, setDeleteError] = useState('');
   const [academyTournamentData, setAcademyTournamentData] = useState(null);
   const chartRef = useRef(null);
 
@@ -78,6 +81,28 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
       const data = await res.json();
       if (data.paid) setPaidTournaments(data.paid);
     } catch {}
+  }
+
+  async function deletePaidTournament(tournamentId) {
+    setDeletingId(tournamentId);
+    setDeleteError('');
+    try {
+      const token = localStorage.getItem('tradara_token');
+      const res = await fetch(`${SERVER}/tournament/paid/${tournamentId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setPaidTournaments(prev => prev.filter(t => String(t._id) !== tournamentId));
+        setConfirmDeleteId(null);
+      } else {
+        setDeleteError(data.error || 'Error al borrar');
+      }
+    } catch {
+      setDeleteError('Error de red. Inténtalo de nuevo.');
+    }
+    setDeletingId(null);
   }
 
   async function createPaidTournament() {
@@ -457,6 +482,14 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                     {!user && (
                       <div style={{ fontSize: '10px', color: 'var(--t5)', textAlign: 'center' }}>Inicia sesión para unirte</div>
                     )}
+                    {pt.createdBy && String(pt.createdBy) === String(user?._id || user?.id) && pt.players.length === 0 && (
+                      <button
+                        onClick={() => { setConfirmDeleteId(String(pt._id)); setDeleteError(''); }}
+                        style={{ marginTop: '8px', width: '100%', padding: '7px', background: 'transparent', border: '1px solid rgba(240,84,84,0.3)', borderRadius: '6px', color: 'rgba(240,84,84,0.75)', fontFamily: "'Space Mono', monospace", fontSize: '9px', letterSpacing: '0.06em', cursor: 'pointer' }}
+                      >
+                        🗑 Borrar
+                      </button>
+                    )}
                   </div>
                 );
               })}
@@ -469,6 +502,39 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                   ➕ Crear torneo
                 </button>
               )}
+            </div>
+          )}
+
+          {confirmDeleteId && (
+            <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,12,15,0.88)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: '20px' }}>
+              <div style={{ width: '100%', maxWidth: '320px', background: 'var(--bg-card)', border: '1px solid rgba(240,84,84,0.4)', borderRadius: '12px', padding: '24px' }}>
+                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: 'var(--t1)', marginBottom: '12px' }}>
+                  Borrar torneo
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--t4)', marginBottom: '20px', lineHeight: 1.6 }}>
+                  ¿Seguro que quieres borrar este torneo?
+                </div>
+                {deleteError && (
+                  <div style={{ fontSize: '10px', color: '#f05454', fontFamily: "'Space Mono', monospace", marginBottom: '16px', padding: '8px 10px', background: 'rgba(240,84,84,0.08)', border: '1px solid rgba(240,84,84,0.25)', borderRadius: '6px' }}>
+                    {deleteError}
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    onClick={() => { setConfirmDeleteId(null); setDeleteError(''); }}
+                    style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid var(--bd)', borderRadius: '6px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer' }}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={() => deletePaidTournament(confirmDeleteId)}
+                    disabled={!!deletingId}
+                    style={{ flex: 1, padding: '10px', background: 'rgba(240,84,84,0.1)', border: '1px solid #f05454', borderRadius: '6px', color: '#f05454', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', cursor: deletingId ? 'default' : 'pointer', opacity: deletingId ? 0.5 : 1 }}
+                  >
+                    {deletingId ? '...' : 'Sí, borrar'}
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
