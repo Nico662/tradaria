@@ -150,6 +150,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
                             borderBottom: i < top10.length - 1 || myOutside ? '1px solid var(--bd)' : 'none',
                             background: isMe ? 'rgba(34,211,165,0.07)' : i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.012)',
                             borderLeft: isMe ? '2px solid rgba(34,211,165,0.6)' : '2px solid transparent',
+                            overflow: 'hidden', width: '100%',
                           }}>
                             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', textAlign: 'center' }}>
                               <Medal pos={i + 1} />
@@ -170,6 +171,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
                                 color: isMe ? '#22d3a5' : 'var(--t1)',
                                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                                 fontWeight: isMe ? 700 : 400,
+                                flex: 1, minWidth: 0,
                               }}>
                                 {s.name}
                               </span>
@@ -200,6 +202,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
                             borderBottom: 'none',
                             background: 'rgba(34,211,165,0.07)',
                             borderLeft: '2px solid rgba(34,211,165,0.6)',
+                            overflow: 'hidden', width: '100%',
                           }}>
                             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', textAlign: 'center', color: 'var(--t5)' }}>
                               #{myIdx + 1}
@@ -215,7 +218,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
                               }}>
                                 {(myOutside.name || '?')[0].toUpperCase()}
                               </div>
-                              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#22d3a5', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 700 }}>
+                              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#22d3a5', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 700, flex: 1, minWidth: 0 }}>
                                 {myOutside.name}
                               </span>
                               <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(34,211,165,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>
@@ -296,12 +299,13 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
                             borderBottom: i < top10.length - 1 || myOutside ? '1px solid var(--bd)' : 'none',
                             background: isMe ? 'rgba(34,211,165,0.07)' : 'transparent',
                             borderLeft: isMe ? '2px solid rgba(34,211,165,0.6)' : '2px solid transparent',
+                            overflow: 'hidden', width: '100%',
                           }}>
                             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', width: '28px', textAlign: 'center' }}>
                               <Medal pos={i + 1} />
                             </div>
                             <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
-                              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: isMe ? '#22d3a5' : 'var(--t1)', fontWeight: isMe ? 700 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: isMe ? '#22d3a5' : 'var(--t1)', fontWeight: isMe ? 700 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
                                 {name}
                               </span>
                               {isMe && <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(34,211,165,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>}
@@ -325,12 +329,13 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
                             borderBottom: 'none',
                             background: 'rgba(34,211,165,0.07)',
                             borderLeft: '2px solid rgba(34,211,165,0.6)',
+                            overflow: 'hidden', width: '100%',
                           }}>
                             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', width: '28px', textAlign: 'center', color: 'var(--t5)' }}>
                               #{myIdx + 1}
                             </div>
                             <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
-                              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#22d3a5', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#22d3a5', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
                                 {myOutside.userId?.name || myOutside.userId?.username || '—'}
                               </span>
                               <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(34,211,165,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>
