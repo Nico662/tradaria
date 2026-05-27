@@ -875,7 +875,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague }) {
                 )}
               </>
             )
-          )}
+          }
         </div>
       )}
 
