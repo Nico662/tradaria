@@ -37,7 +37,6 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createParticipants, setCreateParticipants] = useState(6);
   const [creating, setCreating] = useState(false);
-  const [deletingId, setDeletingId] = useState(null);
   const [academyTournamentData, setAcademyTournamentData] = useState(null);
   const chartRef = useRef(null);
 
@@ -101,20 +100,6 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
       }
     } catch {}
     setCreating(false);
-  }
-
-  async function deletePaidTournament(tournamentId) {
-    setDeletingId(tournamentId);
-    try {
-      const token = localStorage.getItem('tradara_token');
-      const res = await fetch(`${SERVER}/tournament/paid/${tournamentId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (data.ok) await fetchPaidTournaments();
-    } catch {}
-    setDeletingId(null);
   }
 
   async function joinPaidTournament(tournamentId) {
@@ -471,15 +456,6 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                     )}
                     {!user && (
                       <div style={{ fontSize: '10px', color: 'var(--t5)', textAlign: 'center' }}>Inicia sesión para unirte</div>
-                    )}
-                    {pt.createdBy && String(pt.createdBy) === String(user?._id || user?.id) && pt.players.length === 0 && pt.status === 'waiting' && (
-                      <button
-                        onClick={() => deletePaidTournament(String(pt._id))}
-                        disabled={deletingId === String(pt._id)}
-                        style={{ marginTop: '8px', width: '100%', padding: '7px', background: 'transparent', border: '1px solid rgba(240,84,84,0.3)', borderRadius: '6px', color: 'rgba(240,84,84,0.7)', fontFamily: "'Space Mono', monospace", fontSize: '9px', letterSpacing: '0.06em', cursor: 'pointer' }}
-                      >
-                        {deletingId === String(pt._id) ? '...' : '× Borrar torneo'}
-                      </button>
                     )}
                   </div>
                 );
