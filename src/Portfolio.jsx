@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { useAuth } from './AuthContext';
 import { useLang } from './LangContext.jsx';
-import Chart from './Chart.jsx';
+const Chart = lazy(() => import('./Chart.jsx'));
 import { ASSET_INFO } from './assetInfo.js';
 
 import { SERVER } from './config.js';
@@ -83,7 +83,7 @@ function getWeekStart() {
 export default function Portfolio({ onBack, onViewProfile, onOpenLeague }) {
   const { user } = useAuth();
   const { t, lang } = useLang();
-  const [screen, setScreen]                 = useState('loading');
+  const [screen, setScreen]                 = useState('main');
   const [prices, setPrices]                 = useState([]);
   const [portfolio, setPortfolio]           = useState(null);
   const [selected, setSelected]             = useState(null);
@@ -476,7 +476,9 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague }) {
               {t.portfolio.loadingChart}
             </div>
           ) : assetCandles && stableAsset ? (
-            <Chart ref={chartRef} asset={stableAsset} externalCandles={assetCandles} />
+            <Suspense fallback={<div style={{ height: '260px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: 'var(--t6)', fontFamily: "'Space Mono', monospace" }}>{t.portfolio.loadingChart}</div>}>
+              <Chart ref={chartRef} asset={stableAsset} externalCandles={assetCandles} />
+            </Suspense>
           ) : (
             <div style={{ height: '260px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: 'var(--t6)', fontFamily: "'Space Mono', monospace" }}>
               {t.portfolio.noChartData}

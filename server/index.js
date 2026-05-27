@@ -1741,16 +1741,14 @@ cron.schedule('0 0 * * *', async () => {
 // Obtener todos los precios
 app.get('/portfolio/prices', async (req, res) => {
   try {
-    // Intentar obtener desde caché primero — respuesta rápida
-    const cachedResults = await Promise.all(
-      PORTFOLIO_ASSETS.map(async a => {
-        try {
-          const cached = await redis.get(`price_v2:${a.symbol}`);
-          if (cached) return typeof cached === 'string' ? JSON.parse(cached) : cached;
-          return null;
-        } catch { return null; }
-      })
-    );
+    // Obtener todos los precios en caché con una sola operación mget
+    const keys = PORTFOLIO_ASSETS.map(a => `price_v2:${a.symbol}`);
+    let rawValues;
+    try { rawValues = await redis.mget(...keys); } catch { rawValues = []; }
+    const cachedResults = (rawValues || []).map(v => {
+      if (!v) return null;
+      try { return typeof v === 'string' ? JSON.parse(v) : v; } catch { return null; }
+    });
 
     const cached = cachedResults.filter(Boolean);
 
@@ -1784,6 +1782,11 @@ app.get('/portfolio', async (req, res) => {
   if (!auth) return res.status(401).json({ error: 'No token' });
   try {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const cacheKey = `portfolio:${decoded.id}`;
+    try {
+      const cached = await redis.get(cacheKey);
+      if (cached) return res.json(typeof cached === 'string' ? JSON.parse(cached) : cached);
+    } catch {}
     let portfolio = await Portfolio.findOne({ userId: decoded.id });
     if (!portfolio) {
       portfolio = await Portfolio.create({ userId: decoded.id, cash: 50000, positions: [], transactions: [] });
@@ -1791,6 +1794,7 @@ app.get('/portfolio', async (req, res) => {
     const user = await User.findById(decoded.id).select('portfolioTutorialSeen');
     const obj = portfolio.toObject();
     obj.tutorialSeen = user?.portfolioTutorialSeen ?? false;
+    redis.set(cacheKey, JSON.stringify(obj), { ex: 30 }).catch(() => {});
     res.json(obj);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1990,6 +1994,7 @@ app.post('/portfolio/buy', async (req, res) => {
     }
     portfolio.transactions.push({ symbol, name: asset.name, type: asset.type, action: 'buy', qty, price, total });
     await portfolio.save();
+    redis.del(`portfolio:${decoded.id}`).catch(() => {});
     res.json({ ok: true, cash: portfolio.cash });
   } catch (err) {
     console.error('Buy error:', err.message);
@@ -2016,6 +2021,7 @@ app.post('/portfolio/sell', async (req, res) => {
       portfolio.positions = portfolio.positions.filter(p => p.symbol !== symbol);
       portfolio.transactions.push({ symbol, name: position.name, type: position.type, action: 'sell', qty: position.qty, price: position.avgPrice, total: refund });
       await portfolio.save();
+      redis.del(`portfolio:${decoded.id}`).catch(() => {});
       return res.json({ ok: true, cash: portfolio.cash, refunded: true });
     }
     const priceData = await getPrice(asset);
@@ -2032,6 +2038,7 @@ app.post('/portfolio/sell', async (req, res) => {
     }
     portfolio.transactions.push({ symbol, name: asset.name, type: asset.type, action: 'sell', qty, price, total, avgPrice: position?.avgPrice ?? price });
     await portfolio.save();
+    redis.del(`portfolio:${decoded.id}`).catch(() => {});
     res.json({ ok: true, cash: portfolio.cash });
   } catch (err) {
     console.error('Sell error:', err.message);
