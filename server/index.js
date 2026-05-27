@@ -62,21 +62,12 @@ const redis = new Redis({
 mongoose.connect(MONGODB_URI, { autoIndex: false })
   .then(async () => {
     console.log('MongoDB connected');
-    try {
-      const collection = mongoose.connection.collection('users');
-      try {
-        await collection.dropIndex('username_1');
-        console.log('Índice username_1 antiguo eliminado');
-      } catch (e) {
-        console.log('No había índice username_1 previo');
-      }
-      await collection.createIndex(
-        { username: 1 },
-        { unique: true, sparse: true, name: 'username_1' }
-      );
-      console.log('Índice username_1 creado correctamente con sparse');
-    } catch (e) {
-      console.error('Error gestionando índice username:', e);
+    const db = mongoose.connection.db;
+    const indexes = await db.collection('users').indexes();
+    const hasOldIndex = indexes.some(i => i.name === 'username_1');
+    if (hasOldIndex) {
+      await db.collection('users').dropIndex('username_1');
+      console.log('Índice username_1 eliminado');
     }
   })
   .catch(err => console.error('MongoDB error:', err));
@@ -102,7 +93,6 @@ const UserSchema = new mongoose.Schema({
   },
   createdAt: { type: Date, default: Date.now },
   lastLogin: { type: Date, default: Date.now },
-  username:        { type: String, default: null },
   customAvatar:    { type: String, default: null },
   activeCosmetics: { type: mongoose.Schema.Types.Mixed, default: {} },
   portfolioTutorialSeen: { type: Boolean, default: false },
@@ -638,7 +628,7 @@ app.post('/auth/username/set', async (req, res) => {
     }
     const existing = await User.findOne({ username: username.toLowerCase() });
     if (existing) return res.status(400).json({ error: 'Username ya en uso' });
-    await User.findByIdAndUpdate(decoded.id, { username: username.toLowerCase() });
+    await User.findByIdAndUpdate(decoded.id, { username: username.toLowerCase() }, { strict: false });
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
