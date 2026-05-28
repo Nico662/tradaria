@@ -124,7 +124,7 @@ export default function League({ leagueId, onBack }) {
           const name     = entry.username ? `@${entry.username}` : entry.name;
           return (
             <div key={String(entry.userId)} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', background: entry.isYou ? 'rgba(34,211,165,0.07)' : 'var(--bg-card)', border: `1px solid ${i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : entry.isYou ? 'rgba(34,211,165,0.6)' : 'transparent'}`, borderLeft: `2px solid ${i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : entry.isYou ? 'rgba(34,211,165,0.6)' : 'transparent'}`, borderRadius: '8px', marginBottom: '8px', overflow: 'hidden', width: '100%' }}>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: posColor, width: '24px', flexShrink: 0, textAlign: 'center' }}>
+              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: posColor, minWidth: '36px', flexShrink: 0, textAlign: 'center' }}>
                 {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
               </div>
               <UserAvatar user={entry} size={24} showBadge />
@@ -159,7 +159,7 @@ export default function League({ leagueId, onBack }) {
                 <div style={{ flex: 1, height: '1px', background: 'var(--bd)' }} />
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', background: 'rgba(34,211,165,0.07)', border: '1px solid rgba(34,211,165,0.6)', borderLeft: '2px solid rgba(34,211,165,0.6)', borderRadius: '8px', marginBottom: '8px', overflow: 'hidden', width: '100%' }}>
-                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--t6)', width: '24px', flexShrink: 0, textAlign: 'center' }}>#{up.rank}</div>
+                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--t6)', minWidth: '36px', flexShrink: 0, textAlign: 'center' }}>#{up.rank}</div>
                 <UserAvatar user={up} size={24} showBadge />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
