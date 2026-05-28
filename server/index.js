@@ -1865,6 +1865,35 @@ app.post('/admin/reset-portfolio-tutorial/:username', async (req, res) => {
   }
 });
 
+app.get('/admin/portfolio/:username', async (req, res) => {
+  const key = req.headers['x-admin-secret'];
+  if (!ADMIN_SECRET || key !== ADMIN_SECRET) return res.status(403).json({ error: 'Forbidden' });
+  try {
+    const user = await User.findOne({ username: req.params.username.toLowerCase() });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    const portfolio = await Portfolio.findOne({ userId: user._id });
+    if (!portfolio) return res.json({ cash: 50000, positions: [], transactions: [] });
+    const priceMap = {};
+    await Promise.all(PORTFOLIO_ASSETS.map(async a => {
+      try {
+        const c = await redis.get(`price_v2:${a.symbol}`);
+        if (c) { const p = typeof c === 'string' ? JSON.parse(c) : c; priceMap[p.symbol] = p.price; }
+      } catch {}
+    }));
+    const positions = portfolio.positions.map(pos => {
+      const currentPrice = priceMap[pos.symbol] || pos.avgPrice;
+      const value = currentPrice * pos.qty;
+      const pnl = (currentPrice - pos.avgPrice) * pos.qty;
+      const pnlPct = ((currentPrice - pos.avgPrice) / pos.avgPrice) * 100;
+      return { symbol: pos.symbol, name: pos.name, type: pos.type, qty: pos.qty, avgPrice: pos.avgPrice, currentPrice, value, pnl, pnlPct };
+    });
+    const invested = positions.reduce((s, p) => s + p.value, 0);
+    const totalValue = portfolio.cash + invested;
+    const portfolioReturn = ((totalValue - 50000) / 50000) * 100;
+    res.json({ username: user.username, name: user.name, cash: portfolio.cash, invested, totalValue, portfolioReturn, positions, transactions: portfolio.transactions.slice(-20) });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // ── Ligas ─────────────────────────────────────────────────────────────────────
 
 function generateLeagueCode() {
