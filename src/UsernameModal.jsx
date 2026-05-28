@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { SERVER } from './config.js';
 import { useLang } from './LangContext.jsx';
 
@@ -9,21 +9,26 @@ export default function UsernameModal({ onDone }) {
   const [checking, setChecking]   = useState(false);
   const [available, setAvailable] = useState(null);
   const [saving,   setSaving]     = useState(false);
+  const debounceRef = useRef(null);
 
-  async function checkUsername(val) {
+  function checkUsername(val) {
     setUsername(val);
     setAvailable(null);
+    setStatus('');
+    clearTimeout(debounceRef.current);
     if (val.length < 3) return;
     setChecking(true);
-    try {
-      const res  = await fetch(`${SERVER}/auth/username/check/${val}`);
-      const data = await res.json();
-      setAvailable(data.available);
-      setStatus(data.error || (data.available ? t.username.available : t.username.taken));
-    } catch {
-      setStatus(t.username.errorCheck);
-    }
-    setChecking(false);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const res  = await fetch(`${SERVER}/auth/username/check/${val}`);
+        const data = await res.json();
+        setAvailable(data.available);
+        setStatus(data.error || (data.available ? t.username.available : t.username.taken));
+      } catch {
+        setStatus(t.username.errorCheck);
+      }
+      setChecking(false);
+    }, 500);
   }
 
   async function save() {
