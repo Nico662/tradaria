@@ -887,6 +887,109 @@ function CHoCHChart() {
   );
 }
 
+// ─── OTE Chart ──────────────────────────────────────────────────────────────
+
+function OTEChart() {
+  // price range 118-168, y range 14-148  (scale 2.68 px/unit)
+  const py = p => 14 + (168 - p) * 134 / 50;
+
+  const sl    = 122;
+  const sh    = 162;
+  const range = sh - sl; // 40
+
+  const oteTop  = sh - range * 0.618; // ≈ 137.3  (61.8%)
+  const oteBot  = sh - range * 0.786; // ≈ 130.6  (78.6%)
+
+  const oteTopY = py(oteTop);
+  const oteBotY = py(oteBot);
+  const shY     = py(sh);
+  const slY     = py(sl);
+
+  const candles = [
+    { x: 14,  O: 132, H: 135, L: 128, C: 130 },          // context
+    { x: 28,  O: 130, H: 132, L: 122, C: 126 },          // swing low wick
+    { x: 43,  O: 127, H: 140, L: 125, C: 138, bw: 10 }, // impulse 1
+    { x: 57,  O: 138, H: 153, L: 136, C: 150, bw: 10 }, // impulse 2
+    { x: 72,  O: 150, H: 162, L: 148, C: 158, bw: 10 }, // swing high
+    { x: 86,  O: 158, H: 160, L: 150, C: 152 },          // pullback starts
+    { x: 99,  O: 152, H: 154, L: 144, C: 146 },
+    { x: 112, O: 146, H: 148, L: 138, C: 140 },          // entering OTE zone
+    { x: 125, O: 140, H: 141, L: 132, C: 134 },          // inside OTE zone
+    { x: 139, O: 133, H: 147, L: 131, C: 145, bw: 10 }, // OTE entry / bounce
+    { x: 153, O: 145, H: 156, L: 143, C: 153, bw: 10 }, // continuation
+    { x: 167, O: 153, H: 163, L: 151, C: 161, bw: 10 }, // continuation
+  ];
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="#060b10" rx="8" />
+
+      {/* Grid */}
+      {[40, 65, 90, 115, 140].map(y => (
+        <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
+      ))}
+
+      {/* SH / SL reference lines — extend from left to just after the swing candles */}
+      <line x1="4" y1={shY} x2="83" y2={shY} stroke="#f5c842" strokeWidth="0.6" strokeDasharray="3 2" opacity="0.3" />
+      <line x1="4" y1={slY} x2="83" y2={slY} stroke="#f5c842" strokeWidth="0.6" strokeDasharray="3 2" opacity="0.3" />
+
+      {/* Fibonacci bracket: vertical spine + tick marks on the left */}
+      <line x1="6" y1={shY} x2="6" y2={slY} stroke="#f5c842" strokeWidth="0.5" opacity="0.2" />
+      <line x1="4" y1={shY}     x2="9" y2={shY}     stroke="#f5c842" strokeWidth="0.8" opacity="0.4" />
+      <line x1="4" y1={oteTopY} x2="9" y2={oteTopY} stroke="#22d3a5" strokeWidth="0.8" opacity="0.55" />
+      <line x1="4" y1={oteBotY} x2="9" y2={oteBotY} stroke="#22d3a5" strokeWidth="0.8" opacity="0.55" />
+      <line x1="4" y1={slY}     x2="9" y2={slY}     stroke="#f5c842" strokeWidth="0.8" opacity="0.4" />
+
+      {/* OTE zone fill */}
+      <rect x="4" y={oteTopY} width="180" height={oteBotY - oteTopY} fill="#22d3a514" />
+
+      {/* OTE zone borders */}
+      <line x1="4" y1={oteTopY} x2="184" y2={oteTopY} stroke="#22d3a5" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.6" />
+      <line x1="4" y1={oteBotY} x2="184" y2={oteBotY} stroke="#22d3a5" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.6" />
+
+      {/* Candles */}
+      {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
+        const bull  = C >= O;
+        const col   = bull ? '#22d3a5' : '#e05555';
+        const bodyY = py(Math.max(O, C));
+        const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="1" opacity="0.75" />
+            <rect x={x - bw / 2} y={bodyY} width={bw} height={bodyH} fill={col} rx="0.5" opacity="0.95" />
+          </g>
+        );
+      })}
+
+      {/* SL label */}
+      <text x="28" y={slY + 9} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#f5c842" opacity="0.75">SL</text>
+
+      {/* SH label */}
+      <text x="72" y={shY - 3} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#f5c842" opacity="0.75">SH</text>
+
+      {/* Fib labels — right edge */}
+      <text x="183" y={shY + 4}     textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="4.8" fill="#f5c842" opacity="0.45">0%</text>
+      <text x="183" y={oteTopY + 4} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="4.8" fill="#22d3a5" opacity="0.85">61.8%</text>
+      <text x="183" y={oteBotY + 4} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="4.8" fill="#22d3a5" opacity="0.85">79%</text>
+      <text x="183" y={slY + 4}     textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="4.8" fill="#f5c842" opacity="0.45">100%</text>
+
+      {/* OTE label centred in zone */}
+      <text
+        x="13" y={(oteTopY + oteBotY) / 2 + 3.5}
+        fontFamily="'Space Mono', monospace"
+        fontSize="8" fontWeight="bold" fill="#22d3a5" opacity="0.9"
+      >OTE</text>
+
+      {/* ↑ entry annotation */}
+      <text x="139" y="11" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#22d3a5" opacity="0.9">↑ entry</text>
+      <line x1="139" y1="13" x2="139" y2="17" stroke="#22d3a5" strokeWidth="0.6" opacity="0.4" />
+
+      {/* Watermark */}
+      <text x="6" y="154" fontFamily="'Space Mono', monospace" fontSize="5" fill="#172030" letterSpacing="0.1em">OTE · OPTIMAL TRADE ENTRY</text>
+    </svg>
+  );
+}
+
 // ─── exports ────────────────────────────────────────────────────────────────
 
 export const CHARTS = {
@@ -901,4 +1004,5 @@ export const CHARTS = {
   bos:                 BOSChart,
   liquidity_sweep:     LiquiditySweepChart,
   choch:               CHoCHChart,
+  ote:                 OTEChart,
 };

@@ -256,6 +256,7 @@ export const GLOSSARY = [
       es: 'La zona OTE de ICT es el retroceso Fibonacci 0.62–0.79 de un swing. En alcista es descuento; en bajista es premium.',
       de: 'ICTs OTE-Zone ist das 0,62–0,79 Fibonacci-Retracement eines Swings.',
     },
+    chartId: 'ote',
   },
   {
     word: { en: 'Smart Money Concept', es: 'Concepto de Dinero Inteligente', de: 'Smart Money Konzept' },
