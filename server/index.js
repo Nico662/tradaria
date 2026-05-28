@@ -2273,6 +2273,61 @@ app.get('/portfolio/clear-cache', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+app.get('/portfolio/weekly/leaderboard', async (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  try {
+    const now   = new Date();
+    const day   = now.getUTCDay();
+    const diff  = (day === 0) ? -6 : 1 - day;
+    const monday = new Date(now);
+    monday.setUTCDate(now.getUTCDate() + diff);
+    monday.setUTCHours(0, 0, 0, 0);
+    const mondayStr = monday.toISOString().split('T')[0];
+
+    const activeUserIds = await PortfolioHistory.distinct('userId', { date: { $gte: mondayStr } });
+    if (activeUserIds.length === 0) {
+      return res.json({ leaderboard: [], userPosition: null });
+    }
+
+    const portfolios = await Portfolio.find({ userId: { $in: activeUserIds } })
+      .populate('userId', 'name avatar customAvatar username activeCosmetics');
+    const prices     = await Promise.all(PORTFOLIO_ASSETS.map(a => getPrice(a).catch(() => null)));
+    const priceMap   = {};
+    prices.filter(Boolean).forEach(p => { priceMap[p.symbol] = p.price; });
+
+    const allLeaderboard = portfolios.map(p => {
+      const invested   = p.positions.reduce((s, pos) => s + (priceMap[pos.symbol] || pos.avgPrice) * pos.qty, 0);
+      const totalValue = p.cash + invested;
+      const returnPct  = ((totalValue - 50000) / 50000) * 100;
+      return {
+        userId:          String(p.userId?._id || ''),
+        name:            p.userId?.username || p.userId?.name || 'Anonymous',
+        username:        p.userId?.username || null,
+        avatar:          p.userId?.avatar || null,
+        customAvatar:    p.userId?.customAvatar || null,
+        activeCosmetics: p.userId?.activeCosmetics || {},
+        totalValue,
+        returnPct,
+        cash:            p.cash,
+      };
+    }).sort((a, b) => b.totalValue - a.totalValue);
+
+    const top10 = allLeaderboard.slice(0, 10);
+    let userPosition = null;
+    const { userId } = req.query;
+    if (userId) {
+      const idx = allLeaderboard.findIndex(p => p.userId === String(userId));
+      if (idx >= 10) {
+        const u = allLeaderboard[idx];
+        userPosition = { rank: idx + 1, returnPct: u.returnPct, totalValue: u.totalValue, name: u.name, username: u.username, avatar: u.avatar, customAvatar: u.customAvatar, activeCosmetics: u.activeCosmetics };
+      }
+    }
+    res.json({ leaderboard: top10, userPosition });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/portfolio/leaderboard', async (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
   try {

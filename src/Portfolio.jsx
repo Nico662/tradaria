@@ -80,6 +80,64 @@ function getWeekStart() {
   return `${mon.getUTCDate().toString().padStart(2, '0')}/${(mon.getUTCMonth() + 1).toString().padStart(2, '0')}`;
 }
 
+function LeaderboardList({ entries, userPosition, user, onViewProfile, t }) {
+  const myId = String(user?._id || user?.id || '');
+  return (
+    <>
+      {entries.map((entry, i) => {
+        const isMe = myId && String(entry.userId) === myId;
+        return (
+          <div key={i} onClick={() => !isMe && entry.username && onViewProfile && onViewProfile(entry.username)}
+            style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: isMe ? 'rgba(34,211,165,0.07)' : 'var(--bg-card)', border: `1px solid ${i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : isMe ? 'rgba(34,211,165,0.6)' : 'transparent'}`, borderLeft: `2px solid ${i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : isMe ? 'rgba(34,211,165,0.6)' : 'transparent'}`, borderRadius: '8px', marginBottom: '8px', cursor: !isMe && entry.username && onViewProfile ? 'pointer' : 'default', overflow: 'hidden', width: '100%' }}>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : 'var(--t6)', width: '24px', flexShrink: 0 }}>
+              {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
+            </div>
+            <UserAvatar user={entry} size={24} showBadge />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: isMe ? '#22d3a5' : 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
+                {entry.username ? `@${entry.username}` : entry.name}
+                {isFounder(entry.username) && <FounderBadge size={11} />}
+                {isMe && <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(34,211,165,0.6)', marginLeft: '6px', flexShrink: 0 }}>YOU</span>}
+              </div>
+              <div style={{ fontSize: '9px', color: 'var(--t5)' }}>{formatCash(entry.totalValue)}</div>
+            </div>
+            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: entry.returnPct >= 0 ? '#22d3a5' : '#f05454' }}>
+                {entry.returnPct >= 0 ? '+' : ''}{entry.returnPct.toFixed(2)}%
+              </div>
+            </div>
+          </div>
+        );
+      })}
+      {userPosition && (
+        <>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 0', margin: '4px 0' }}>
+            <div style={{ flex: 1, height: '1px', background: 'var(--bd)' }} />
+            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t6)' }}>···</span>
+            <div style={{ flex: 1, height: '1px', background: 'var(--bd)' }} />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: 'rgba(34,211,165,0.07)', border: '1px solid rgba(34,211,165,0.6)', borderLeft: '2px solid rgba(34,211,165,0.6)', borderRadius: '8px', marginBottom: '8px', overflow: 'hidden', width: '100%' }}>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--t6)', width: '24px', flexShrink: 0 }}>#{userPosition.rank}</div>
+            <UserAvatar user={userPosition} size={24} showBadge />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#22d3a5', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
+                {userPosition.username ? `@${userPosition.username}` : userPosition.name}
+                <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(34,211,165,0.6)', marginLeft: '6px', flexShrink: 0 }}>YOU</span>
+              </div>
+              <div style={{ fontSize: '9px', color: 'var(--t5)' }}>{formatCash(userPosition.totalValue)}</div>
+            </div>
+            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: userPosition.returnPct >= 0 ? '#22d3a5' : '#f05454' }}>
+                {userPosition.returnPct >= 0 ? '+' : ''}{userPosition.returnPct.toFixed(2)}%
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </>
+  );
+}
+
 export default function Portfolio({ onBack, onViewProfile, onOpenLeague }) {
   const { user } = useAuth();
   const { t, lang } = useLang();
@@ -102,8 +160,12 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague }) {
   const [assetCandles, setAssetCandles]     = useState(null);
   const [loadingCandles, setLoadingCandles] = useState(false);
   const [portfolioHistory, setPortfolioHistory] = useState([]);
-  const [leaderboard, setLeaderboard]       = useState([]);
+  const [leaderboard, setLeaderboard]           = useState([]);
   const [userPositionGlobal, setUserPositionGlobal] = useState(null);
+  const [leaderboardTab, setLeaderboardTab]     = useState('global');
+  const [weeklyLeaderboard, setWeeklyLeaderboard] = useState([]);
+  const [userPositionWeekly, setUserPositionWeekly] = useState(null);
+  const [weeklyLoading, setWeeklyLoading]       = useState(false);
   const [activeDuel, setActiveDuel]         = useState(null);
   const [pendingDuels, setPendingDuels]     = useState([]);
   const [duelFriends, setDuelFriends]       = useState([]);
@@ -197,6 +259,22 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague }) {
       setScreen('error');
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function loadWeeklyLeaderboard() {
+    if (weeklyLoading) return;
+    setWeeklyLoading(true);
+    try {
+      const uid = user?._id || user?.id || '';
+      const res  = await fetch(`${SERVER}/portfolio/weekly/leaderboard${uid ? `?userId=${uid}` : ''}`);
+      const data = await res.json();
+      if (data.leaderboard) {
+        setWeeklyLeaderboard(data.leaderboard);
+        setUserPositionWeekly(data.userPosition || null);
+      }
+    } catch {} finally {
+      setWeeklyLoading(false);
+    }
+  }
 
   async function loadDuelFriends() {
     try {
@@ -818,66 +896,44 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague }) {
       {/* ── Leaderboard ── */}
       {tab === 'leaderboard' && (
         <div style={{ padding: '16px 20px 40px', position: 'relative', zIndex: 2 }}>
-          {leaderboard.length === 0 ? (
+          {/* Global / Semanal subtabs */}
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+            {[['global', t.portfolio.global], ['weekly', t.portfolio.weekly]].map(([id, label]) => (
+              <button key={id} onClick={() => {
+                setLeaderboardTab(id);
+                if (id === 'weekly' && weeklyLeaderboard.length === 0 && !weeklyLoading) loadWeeklyLeaderboard();
+              }}
+                style={{ padding: '5px 14px', borderRadius: '20px', border: `1px solid ${leaderboardTab === id ? '#22d3a5' : 'var(--bd2)'}`, background: leaderboardTab === id ? 'rgba(34,211,165,0.08)' : 'transparent', color: leaderboardTab === id ? '#22d3a5' : 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, cursor: 'pointer' }}>
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {leaderboardTab === 'global' && (
+            leaderboard.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '60px 20px' }}>
                 <div style={{ fontSize: '32px', marginBottom: '12px' }}>🏆</div>
                 <div style={{ fontSize: '11px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace" }}>{t.portfolio.noLeaderboard}</div>
               </div>
             ) : (
-              <>
-                {leaderboard.map((entry, i) => {
-                  const myId = String(user?._id || user?.id || '');
-                  const isMe = myId && String(entry.userId) === myId;
-                  return (
-                    <div key={i} onClick={() => !isMe && entry.username && onViewProfile && onViewProfile(entry.username)} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: isMe ? 'rgba(34,211,165,0.07)' : 'var(--bg-card)', border: `1px solid ${i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : isMe ? 'rgba(34,211,165,0.6)' : 'transparent'}`, borderLeft: `2px solid ${i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : isMe ? 'rgba(34,211,165,0.6)' : 'transparent'}`, borderRadius: '8px', marginBottom: '8px', cursor: !isMe && entry.username && onViewProfile ? 'pointer' : 'default', overflow: 'hidden', width: '100%' }}>
-                      <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : 'var(--t6)', width: '24px', flexShrink: 0 }}>
-                        {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
-                      </div>
-                      <UserAvatar user={entry} size={24} showBadge />
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: isMe ? '#22d3a5' : 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
-                          {entry.username ? `@${entry.username}` : entry.name}
-                          {isFounder(entry.username) && <FounderBadge size={11} />}
-                          {isMe && <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(34,211,165,0.6)', marginLeft: '6px', flexShrink: 0 }}>YOU</span>}
-                        </div>
-                        <div style={{ fontSize: '9px', color: 'var(--t5)' }}>{formatCash(entry.totalValue)}</div>
-                      </div>
-                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: entry.returnPct >= 0 ? '#22d3a5' : '#f05454' }}>
-                          {entry.returnPct >= 0 ? '+' : ''}{entry.returnPct.toFixed(2)}%
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-                {userPositionGlobal && (
-                  <>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 0', margin: '4px 0' }}>
-                      <div style={{ flex: 1, height: '1px', background: 'var(--bd)' }} />
-                      <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t6)' }}>···</span>
-                      <div style={{ flex: 1, height: '1px', background: 'var(--bd)' }} />
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: 'rgba(34,211,165,0.07)', border: '1px solid rgba(34,211,165,0.6)', borderLeft: '2px solid rgba(34,211,165,0.6)', borderRadius: '8px', marginBottom: '8px', overflow: 'hidden', width: '100%' }}>
-                      <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--t6)', width: '24px', flexShrink: 0 }}>#{userPositionGlobal.rank}</div>
-                      <UserAvatar user={userPositionGlobal} size={24} showBadge />
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#22d3a5', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
-                          {userPositionGlobal.username ? `@${userPositionGlobal.username}` : userPositionGlobal.name}
-                          <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(34,211,165,0.6)', marginLeft: '6px', flexShrink: 0 }}>YOU</span>
-                        </div>
-                        <div style={{ fontSize: '9px', color: 'var(--t5)' }}>{formatCash(userPositionGlobal.totalValue)}</div>
-                      </div>
-                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: userPositionGlobal.returnPct >= 0 ? '#22d3a5' : '#f05454' }}>
-                          {userPositionGlobal.returnPct >= 0 ? '+' : ''}{userPositionGlobal.returnPct.toFixed(2)}%
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </>
+              <LeaderboardList entries={leaderboard} userPosition={userPositionGlobal} user={user} onViewProfile={onViewProfile} t={t} />
             )
-          }
+          )}
+
+          {leaderboardTab === 'weekly' && (
+            weeklyLoading ? (
+              <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+                <div style={{ fontSize: '11px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace" }}>···</div>
+              </div>
+            ) : weeklyLeaderboard.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+                <div style={{ fontSize: '32px', marginBottom: '12px' }}>📅</div>
+                <div style={{ fontSize: '11px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace" }}>{t.portfolio.noWeeklyData}</div>
+              </div>
+            ) : (
+              <LeaderboardList entries={weeklyLeaderboard} userPosition={userPositionWeekly} user={user} onViewProfile={onViewProfile} t={t} />
+            )
+          )}
         </div>
       )}
 
