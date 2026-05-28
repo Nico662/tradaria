@@ -1,31 +1,26 @@
 import { useState } from 'react';
 import { useAuth } from './AuthContext';
 import { SERVER } from './config.js';
-
-const FREE_FEATURES = [
-  'Guess The Market',
-  'Desafío Diario',
-  'Arena 1vs1',
-  'Survival — 3 vidas',
-  'Torneos gratuitos',
-  'Portfolio virtual',
-];
-
-const PRO_FEATURES = [
-  'Todo lo de Free',
-  'Survival — regeneración de vidas ⚡',
-  'Sin anuncios',
-  'Badge Pro en el perfil',
-  'Estadísticas avanzadas (próximamente)',
-];
+import { useLang } from './LangContext.jsx';
 
 export default function Pricing({ onBack, fromTournament }) {
   const { user, isPro } = useAuth();
+  const { t } = useLang();
   const [loading, setLoading] = useState(false);
   const [msg, setMsg]         = useState('');
 
+  const FREE_FEATURES = [
+    t.pricing.freeFeat1, t.pricing.freeFeat2, t.pricing.freeFeat3,
+    t.pricing.freeFeat4, t.pricing.freeFeat5, t.pricing.freeFeat6,
+  ];
+
+  const PRO_FEATURES = [
+    t.pricing.proFeat1, t.pricing.proFeat2, t.pricing.proFeat3,
+    t.pricing.proFeat4, t.pricing.proFeat5,
+  ];
+
   async function handleUpgrade() {
-    if (!user) { setMsg('Inicia sesión primero'); return; }
+    if (!user) { setMsg(t.pricing.signInFirst); return; }
     setLoading(true);
     try {
       const token = localStorage.getItem('tradara_token');
@@ -35,9 +30,9 @@ export default function Pricing({ onBack, fromTournament }) {
       });
       const data = await res.json();
       if (data.url) window.location.href = data.url;
-      else { setMsg('Error al crear sesión'); setLoading(false); }
+      else { setMsg(t.pricing.errorSession); setLoading(false); }
     } catch {
-      setMsg('Error de red. Inténtalo de nuevo.');
+      setMsg(t.pricing.networkError);
       setLoading(false);
     }
   }
@@ -53,16 +48,16 @@ export default function Pricing({ onBack, fromTournament }) {
             style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}
             onMouseEnter={e => e.target.style.color = 'var(--t2)'}
             onMouseLeave={e => e.target.style.color = 'var(--t6)'}
-          >← Volver</button>
+          >{t.pricing.back}</button>
           <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: 'var(--t1)' }}>
-            Planes
+            {t.pricing.title}
           </div>
         </div>
 
         {isPro && (
           <div style={{ marginBottom: '20px', padding: '12px 16px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '8px', textAlign: 'center' }}>
             <span style={{ fontSize: '11px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", letterSpacing: '0.06em' }}>
-              ⚡ Ya eres usuario Pro. Gracias por apoyar Tradara.
+              {t.pricing.alreadyPro}
             </span>
           </div>
         )}
@@ -70,7 +65,7 @@ export default function Pricing({ onBack, fromTournament }) {
         {/* Free plan */}
         <div style={{ marginBottom: '16px', padding: '20px', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '16px' }}>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--t1)' }}>Free</div>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--t1)' }}>{t.pricing.planFree}</div>
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: 'var(--t2)' }}>€0</div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -87,7 +82,7 @@ export default function Pricing({ onBack, fromTournament }) {
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '4px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--t1)' }}>Pro</div>
-              <span style={{ fontSize: '9px', color: '#22d3a5', background: 'rgba(34,211,165,0.1)', padding: '2px 8px', borderRadius: '4px', letterSpacing: '0.06em', fontFamily: "'Space Mono', monospace" }}>⚡ RECOMENDADO</span>
+              <span style={{ fontSize: '9px', color: '#22d3a5', background: 'rgba(34,211,165,0.1)', padding: '2px 8px', borderRadius: '4px', letterSpacing: '0.06em', fontFamily: "'Space Mono', monospace" }}>{t.pricing.recommended}</span>
             </div>
             <div>
               <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: '#22d3a5' }}>€3.99</span>
@@ -95,7 +90,7 @@ export default function Pricing({ onBack, fromTournament }) {
             </div>
           </div>
           <div style={{ fontSize: '9px', color: 'var(--t6)', marginBottom: '16px', letterSpacing: '0.04em' }}>
-            Cancela cuando quieras
+            {t.pricing.cancelAnytime}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
             {PRO_FEATURES.map(f => (
@@ -118,7 +113,7 @@ export default function Pricing({ onBack, fromTournament }) {
                 cursor: loading ? 'default' : 'pointer',
               }}
             >
-              {loading ? 'Redirigiendo...' : '⚡ Hazte Pro — €3.99/mes'}
+              {loading ? t.pricing.redirecting : t.pricing.upgradeBtn}
             </button>
           )}
           {msg && (
@@ -126,13 +121,13 @@ export default function Pricing({ onBack, fromTournament }) {
           )}
         </div>
 
-        {/* Torneos de pago info */}
+        {/* Paid tournaments info */}
         <div style={{ padding: '16px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '10px' }}>
           <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: 'var(--t2)', marginBottom: '8px' }}>
-            🏆 Torneos de Pago
+            {t.pricing.paidSection}
           </div>
           <div style={{ fontSize: '11px', color: 'var(--t5)', lineHeight: 1.6 }}>
-            Únete por <strong style={{ color: 'var(--t3)' }}>€2</strong> y compite con otros jugadores. El ganador se lleva <strong style={{ color: '#f5c842' }}>la mitad del bote</strong>. El creador elige cuántos participantes (2–10). Para todos los usuarios.
+            {t.pricing.paidDescPart1} <strong style={{ color: 'var(--t3)' }}>€2</strong> {t.pricing.paidDescPart2} <strong style={{ color: '#f5c842' }}>{t.pricing.paidDescPart3}</strong>{t.pricing.paidDescPart4}
           </div>
         </div>
 

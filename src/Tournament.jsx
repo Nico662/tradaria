@@ -97,10 +97,10 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
         setPaidTournaments(prev => prev.filter(t => String(t._id) !== tournamentId));
         setConfirmDeleteId(null);
       } else {
-        setDeleteError(data.error || 'Error al borrar');
+        setDeleteError(data.error || t.tournament.deleteErrorFallback);
       }
     } catch {
-      setDeleteError('Error de red. Inténtalo de nuevo.');
+      setDeleteError(t.tournament.networkError);
     }
     setDeletingId(null);
   }
@@ -341,7 +341,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
             )}
           </div>
 
-          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t4)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '12px' }}>Leaderboard</div>
+          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t4)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '12px' }}>{t.tournament.leaderboard}</div>
 
           {academyTournamentId ? (
             academyTournamentData
@@ -394,7 +394,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                     </>
                   );
                 })()
-              : <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t6)', textAlign: 'center', padding: '16px 0' }}>cargando...</div>
+              : <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t6)', textAlign: 'center', padding: '16px 0' }}>{t.academy.loading}</div>
           ) : (
             <>
               {leaderboard.map((entry, i) => {
@@ -437,7 +437,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                 </>
               )}
               <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '9px', color: 'var(--t6)', fontFamily: "'Space Mono', monospace" }}>
-                New tournament every Monday
+                {t.tournament.weeklyReset}
               </div>
             </>
           )}
@@ -446,7 +446,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
           {!academyTournamentId && paidTournaments.length > 0 && (
             <div style={{ marginTop: '28px' }}>
               <div style={{ fontSize: '9px', color: '#f5c842', letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: "'Space Mono', monospace", marginBottom: '12px' }}>
-                🏆 Torneos de Pago
+                {t.tournament.paidSection}
               </div>
               {paidTournaments.map(pt => {
                 const spots    = pt.maxPlayers - pt.players.length;
@@ -460,7 +460,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                           Entrada €{pt.entryFee} · Premio €{pt.prize}
                         </div>
                         <div style={{ fontSize: '9px', color: isFull ? '#22d3a5' : 'var(--t5)', marginTop: '3px' }}>
-                          {isFull ? '⚡ Activo' : `${pt.players.length}/${pt.maxPlayers} jugadores`}
+                          {isFull ? t.tournament.activeStatus : `${pt.players.length}/${pt.maxPlayers} jugadores`}
                         </div>
                       </div>
                       <div style={{ width: '80px', height: '6px', background: 'var(--bd)', borderRadius: '3px', overflow: 'hidden' }}>
@@ -473,21 +473,21 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                         disabled={joiningId === String(pt._id)}
                         style={{ width: '100%', padding: '10px', background: 'rgba(245,200,66,0.08)', border: '1px solid #f5c842', borderRadius: '6px', color: '#f5c842', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
                       >
-                        {joiningId === String(pt._id) ? 'Cargando...' : `Unirse por €${pt.entryFee}`}
+                        {joiningId === String(pt._id) ? t.tournament.loadingJoin : t.tournament.joinFor.replace('{fee}', pt.entryFee)}
                       </button>
                     )}
                     {alreadyIn && (
-                      <div style={{ fontSize: '10px', color: '#22d3a5', textAlign: 'center', fontFamily: "'Space Mono', monospace" }}>✓ Ya estás apuntado</div>
+                      <div style={{ fontSize: '10px', color: '#22d3a5', textAlign: 'center', fontFamily: "'Space Mono', monospace" }}>{t.tournament.alreadyIn}</div>
                     )}
                     {!user && (
-                      <div style={{ fontSize: '10px', color: 'var(--t5)', textAlign: 'center' }}>Inicia sesión para unirte</div>
+                      <div style={{ fontSize: '10px', color: 'var(--t5)', textAlign: 'center' }}>{t.tournament.signInJoin}</div>
                     )}
                     {pt.createdBy && String(pt.createdBy) === String(user?._id || user?.id) && pt.players.length === 0 && (
                       <button
                         onClick={() => { setConfirmDeleteId(String(pt._id)); setDeleteError(''); }}
                         style={{ marginTop: '8px', width: '100%', padding: '7px', background: 'transparent', border: '1px solid rgba(240,84,84,0.3)', borderRadius: '6px', color: 'rgba(240,84,84,0.75)', fontFamily: "'Space Mono', monospace", fontSize: '9px', letterSpacing: '0.06em', cursor: 'pointer' }}
                       >
-                        🗑 Borrar
+                        {t.tournament.deleteBtn}
                       </button>
                     )}
                   </div>
@@ -499,7 +499,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                   onClick={() => setShowCreateModal(true)}
                   style={{ width: '100%', padding: '10px', background: 'transparent', border: '1px dashed var(--bd2)', borderRadius: '8px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer', letterSpacing: '0.04em' }}
                 >
-                  ➕ Crear torneo
+                  {t.tournament.createBtn}
                 </button>
               )}
             </div>
@@ -509,10 +509,10 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
             <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,12,15,0.88)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: '20px' }}>
               <div style={{ width: '100%', maxWidth: '320px', background: 'var(--bg-card)', border: '1px solid rgba(240,84,84,0.4)', borderRadius: '12px', padding: '24px' }}>
                 <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: 'var(--t1)', marginBottom: '12px' }}>
-                  Borrar torneo
+                  {t.tournament.deleteTitle}
                 </div>
                 <div style={{ fontSize: '11px', color: 'var(--t4)', marginBottom: '20px', lineHeight: 1.6 }}>
-                  ¿Seguro que quieres borrar este torneo?
+                  {t.tournament.deleteConfirmMsg}
                 </div>
                 {deleteError && (
                   <div style={{ fontSize: '10px', color: '#f05454', fontFamily: "'Space Mono', monospace", marginBottom: '16px', padding: '8px 10px', background: 'rgba(240,84,84,0.08)', border: '1px solid rgba(240,84,84,0.25)', borderRadius: '6px' }}>
@@ -524,14 +524,14 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                     onClick={() => { setConfirmDeleteId(null); setDeleteError(''); }}
                     style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid var(--bd)', borderRadius: '6px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer' }}
                   >
-                    Cancelar
+                    {t.tournament.cancel}
                   </button>
                   <button
                     onClick={() => deletePaidTournament(confirmDeleteId)}
                     disabled={!!deletingId}
                     style={{ flex: 1, padding: '10px', background: 'rgba(240,84,84,0.1)', border: '1px solid #f05454', borderRadius: '6px', color: '#f05454', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', cursor: deletingId ? 'default' : 'pointer', opacity: deletingId ? 0.5 : 1 }}
                   >
-                    {deletingId ? '...' : 'Sí, borrar'}
+                    {deletingId ? '...' : t.tournament.confirmDelete}
                   </button>
                 </div>
               </div>
@@ -542,12 +542,12 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
             <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,12,15,0.88)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: '20px' }}>
               <div style={{ width: '100%', maxWidth: '340px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '12px', padding: '24px' }}>
                 <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '15px', color: 'var(--t1)', marginBottom: '20px' }}>
-                  Crear torneo de pago
+                  {t.tournament.createTitle}
                 </div>
 
                 <div style={{ marginBottom: '16px' }}>
                   <div style={{ fontSize: '9px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", marginBottom: '8px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                    Número de participantes
+                    {t.tournament.participantsLabel}
                   </div>
                   <input
                     type="number"
@@ -565,10 +565,10 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                 {Number.isInteger(createParticipants) && createParticipants >= 2 && createParticipants <= 10 && (
                   <div style={{ padding: '12px 14px', background: 'rgba(245,200,66,0.06)', border: '1px solid rgba(245,200,66,0.18)', borderRadius: '8px', marginBottom: '20px' }}>
                     <div style={{ fontSize: '10px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", lineHeight: 1.8 }}>
-                      {createParticipants} jugadores × €2 entrada = <span style={{ color: '#f5c842' }}>€{createParticipants * 2} en el bote</span>
+                      {t.tournament.potLinePrefix.replace('{n}', createParticipants)}<span style={{ color: '#f5c842' }}>€{createParticipants * 2}{t.tournament.potLineSuffix}</span>
                     </div>
                     <div style={{ fontSize: '11px', color: '#f5c842', fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>
-                      Premio para el ganador: €{createParticipants}
+                      {t.tournament.prizeLinePrefix}{createParticipants}
                     </div>
                   </div>
                 )}
@@ -578,14 +578,14 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                     onClick={() => { setShowCreateModal(false); setCreateParticipants(6); }}
                     style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid var(--bd)', borderRadius: '6px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer' }}
                   >
-                    Cancelar
+                    {t.tournament.cancel}
                   </button>
                   <button
                     onClick={createPaidTournament}
                     disabled={creating || !(Number.isInteger(createParticipants) && createParticipants >= 2 && createParticipants <= 10)}
                     style={{ flex: 1, padding: '10px', background: 'rgba(245,200,66,0.1)', border: '1px solid #f5c842', borderRadius: '6px', color: '#f5c842', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', cursor: (creating || !(Number.isInteger(createParticipants) && createParticipants >= 2 && createParticipants <= 10)) ? 'default' : 'pointer', opacity: (creating || !(Number.isInteger(createParticipants) && createParticipants >= 2 && createParticipants <= 10)) ? 0.4 : 1 }}
                   >
-                    {creating ? 'Creando...' : 'Crear'}
+                    {creating ? t.tournament.creating : t.tournament.create}
                   </button>
                 </div>
               </div>

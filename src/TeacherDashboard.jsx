@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { SERVER } from './config.js';
+import { useLang } from './LangContext.jsx';
 
 // ── Helpers ───────────────────────────────────────────────────────
-function relativeDate(d) {
+function relativeDate(d, t) {
   if (!d) return '—';
   const diff = Math.floor((Date.now() - new Date(d)) / 86400000);
-  if (diff === 0) return 'hoy';
-  if (diff === 1) return 'ayer';
+  if (diff === 0) return t.academy.today;
+  if (diff === 1) return t.academy.yesterday;
   if (diff < 7)  return `${diff}d`;
   return new Date(d).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
 }
@@ -80,13 +81,14 @@ function FieldInput({ label, type = 'text', value, onChange, placeholder }) {
 
 // ── Create academy screen (shown when teacher has no academy yet) ──
 function CreateAcademyScreen({ onBack, onCreated }) {
+  const { t } = useLang();
   const tok = localStorage.getItem('tradara_token');
   const [name,        setName]        = useState('');
   const [submitting,  setSubmitting]  = useState(false);
   const [err,         setErr]         = useState(null);
 
   async function handleCreate() {
-    if (!name.trim() || name.trim().length < 2) return setErr('El nombre es demasiado corto');
+    if (!name.trim() || name.trim().length < 2) return setErr(t.academy.nameTooShort);
     setSubmitting(true);
     setErr(null);
     try {
@@ -96,9 +98,9 @@ function CreateAcademyScreen({ onBack, onCreated }) {
         body:    JSON.stringify({ name: name.trim() }),
       });
       const data = await res.json();
-      if (!res.ok) { setErr(data.error || 'Error al crear'); setSubmitting(false); return; }
+      if (!res.ok) { setErr(data.error || t.academy.createError); setSubmitting(false); return; }
       onCreated(data);
-    } catch { setErr('Error de red'); }
+    } catch { setErr(t.academy.networkError); }
     setSubmitting(false);
   }
 
@@ -106,24 +108,24 @@ function CreateAcademyScreen({ onBack, onCreated }) {
     <div id="gtm-root" style={{ background: 'var(--bg-page)', minHeight: '100dvh' }}>
       <div className="scanlines" />
       <div style={{ padding: '48px 20px 60px', position: 'relative', zIndex: 2 }}>
-        <button onClick={onBack} style={backBtnStyle}>← volver</button>
+        <button onClick={onBack} style={backBtnStyle}>{t.academy.back}</button>
 
         <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: 'var(--t1)', marginBottom: '6px' }}>
-          Crea tu academia
+          {t.academy.createTitle}
         </div>
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t5)', marginBottom: '32px' }}>
-          Ponle nombre y empieza a invitar alumnos
+          {t.academy.createSub}
         </div>
 
         <div style={{ marginBottom: '14px' }}>
           <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t4)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
-            Nombre de la academia
+            {t.academy.nameLabel}
           </div>
           <input
             value={name}
             onChange={e => { setName(e.target.value); setErr(null); }}
             onKeyDown={e => e.key === 'Enter' && handleCreate()}
-            placeholder="ej. Tradara Academy Madrid"
+            placeholder={t.academy.namePlaceholder}
             maxLength={60}
             style={{
               width: '100%', padding: '13px 14px',
@@ -153,7 +155,7 @@ function CreateAcademyScreen({ onBack, onCreated }) {
             cursor: submitting ? 'default' : 'pointer', opacity: submitting ? 0.6 : 1,
           }}
         >
-          {submitting ? '...' : 'Crear academia'}
+          {submitting ? '...' : t.academy.createBtn}
         </button>
       </div>
     </div>
@@ -162,6 +164,7 @@ function CreateAcademyScreen({ onBack, onCreated }) {
 
 // ── Dashboard content (academyId guaranteed valid) ────────────────
 function AcademyDashboard({ academyId, onBack }) {
+  const { t } = useLang();
   const tok = localStorage.getItem('tradara_token');
 
   const [academy,    setAcademy]    = useState(null);
@@ -191,7 +194,7 @@ function AcademyDashboard({ academyId, onBack }) {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('payment') === 'success') {
-      setToast('¡Plan activado correctamente!');
+      setToast(t.academy.planActivated);
       setTimeout(() => setToast(null), 4000);
     }
   }, []);
@@ -206,8 +209,8 @@ function AcademyDashboard({ academyId, onBack }) {
       });
       const data = await res.json();
       if (data.url) { window.location.href = data.url; return; }
-      setFormErr(data.error || 'Error al activar plan');
-    } catch { setFormErr('Error de red'); }
+      setFormErr(data.error || t.academy.activateError);
+    } catch { setFormErr(t.academy.networkError); }
     setActivating(null);
   }
 
@@ -254,9 +257,9 @@ function AcademyDashboard({ academyId, onBack }) {
 
   async function createTournament() {
     if (!form.name.trim() || !form.startsAt || !form.endsAt)
-      return setFormErr('Todos los campos son obligatorios');
+      return setFormErr(t.academy.allRequired);
     if (new Date(form.endsAt) <= new Date(form.startsAt))
-      return setFormErr('La fecha fin debe ser posterior al inicio');
+      return setFormErr(t.academy.endAfterStart);
     setSubmitting(true);
     setFormErr(null);
     try {
@@ -266,11 +269,11 @@ function AcademyDashboard({ academyId, onBack }) {
         body:    JSON.stringify({ name: form.name.trim(), startsAt: form.startsAt, endsAt: form.endsAt }),
       });
       const data = await res.json();
-      if (!res.ok) { setFormErr(data.error || 'Error al crear'); setSubmitting(false); return; }
+      if (!res.ok) { setFormErr(data.error || t.academy.createError); setSubmitting(false); return; }
       setAcademy(prev => ({ ...prev, tournaments: [data, ...(prev.tournaments || [])] }));
       setModal(false);
       setForm({ name: '', startsAt: '', endsAt: '' });
-    } catch { setFormErr('Error de red'); }
+    } catch { setFormErr(t.academy.networkError); }
     setSubmitting(false);
   }
 
@@ -278,7 +281,7 @@ function AcademyDashboard({ academyId, onBack }) {
   if (loading) return (
     <div id="gtm-root" style={{ background: 'var(--bg-page)' }}>
       <div style={{ padding: '80px 20px', textAlign: 'center', fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t6)' }}>
-        cargando...
+        {t.academy.loading}
       </div>
     </div>
   );
@@ -286,9 +289,9 @@ function AcademyDashboard({ academyId, onBack }) {
   if (error || !academy) return (
     <div id="gtm-root" style={{ background: 'var(--bg-page)' }}>
       <div style={{ padding: '48px 20px', position: 'relative', zIndex: 2 }}>
-        <button onClick={onBack} style={backBtnStyle}>← volver</button>
+        <button onClick={onBack} style={backBtnStyle}>{t.academy.back}</button>
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#f05454', marginTop: '16px' }}>
-          {error || 'Academia no encontrada'}
+          {error || t.academy.notFound}
         </div>
       </div>
     </div>
@@ -310,7 +313,7 @@ function AcademyDashboard({ academyId, onBack }) {
       <div style={{ padding: '48px 20px 80px', position: 'relative', zIndex: 2 }}>
 
         {/* ── Back ── */}
-        <button onClick={onBack} style={backBtnStyle}>← volver</button>
+        <button onClick={onBack} style={backBtnStyle}>{t.academy.back}</button>
 
         {/* ── Header ── */}
         <div style={{ marginBottom: '28px' }}>
@@ -337,7 +340,7 @@ function AcademyDashboard({ academyId, onBack }) {
               borderRadius: '8px',
             }}>
               <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: '#22d3a5' }}>
-                ✓ PLAN {plan.label} — Activo
+                {`✓ ${t.academy.planActive.replace('{plan}', plan.label)}`}
               </span>
               <button
                 onClick={handlePortal}
@@ -349,7 +352,7 @@ function AcademyDashboard({ academyId, onBack }) {
                   padding: '5px 10px', cursor: 'pointer',
                 }}
               >
-                Gestionar
+                {t.academy.manage}
               </button>
             </div>
           )}
@@ -363,7 +366,7 @@ function AcademyDashboard({ academyId, onBack }) {
               borderRadius: '8px',
             }}>
               <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: '#f5c842' }}>
-                ⏳ Prueba gratuita — quedan <strong>{daysLeft}</strong> {daysLeft === 1 ? 'día' : 'días'}
+                {t.academy.trialLeft.replace('{days}', daysLeft).replace('{unit}', daysLeft === 1 ? t.academy.day : t.academy.days)}
               </span>
               <button
                 onClick={() => setPlanModal(true)}
@@ -375,7 +378,7 @@ function AcademyDashboard({ academyId, onBack }) {
                   padding: '5px 10px', cursor: 'pointer',
                 }}
               >
-                Activar plan
+                {t.academy.activatePlan}
               </button>
             </div>
           )}
@@ -389,7 +392,7 @@ function AcademyDashboard({ academyId, onBack }) {
               borderRadius: '8px',
             }}>
               <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: '#f05454', lineHeight: 1.5 }}>
-                Tu prueba gratuita ha expirado. Activa un plan para que tus alumnos puedan seguir accediendo.
+                {t.academy.trialExpired}
               </span>
               <button
                 onClick={() => setPlanModal(true)}
@@ -402,7 +405,7 @@ function AcademyDashboard({ academyId, onBack }) {
                   padding: '7px 12px', cursor: 'pointer',
                 }}
               >
-                Activar ahora
+                {t.academy.activateNow}
               </button>
             </div>
           )}
@@ -410,7 +413,7 @@ function AcademyDashboard({ academyId, onBack }) {
           {/* Join code */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-              Código de acceso
+              {t.academy.accessCode}
             </span>
             <span style={{
               fontFamily: "'Space Mono', monospace", fontSize: '14px', fontWeight: 700,
@@ -422,7 +425,7 @@ function AcademyDashboard({ academyId, onBack }) {
             </span>
             <button
               onClick={handleCopy}
-              title={copied ? 'Copiado' : 'Copiar código'}
+              title={copied ? t.academy.copied : t.academy.copyCode}
               style={{
                 background: 'transparent', border: 'none', cursor: 'pointer',
                 color: copied ? '#22d3a5' : 'var(--t5)',
@@ -449,10 +452,10 @@ function AcademyDashboard({ academyId, onBack }) {
         {/* ── Student table ── */}
         <div style={{ marginBottom: '32px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <Label>Alumnos ({students.length})</Label>
+            <Label>{t.academy.studentsSection.replace('{n}', students.length)}</Label>
             {students.length > 0 && (
               <Btn onClick={handleExport} disabled={exporting} style={{ padding: '6px 11px', fontSize: '9px', marginBottom: '10px' }}>
-                {exporting ? '...' : '↓ CSV'}
+                {exporting ? '...' : t.academy.exportCsv}
               </Btn>
             )}
           </div>
@@ -462,10 +465,10 @@ function AcademyDashboard({ academyId, onBack }) {
               <div style={{ padding: '40px 20px', textAlign: 'center' }}>
                 <div style={{ fontSize: '28px', marginBottom: '10px' }}>👥</div>
                 <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '13px', color: 'var(--t3)', marginBottom: '6px' }}>
-                  Aún no hay alumnos
+                  {t.academy.noStudents}
                 </div>
                 <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t5)', lineHeight: 1.6 }}>
-                  Comparte el código con tus alumnos<br />para que se unan
+                  {t.academy.noStudentsSub}
                 </div>
               </div>
             ) : (
@@ -477,7 +480,7 @@ function AcademyDashboard({ academyId, onBack }) {
                   borderBottom: '1px solid var(--bd)',
                   alignItems: 'center',
                 }}>
-                  {['', 'Nombre', 'Part.', 'Prec.', 'Racha', 'Último'].map((h, i) => (
+                  {['', t.academy.colName, t.academy.colGames, t.academy.colAccuracy, t.academy.colStreak, t.academy.colLast].map((h, i) => (
                     <div key={i} style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.08em', textAlign: i >= 2 ? 'center' : 'left' }}>
                       {h}
                     </div>
@@ -534,7 +537,7 @@ function AcademyDashboard({ academyId, onBack }) {
 
                     {/* Last seen */}
                     <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t5)', textAlign: 'center' }}>
-                      {relativeDate(s.lastSeen)}
+                      {relativeDate(s.lastSeen, t)}
                     </div>
                   </div>
                 ))}
@@ -546,9 +549,9 @@ function AcademyDashboard({ academyId, onBack }) {
         {/* ── Tournaments ── */}
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <Label>Torneos privados</Label>
+            <Label>{t.academy.privateTournaments}</Label>
             <Btn onClick={() => { setModal(true); setFormErr(null); }} style={{ padding: '6px 11px', fontSize: '9px', marginBottom: '10px' }}>
-              + Crear torneo
+              {t.academy.createTournamentBtn}
             </Btn>
           </div>
 
@@ -558,18 +561,18 @@ function AcademyDashboard({ academyId, onBack }) {
               padding: '32px 20px', textAlign: 'center',
             }}>
               <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t5)' }}>
-                No hay torneos todavía
+                {t.academy.noTournaments}
               </div>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {tournaments.map(t => {
-                const status     = tournamentStatus(t);
+              {tournaments.map(trn => {
+                const status     = tournamentStatus(trn);
                 const isActive   = status.label === 'activo';
                 const isFinished = status.label === 'finalizado';
-                const badgeLabel = isActive ? 'EN CURSO' : isFinished ? 'FINALIZADO' : 'PRÓXIMO';
+                const badgeLabel = isActive ? t.academy.statusActive : isFinished ? t.academy.statusFinished : t.academy.statusUpcoming;
 
-                const entries = (t.participants || [])
+                const entries = (trn.participants || [])
                   .map(p => {
                     const s = students.find(st => String(st.id) === String(p.userId));
                     return { name: s?.name || '—', score: p.score || 0, gamesPlayed: p.gamesPlayed || 0 };
@@ -579,7 +582,7 @@ function AcademyDashboard({ academyId, onBack }) {
                 const showBoard = (isActive || isFinished) && entries.length > 0;
 
                 return (
-                  <div key={t._id} style={{
+                  <div key={trn._id} style={{
                     background: 'var(--bg-card)', border: '1px solid var(--bd)',
                     borderRadius: '8px', overflow: 'hidden',
                   }}>
@@ -587,7 +590,7 @@ function AcademyDashboard({ academyId, onBack }) {
                     <div style={{ padding: '12px 14px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
                         <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '13px', color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '60%' }}>
-                          {t.name}
+                          {trn.name}
                         </span>
                         <span style={{
                           fontFamily: "'Space Mono', monospace", fontSize: '8px', fontWeight: 700,
@@ -599,15 +602,15 @@ function AcademyDashboard({ academyId, onBack }) {
                         </span>
                         {isFinished && (
                           <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'var(--t5)', flexShrink: 0 }}>
-                            {new Date(t.endsAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            {new Date(trn.endsAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </span>
                         )}
                       </div>
                       <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t5)' }}>
-                        {new Date(t.startsAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                        {new Date(trn.startsAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
                         {' — '}
-                        {new Date(t.endsAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
-                        {' · '}{t.participants?.length || 0} participantes
+                        {new Date(trn.endsAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                        {' · '}{trn.participants?.length || 0} {t.academy.participants}
                       </div>
                     </div>
 
@@ -615,7 +618,7 @@ function AcademyDashboard({ academyId, onBack }) {
                     {isFinished && entries.length > 0 && (
                       <div style={{ borderTop: '1px solid var(--bd)', padding: '12px 14px 10px' }}>
                         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px' }}>
-                          Podio
+                          {t.academy.podium}
                         </div>
                         <div style={{ display: 'flex', gap: '6px' }}>
                           {entries.slice(0, 3).map((e, i) => (
@@ -656,7 +659,7 @@ function AcademyDashboard({ academyId, onBack }) {
                           gap: '8px', padding: '7px 14px',
                           borderBottom: '1px solid var(--bd)',
                         }}>
-                          {['#', 'Nombre', 'Score', 'Part.'].map((h, i) => (
+                          {['#', t.academy.colName, t.academy.colScore, t.academy.colPart].map((h, i) => (
                             <div key={i} style={{
                               fontFamily: "'Space Mono', monospace", fontSize: '8px',
                               color: 'var(--t6)', letterSpacing: '0.08em',
@@ -727,15 +730,15 @@ function AcademyDashboard({ academyId, onBack }) {
             boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
           }}>
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: 'var(--t1)', marginBottom: '4px' }}>
-              Activa tu plan
+              {t.academy.activatePlanTitle}
             </div>
             <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t5)', marginBottom: '20px' }}>
-              Elige el plan que mejor se adapte a tu academia
+              {t.academy.activatePlanSub}
             </div>
 
             {[
-              { id: 'starter', label: 'Aula Starter', price: '29€/mes', desc: 'Hasta 25 alumnos', color: 'var(--t3)', bg: 'rgba(100,115,130,0.08)' },
-              { id: 'pro',     label: 'Aula Pro',     price: '59€/mes', desc: 'Hasta 60 alumnos', color: '#22d3a5', bg: 'rgba(34,211,165,0.06)' },
+              { id: 'starter', label: t.academy.planStarterLabel, price: '29€/mes', desc: t.academy.planStarterDesc, color: 'var(--t3)', bg: 'rgba(100,115,130,0.08)' },
+              { id: 'pro',     label: t.academy.planProLabel,     price: '59€/mes', desc: t.academy.planProDesc,     color: '#22d3a5', bg: 'rgba(34,211,165,0.06)' },
             ].map(p => (
               <div key={p.id} style={{
                 padding: '14px', marginBottom: '10px',
@@ -765,7 +768,7 @@ function AcademyDashboard({ academyId, onBack }) {
                     cursor: activating ? 'default' : 'pointer', opacity: activating === p.id ? 0.6 : 1,
                   }}
                 >
-                  {activating === p.id ? '...' : 'Seleccionar'}
+                  {activating === p.id ? '...' : t.academy.select}
                 </button>
               </div>
             ))}
@@ -785,7 +788,7 @@ function AcademyDashboard({ academyId, onBack }) {
                 fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer',
               }}
             >
-              Cancelar
+              {t.academy.cancel}
             </button>
           </div>
         </div>
@@ -808,7 +811,7 @@ function AcademyDashboard({ academyId, onBack }) {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--t1)' }}>
-                Nuevo torneo
+                {t.academy.newTournament}
               </div>
               <button
                 onClick={() => setModal(false)}
@@ -820,19 +823,19 @@ function AcademyDashboard({ academyId, onBack }) {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <FieldInput
-                label="Nombre del torneo"
+                label={t.academy.tournamentNameLabel}
                 value={form.name}
                 onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                placeholder="ej. Semana de opciones"
+                placeholder={t.academy.tournamentNamePlaceholder}
               />
               <FieldInput
-                label="Fecha inicio"
+                label={t.academy.startDate}
                 type="date"
                 value={form.startsAt}
                 onChange={e => setForm(f => ({ ...f, startsAt: e.target.value }))}
               />
               <FieldInput
-                label="Fecha fin"
+                label={t.academy.endDate}
                 type="date"
                 value={form.endsAt}
                 onChange={e => setForm(f => ({ ...f, endsAt: e.target.value }))}
@@ -855,10 +858,10 @@ function AcademyDashboard({ academyId, onBack }) {
                   fontSize: '10px', cursor: 'pointer',
                 }}
               >
-                Cancelar
+                {t.academy.cancel}
               </button>
               <Btn onClick={createTournament} disabled={submitting} style={{ flex: 1, padding: '11px' }}>
-                {submitting ? '...' : 'Crear'}
+                {submitting ? '...' : t.tournament.create}
               </Btn>
             </div>
           </div>

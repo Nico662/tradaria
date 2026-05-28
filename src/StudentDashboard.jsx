@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { SERVER } from './config.js';
+import { useLang } from './LangContext.jsx';
 
 function Label({ children }) {
   return (
@@ -19,6 +20,7 @@ function Medal({ pos }) {
 
 export default function StudentDashboard({ onBack, onPlayTournament }) {
   const { user } = useAuth();
+  const { t } = useLang();
   const tok        = localStorage.getItem('tradara_token');
   const academyId  = user?.academyId;
   const academyName = localStorage.getItem('academy_name') || 'Mi Academia';
@@ -63,7 +65,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
   if (loading) return (
     <div id="gtm-root" style={{ background: 'var(--bg-page)' }}>
       <div style={{ padding: '80px 20px', textAlign: 'center', fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t6)' }}>
-        cargando...
+        {t.academy.loading}
       </div>
     </div>
   );
@@ -71,7 +73,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
   if (error) return (
     <div id="gtm-root" style={{ background: 'var(--bg-page)' }}>
       <div style={{ padding: '48px 20px', position: 'relative', zIndex: 2 }}>
-        <button onClick={onBack} style={backBtn}>← volver</button>
+        <button onClick={onBack} style={backBtn}>{t.academy.back}</button>
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#f05454', marginTop: '16px' }}>{error}</div>
       </div>
     </div>
@@ -83,7 +85,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
       <div style={{ padding: '48px 20px 80px', position: 'relative', zIndex: 2 }}>
 
         {/* ── Back ── */}
-        <button onClick={onBack} style={backBtn}>← volver</button>
+        <button onClick={onBack} style={backBtn}>{t.academy.back}</button>
 
         {/* ── Expired banner ── */}
         {academyStatus && !academyStatus.isActive && (
@@ -95,7 +97,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
           }}>
             <span style={{ fontSize: '14px' }}>⚠️</span>
             <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: '#f05454', lineHeight: 1.5 }}>
-              Tu academia ha expirado. El profesor debe activar un plan para continuar.
+              {t.academy.academyExpired}
             </span>
           </div>
         )}
@@ -111,24 +113,24 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
             color: '#22d3a5', background: 'rgba(34,211,165,0.08)',
             border: '1px solid rgba(34,211,165,0.25)',
           }}>
-            ALUMNO — {user?.username ? `@${user.username}` : user?.name}
+            {t.academy.studentLabel} — {user?.username ? `@${user.username}` : user?.name}
           </span>
         </div>
 
         {/* ── Ranking ── */}
         <div style={{ marginBottom: '32px' }}>
-          <Label>Clasificación de la academia</Label>
+          <Label>{t.academy.rankingLabel}</Label>
 
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', overflow: 'hidden' }}>
             {students.length === 0 ? (
               <div style={{ padding: '32px 20px', textAlign: 'center', fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t5)' }}>
-                No hay alumnos todavía
+                {t.academy.noStudentsYet}
               </div>
             ) : (
               <>
                 {/* Header row */}
                 <div style={{ display: 'grid', gridTemplateColumns: '36px 1fr 44px 52px', gap: '8px', padding: '8px 14px', borderBottom: '1px solid var(--bd)' }}>
-                  {['Pos.', 'Nombre', 'Part.', 'Prec.'].map((h, i) => (
+                  {[t.academy.colPos, t.academy.colName, t.academy.colGames, t.academy.colAccuracy].map((h, i) => (
                     <div key={i} style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.08em', textAlign: i >= 2 ? 'center' : 'left' }}>
                       {h}
                     </div>
@@ -245,16 +247,16 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
 
         {/* ── Active tournament ── */}
         <div>
-          <Label>Torneo activo</Label>
+          <Label>{t.academy.activeTournament}</Label>
 
           {tournament === undefined && (
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t6)' }}>cargando...</div>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t6)' }}>{t.academy.loading}</div>
           )}
 
           {tournament === false && (
             <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '28px 20px', textAlign: 'center' }}>
               <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t5)' }}>
-                No hay ningún torneo activo ahora mismo
+                {t.academy.noActiveTournament}
               </div>
             </div>
           )}
@@ -268,18 +270,18 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
                     {tournament.name}
                   </div>
                   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t5)' }}>
-                    Termina el {new Date(tournament.endsAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}
+                    {t.academy.endsOn} {new Date(tournament.endsAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}
                   </div>
                 </div>
                 <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', fontWeight: 700, letterSpacing: '0.08em', padding: '3px 8px', borderRadius: '4px', color: '#22d3a5', background: 'rgba(34,211,165,0.08)', border: '1px solid rgba(34,211,165,0.25)', flexShrink: 0 }}>
-                  ACTIVO
+                  {t.academy.activeStatus}
                 </span>
               </div>
 
               {/* Leaderboard */}
               {(tournament.participants || []).length === 0 ? (
                 <div style={{ padding: '24px 16px', textAlign: 'center', fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t5)' }}>
-                  Aún no hay participantes
+                  {t.academy.noParticipants}
                 </div>
               ) : (() => {
                   const sorted = [...(tournament.participants || [])].sort((a, b) => b.score - a.score);
@@ -364,7 +366,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
                         fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700,
                         letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'default',
                       }}>
-                        Academia inactiva
+                        {t.academy.academyInactive}
                       </button>
                     );
                   }
@@ -380,7 +382,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
                           letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer',
                         }}
                       >
-                        ✓ Ya jugaste — Ver resultados
+                        {t.academy.alreadyPlayed}
                       </button>
                     );
                   }
@@ -395,7 +397,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
                         letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer',
                       }}
                     >
-                      🏆 Jugar torneo
+                      {t.academy.playTournament}
                     </button>
                   );
                 })()}

@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useAuth } from './AuthContext';
 import { SERVER } from './config.js';
+import { useLang } from './LangContext.jsx';
 
 const CODE_LENGTH = 9; // "ABCD-1234"
 
 export default function JoinAcademy({ onBack }) {
   const { updateUser } = useAuth();
+  const { t } = useLang();
   const tok = localStorage.getItem('tradara_token');
 
   const [code,           setCode]           = useState('');
@@ -23,9 +25,9 @@ export default function JoinAcademy({ onBack }) {
     try {
       const res  = await fetch(`${SERVER}/academy/preview?code=${encodeURIComponent(val)}`);
       const data = await res.json();
-      if (!res.ok) { setPreviewErr(data.error || 'Código no válido'); return; }
+      if (!res.ok) { setPreviewErr(data.error || t.academy.codeInvalid); return; }
       setPreview(data);
-    } catch { setPreviewErr('Error de red'); }
+    } catch { setPreviewErr(t.academy.networkError); }
     setPreviewLoading(false);
   }
 
@@ -48,12 +50,12 @@ export default function JoinAcademy({ onBack }) {
         body:    JSON.stringify({ joinCode: code }),
       });
       const data = await res.json();
-      if (!res.ok) { setJoinErr(data.error || 'Error al unirse'); setJoining(false); return; }
+      if (!res.ok) { setJoinErr(data.error || t.academy.joinErr); setJoining(false); return; }
       updateUser({ academyId: data.academy._id, isAcademyPro: true });
       if (data.academy?.name) localStorage.setItem('academy_name', data.academy.name);
       setDone(true);
       setTimeout(onBack, 1400);
-    } catch { setJoinErr('Error de red'); }
+    } catch { setJoinErr(t.academy.networkError); }
     setJoining(false);
   }
 
@@ -62,22 +64,22 @@ export default function JoinAcademy({ onBack }) {
       <div className="scanlines" />
       <div style={{ padding: '48px 20px 60px', position: 'relative', zIndex: 2 }}>
 
-        <button onClick={onBack} style={backBtn}>← volver</button>
+        <button onClick={onBack} style={backBtn}>{t.academy.back}</button>
 
         <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: 'var(--t1)', marginBottom: '6px' }}>
-          Unirse a una academia
+          {t.academy.joinTitle}
         </div>
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t5)', marginBottom: '32px' }}>
-          Introduce el código que te ha dado tu profesor
+          {t.academy.joinSub}
         </div>
 
         {/* Code input */}
         <div>
-          <div style={labelStyle}>Código de acceso</div>
+          <div style={labelStyle}>{t.academy.codeLabel}</div>
           <input
             value={code}
             onChange={handleInput}
-            placeholder="Ej: INVT-4829"
+            placeholder={t.academy.codePlaceholder}
             autoComplete="off"
             spellCheck={false}
             style={{
@@ -95,7 +97,7 @@ export default function JoinAcademy({ onBack }) {
         {/* Loading */}
         {previewLoading && (
           <div style={{ marginTop: '16px', fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t5)', textAlign: 'center' }}>
-            buscando...
+            {t.academy.searching}
           </div>
         )}
 
@@ -114,7 +116,7 @@ export default function JoinAcademy({ onBack }) {
             borderRadius: '10px', textAlign: 'center',
           }}>
             <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t4)', marginBottom: '6px' }}>
-              ¿Unirte a
+              {t.academy.joinQuestion}
             </div>
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: 'var(--t1)', marginBottom: '18px' }}>
               {preview.name}
@@ -136,7 +138,7 @@ export default function JoinAcademy({ onBack }) {
                 cursor: joining ? 'default' : 'pointer', opacity: joining ? 0.6 : 1,
               }}
             >
-              {joining ? '...' : 'Confirmar'}
+              {joining ? '...' : t.academy.joinConfirm}
             </button>
           </div>
         )}
@@ -146,7 +148,7 @@ export default function JoinAcademy({ onBack }) {
           <div style={{ marginTop: '20px', padding: '20px', textAlign: 'center', background: 'rgba(34,211,165,0.05)', border: '1px solid rgba(34,211,165,0.25)', borderRadius: '10px' }}>
             <div style={{ fontSize: '24px', marginBottom: '8px' }}>✓</div>
             <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#22d3a5' }}>
-              ¡Te has unido a la academia!
+              {t.academy.joinSuccess}
             </div>
           </div>
         )}
