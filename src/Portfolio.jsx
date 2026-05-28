@@ -89,10 +89,10 @@ function LeaderboardList({ entries, userPosition, user, onViewProfile, t }) {
         return (
           <div key={i} onClick={() => !isMe && entry.username && onViewProfile && onViewProfile(entry.username)}
             style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: isMe ? 'rgba(34,211,165,0.07)' : 'var(--bg-card)', border: `1px solid ${i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : isMe ? 'rgba(34,211,165,0.6)' : 'transparent'}`, borderLeft: `2px solid ${i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : isMe ? 'rgba(34,211,165,0.6)' : 'transparent'}`, borderRadius: '8px', marginBottom: '8px', cursor: !isMe && entry.username && onViewProfile ? 'pointer' : 'default', overflow: 'hidden', width: '100%' }}>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : 'var(--t6)', width: '24px', flexShrink: 0 }}>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : 'var(--t6)', width: '40px', flexShrink: 0, textAlign: 'center' }}>
               {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
             </div>
-            <UserAvatar user={entry} size={24} showBadge />
+            <UserAvatar user={entry} size={24} showBadge style={{ marginLeft: '8px' }} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: isMe ? '#22d3a5' : 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
                 {entry.username ? `@${entry.username}` : entry.name}
@@ -117,8 +117,8 @@ function LeaderboardList({ entries, userPosition, user, onViewProfile, t }) {
             <div style={{ flex: 1, height: '1px', background: 'var(--bd)' }} />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: 'rgba(34,211,165,0.07)', border: '1px solid rgba(34,211,165,0.6)', borderLeft: '2px solid rgba(34,211,165,0.6)', borderRadius: '8px', marginBottom: '8px', overflow: 'hidden', width: '100%' }}>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--t6)', width: '24px', flexShrink: 0 }}>#{userPosition.rank}</div>
-            <UserAvatar user={userPosition} size={24} showBadge />
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--t6)', width: '40px', flexShrink: 0, textAlign: 'center' }}>#{userPosition.rank}</div>
+            <UserAvatar user={userPosition} size={24} showBadge style={{ marginLeft: '8px' }} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#22d3a5', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
                 {userPosition.username ? `@${userPosition.username}` : userPosition.name}
