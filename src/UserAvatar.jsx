@@ -12,7 +12,7 @@ export const FRAME_STYLES = {
   frame_diamond: { border: '2px solid var(--t3)', boxShadow: '0 0 8px rgba(136,153,176,0.6)' },
 };
 
-export default function UserAvatar({ user, size = 32, showBadge = false }) {
+export default function UserAvatar({ user, size = 32, showBadge = false, style }) {
   const cosmetics  = user?.activeCosmetics || {};
   const frameStyle = FRAME_STYLES[cosmetics.frame] || {};
   const badge      = cosmetics.avatar
@@ -22,7 +22,7 @@ export default function UserAvatar({ user, size = 32, showBadge = false }) {
   const badgeSize  = Math.max(10, Math.round(size * 0.42));
 
   return (
-    <div style={{ position: 'relative', display: 'inline-flex', flexShrink: 0 }}>
+    <div style={{ position: 'relative', display: 'inline-flex', flexShrink: 0, ...style }}>
       {(user?.customAvatar || user?.avatar) ? (
         <img
           src={user.customAvatar || user.avatar}
