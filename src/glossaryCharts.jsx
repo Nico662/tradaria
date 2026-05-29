@@ -990,6 +990,83 @@ function OTEChart() {
   );
 }
 
+// ─── Smart Money Concept Chart ──────────────────────────────────────────────
+
+function SmartMoneyChart() {
+  // price 112–178 → y 14–150  (2.06 px per unit)
+  const py = p => 14 + (178 - p) * 136 / 66;
+
+  const eqLow    = 128;
+  const eqLowY   = py(eqLow);   // ≈ 117 — equal lows / sell-side liquidity
+  const sweepLow = 120;
+  const swpY     = py(sweepLow); // ≈ 133.5
+
+  const candles = [
+    { x: 14,  O: 155, H: 158, L: 151, C: 153 },           // context
+    { x: 27,  O: 153, H: 155, L: 146, C: 147 },           // drift down
+    { x: 40,  O: 147, H: 149, L: 128, C: 130 },           // 1st touch equal low
+    { x: 53,  O: 130, H: 138, L: 128, C: 135 },           // bounce
+    { x: 66,  O: 135, H: 140, L: 134, C: 137 },
+    { x: 79,  O: 137, H: 140, L: 128, C: 130 },           // 2nd touch → equal lows
+    { x: 93,  O: 130, H: 131, L: 120, C: 122, bw: 8 },    // SWEEP below SSL
+    { x: 108, O: 122, H: 156, L: 121, C: 154, bw: 10 },   // institutional displacement
+    { x: 123, O: 154, H: 162, L: 152, C: 160, bw: 10 },   // continuation
+    { x: 138, O: 160, H: 168, L: 158, C: 165, bw: 10 },   // continuation
+  ];
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="#060b10" rx="8" />
+
+      {/* Grid */}
+      {[40, 65, 90, 115, 140].map(y => (
+        <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
+      ))}
+
+      {/* Equal lows — sell-side liquidity */}
+      <line x1="35" y1={eqLowY} x2="88" y2={eqLowY}
+        stroke="#f5c842" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.7" />
+
+      {/* Sweep zone */}
+      <rect x="86" y={eqLowY} width="15" height={swpY - eqLowY} fill="#f054540e" />
+      <line x1="86" y1={eqLowY}  x2="101" y2={eqLowY}  stroke="#f05454" strokeWidth="0.5" opacity="0.35" />
+      <line x1="86" y1={swpY}    x2="101" y2={swpY}    stroke="#f05454" strokeWidth="0.5" opacity="0.35" />
+
+      {/* Candles */}
+      {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
+        const bull  = C >= O;
+        const col   = bull ? '#22d3a5' : '#e05555';
+        const bodyY = py(Math.max(O, C));
+        const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="1" opacity="0.75" />
+            <rect x={x - bw / 2} y={bodyY} width={bw} height={bodyH} fill={col} rx="0.5" opacity="0.95" />
+          </g>
+        );
+      })}
+
+      {/* Labels */}
+      <text x="62" y={eqLowY - 4}
+        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        fontSize="4.8" fill="#f5c842" opacity="0.8">sell-side liq.</text>
+
+      <text x="93" y={swpY + 9}
+        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#f05454" opacity="0.9">sweep ↓</text>
+
+      <text x="122" y="10"
+        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#22d3a5" opacity="0.9">SM entry ↑</text>
+
+      {/* Watermark */}
+      <text x="6" y="154"
+        fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#172030" letterSpacing="0.1em">SMART MONEY CONCEPT</text>
+    </svg>
+  );
+}
+
 // ─── exports ────────────────────────────────────────────────────────────────
 
 export const CHARTS = {
@@ -1005,4 +1082,5 @@ export const CHARTS = {
   liquidity_sweep:     LiquiditySweepChart,
   choch:               CHoCHChart,
   ote:                 OTEChart,
+  smart_money:         SmartMoneyChart,
 };

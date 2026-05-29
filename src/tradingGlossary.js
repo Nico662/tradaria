@@ -276,6 +276,7 @@ export const GLOSSARY = [
       es: 'El dinero inteligente incluye bancos centrales, fondos de cobertura y creadores de mercado. Los bloques de órdenes, FVGs y barridos son sus huellas.',
       de: 'Smart Money umfasst Zentralbanken, Hedge-Fonds und Market Maker. Order Blocks, FVGs und Sweeps sind ihre Fußabdrücke.',
     },
+    chartId: 'smart_money',
   },
   {
     word: { en: 'Kill Zones', es: 'Zonas de Caza (Kill Zones)', de: 'Kill Zones' },
