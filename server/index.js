@@ -195,6 +195,15 @@ const PortfolioDuelSchema = new mongoose.Schema({
 });
 const PortfolioDuel = mongoose.model('PortfolioDuel', PortfolioDuelSchema);
 
+const PositionNoteSchema = new mongoose.Schema({
+  userId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  ticker:    { type: String, required: true },
+  note:      { type: String, maxlength: 1000 },
+  updatedAt: { type: Date, default: Date.now },
+});
+PositionNoteSchema.index({ userId: 1, ticker: 1 }, { unique: true });
+const PositionNote = mongoose.model('PositionNote', PositionNoteSchema);
+
 const LeagueSchema = new mongoose.Schema({
   name:      { type: String, required: true, maxlength: 30 },
   code:      { type: String, required: true, unique: true },
@@ -2822,6 +2831,107 @@ app.delete('/api/alerts/:id', async (req, res) => {
   if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
   await PriceAlert.deleteOne({ _id: req.params.id, userId: decoded.id });
   res.json({ ok: true });
+});
+
+// ── Position notes (Pro) ─────────────────────────────────────────
+app.get('/api/portfolio/notes', async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'No token' });
+  try {
+    const user = await User.findById(decoded.id).select('isPro');
+    if (!user?.isPro) return res.status(403).json({ error: 'Pro required' });
+    const notes = await PositionNote.find({ userId: decoded.id });
+    res.json(notes);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/portfolio/note', async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'No token' });
+  try {
+    const user = await User.findById(decoded.id).select('isPro');
+    if (!user?.isPro) return res.status(403).json({ error: 'Pro required' });
+    const { ticker, note } = req.body;
+    if (!ticker || !note?.trim()) return res.status(400).json({ error: 'ticker and note required' });
+    const saved = await PositionNote.findOneAndUpdate(
+      { userId: decoded.id, ticker },
+      { note: note.trim(), updatedAt: new Date() },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+    res.json({ ok: true, note: saved });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/portfolio/note/:ticker', async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'No token' });
+  try {
+    await PositionNote.deleteOne({ userId: decoded.id, ticker: req.params.ticker });
+    res.json({ ok: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── Portfolio compare vs #1 (Pro) ─────────────────────────────────
+app.get('/api/portfolio/compare', async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'No token' });
+  try {
+    const user = await User.findById(decoded.id).select('isPro');
+    if (!user?.isPro) return res.status(403).json({ error: 'Pro required' });
+    const myPortfolio = await Portfolio.findOne({ userId: decoded.id });
+    if (!myPortfolio) return res.json({ top1: null, onlyInTop1: [], inCommon: [], onlyInMe: [] });
+    // Read cached prices
+    const keys = PORTFOLIO_ASSETS.map(a => `price_v2:${a.symbol}`);
+    let rawValues;
+    try { rawValues = await redis.mget(...keys); } catch { rawValues = []; }
+    const priceMap = {};
+    (rawValues || []).forEach(v => {
+      if (!v) return;
+      try { const p = typeof v === 'string' ? JSON.parse(v) : v; if (p?.symbol) priceMap[p.symbol] = p.price; } catch {}
+    });
+    // Rank all portfolios
+    const allPortfolios = await Portfolio.find({}).populate('userId', 'name username');
+    const ranked = allPortfolios
+      .map(p => {
+        const invested   = p.positions.reduce((s, pos) => s + (priceMap[pos.symbol] || pos.avgPrice) * pos.qty, 0);
+        const totalValue = p.cash + invested;
+        const returnPct  = ((totalValue - 50000) / 50000) * 100;
+        return { p, totalValue, returnPct, u: p.userId };
+      })
+      .filter(e => e.totalValue !== 50000)
+      .sort((a, b) => b.returnPct - a.returnPct);
+    if (ranked.length === 0) return res.json({ top1: null, onlyInTop1: [], inCommon: [], onlyInMe: [] });
+    const top1Entry     = ranked[0];
+    const top1Portfolio = top1Entry.p;
+    const mySymbols   = new Set(myPortfolio.positions.map(p => p.symbol));
+    const top1Symbols = new Set(top1Portfolio.positions.map(p => p.symbol));
+    const calcReturn = (sym, positions) => {
+      const pos = positions.find(p => p.symbol === sym);
+      if (!pos) return 0;
+      return ((( priceMap[sym] || pos.avgPrice) - pos.avgPrice) / pos.avgPrice) * 100;
+    };
+    const myTotalValue = myPortfolio.cash + myPortfolio.positions.reduce((s, p) => s + (priceMap[p.symbol] || p.avgPrice) * p.qty, 0);
+    res.json({
+      top1: {
+        username:   top1Entry.u?.username || top1Entry.u?.name || 'Anonymous',
+        returnPct:  top1Entry.returnPct,
+        totalValue: top1Entry.totalValue,
+      },
+      myReturnPct: ((myTotalValue - 50000) / 50000) * 100,
+      onlyInTop1: [...top1Symbols].filter(s => !mySymbols.has(s)).map(s => {
+        const pos = top1Portfolio.positions.find(p => p.symbol === s);
+        return { symbol: s, name: pos?.name || s, type: pos?.type, top1Return: calcReturn(s, top1Portfolio.positions) };
+      }),
+      inCommon: [...mySymbols].filter(s => top1Symbols.has(s)).map(s => {
+        const pos = myPortfolio.positions.find(p => p.symbol === s);
+        return { symbol: s, name: pos?.name || s, type: pos?.type, myReturn: calcReturn(s, myPortfolio.positions), top1Return: calcReturn(s, top1Portfolio.positions) };
+      }),
+      onlyInMe: [...mySymbols].filter(s => !top1Symbols.has(s)).map(s => {
+        const pos = myPortfolio.positions.find(p => p.symbol === s);
+        return { symbol: s, name: pos?.name || s, type: pos?.type, myReturn: calcReturn(s, myPortfolio.positions) };
+      }),
+    });
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.get('/', (req, res) => res.json({ status: 'ok' }));

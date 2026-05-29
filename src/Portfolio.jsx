@@ -178,6 +178,13 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
   const [alertModal, setAlertModal]         = useState(null);
   const [alertPrice, setAlertPrice]         = useState('');
   const [alertCondition, setAlertCondition] = useState('above');
+  const [notes, setNotes]                   = useState({});
+  const [noteModal, setNoteModal]           = useState(null);
+  const [noteText, setNoteText]             = useState('');
+  const [noteSaving, setNoteSaving]         = useState(false);
+  const [compareData, setCompareData]       = useState(null);
+  const [compareLoading, setCompareLoading] = useState(false);
+  const [compareExpanded, setCompareExpanded] = useState(false);
   const chartRef = useRef(null);
 
   const token = localStorage.getItem('tradara_token');
@@ -224,6 +231,63 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
   useEffect(() => {
     if (user?.isPro) fetchAlerts();
   }, [user?.isPro]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (user?.isPro) fetchNotes();
+  }, [user?.isPro]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Position notes ────────────────────────────────────────────────
+  async function fetchNotes() {
+    const tok = localStorage.getItem('tradara_token');
+    try {
+      const res = await fetch(`${SERVER}/api/portfolio/notes`, { headers: { Authorization: `Bearer ${tok}` } });
+      if (res.ok) {
+        const data = await res.json();
+        const map = {};
+        data.forEach(n => { map[n.ticker] = n.note; });
+        setNotes(map);
+      }
+    } catch {}
+  }
+
+  async function saveNote(ticker, text) {
+    if (!text.trim()) return;
+    setNoteSaving(true);
+    const tok = localStorage.getItem('tradara_token');
+    try {
+      const res = await fetch(`${SERVER}/api/portfolio/note`, {
+        method:  'POST',
+        headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ ticker, note: text.trim() }),
+      });
+      if (res.ok) {
+        setNotes(prev => ({ ...prev, [ticker]: text.trim() }));
+        setNoteModal(null);
+      }
+    } catch {}
+    setNoteSaving(false);
+  }
+
+  async function deleteNote(ticker) {
+    const tok = localStorage.getItem('tradara_token');
+    try {
+      await fetch(`${SERVER}/api/portfolio/note/${ticker}`, { method: 'DELETE', headers: { Authorization: `Bearer ${tok}` } });
+      setNotes(prev => { const n = { ...prev }; delete n[ticker]; return n; });
+      setNoteModal(null);
+    } catch {}
+  }
+
+  // ── Compare vs #1 ─────────────────────────────────────────────────
+  async function loadCompare() {
+    if (compareLoading) return;
+    setCompareLoading(true);
+    const tok = localStorage.getItem('tradara_token');
+    try {
+      const res = await fetch(`${SERVER}/api/portfolio/compare`, { headers: { Authorization: `Bearer ${tok}` } });
+      if (res.ok) setCompareData(await res.json());
+    } catch {}
+    setCompareLoading(false);
+  }
 
   function dismissWelcome() {
     localStorage.setItem('tradara_portfolio_welcomed', 'true');
@@ -939,36 +1003,187 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                       <div style={{ height: '100%', width: `${Math.min(100, Math.abs(pos.pnlPct) * 5)}%`, background: pos.pnl >= 0 ? '#22d3a5' : '#f05454', borderRadius: '2px' }} />
                     </div>
                   </div>
-                  {/* Alert row */}
+                  {/* Alert + Note row */}
                   <div style={{ padding: '7px 14px', borderTop: '1px solid var(--bd)', display: 'flex', alignItems: 'center', gap: '8px', minHeight: '34px' }}>
-                    {user?.isPro ? (
-                      existingAlert ? (
-                        <>
-                          <span style={{ fontSize: '9px', color: '#f5c842', fontFamily: "'Space Mono', monospace", flex: 1 }}>
-                            🔔 {existingAlert.condition === 'above' ? '↑' : '↓'} {formatPrice(existingAlert.targetPrice, pos.type)}
-                          </span>
+                    {/* Alert section */}
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {user?.isPro ? (
+                        existingAlert ? (
+                          <>
+                            <span style={{ fontSize: '9px', color: '#f5c842', fontFamily: "'Space Mono', monospace", flex: 1 }}>
+                              🔔 {existingAlert.condition === 'above' ? '↑' : '↓'} {formatPrice(existingAlert.targetPrice, pos.type)}
+                            </span>
+                            <button
+                              onClick={() => deleteAlert(existingAlert._id)}
+                              style={{ background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '4px', color: 'var(--t5)', fontSize: '9px', padding: '2px 8px', cursor: 'pointer', fontFamily: "'Space Mono', monospace", letterSpacing: '0.04em' }}
+                            >borrar</button>
+                          </>
+                        ) : (
                           <button
-                            onClick={() => deleteAlert(existingAlert._id)}
-                            style={{ background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '4px', color: 'var(--t5)', fontSize: '9px', padding: '2px 8px', cursor: 'pointer', fontFamily: "'Space Mono', monospace", letterSpacing: '0.04em' }}
-                          >borrar</button>
-                        </>
+                            onClick={() => openAlertModal(pos)}
+                            style={{ background: 'transparent', border: '1px solid rgba(245,200,66,0.3)', borderRadius: '6px', color: '#f5c842', fontSize: '9px', padding: '3px 10px', cursor: 'pointer', fontFamily: "'Space Mono', monospace", letterSpacing: '0.04em' }}
+                          >🔔 Alerta</button>
+                        )
                       ) : (
                         <button
-                          onClick={() => openAlertModal(pos)}
-                          style={{ background: 'transparent', border: '1px solid rgba(245,200,66,0.3)', borderRadius: '6px', color: '#f5c842', fontSize: '9px', padding: '3px 10px', cursor: 'pointer', fontFamily: "'Space Mono', monospace", letterSpacing: '0.04em' }}
-                        >🔔 Alerta</button>
-                      )
+                          onClick={() => onGoPricing?.()}
+                          style={{ background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t6)', fontSize: '9px', padding: '3px 10px', cursor: 'pointer', fontFamily: "'Space Mono', monospace", letterSpacing: '0.04em', opacity: 0.55 }}
+                        >🔒 Alertas · Pro</button>
+                      )}
+                    </div>
+                    {/* Note button */}
+                    {user?.isPro ? (
+                      <button
+                        onClick={e => { e.stopPropagation(); setNoteText(notes[pos.symbol] || ''); setNoteModal({ symbol: pos.symbol, name: pos.name }); }}
+                        style={{ flexShrink: 0, background: notes[pos.symbol] ? 'rgba(245,200,66,0.08)' : 'transparent', border: `1px solid ${notes[pos.symbol] ? 'rgba(245,200,66,0.4)' : 'var(--bd2)'}`, borderRadius: '6px', color: notes[pos.symbol] ? '#f5c842' : 'var(--t6)', fontSize: '9px', padding: '3px 10px', cursor: 'pointer', fontFamily: "'Space Mono', monospace", letterSpacing: '0.04em' }}
+                      >📝 {notes[pos.symbol] ? 'nota' : 'anotar'}</button>
                     ) : (
                       <button
                         onClick={() => onGoPricing?.()}
-                        style={{ background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t6)', fontSize: '9px', padding: '3px 10px', cursor: 'pointer', fontFamily: "'Space Mono', monospace", letterSpacing: '0.04em', opacity: 0.55 }}
-                      >🔒 Alertas · Pro</button>
+                        style={{ flexShrink: 0, background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t6)', fontSize: '9px', padding: '3px 10px', cursor: 'pointer', fontFamily: "'Space Mono', monospace", letterSpacing: '0.04em', opacity: 0.45 }}
+                      >📝 🔒</button>
                     )}
                   </div>
                 </div>
               );
             })
           )}
+
+          {/* Compare vs #1 del ranking */}
+          <div style={{ marginTop: '20px', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', overflow: 'hidden' }}>
+            <div
+              onClick={() => {
+                if (!user?.isPro) { onGoPricing?.(); return; }
+                const next = !compareExpanded;
+                setCompareExpanded(next);
+                if (next && !compareData && !compareLoading) loadCompare();
+              }}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', cursor: 'pointer' }}
+            >
+              <div>
+                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: user?.isPro ? '#22d3a5' : 'var(--t4)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  {user?.isPro ? '📊' : '🔒'} vs #1 del ranking
+                  {!user?.isPro && <span style={{ fontSize: '8px', color: '#f5c842', background: 'rgba(245,200,66,0.1)', padding: '1px 6px', borderRadius: '4px', fontFamily: "'Space Mono', monospace", letterSpacing: '0.04em' }}>PRO</span>}
+                </div>
+                {compareData?.top1 && user?.isPro && (
+                  <div style={{ fontSize: '8px', color: 'var(--t5)', marginTop: '2px', fontFamily: "'Space Mono', monospace" }}>
+                    @{compareData.top1.username} · {compareData.top1.returnPct >= 0 ? '+' : ''}{compareData.top1.returnPct?.toFixed(2)}%
+                  </div>
+                )}
+              </div>
+              <span style={{ color: 'var(--t5)', fontSize: '10px', fontFamily: "'Space Mono', monospace" }}>{compareExpanded ? '▲' : '▼'}</span>
+            </div>
+
+            {!user?.isPro ? (
+              <div style={{ position: 'relative' }}>
+                <div style={{ filter: 'blur(5px)', pointerEvents: 'none', padding: '12px 14px', userSelect: 'none' }}>
+                  {[['AAPL', 'Apple', '+12.4%', '+18.2%'], ['BTC', 'Bitcoin', '—', '+34.1%'], ['MSFT', 'Microsoft', '+5.1%', '+5.1%']].map(([sym, name, myR, top1R]) => (
+                    <div key={sym} style={{ display: 'flex', alignItems: 'center', padding: '7px 0', borderBottom: '1px solid var(--bd)', gap: '8px' }}>
+                      <div style={{ flex: 1, fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '11px', color: 'var(--t2)' }}>{name}</div>
+                      <div style={{ fontSize: '9px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", width: '44px', textAlign: 'right' }}>{myR}</div>
+                      <div style={{ fontSize: '9px', color: '#f5c842', fontFamily: "'Space Mono', monospace", width: '44px', textAlign: 'right' }}>{top1R}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                  <span style={{ fontSize: '20px' }}>🔒</span>
+                  <button onClick={() => onGoPricing?.()} style={{ padding: '8px 20px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '8px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>Desbloquear Pro</button>
+                </div>
+              </div>
+            ) : compareExpanded && (
+              <div style={{ padding: '0 14px 14px' }}>
+                {compareLoading ? (
+                  <div style={{ textAlign: 'center', padding: '24px', fontSize: '10px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace" }}>···</div>
+                ) : !compareData?.top1 ? (
+                  <div style={{ textAlign: 'center', padding: '24px', fontSize: '10px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace" }}>No hay datos de ranking disponibles</div>
+                ) : (
+                  <>
+                    {/* Me vs #1 header */}
+                    <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', padding: '10px', background: 'var(--bg-page)', borderRadius: '8px' }}>
+                      <div style={{ flex: 1, textAlign: 'center' }}>
+                        <div style={{ fontSize: '8px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", marginBottom: '3px' }}>TÚ</div>
+                        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: compareData.myReturnPct >= 0 ? '#22d3a5' : '#f05454' }}>
+                          {compareData.myReturnPct >= 0 ? '+' : ''}{compareData.myReturnPct?.toFixed(2)}%
+                        </div>
+                      </div>
+                      <div style={{ width: '1px', background: 'var(--bd)' }} />
+                      <div style={{ flex: 1, textAlign: 'center' }}>
+                        <div style={{ fontSize: '8px', color: '#f5c842', fontFamily: "'Space Mono', monospace", marginBottom: '3px' }}>🥇 @{compareData.top1.username}</div>
+                        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: '#f5c842' }}>
+                          {compareData.top1.returnPct >= 0 ? '+' : ''}{compareData.top1.returnPct?.toFixed(2)}%
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Only in #1 */}
+                    {compareData.onlyInTop1.length > 0 && (
+                      <>
+                        <div style={{ fontSize: '8px', color: '#f5c842', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: "'Space Mono', monospace", marginBottom: '6px' }}>Solo en #1</div>
+                        {compareData.onlyInTop1.map(item => (
+                          <div key={item.symbol} style={{ display: 'flex', alignItems: 'center', padding: '6px 8px', background: 'rgba(245,200,66,0.04)', border: '1px solid rgba(245,200,66,0.12)', borderRadius: '6px', marginBottom: '4px' }}>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '11px', color: 'var(--t1)' }}>{item.name}</div>
+                              <div style={{ fontSize: '8px', color: 'var(--t5)' }}>{item.symbol}</div>
+                            </div>
+                            <div style={{ fontSize: '10px', fontWeight: 700, fontFamily: "'Syne', sans-serif", color: item.top1Return >= 0 ? '#22d3a5' : '#f05454' }}>
+                              {item.top1Return >= 0 ? '+' : ''}{item.top1Return?.toFixed(2)}%
+                            </div>
+                          </div>
+                        ))}
+                      </>
+                    )}
+
+                    {/* In common */}
+                    {compareData.inCommon.length > 0 && (
+                      <>
+                        <div style={{ fontSize: '8px', color: '#22d3a5', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: "'Space Mono', monospace", marginTop: '10px', marginBottom: '6px' }}>En común</div>
+                        {compareData.inCommon.map(item => (
+                          <div key={item.symbol} style={{ display: 'flex', alignItems: 'center', padding: '6px 8px', background: 'rgba(34,211,165,0.04)', border: '1px solid rgba(34,211,165,0.12)', borderRadius: '6px', marginBottom: '4px' }}>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '11px', color: 'var(--t1)' }}>{item.name}</div>
+                              <div style={{ fontSize: '8px', color: 'var(--t5)' }}>{item.symbol}</div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px' }}>
+                              <div style={{ textAlign: 'right' }}>
+                                <div style={{ fontSize: '8px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace" }}>tú</div>
+                                <div style={{ fontSize: '10px', fontWeight: 700, color: item.myReturn >= 0 ? '#22d3a5' : '#f05454' }}>{item.myReturn >= 0 ? '+' : ''}{item.myReturn?.toFixed(2)}%</div>
+                              </div>
+                              <div style={{ textAlign: 'right' }}>
+                                <div style={{ fontSize: '8px', color: '#f5c842', fontFamily: "'Space Mono', monospace" }}>#1</div>
+                                <div style={{ fontSize: '10px', fontWeight: 700, color: item.top1Return >= 0 ? '#22d3a5' : '#f05454' }}>{item.top1Return >= 0 ? '+' : ''}{item.top1Return?.toFixed(2)}%</div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </>
+                    )}
+
+                    {/* Only in me */}
+                    {compareData.onlyInMe.length > 0 && (
+                      <>
+                        <div style={{ fontSize: '8px', color: '#378ADD', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: "'Space Mono', monospace", marginTop: '10px', marginBottom: '6px' }}>Solo en ti</div>
+                        {compareData.onlyInMe.map(item => (
+                          <div key={item.symbol} style={{ display: 'flex', alignItems: 'center', padding: '6px 8px', background: 'rgba(55,138,221,0.04)', border: '1px solid rgba(55,138,221,0.12)', borderRadius: '6px', marginBottom: '4px' }}>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '11px', color: 'var(--t1)' }}>{item.name}</div>
+                              <div style={{ fontSize: '8px', color: 'var(--t5)' }}>{item.symbol}</div>
+                            </div>
+                            <div style={{ fontSize: '10px', fontWeight: 700, fontFamily: "'Syne', sans-serif", color: item.myReturn >= 0 ? '#22d3a5' : '#f05454' }}>
+                              {item.myReturn >= 0 ? '+' : ''}{item.myReturn?.toFixed(2)}%
+                            </div>
+                          </div>
+                        ))}
+                      </>
+                    )}
+
+                    {compareData.onlyInTop1.length === 0 && compareData.inCommon.length === 0 && compareData.onlyInMe.length === 0 && (
+                      <div style={{ textAlign: 'center', padding: '20px', fontSize: '10px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace" }}>Sin posiciones para comparar</div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -1150,6 +1365,49 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
 
       {missionToast[0] && <MissionNotification data={missionToast[0]} onDone={() => setMissionToast(q => q.slice(1))} />}
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
+
+      {/* ── Note modal ── */}
+      {noteModal && (
+        <div
+          onClick={() => setNoteModal(null)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 9998, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '340px' }}
+          >
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--t1)', marginBottom: '4px' }}>📝 Nota</div>
+            <div style={{ fontSize: '9px', color: 'var(--t5)', marginBottom: '16px', fontFamily: "'Space Mono', monospace", letterSpacing: '0.06em' }}>
+              {noteModal.name} · razonamiento
+            </div>
+            <textarea
+              value={noteText}
+              onChange={e => setNoteText(e.target.value)}
+              placeholder="Compré porque..."
+              rows={4}
+              maxLength={1000}
+              style={{ width: '100%', boxSizing: 'border-box', padding: '10px 12px', background: 'var(--bg-page)', border: '1px solid var(--bd)', borderRadius: '6px', color: 'var(--t1)', fontFamily: "'Space Mono', monospace", fontSize: '11px', outline: 'none', resize: 'vertical', marginBottom: '16px', lineHeight: 1.6 }}
+            />
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {notes[noteModal.symbol] && (
+                <button
+                  onClick={() => deleteNote(noteModal.symbol)}
+                  style={{ padding: '10px', background: 'transparent', border: '1px solid rgba(240,84,84,0.4)', borderRadius: '6px', color: '#f05454', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer' }}
+                >borrar</button>
+              )}
+              <button
+                onClick={() => setNoteModal(null)}
+                style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid var(--bd)', borderRadius: '6px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer' }}
+              >cancelar</button>
+              <button
+                onClick={() => saveNote(noteModal.symbol, noteText)}
+                disabled={noteSaving || !noteText.trim()}
+                style={{ flex: 2, padding: '10px', background: 'rgba(34,211,165,0.1)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: noteSaving || !noteText.trim() ? 'not-allowed' : 'pointer', letterSpacing: '0.04em', opacity: noteSaving || !noteText.trim() ? 0.5 : 1 }}
+              >{noteSaving ? '···' : 'guardar nota'}</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Alert modal ── */}
       {alertModal && (
