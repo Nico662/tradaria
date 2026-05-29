@@ -1751,21 +1751,26 @@ cron.schedule('0 7 * * *', async () => {
   }
 });
 
-cron.schedule('0 20 * * *', async () => {
-  console.log('Sending streak danger notifications...');
-  const today = new Date().toISOString().split('T')[0];
+cron.schedule('0 21 * * *', async () => {
+  const now = new Date();
+  const todayMadrid = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Madrid' })).toISOString().split('T')[0];
+  console.log(`[streak-cron] Fired at ${now.toISOString()} — today (Madrid): ${todayMadrid}`);
 
   const usersAtRisk = await User.find({
     dailyStreak: { $gt: 0 },
     $or: [
-      { lastPlayed: { $ne: today } },
+      { lastPlayed: { $ne: todayMadrid } },
       { lastPlayed: null }
     ]
   });
 
+  console.log(`[streak-cron] Found ${usersAtRisk.length} users at risk`);
+
+  let sent = 0;
   for (const user of usersAtRisk) {
     try {
       const subRaw = await redis.get(`push_user_sub:${user._id}`);
+      console.log(`[streak-cron] user=${user._id} streak=${user.dailyStreak} lastPlayed=${user.lastPlayed} hasSub=${!!subRaw}`);
       if (!subRaw) continue;
       const sub = JSON.parse(subRaw);
 
@@ -1778,13 +1783,14 @@ cron.schedule('0 20 * * *', async () => {
       await webpush.sendNotification(sub, payload).catch(async err => {
         if (err.statusCode === 410) await redis.del(`push_user_sub:${user._id}`);
       });
+      sent++;
     } catch (e) {
-      console.error('Streak danger notification error:', e.message);
+      console.error(`[streak-cron] Error for user ${user._id}:`, e.message);
     }
   }
 
-  console.log(`Streak danger notifications sent to ${usersAtRisk.length} users`);
-});
+  console.log(`[streak-cron] Done — sent ${sent}/${usersAtRisk.length}`);
+}, { timezone: 'Europe/Madrid' });
 
 cron.schedule('0 0 * * *', async () => {
   const today = new Date().toISOString().split('T')[0];
@@ -2284,8 +2290,6 @@ app.post('/portfolio/snapshot', async (req, res) => {
 
     // Check if user has surpassed someone in the leaderboard
     try {
-      const weekId = getWeekId();
-
       const allPortfolios = await Portfolio.find({}).populate('userId', 'name username avatar');
       const prices = {};
       for (const asset of PORTFOLIO_ASSETS) {
@@ -2305,13 +2309,17 @@ app.post('/portfolio/snapshot', async (req, res) => {
       const myRank = ranking.findIndex(r => r.userId.toString() === decoded.id.toString());
       const myData = ranking[myRank];
 
-      if (myRank > 0) {
-        const surpassedUser = ranking[myRank - 1];
-        const prevRankKey   = `prev_rank:${decoded.id}`;
-        const prevRank      = parseInt(await redis.get(prevRankKey) || '999');
+      const prevRankKey = `prev_rank:${decoded.id}`;
+      const prevRank    = parseInt(await redis.get(prevRankKey) || '999');
+      console.log(`[leaderboard-notif] user=${decoded.id} myRank=${myRank} prevRank=${prevRank} rankingSize=${ranking.length}`);
 
-        if (myRank < prevRank && surpassedUser.userId) {
+      // Notify the person who was just displaced below us (now at myRank+1)
+      if (myRank < prevRank && myRank + 1 < ranking.length) {
+        const surpassedUser = ranking[myRank + 1];
+        console.log(`[leaderboard-notif] surpassed user=${surpassedUser.userId} (${surpassedUser.name}) — checking sub`);
+        if (surpassedUser.userId) {
           const subRaw = await redis.get(`push_user_sub:${surpassedUser.userId}`);
+          console.log(`[leaderboard-notif] surpassed user hasSub=${!!subRaw}`);
           if (subRaw) {
             const sub     = JSON.parse(subRaw);
             const myName  = `@${myData.name}`;
@@ -2321,13 +2329,14 @@ app.post('/portfolio/snapshot', async (req, res) => {
               url:   'https://tradara.dev',
             });
             await webpush.sendNotification(sub, payload).catch(() => {});
+            console.log(`[leaderboard-notif] notification sent to ${surpassedUser.userId}`);
           }
         }
-
-        await redis.set(`prev_rank:${decoded.id}`, myRank.toString(), { ex: 86400 });
       }
+
+      await redis.set(`prev_rank:${decoded.id}`, myRank.toString(), { ex: 86400 });
     } catch (e) {
-      console.error('Leaderboard notification error:', e.message);
+      console.error('[leaderboard-notif] error:', e.message);
     }
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -2935,5 +2944,80 @@ app.get('/api/portfolio/compare', async (req, res) => {
 });
 
 app.get('/', (req, res) => res.json({ status: 'ok' }));
+
+// ── Test endpoints (manual trigger, requires auth) ────────────────
+app.get('/test/streak-notification', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const user = await User.findById(decoded.id).select('dailyStreak lastPlayed');
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const subRaw = await redis.get(`push_user_sub:${user._id}`);
+    if (!subRaw) return res.json({ ok: false, reason: 'No push subscription found', userId: user._id });
+
+    const sub = JSON.parse(subRaw);
+    const payload = JSON.stringify({
+      title: '⚡ Tu racha está en peligro',
+      body:  `Llevas ${user.dailyStreak} días seguidos. Te quedan 3 horas para mantenerla.`,
+      url:   'https://tradara.dev',
+    });
+
+    await webpush.sendNotification(sub, payload);
+    res.json({ ok: true, userId: user._id, dailyStreak: user.dailyStreak, lastPlayed: user.lastPlayed });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/test/leaderboard-notification', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+
+    const allPortfolios = await Portfolio.find({}).populate('userId', 'name username avatar');
+    const prices = {};
+    for (const asset of PORTFOLIO_ASSETS) {
+      try {
+        const cached = await redis.get(`price_v2:${asset.symbol}`);
+        if (cached) prices[asset.symbol] = (typeof cached === 'string' ? JSON.parse(cached) : cached).price;
+      } catch {}
+    }
+
+    const ranking = allPortfolios.map(p => {
+      const invested   = p.positions.reduce((s, pos) => s + (prices[pos.symbol] || pos.avgPrice) * pos.qty, 0);
+      const totalValue = p.cash + invested;
+      const returnPct  = ((totalValue - 50000) / 50000) * 100;
+      return { userId: p.userId?._id, name: p.userId?.username || p.userId?.name, totalValue, returnPct };
+    }).filter(p => p.userId).sort((a, b) => b.returnPct - a.returnPct);
+
+    const myRank = ranking.findIndex(r => r.userId.toString() === decoded.id.toString());
+    if (myRank === -1) return res.status(404).json({ error: 'User not in ranking' });
+
+    // Simulate: send notification to the person just below current user
+    const target = ranking[myRank + 1];
+    if (!target) return res.json({ ok: false, reason: 'No user below to notify (you are last)', myRank });
+
+    const subRaw = await redis.get(`push_user_sub:${target.userId}`);
+    if (!subRaw) return res.json({ ok: false, reason: 'Target has no push subscription', targetUserId: target.userId, targetName: target.name, myRank });
+
+    const myData  = ranking[myRank];
+    const sub     = JSON.parse(subRaw);
+    const myName  = `@${myData.name}`;
+    const payload = JSON.stringify({
+      title: '📉 Te han superado en el ranking',
+      body:  `${myName} te ha superado. Su portfolio: ${myData.returnPct >= 0 ? '+' : ''}${myData.returnPct.toFixed(1)}% · El tuyo: ${target.returnPct >= 0 ? '+' : ''}${target.returnPct.toFixed(1)}%`,
+      url:   'https://tradara.dev',
+    });
+
+    await webpush.sendNotification(sub, payload);
+    res.json({ ok: true, myRank, myName, targetUserId: target.userId, targetName: target.name });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── Start ─────────────────────────────────────────────────────────
 httpServer.listen(PORT, () => console.log(`Server running on port ${PORT}`));
