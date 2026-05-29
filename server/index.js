@@ -171,6 +171,16 @@ const PortfolioHistorySchema = new mongoose.Schema({
 PortfolioHistorySchema.index({ userId: 1, date: 1 }, { unique: true });
 const PortfolioHistory = mongoose.model('PortfolioHistory', PortfolioHistorySchema);
 
+const PriceAlertSchema = new mongoose.Schema({
+  userId:      { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  ticker:      { type: String, required: true },
+  targetPrice: { type: Number, required: true },
+  condition:   { type: String, enum: ['above', 'below'], required: true },
+  triggered:   { type: Boolean, default: false },
+  createdAt:   { type: Date, default: Date.now },
+});
+const PriceAlert = mongoose.model('PriceAlert', PriceAlertSchema);
+
 
 const PortfolioDuelSchema = new mongoose.Schema({
   challenger: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -1602,6 +1612,45 @@ async function warmPriceCache() {
 // Ejecutar al arrancar y cada 5 minutos
 warmPriceCache();
 cron.schedule('*/5 * * * *', warmPriceCache);
+
+// ── Price alerts cron (every 15 min) ──────────────────────────────
+cron.schedule('*/15 * * * *', async () => {
+  try {
+    const alerts = await PriceAlert.find({ triggered: false });
+    if (!alerts.length) return;
+    for (const alert of alerts) {
+      try {
+        const cached = await redis.get(`price_v2:${alert.ticker}`);
+        if (!cached) continue;
+        const priceData    = typeof cached === 'string' ? JSON.parse(cached) : cached;
+        const currentPrice = priceData.price;
+        const hit =
+          (alert.condition === 'above' && currentPrice >= alert.targetPrice) ||
+          (alert.condition === 'below' && currentPrice <= alert.targetPrice);
+        if (!hit) continue;
+        await PriceAlert.findByIdAndUpdate(alert._id, { triggered: true });
+        const subRaw = await redis.get(`push_user_sub:${alert.userId}`);
+        if (!subRaw) continue;
+        const sub   = JSON.parse(subRaw);
+        const emoji = alert.condition === 'above' ? '📈' : '📉';
+        const dir   = alert.condition === 'above' ? 'subido a' : 'bajado a';
+        const payload = JSON.stringify({
+          title: `${emoji} Alerta: ${alert.ticker}`,
+          body:  `${alert.ticker} ha ${dir} $${currentPrice.toFixed(2)} (objetivo: $${alert.targetPrice})`,
+          url:   'https://tradara.dev',
+        });
+        await webpush.sendNotification(sub, payload).catch(async err => {
+          if (err.statusCode === 410) await redis.del(`push_user_sub:${alert.userId}`);
+        });
+      } catch (e) {
+        console.error('Alert check error:', e.message);
+      }
+    }
+  } catch (e) {
+    console.error('Alerts cron error:', e.message);
+  }
+});
+
 // ── Cron ──────────────────────────────────────────────────────────
 cron.schedule('0 8 * * *', async () => {
   pushSubscriptions = await loadSubscriptions();
@@ -2744,6 +2793,36 @@ setInterval(async () => {
     if (expired.length) console.log(`Expired ${expired.length} academy trial(s)`);
   } catch (err) { console.error('Trial expiry cron error:', err.message); }
 }, 24 * 60 * 60 * 1000);
+
+// ── Price alerts ──────────────────────────────────────────────────
+app.get('/api/alerts', async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
+  const user = await User.findById(decoded.id).select('isPro');
+  if (!user?.isPro) return res.status(403).json({ error: 'Pro required' });
+  const alerts = await PriceAlert.find({ userId: decoded.id, triggered: false });
+  res.json(alerts);
+});
+
+app.post('/api/alerts', async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
+  const user = await User.findById(decoded.id).select('isPro');
+  if (!user?.isPro) return res.status(403).json({ error: 'Pro required' });
+  const { ticker, targetPrice, condition } = req.body;
+  if (!ticker || !targetPrice || !['above', 'below'].includes(condition))
+    return res.status(400).json({ error: 'Invalid params' });
+  await PriceAlert.deleteMany({ userId: decoded.id, ticker, triggered: false });
+  const alert = await PriceAlert.create({ userId: decoded.id, ticker, targetPrice, condition });
+  res.json({ ok: true, alert });
+});
+
+app.delete('/api/alerts/:id', async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
+  await PriceAlert.deleteOne({ _id: req.params.id, userId: decoded.id });
+  res.json({ ok: true });
+});
 
 app.get('/', (req, res) => res.json({ status: 'ok' }));
 // ── Start ─────────────────────────────────────────────────────────

@@ -625,7 +625,7 @@ export default function App() {
   if (screen === 'survival')   return <><Survival   onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'shop')       return <><Shop       onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'settings')   return <><Settings   onBack={() => setScreen('home')} />{challengeOverlay}</>;
-  if (screen === 'portfolio')  return <><Portfolio  onBack={() => setScreen('home')} onViewProfile={(uname) => { setPublicProfileUsername(uname); setScreen('public_profile'); window.history.pushState({}, '', `/u/${uname}`); }} onOpenLeague={(id) => { setLeagueId(id); setScreen('league'); }} />{challengeOverlay}</>;
+  if (screen === 'portfolio')  return <><Portfolio  onBack={() => setScreen('home')} onViewProfile={(uname) => { setPublicProfileUsername(uname); setScreen('public_profile'); window.history.pushState({}, '', `/u/${uname}`); }} onOpenLeague={(id) => { setLeagueId(id); setScreen('league'); }} onGoPricing={() => setScreen('pricing')} />{challengeOverlay}</>;
   if (screen === 'league')          return <><League leagueId={leagueId} onBack={() => setScreen('portfolio')} />{challengeOverlay}</>;
   if (screen === 'join_academy')     return <JoinAcademy onBack={() => setScreen('home')} />;
   if (screen === 'student_dashboard') return <StudentDashboard onBack={() => setScreen('home')} onPlayTournament={(aId, tId) => { setAcademyTournamentCtx({ academyId: aId, tournamentId: tId }); setScreen('tournament'); }} />;

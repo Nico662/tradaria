@@ -138,7 +138,7 @@ function LeaderboardList({ entries, userPosition, user, onViewProfile, t }) {
   );
 }
 
-export default function Portfolio({ onBack, onViewProfile, onOpenLeague }) {
+export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPricing }) {
   const { user } = useAuth();
   const { t, lang } = useLang();
   const [screen, setScreen]                 = useState('main');
@@ -174,9 +174,56 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague }) {
   const [duelMsg, setDuelMsg]               = useState('');
   const [showWelcome, setShowWelcome]       = useState(false);
   const [inputMode, setInputMode]           = useState(() => localStorage.getItem('tradara_portfolio_input_mode') || 'units');
+  const [alerts, setAlerts]                 = useState([]);
+  const [alertModal, setAlertModal]         = useState(null);
+  const [alertPrice, setAlertPrice]         = useState('');
+  const [alertCondition, setAlertCondition] = useState('above');
   const chartRef = useRef(null);
 
   const token = localStorage.getItem('tradara_token');
+
+  // ── Price alerts ──────────────────────────────────────────────────
+  async function fetchAlerts() {
+    const tok = localStorage.getItem('tradara_token');
+    try {
+      const res = await fetch(`${SERVER}/api/alerts`, { headers: { Authorization: `Bearer ${tok}` } });
+      if (res.ok) setAlerts(await res.json());
+    } catch {}
+  }
+
+  async function saveAlert(ticker, targetPrice, condition) {
+    if (!targetPrice || isNaN(targetPrice) || targetPrice <= 0) return;
+    const tok = localStorage.getItem('tradara_token');
+    const res = await fetch(`${SERVER}/api/alerts`, {
+      method:  'POST',
+      headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ ticker, targetPrice, condition }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      setAlerts(prev => [...prev.filter(a => a.ticker !== ticker), data.alert]);
+      setAlertModal(null);
+    }
+  }
+
+  async function deleteAlert(alertId) {
+    const tok = localStorage.getItem('tradara_token');
+    await fetch(`${SERVER}/api/alerts/${alertId}`, {
+      method:  'DELETE',
+      headers: { Authorization: `Bearer ${tok}` },
+    });
+    setAlerts(prev => prev.filter(a => a._id !== alertId));
+  }
+
+  function openAlertModal(pos) {
+    setAlertPrice(pos.currentPrice.toFixed(2));
+    setAlertCondition('above');
+    setAlertModal({ ticker: pos.symbol, name: pos.name, currentPrice: pos.currentPrice, type: pos.type });
+  }
+
+  useEffect(() => {
+    if (user?.isPro) fetchAlerts();
+  }, [user?.isPro]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function dismissWelcome() {
     localStorage.setItem('tradara_portfolio_welcomed', 'true');
@@ -869,26 +916,58 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague }) {
               </button>
             </div>
           ) : (
-            positionsWithValue.map(pos => (
-              <div key={pos.symbol} onClick={() => openAsset(prices.find(p => p.symbol === pos.symbol))}
-                style={{ background: 'var(--bg-card)', border: `1px solid ${pos.pnl >= 0 ? 'rgba(34,211,165,0.3)' : 'rgba(240,84,84,0.3)'}`, borderRadius: '8px', padding: '14px', marginBottom: '8px', cursor: 'pointer' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <div>
-                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>{pos.name}</div>
-                    <div style={{ fontSize: '9px', color: 'var(--t5)' }}>{parseFloat(pos.qty.toFixed(4))} {t.portfolio.units} · {t.portfolio.avgPrice} {formatPrice(pos.avgPrice, pos.type)}</div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: 'var(--t1)' }}>{formatCash(pos.value)}</div>
-                    <div style={{ fontSize: '10px', color: pos.pnl >= 0 ? '#22d3a5' : '#f05454', fontWeight: 700 }}>
-                      {pos.pnl >= 0 ? '+' : ''}{formatCash(pos.pnl)} ({formatChange(pos.pnlPct)})
+            positionsWithValue.map(pos => {
+              const existingAlert = alerts.find(a => a.ticker === pos.symbol);
+              return (
+                <div key={pos.symbol}
+                  style={{ background: 'var(--bg-card)', border: `1px solid ${pos.pnl >= 0 ? 'rgba(34,211,165,0.3)' : 'rgba(240,84,84,0.3)'}`, borderRadius: '8px', marginBottom: '8px', overflow: 'hidden' }}>
+                  {/* Clickable main area */}
+                  <div onClick={() => openAsset(prices.find(p => p.symbol === pos.symbol))} style={{ padding: '14px', cursor: 'pointer' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <div>
+                        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>{pos.name}</div>
+                        <div style={{ fontSize: '9px', color: 'var(--t5)' }}>{parseFloat(pos.qty.toFixed(4))} {t.portfolio.units} · {t.portfolio.avgPrice} {formatPrice(pos.avgPrice, pos.type)}</div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: 'var(--t1)' }}>{formatCash(pos.value)}</div>
+                        <div style={{ fontSize: '10px', color: pos.pnl >= 0 ? '#22d3a5' : '#f05454', fontWeight: 700 }}>
+                          {pos.pnl >= 0 ? '+' : ''}{formatCash(pos.pnl)} ({formatChange(pos.pnlPct)})
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ height: '3px', background: 'var(--bd)', borderRadius: '2px', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${Math.min(100, Math.abs(pos.pnlPct) * 5)}%`, background: pos.pnl >= 0 ? '#22d3a5' : '#f05454', borderRadius: '2px' }} />
                     </div>
                   </div>
+                  {/* Alert row */}
+                  <div style={{ padding: '7px 14px', borderTop: '1px solid var(--bd)', display: 'flex', alignItems: 'center', gap: '8px', minHeight: '34px' }}>
+                    {user?.isPro ? (
+                      existingAlert ? (
+                        <>
+                          <span style={{ fontSize: '9px', color: '#f5c842', fontFamily: "'Space Mono', monospace", flex: 1 }}>
+                            🔔 {existingAlert.condition === 'above' ? '↑' : '↓'} {formatPrice(existingAlert.targetPrice, pos.type)}
+                          </span>
+                          <button
+                            onClick={() => deleteAlert(existingAlert._id)}
+                            style={{ background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '4px', color: 'var(--t5)', fontSize: '9px', padding: '2px 8px', cursor: 'pointer', fontFamily: "'Space Mono', monospace", letterSpacing: '0.04em' }}
+                          >borrar</button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => openAlertModal(pos)}
+                          style={{ background: 'transparent', border: '1px solid rgba(245,200,66,0.3)', borderRadius: '6px', color: '#f5c842', fontSize: '9px', padding: '3px 10px', cursor: 'pointer', fontFamily: "'Space Mono', monospace", letterSpacing: '0.04em' }}
+                        >🔔 Alerta</button>
+                      )
+                    ) : (
+                      <button
+                        onClick={() => onGoPricing?.()}
+                        style={{ background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t6)', fontSize: '9px', padding: '3px 10px', cursor: 'pointer', fontFamily: "'Space Mono', monospace", letterSpacing: '0.04em', opacity: 0.55 }}
+                      >🔒 Alertas · Pro</button>
+                    )}
+                  </div>
                 </div>
-                <div style={{ height: '3px', background: 'var(--bd)', borderRadius: '2px', overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${Math.min(100, Math.abs(pos.pnlPct) * 5)}%`, background: pos.pnl >= 0 ? '#22d3a5' : '#f05454', borderRadius: '2px' }} />
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       )}
@@ -1071,6 +1150,56 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague }) {
 
       {missionToast[0] && <MissionNotification data={missionToast[0]} onDone={() => setMissionToast(q => q.slice(1))} />}
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
+
+      {/* ── Alert modal ── */}
+      {alertModal && (
+        <div
+          onClick={() => setAlertModal(null)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 9998, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '340px' }}
+          >
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--t1)', marginBottom: '4px' }}>🔔 Alerta de precio</div>
+            <div style={{ fontSize: '9px', color: 'var(--t5)', marginBottom: '20px', fontFamily: "'Space Mono', monospace", letterSpacing: '0.06em' }}>
+              {alertModal.name} · actual: {formatPrice(alertModal.currentPrice, alertModal.type)}
+            </div>
+
+            {/* Condition */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+              {[['above', '↑ cuando suba a'], ['below', '↓ cuando baje a']].map(([val, label]) => (
+                <button
+                  key={val}
+                  onClick={() => setAlertCondition(val)}
+                  style={{ flex: 1, padding: '8px 4px', border: `1px solid ${alertCondition === val ? (val === 'above' ? '#22d3a5' : '#f5c842') : 'var(--bd)'}`, borderRadius: '6px', background: alertCondition === val ? (val === 'above' ? 'rgba(34,211,165,0.08)' : 'rgba(245,200,66,0.08)') : 'transparent', color: alertCondition === val ? (val === 'above' ? '#22d3a5' : '#f5c842') : 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.04em' }}
+                >{label}</button>
+              ))}
+            </div>
+
+            {/* Price input */}
+            <input
+              type="number"
+              value={alertPrice}
+              onChange={e => setAlertPrice(e.target.value)}
+              placeholder="Precio objetivo"
+              style={{ width: '100%', boxSizing: 'border-box', padding: '10px 12px', background: 'var(--bg-page)', border: '1px solid var(--bd)', borderRadius: '6px', color: 'var(--t1)', fontFamily: "'Space Mono', monospace", fontSize: '13px', outline: 'none', marginBottom: '16px' }}
+            />
+
+            {/* Actions */}
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={() => setAlertModal(null)}
+                style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid var(--bd)', borderRadius: '6px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer' }}
+              >cancelar</button>
+              <button
+                onClick={() => saveAlert(alertModal.ticker, parseFloat(alertPrice), alertCondition)}
+                style={{ flex: 2, padding: '10px', background: 'rgba(34,211,165,0.1)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em' }}
+              >guardar alerta</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
