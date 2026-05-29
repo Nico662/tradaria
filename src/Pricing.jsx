@@ -16,7 +16,7 @@ export default function Pricing({ onBack, fromTournament }) {
 
   const PRO_FEATURES = [
     t.pricing.proFeat1, t.pricing.proFeat2, t.pricing.proFeat3,
-    t.pricing.proFeat4, t.pricing.proFeat5,
+    t.pricing.proFeat4, t.pricing.proFeat5, t.pricing.proFeat6,
   ];
 
   async function handleUpgrade() {
