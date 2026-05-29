@@ -10,9 +10,10 @@ import FounderBadge, { isFounder } from './FounderBadge.jsx';
 export default function PublicProfile({ username, onBack, onChallenge }) {
   const { user } = useAuth();
   const { t } = useLang();
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(null);
+  const [profile, setProfile]           = useState(null);
+  const [loading, setLoading]           = useState(true);
+  const [error, setError]               = useState(null);
+  const [friendStatus, setFriendStatus] = useState(null);
 
   useEffect(() => {
     async function load() {
@@ -22,7 +23,9 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
         if (token) headers.Authorization = `Bearer ${token}`;
         const res = await fetch(`${SERVER}/u/${encodeURIComponent(username)}`, { headers });
         if (!res.ok) { setError(t.profile.notFound); setLoading(false); return; }
-        setProfile(await res.json());
+        const data = await res.json();
+        setProfile(data);
+        setFriendStatus(data.friendshipStatus);
       } catch {
         setError(t.profile.errorLoading);
       }
@@ -30,6 +33,18 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
     }
     load();
   }, [username]);
+
+  async function sendFriendRequest() {
+    const token = localStorage.getItem('tradara_token');
+    try {
+      const res = await fetch(`${SERVER}/friends/request`, {
+        method:  'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ username: profile.username }),
+      });
+      if (res.ok) setFriendStatus('pending');
+    } catch {}
+  }
 
   function formatJoined(iso) {
     const d = new Date(iso);
@@ -52,7 +67,8 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
 
   const level          = getLevel(profile.xp || 0);
   const unlockedBadges = BADGES.filter(b => profile.badges?.includes(b.id));
-  const isFriend       = profile.friendshipStatus === 'accepted';
+  const isFriend       = friendStatus === 'accepted';
+  const isOwnProfile   = user?.username === profile.username;
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-page)', padding: '40px 20px 60px', boxSizing: 'border-box' }}>
@@ -139,6 +155,27 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
               {t.profile.challenge}
             </button>
           )}
+
+          {user && !isOwnProfile && (
+            friendStatus === 'accepted' ? (
+              <div style={{ width: '100%', padding: '14px', boxSizing: 'border-box', background: 'rgba(34,211,165,0.06)', border: '1px solid rgba(34,211,165,0.3)', borderRadius: '8px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', textAlign: 'center' }}>
+                {t.profile.alreadyFriends}
+              </div>
+            ) : friendStatus === 'pending' ? (
+              <div style={{ width: '100%', padding: '14px', boxSizing: 'border-box', background: 'transparent', border: '1px solid var(--bd)', borderRadius: '8px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '11px', letterSpacing: '0.06em', textAlign: 'center' }}>
+                {t.profile.friendPending}
+              </div>
+            ) : (
+              <button onClick={sendFriendRequest}
+                style={{ width: '100%', padding: '14px', background: 'transparent', border: '1px solid var(--bd)', borderRadius: '8px', color: 'var(--t3)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', transition: 'border-color 0.15s, color 0.15s' }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = '#22d3a5'; e.currentTarget.style.color = '#22d3a5'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--bd)'; e.currentTarget.style.color = 'var(--t3)'; }}
+              >
+                {t.profile.addFriend}
+              </button>
+            )
+          )}
+
           <a href="https://tradara.dev"
             style={{ display: 'block', textAlign: 'center', padding: '14px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '8px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', textDecoration: 'none' }}>
             {t.profile.playOn}

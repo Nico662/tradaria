@@ -372,6 +372,7 @@ export const LANGS = {
       streak: 'streak', badges: 'Badges', vsInitial: 'vs $50k start',
       playingSince: 'Playing since',
       challenge: '⚔️ Challenge in Arena', playOn: 'Play on Tradara →',
+      addFriend: '+ Add Friend', friendPending: 'Request sent', alreadyFriends: '✓ Friends',
     },
     tutorial: {
       step1title: 'Welcome to Tradara',
@@ -865,6 +866,7 @@ export const LANGS = {
       streak: 'racha', badges: 'Medallas', vsInitial: 'vs $50k inicial',
       playingSince: 'Jugando desde',
       challenge: '⚔️ Retar en Arena', playOn: 'Jugar en Tradara →',
+      addFriend: '+ Añadir amigo', friendPending: 'Solicitud enviada', alreadyFriends: '✓ Amigos',
     },
     tutorial: {
       step1title: 'Bienvenido a Tradara',
@@ -1358,6 +1360,7 @@ export const LANGS = {
       streak: 'Serie', badges: 'Abzeichen', vsInitial: 'vs. $50k Start',
       playingSince: 'Spielt seit',
       challenge: '⚔️ In Arena herausfordern', playOn: 'Auf Tradara spielen →',
+      addFriend: '+ Freund hinzufügen', friendPending: 'Anfrage gesendet', alreadyFriends: '✓ Freunde',
     },
     tutorial: {
       step1title: 'Willkommen bei Tradara',
