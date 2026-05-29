@@ -1640,7 +1640,7 @@ cron.schedule('*/15 * * * *', async () => {
         await PriceAlert.findByIdAndUpdate(alert._id, { triggered: true });
         const subRaw = await redis.get(`push_user_sub:${alert.userId}`);
         if (!subRaw) continue;
-        const sub   = JSON.parse(subRaw);
+        const sub   = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
         const emoji = alert.condition === 'above' ? '📈' : '📉';
         const dir   = alert.condition === 'above' ? 'subido a' : 'bajado a';
         const payload = JSON.stringify({
@@ -1736,7 +1736,7 @@ cron.schedule('0 7 * * *', async () => {
       const sign      = change >= 0 ? '+' : '';
       const subRaw    = await redis.get(`push_user_sub:${portfolio.userId._id}`);
       if (!subRaw) continue;
-      const sub     = JSON.parse(subRaw);
+      const sub     = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
       const payload = JSON.stringify({
         title: `${emoji} Tu portfolio hoy`,
         body:  `${sign}${changePct}% (${sign}${change.toFixed(0)}) · Valor total: ${histToday.totalValue.toFixed(0)}`,
@@ -1772,7 +1772,7 @@ cron.schedule('0 21 * * *', async () => {
       const subRaw = await redis.get(`push_user_sub:${user._id}`);
       console.log(`[streak-cron] user=${user._id} streak=${user.dailyStreak} lastPlayed=${user.lastPlayed} hasSub=${!!subRaw}`);
       if (!subRaw) continue;
-      const sub = JSON.parse(subRaw);
+      const sub = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
 
       const payload = JSON.stringify({
         title: '⚡ Tu racha está en peligro',
@@ -2321,7 +2321,7 @@ app.post('/portfolio/snapshot', async (req, res) => {
           const subRaw = await redis.get(`push_user_sub:${surpassedUser.userId}`);
           console.log(`[leaderboard-notif] surpassed user hasSub=${!!subRaw}`);
           if (subRaw) {
-            const sub     = JSON.parse(subRaw);
+            const sub     = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
             const myName  = `@${myData.name}`;
             const payload = JSON.stringify({
               title: '📉 Te han superado en el ranking',
@@ -2957,7 +2957,7 @@ app.get('/test/streak-notification', async (req, res) => {
     const subRaw = await redis.get(`push_user_sub:${user._id}`);
     if (!subRaw) return res.json({ ok: false, reason: 'No push subscription found', userId: user._id });
 
-    const sub = JSON.parse(subRaw);
+    const sub = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
     const payload = JSON.stringify({
       title: '⚡ Tu racha está en peligro',
       body:  `Llevas ${user.dailyStreak} días seguidos. Te quedan 3 horas para mantenerla.`,
@@ -3004,7 +3004,7 @@ app.get('/test/leaderboard-notification', async (req, res) => {
     if (!subRaw) return res.json({ ok: false, reason: 'Target has no push subscription', targetUserId: target.userId, targetName: target.name, myRank });
 
     const myData  = ranking[myRank];
-    const sub     = JSON.parse(subRaw);
+    const sub     = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
     const myName  = `@${myData.name}`;
     const payload = JSON.stringify({
       title: '📉 Te han superado en el ranking',
