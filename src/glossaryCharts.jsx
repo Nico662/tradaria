@@ -1067,6 +1067,118 @@ function SmartMoneyChart() {
   );
 }
 
+// ─── ICT Kill Zones Chart ────────────────────────────────────────────────────
+
+function KillZonesChart() {
+  // x axis: 00:00–24:00 UTC → x 6..182 (176 px / 24 h)
+  const tx = h => 6 + h * 176 / 24;
+  // price 120–168 → y 12..130
+  const py = p => 12 + (168 - p) * 118 / 48;
+
+  const zones = [
+    { h1: 1,    h2: 5,  fill: '#6678ff12', stroke: '#6678ff', label: 'Asian',   col: '#6678ff' },
+    { h1: 7,    h2: 10, fill: '#f5c84212', stroke: '#f5c842', label: 'London',  col: '#f5c842' },
+    { h1: 12,   h2: 15, fill: '#22d3a512', stroke: '#22d3a5', label: 'NY Open', col: '#22d3a5' },
+    { h1: 18.5, h2: 21, fill: '#f0545412', stroke: '#f05454', label: 'NY PM',   col: '#f05454' },
+  ];
+
+  const candles = [
+    { x: tx(1),  O: 140, H: 143, L: 136, C: 138 }, // 00-02 quiet
+    { x: tx(3),  O: 138, H: 140, L: 133, C: 135 }, // Asian KZ — sweep low
+    { x: tx(5),  O: 135, H: 140, L: 134, C: 139 }, // recovery
+    { x: tx(7),  O: 139, H: 141, L: 137, C: 140 }, // pre-London
+    { x: tx(9),  O: 140, H: 154, L: 139, C: 152, bw: 9 }, // London — displacement!
+    { x: tx(11), O: 152, H: 160, L: 150, C: 158 }, // London continuation
+    { x: tx(13), O: 158, H: 160, L: 148, C: 150 }, // NY pullback (OTE)
+    { x: tx(15), O: 150, H: 164, L: 149, C: 162, bw: 9 }, // NY Open — push!
+    { x: tx(17), O: 162, H: 168, L: 160, C: 165 }, // high of day
+    { x: tx(19), O: 165, H: 166, L: 155, C: 157 }, // NY PM — distribution
+    { x: tx(21), O: 157, H: 159, L: 151, C: 153 }, // fade
+    { x: tx(23), O: 153, H: 155, L: 149, C: 151 }, // close
+  ];
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="#060b10" rx="8" />
+
+      {/* Horizontal grid */}
+      {[38, 58, 78, 98, 118].map(y => (
+        <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
+      ))}
+
+      {/* Kill zone bands */}
+      {zones.map(z => (
+        <g key={z.label}>
+          <rect x={tx(z.h1)} y="12" width={tx(z.h2) - tx(z.h1)} height="118" fill={z.fill} />
+          <line x1={tx(z.h1)} y1="12" x2={tx(z.h1)} y2="130" stroke={z.stroke} strokeWidth="0.7" opacity="0.55" strokeDasharray="2 2" />
+        </g>
+      ))}
+
+      {/* Candles */}
+      {candles.map(({ x, O, H, L, C, bw = 7 }, i) => {
+        const bull  = C >= O;
+        const col   = bull ? '#22d3a5' : '#e05555';
+        const bodyY = py(Math.max(O, C));
+        const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="0.9" opacity="0.75" />
+            <rect x={x - bw / 2} y={bodyY} width={bw} height={bodyH} fill={col} rx="0.4" opacity="0.95" />
+          </g>
+        );
+      })}
+
+      {/* Zone label tags */}
+      {zones.map(z => {
+        const cx = (tx(z.h1) + tx(z.h2)) / 2;
+        return (
+          <text key={`lbl-${z.label}`}
+            x={cx} y="10"
+            textAnchor="middle" fontFamily="'Space Mono', monospace"
+            fontSize="5" fill={z.col} opacity="0.9" letterSpacing="0.04em"
+          >{z.label}</text>
+        );
+      })}
+
+      {/* London displacement annotation */}
+      <text x={tx(9)} y={py(157)} textAnchor="middle" fontFamily="'Space Mono', monospace"
+        fontSize="4.8" fill="#f5c842" opacity="0.85">↑ disp.</text>
+
+      {/* NY Open annotation */}
+      <text x={tx(15)} y={py(167)} textAnchor="middle" fontFamily="'Space Mono', monospace"
+        fontSize="4.8" fill="#22d3a5" opacity="0.85">↑ NY</text>
+
+      {/* OTE pullback annotation */}
+      <text x={tx(13)} y={py(146) + 7} textAnchor="middle" fontFamily="'Space Mono', monospace"
+        fontSize="4.5" fill="#6678ff" opacity="0.75">OTE</text>
+
+      {/* NY PM reversal annotation */}
+      <text x={tx(19)} y={py(169)} textAnchor="middle" fontFamily="'Space Mono', monospace"
+        fontSize="4.8" fill="#f05454" opacity="0.85">↓ dist.</text>
+
+      {/* Time axis line */}
+      <line x1="6" y1="130" x2="182" y2="130" stroke="#0c1520" strokeWidth="0.7" />
+
+      {/* Time ticks: 00h 06h 12h 18h */}
+      {[0, 6, 12, 18].map(h => (
+        <g key={`t${h}`}>
+          <line x1={tx(h)} y1="130" x2={tx(h)} y2="133" stroke="#1e2d3d" strokeWidth="0.8" />
+          <text x={tx(h)} y="141"
+            textAnchor="middle" fontFamily="'Space Mono', monospace"
+            fontSize="5" fill="#2a3d52" letterSpacing="0.04em"
+          >{String(h).padStart(2,'0')}h</text>
+        </g>
+      ))}
+      <text x="182" y="141" textAnchor="end" fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#2a3d52">24h</text>
+
+      {/* Watermark */}
+      <text x="6" y="154" fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#172030" letterSpacing="0.1em">ICT KILL ZONES · UTC</text>
+    </svg>
+  );
+}
+
 // ─── exports ────────────────────────────────────────────────────────────────
 
 export const CHARTS = {
@@ -1083,4 +1195,5 @@ export const CHARTS = {
   choch:               CHoCHChart,
   ote:                 OTEChart,
   smart_money:         SmartMoneyChart,
+  kill_zones:          KillZonesChart,
 };
