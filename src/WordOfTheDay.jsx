@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { GLOSSARY } from './tradingGlossary.js';
 import { CHARTS } from './glossaryCharts.jsx';
 import { useLang } from './LangContext.jsx';
+import KillZonesChart from './KillZonesChart.jsx';
 
 const ACCENTS = ['#22d3a5', '#f5c842', 'var(--t3)'];
 
@@ -36,6 +37,7 @@ const LABELS = {
   example:  { en: 'Example',                      es: 'Ejemplo',                    de: 'Beispiel'                 },
   context:  { en: 'More context',                 es: 'Más contexto',               de: 'Mehr Kontext'             },
   soon:     { en: 'Chart · coming soon',          es: 'Gráfico · próximamente',     de: 'Chart · demnächst'        },
+  killzones:{ en: "Today's chart →",              es: 'Gráfico de hoy →',            de: 'Heutiger Chart →'          },
   today:    { en: 'TODAY',                        es: 'HOY',                        de: 'HEUTE'                    },
   yesterday:{ en: 'YESTERDAY',                    es: 'AYER',                       de: 'GESTERN'                  },
   previous: { en: 'PREVIOUS WORDS',               es: 'PALABRAS ANTERIORES',        de: 'FRÜHERE WÖRTER'           },
@@ -45,6 +47,7 @@ const LABELS = {
 
 function DetailScreen({ dayOffset, onOffsetChange, onClose }) {
   const { lang } = useLang();
+  const [showKillZones, setShowKillZones] = useState(false);
 
   const entry  = getWordForOffset(dayOffset);
   const accent = getAccentForOffset(dayOffset);
@@ -65,6 +68,14 @@ function DetailScreen({ dayOffset, onOffsetChange, onClose }) {
     color: 'var(--t5)', fontFamily: "'Space Mono', monospace",
     fontSize: '14px', cursor: 'pointer', padding: '4px 8px', lineHeight: 1,
   };
+
+  if (showKillZones) {
+    return (
+      <div style={{ position: 'fixed', inset: 0, background: 'var(--bg-page)', zIndex: 10000, overflowY: 'auto' }}>
+        <KillZonesChart onBack={() => setShowKillZones(false)} />
+      </div>
+    );
+  }
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'var(--bg-page)', zIndex: 9999, overflowY: 'auto' }}>
@@ -145,16 +156,24 @@ function DetailScreen({ dayOffset, onOffsetChange, onClose }) {
         {(() => {
           const ChartComponent = entry.chartId ? CHARTS[entry.chartId] : null;
           return ChartComponent ? (
-            <div style={{ marginBottom: '32px', borderRadius: '10px', overflow: 'hidden' }}><ChartComponent /></div>
-          ) : (
-            <div style={{ border: '1px dashed var(--bd)', borderRadius: '10px', padding: '28px 20px', textAlign: 'center', marginBottom: '32px' }}>
-              <div style={{ fontSize: '24px', marginBottom: '8px', opacity: 0.3 }}>📸</div>
-              <div style={{ fontSize: '9px', color: 'var(--bd2)', fontFamily: "'Space Mono', monospace", letterSpacing: '0.14em', textTransform: 'uppercase' }}>
-                {LABELS.soon[lang]}
-              </div>
-            </div>
-          );
+            <div style={{ marginBottom: '16px', borderRadius: '10px', overflow: 'hidden' }}><ChartComponent /></div>
+          ) : null;
         })()}
+
+        {/* Kill Zones chart */}
+        <button
+          onClick={() => setShowKillZones(true)}
+          style={{ width: '100%', marginBottom: '32px', background: 'rgba(34,211,165,0.04)', border: '1px solid rgba(34,211,165,0.25)', borderRadius: '10px', padding: '18px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '14px', transition: 'all 0.15s' }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(34,211,165,0.08)'; e.currentTarget.style.borderColor = 'rgba(34,211,165,0.5)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(34,211,165,0.04)'; e.currentTarget.style.borderColor = 'rgba(34,211,165,0.25)'; }}
+        >
+          <span style={{ fontSize: '28px', lineHeight: 1, flexShrink: 0 }}>📊</span>
+          <div style={{ textAlign: 'left', flex: 1 }}>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: '#22d3a5', marginBottom: '3px' }}>ICT Kill Zones</div>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'var(--t5)', letterSpacing: '0.08em' }}>{LABELS.killzones[lang]}</div>
+          </div>
+          <span style={{ color: '#22d3a5', fontSize: '16px', flexShrink: 0 }}>→</span>
+        </button>
 
         {/* Previous words */}
         <div style={{ borderTop: '1px solid var(--bd)', paddingTop: '20px' }}>
@@ -203,8 +222,9 @@ function DetailScreen({ dayOffset, onOffsetChange, onClose }) {
 
 export default function WordOfTheDay() {
   const { lang } = useLang();
-  const [showDetail, setShowDetail]   = useState(false);
-  const [dayOffset, setDayOffset]     = useState(0);
+  const [showDetail,    setShowDetail]    = useState(false);
+  const [showKillZones, setShowKillZones] = useState(false);
+  const [dayOffset, setDayOffset]         = useState(0);
 
   const entry  = getWordForOffset(dayOffset);
   const accent = getAccentForOffset(dayOffset);
@@ -232,6 +252,11 @@ export default function WordOfTheDay() {
           onOffsetChange={setDayOffset}
           onClose={() => setShowDetail(false)}
         />
+      )}
+      {showKillZones && (
+        <div style={{ position: 'fixed', inset: 0, background: 'var(--bg-page)', zIndex: 10000, overflowY: 'auto' }}>
+          <KillZonesChart onBack={() => setShowKillZones(false)} />
+        </div>
       )}
 
       <div style={{
@@ -278,15 +303,25 @@ export default function WordOfTheDay() {
           {definition}
         </p>
 
-        {/* Button */}
-        <button
-          onClick={() => setShowDetail(true)}
-          style={{ marginTop: '9px', background: 'transparent', border: `1px solid ${accent}33`, borderRadius: '4px', padding: '3px 7px', color: accent, fontFamily: "'Space Mono', monospace", fontSize: '7px', cursor: 'pointer', letterSpacing: '0.06em', width: '100%', textAlign: 'center' }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = accent + '88'; e.currentTarget.style.background = accent + '11'; }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = accent + '33'; e.currentTarget.style.background = 'transparent'; }}
-        >
-          {LABELS.more[lang]}
-        </button>
+        {/* Buttons */}
+        <div style={{ marginTop: '9px', display: 'flex', gap: '4px' }}>
+          <button
+            onClick={() => setShowDetail(true)}
+            style={{ flex: 1, background: 'transparent', border: `1px solid ${accent}33`, borderRadius: '4px', padding: '3px 6px', color: accent, fontFamily: "'Space Mono', monospace", fontSize: '7px', cursor: 'pointer', letterSpacing: '0.06em', textAlign: 'center' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = accent + '88'; e.currentTarget.style.background = accent + '11'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = accent + '33'; e.currentTarget.style.background = 'transparent'; }}
+          >
+            {LABELS.more[lang]}
+          </button>
+          <button
+            onClick={() => setShowKillZones(true)}
+            style={{ flex: 1, background: 'transparent', border: '1px solid rgba(34,211,165,0.25)', borderRadius: '4px', padding: '3px 6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '7px', cursor: 'pointer', letterSpacing: '0.06em', textAlign: 'center' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(34,211,165,0.6)'; e.currentTarget.style.background = 'rgba(34,211,165,0.08)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(34,211,165,0.25)'; e.currentTarget.style.background = 'transparent'; }}
+          >
+            📊 kill zones
+          </button>
+        </div>
       </div>
     </>
   );

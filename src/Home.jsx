@@ -295,16 +295,6 @@ export default function Home({ onSelect }) {
             <span className="mode-arrow" style={{ color: '#f5c842', fontSize: '20px' }}>→</span>
           </button>
 
-          <button className="mode-card active" onClick={() => onSelect('killzones')} style={{ borderColor: '#22d3a5', background: 'rgba(34,211,165,0.04)', padding: '13px 16px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.13s both' }}>
-            <div className="mode-card-left" style={{ gap: '12px' }}>
-              <span className="mode-icon" style={{ fontSize: '20px' }}>🕐</span>
-              <div>
-                <div className="mode-title" style={{ color: '#22d3a5', fontSize: '13px' }}>ICT Kill Zones</div>
-                <div className="mode-sub">Today's chart · session windows</div>
-              </div>
-            </div>
-            <span className="mode-arrow" style={{ color: '#22d3a5' }}>→</span>
-          </button>
 
           {/* Divider */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '2px 0' }}>
