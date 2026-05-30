@@ -818,7 +818,9 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
           <span style={{ fontSize: '8px', color: 'var(--t5)', letterSpacing: '0.06em', fontFamily: "'Space Mono', monospace" }}>TOTAL</span>
-          <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: '#22d3a5', textShadow: '0 0 14px rgba(34,211,165,0.35)' }}>{formatCash(totalValue)}</span>
+          {portfolio === null
+            ? <div className="skeleton-bar" style={{ height: '16px', width: '80px' }} />
+            : <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: '#22d3a5', textShadow: '0 0 14px rgba(34,211,165,0.35)' }}>{formatCash(totalValue)}</span>}
         </div>
       </div>
 
@@ -827,14 +829,27 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
             <div style={{ fontSize: '8px', color: 'var(--t5)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>{t.portfolio.cash}</div>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>{formatCash(portfolio?.cash || 0)}</div>
+            {portfolio === null
+              ? <div className="skeleton-bar" style={{ height: '16px', width: '80px', margin: '0 auto' }} />
+              : <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>{formatCash(portfolio.cash)}</div>}
           </div>
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
             <div style={{ fontSize: '8px', color: 'var(--t5)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>{t.portfolio.invested}</div>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>{formatCash(totalInvested)}</div>
+            {portfolio === null
+              ? <div className="skeleton-bar" style={{ height: '16px', width: '80px', margin: '0 auto' }} />
+              : <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>{formatCash(totalInvested)}</div>}
           </div>
         </div>
         {(() => {
+          if (portfolio === null) return (
+            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontSize: '8px', color: 'var(--t5)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>P&L total</div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                <div className="skeleton-bar" style={{ height: '18px', width: '90px' }} />
+                <div className="skeleton-bar" style={{ height: '10px', width: '50px' }} />
+              </div>
+            </div>
+          );
           const pnl    = totalValue - 50000;
           const pnlPct = (pnl / 50000) * 100;
           const color  = pnl >= 0 ? '#22d3a5' : '#f05454';
