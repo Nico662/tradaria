@@ -37,6 +37,7 @@ import Settings from './Settings.jsx';
 import JoinAcademy from './JoinAcademy.jsx';
 import TeacherDashboard from './TeacherDashboard.jsx';
 import StudentDashboard from './StudentDashboard.jsx';
+import KillZonesChart from './KillZonesChart.jsx';
 
 
 const CATEGORIES = [
@@ -620,6 +621,7 @@ export default function App() {
   if (screen === 'badges')     return <><Badges     onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'stats')      return <><Stats      onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'daily')      return <><Daily      onBack={() => setScreen('home')} />{challengeOverlay}</>;
+  if (screen === 'killzones')  return <><KillZonesChart onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'historical') return <><Historical onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'tournament') return <><Tournament onBack={() => { setAcademyTournamentCtx(null); setScreen(academyTournamentCtx ? 'student_dashboard' : 'home'); }} onViewProfile={(uname) => { setPublicProfileUsername(uname); setScreen('public_profile'); window.history.pushState({}, '', `/u/${uname}`); }} onGoPricing={() => { setPricingFromTournament(true); setScreen('pricing'); }} academyTournamentId={academyTournamentCtx?.tournamentId ?? null} academyId={academyTournamentCtx?.academyId ?? null} />{challengeOverlay}</>;
   if (screen === 'survival')   return <><Survival   onBack={() => setScreen('home')} />{challengeOverlay}</>;
