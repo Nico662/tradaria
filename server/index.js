@@ -1381,9 +1381,10 @@ app.get('/arena/async/:code', async (req, res) => {
     const completed = duel.status === 'completed';
     res.json({
       duel: {
-        code:       duel.code,
-        status:     duel.status,
-        charts:     duel.charts,
+        code:             duel.code,
+        status:           duel.status,
+        charts:           duel.charts,
+        challengerUserId: String(duel.challenger.userId || ''),
         challenger: { name: duel.challenger.name, score: completed ? duel.challenger.score : null, answers: completed ? duel.challenger.answers : [] },
         rival:      { name: duel.rival.name,       score: completed ? duel.rival.score       : null, answers: completed ? duel.rival.answers       : [] },
         expiresAt:  duel.expiresAt,
@@ -1411,6 +1412,20 @@ app.post('/arena/async/:code/submit', async (req, res) => {
     } else {
       if (duel.status !== 'waiting_rival') return res.status(400).json({ error: 'Cannot submit now' });
       await AsyncDuel.findByIdAndUpdate(duel._id, { 'rival.name': name, 'rival.userId': userId, 'rival.answers': answers, 'rival.score': score, 'rival.completedAt': new Date(), status: 'completed' });
+      // Push notification to challenger
+      if (duel.challenger.userId) {
+        try {
+          const subRaw = await redis.get(`push_user_sub:${duel.challenger.userId}`);
+          if (subRaw) {
+            const sub = JSON.parse(subRaw);
+            await webpush.sendNotification(sub, JSON.stringify({
+              title: '⚔️ ¡Tu rival ha aceptado el reto!',
+              body:  'Ver los resultados →',
+              url:   `${CLIENT_URL}?reto=${code}`,
+            })).catch(() => {});
+          }
+        } catch {}
+      }
     }
     const updated = await AsyncDuel.findOne({ code });
     res.json({ ok: true, duel: {

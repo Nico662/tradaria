@@ -91,6 +91,10 @@ export const LANGS = {
       asyncNotLoggedIn: 'Sign in to challenge friends',
       asyncWinner: '🏆 WINNER',
       asyncDraw: 'DRAW',
+      asyncWaitingTitle: 'Waiting for your rival... ⏳',
+      asyncYourResult: 'You:',
+      asyncTimeLeft: 'Time remaining:',
+      asyncHours: 'hours',
     },
     badges: {
       title: 'Badges', unlocked: 'unlocked', back: '← back',
@@ -605,6 +609,10 @@ export const LANGS = {
       asyncNotLoggedIn: 'Inicia sesión para retar a amigos',
       asyncWinner: '🏆 GANADOR',
       asyncDraw: 'EMPATE',
+      asyncWaitingTitle: 'Esperando a tu rival... ⏳',
+      asyncYourResult: 'Tú:',
+      asyncTimeLeft: 'Tiempo restante:',
+      asyncHours: 'horas',
     },
     badges: {
       title: 'Medallas', unlocked: 'desbloqueadas', back: '← volver',
@@ -1119,6 +1127,10 @@ export const LANGS = {
       asyncNotLoggedIn: 'Melde dich an um Freunde herauszufordern',
       asyncWinner: '🏆 GEWINNER',
       asyncDraw: 'UNENTSCHIEDEN',
+      asyncWaitingTitle: 'Warte auf deinen Rivalen... ⏳',
+      asyncYourResult: 'Du:',
+      asyncTimeLeft: 'Verbleibende Zeit:',
+      asyncHours: 'Stunden',
     },
     badges: {
       title: 'Abzeichen', unlocked: 'freigeschaltet', back: '← zurück',

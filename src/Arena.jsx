@@ -160,13 +160,26 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
         if (!data.duel) return;
         setAsyncCode(asyncDuelCode);
         setAsyncDuelData(data.duel);
-        setAsyncDuelMode('rival');
-        if (data.duel.status === 'expired') {
-          setScreen('async_expired');
-        } else if (data.duel.status === 'completed') {
-          setScreen('async_results');
+        const myId       = String(user?._id || user?.id || '');
+        const isChallenger = myId && data.duel.challengerUserId && String(data.duel.challengerUserId) === myId;
+        if (isChallenger) {
+          setAsyncDuelMode('challenger');
+          if (data.duel.status === 'waiting_rival') {
+            setScreen('async_waiting_rival');
+          } else if (data.duel.status === 'completed') {
+            setScreen('async_results');
+          } else {
+            setScreen('async_expired');
+          }
         } else {
-          setScreen('async_accept');
+          setAsyncDuelMode('rival');
+          if (data.duel.status === 'expired') {
+            setScreen('async_expired');
+          } else if (data.duel.status === 'completed') {
+            setScreen('async_results');
+          } else {
+            setScreen('async_accept');
+          }
         }
       } catch {}
     })();
@@ -606,6 +619,43 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
       </div>
     </div>
   );
+
+  // Async: challenger returns to link while rival hasn't played yet
+  if (screen === 'async_waiting_rival' && asyncDuelData) {
+    const correctCount = asyncDuelData.challenger.answers
+      ? asyncDuelData.challenger.answers.filter(a => a.win).length
+      : asyncAnswersRef.current.filter(a => a.win).length;
+    const link = `${window.location.origin}${window.location.pathname}?reto=${asyncCode}`;
+    const handleCopy = () => { navigator.clipboard.writeText(link).catch(() => {}); setStatus(t.arena.asyncCopied); setTimeout(() => setStatus(''), 2000); };
+    const hoursLeft = asyncDuelData.expiresAt
+      ? Math.max(0, Math.floor((new Date(asyncDuelData.expiresAt) - Date.now()) / 3600000))
+      : 0;
+    return (
+      <div id="gtm-root" style={{ position: 'relative' }}>
+        <div className="scanlines" />
+        <div style={{ padding: '40px 28px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
+          <button onClick={goBack} style={{ position: 'absolute', top: '12px', left: '20px', background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}>← {t.arena.menu}</button>
+          <div style={{ fontSize: '40px', marginBottom: '16px' }}>⏳</div>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: 'var(--t1)', marginBottom: '20px' }}>{t.arena.asyncWaitingTitle}</div>
+          <div style={{ padding: '20px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '10px', marginBottom: '20px' }}>
+            <div style={{ fontSize: '11px', color: 'var(--t5)', marginBottom: '6px' }}>
+              {t.arena.asyncYourResult} <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: '#f5c842' }}>{correctCount}/10</span>
+            </div>
+            <div style={{ fontSize: '10px', color: 'var(--t6)', marginTop: '8px' }}>
+              {t.arena.asyncTimeLeft} <span style={{ color: '#22d3a5', fontWeight: 700 }}>{hoursLeft} {t.arena.asyncHours}</span>
+            </div>
+          </div>
+          <div style={{ padding: '14px', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', marginBottom: '16px' }}>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: '#22d3a5', wordBreak: 'break-all', marginBottom: '10px' }}>{link}</div>
+            <button onClick={handleCopy}
+              style={{ width: '100%', padding: '10px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>
+              {status === t.arena.asyncCopied ? status : t.arena.asyncCopyLink}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Async: challenge sent (challenger sees this after submitting)
   if (screen === 'async_challenge_sent') {
