@@ -145,19 +145,9 @@ function DetailScreen({ dayOffset, onOffsetChange, onClose }) {
         {(() => {
           const ChartComponent = entry.chartId ? CHARTS[entry.chartId] : null;
           return ChartComponent ? (
-            <div style={{ marginBottom: '16px', borderRadius: '10px', overflow: 'hidden' }}><ChartComponent /></div>
+            <div style={{ marginBottom: '32px', borderRadius: '10px', overflow: 'hidden' }}><ChartComponent /></div>
           ) : null;
         })()}
-
-        {/* Kill Zones chart */}
-        <div style={{ marginBottom: '32px' }}>
-          <div style={{ fontSize: '8px', color: 'var(--bd2)', letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: "'Space Mono', monospace", marginBottom: '10px' }}>
-            ICT Kill Zones
-          </div>
-          <div style={{ borderRadius: '10px', overflow: 'hidden' }}>
-            {CHARTS.kill_zones()}
-          </div>
-        </div>
 
         {/* Previous words */}
         <div style={{ borderTop: '1px solid var(--bd)', paddingTop: '20px' }}>

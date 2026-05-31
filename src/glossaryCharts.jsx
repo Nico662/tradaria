@@ -1067,6 +1067,85 @@ function SmartMoneyChart() {
   );
 }
 
+// ─── Support Chart ──────────────────────────────────────────────────────────
+
+function SupportChart() {
+  // price range 120–172 → y range 12–148  (scale 2.615 px/unit)
+  const py = p => 12 + (172 - p) * 136 / 52;
+
+  const supportLevel = 136;
+  const supportY     = py(supportLevel);
+
+  const candles = [
+    // Context — downtrend approaching support
+    { x: 14,  O: 162, H: 166, L: 158, C: 160 },
+    { x: 27,  O: 160, H: 162, L: 153, C: 155 },
+    { x: 40,  O: 155, H: 157, L: 146, C: 148 },
+    // 1st touch — wick into support, close above
+    { x: 53,  O: 148, H: 150, L: 134, C: 143, bw: 10 },
+    // 1st bounce
+    { x: 66,  O: 143, H: 153, L: 141, C: 151, bw: 10 },
+    { x: 79,  O: 151, H: 157, L: 149, C: 153 },
+    // Pullback — 2nd test
+    { x: 92,  O: 153, H: 155, L: 143, C: 145 },
+    { x: 105, O: 145, H: 147, L: 135, C: 138 }, // near support
+    // 2nd bounce from support zone
+    { x: 118, O: 138, H: 148, L: 136, C: 146, bw: 10 },
+    { x: 131, O: 146, H: 156, L: 144, C: 154, bw: 10 },
+    // Continuation up
+    { x: 144, O: 154, H: 162, L: 152, C: 159 },
+    { x: 157, O: 159, H: 166, L: 157, C: 163 },
+  ];
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="#060b10" rx="8" />
+
+      {/* Grid */}
+      {[40, 65, 90, 115, 140].map(y => (
+        <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
+      ))}
+
+      {/* Support zone fill */}
+      <rect x="4" y={supportY} width="180" height="12" fill="#22d3a50d" />
+
+      {/* Support level line */}
+      <line x1="4" y1={supportY} x2="182" y2={supportY} stroke="#22d3a5" strokeWidth="1.1" strokeDasharray="4 2.5" opacity="0.65" />
+
+      {/* Candles */}
+      {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
+        const bull  = C >= O;
+        const col   = bull ? '#22d3a5' : '#e05555';
+        const bodyY = py(Math.max(O, C));
+        const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="1" opacity="0.75" />
+            <rect x={x - bw / 2} y={bodyY} width={bw} height={bodyH} fill={col} rx="0.5" opacity="0.95" />
+          </g>
+        );
+      })}
+
+      {/* Support label — right side */}
+      <text x="182" y={supportY - 3} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="8" fontWeight="bold" fill="#22d3a5" opacity="0.9">SUP</text>
+
+      {/* 1st bounce annotation */}
+      <text x="66" y="9" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#22d3a5" opacity="0.9">↑ bounce 1</text>
+      <line x1="66" y1="11" x2="66" y2="15" stroke="#22d3a5" strokeWidth="0.6" opacity="0.4" />
+
+      {/* 2nd bounce annotation */}
+      <text x="124" y="9" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#22d3a5" opacity="0.9">↑ bounce 2</text>
+      <line x1="118" y1="11" x2="118" y2="15" stroke="#22d3a5" strokeWidth="0.6" opacity="0.4" />
+
+      {/* "buying pressure" label inside zone */}
+      <text x="8" y={supportY + 10} fontFamily="'Space Mono', monospace" fontSize="4.8" fill="#22d3a5" opacity="0.5" letterSpacing="0.08em">buying pressure</text>
+
+      {/* Watermark */}
+      <text x="6" y="154" fontFamily="'Space Mono', monospace" fontSize="5" fill="#172030" letterSpacing="0.1em">SUPPORT LEVEL</text>
+    </svg>
+  );
+}
+
 // ─── ICT Kill Zones Chart ────────────────────────────────────────────────────
 
 function KillZonesChart() {
@@ -1195,5 +1274,6 @@ export const CHARTS = {
   choch:               CHoCHChart,
   ote:                 OTEChart,
   smart_money:         SmartMoneyChart,
+  support:             SupportChart,
   kill_zones:          KillZonesChart,
 };

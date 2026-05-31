@@ -296,6 +296,7 @@ export const GLOSSARY = [
       es: 'Kill zones principales: Apertura Londres (2-5h EST), Apertura NY (7-10h EST), NY PM (13:30-16h EST). Estos solapamientos producen los movimientos más significativos.',
       de: 'Haupt-Kill-Zones: London Open (2–5 Uhr EST), NY Open (7–10 Uhr EST), NY PM (13:30–16 Uhr EST).',
     },
+    chartId: 'kill_zones',
   },
   {
     word: { en: 'Support', es: 'Soporte', de: 'Unterstützung' },
@@ -315,6 +316,7 @@ export const GLOSSARY = [
       es: 'Los niveles de soporte suelen ser resistencias anteriores que fueron rotas. Cuantas más veces se prueba sin romper, más fuerte se vuelve.',
       de: 'Unterstützungsniveaus sind oft frühere Widerstände. Je öfter getestet ohne zu brechen, desto stärker.',
     },
+    chartId: 'support',
   },
   {
     word: { en: 'Resistance', es: 'Resistencia', de: 'Widerstand' },
