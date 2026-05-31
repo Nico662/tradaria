@@ -248,6 +248,19 @@ const GameHistorySchema = new mongoose.Schema({
 });
 const GameHistory = mongoose.model('GameHistory', GameHistorySchema);
 
+const TournamentSessionSchema = new mongoose.Schema({
+  weekId:       { type: String, required: true },
+  userId:       { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  rounds:       { type: Array, default: [] },
+  currentRound: { type: Number, default: 0 },
+  score:        { type: Number, default: 0 },
+  history:      { type: Array, default: [] },
+  completed:    { type: Boolean, default: false },
+  createdAt:    { type: Date, default: Date.now },
+});
+TournamentSessionSchema.index({ weekId: 1, userId: 1 }, { unique: true });
+const TournamentSession = mongoose.model('TournamentSession', TournamentSessionSchema);
+
 // ── VAPID / Push ──────────────────────────────────────────────────
 webpush.setVapidDetails(
   'mailto:nicolasvidalcorrecher@tradara.dev',
@@ -1212,6 +1225,7 @@ app.post('/tournament/score', async (req, res) => {
     const MAX_TOURNAMENT_SCORE = TOTAL_ROUNDS * 100;
     const safeScore = Number.isFinite(Number(score)) ? Math.max(0, Math.min(Number(score), MAX_TOURNAMENT_SCORE)) : 0;
     await Score.create({ weekId, userId: user._id, name: user.username || user.name, username: user.username || null, avatar: user.avatar, score: safeScore, rounds, cosmeticAvatar: cosmeticAvatar || null });
+    await TournamentSession.findOneAndUpdate({ weekId, userId: user._id }, { completed: true });
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1228,6 +1242,64 @@ app.get('/tournament/played', async (req, res) => {
     res.json({ played: !!existing, score: existing?.score });
   } catch {
     res.json({ played: false });
+  }
+});
+
+app.get('/tournament/session', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const weekId  = getWeekId();
+
+    let session = await TournamentSession.findOne({ weekId, userId: decoded.id });
+    if (!session) {
+      let tournament = await Tournament.findOne({ weekId });
+      if (!tournament) {
+        const shuffled        = [...ASSETS].sort(() => Math.random() - 0.5).slice(0, 10);
+        const tournamentAssets = shuffled.map(a => ({ ...a, interval: '1h' }));
+        tournament = await Tournament.create({ weekId, assets: tournamentAssets });
+      }
+      const rounds = [];
+      for (const asset of tournament.assets) {
+        try {
+          const candles      = await fetchCandles({ ...asset, interval: '1h' });
+          const cleanCandles = candles.filter(c => c && c.open > 0 && c.high > 0 && c.low > 0 && c.close > 0);
+          if (cleanCandles.length < 100) continue;
+          const win = randomWindow(cleanCandles);
+          rounds.push({ asset: asset.name, interval: '1h', visible: win.visible, future: win.future });
+        } catch (e) { console.log('Tournament session fetch error:', e.message); }
+      }
+      session = await TournamentSession.create({ weekId, userId: decoded.id, rounds, currentRound: 0, score: 0, history: [] });
+    }
+
+    res.json({
+      weekId:       session.weekId,
+      rounds:       session.rounds,
+      currentRound: session.currentRound,
+      score:        session.score,
+      history:      session.history,
+      completed:    session.completed,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/tournament/progress', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const weekId  = getWeekId();
+    const { currentRound, score, history } = req.body;
+    await TournamentSession.findOneAndUpdate(
+      { weekId, userId: decoded.id },
+      { currentRound, score, history },
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

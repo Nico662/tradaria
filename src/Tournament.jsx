@@ -145,8 +145,8 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
 
   async function init() {
     if (!user) { setPhase('login'); return; }
+    const token = localStorage.getItem('tradara_token');
     if (academyTournamentId && academyId) {
-      const token = localStorage.getItem('tradara_token');
       const tourRes  = await fetch(`${SERVER}/academy/${academyId}/tournament/active`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -159,8 +159,12 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
         );
         if (alreadyPlayed) { setPhase('already_played'); return; }
       }
+      const res  = await fetch(`${SERVER}/tournament`);
+      const data = await res.json();
+      setWeekId(data.weekId);
+      setRounds(data.rounds);
+      setPhase('playing');
     } else {
-      const token = localStorage.getItem('tradara_token');
       const playedRes = await fetch(`${SERVER}/tournament/played`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -171,12 +175,17 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
         setPhase('already_played');
         return;
       }
+      const res  = await fetch(`${SERVER}/tournament/session`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setWeekId(data.weekId);
+      setRounds(data.rounds);
+      setRound(data.currentRound || 0);
+      setScore(data.score || 0);
+      setHistory(data.history || []);
+      setPhase('playing');
     }
-    const res  = await fetch(`${SERVER}/tournament`);
-    const data = await res.json();
-    setWeekId(data.weekId);
-    setRounds(data.rounds);
-    setPhase('playing');
   }
 
   async function loadLeaderboard() {
@@ -231,9 +240,9 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
   }
 
   async function nextRound() {
+    const token = localStorage.getItem('tradara_token');
     if (round + 1 >= rounds.length) {
       const finalScore = score;
-      const token = localStorage.getItem('tradara_token');
       const cosmetics = JSON.parse(localStorage.getItem('tradara_cosmetics') || '{}');
       const cosmeticAvatar = cosmetics.avatar ? AVATAR_EMOJIS[cosmetics.avatar] : null;
       if (academyTournamentId && academyId) {
@@ -265,7 +274,15 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
       if (modeR.completed) setMissionToast({ xpEarned: modeR.xpEarned, title: modeR.mission.title });
       return;
     }
-    setRound(r => r + 1);
+    const nextRoundIdx = round + 1;
+    if (!academyTournamentId && token) {
+      fetch(`${SERVER}/tournament/progress`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentRound: nextRoundIdx, score, history }),
+      }).catch(() => {});
+    }
+    setRound(nextRoundIdx);
     setResult(null);
     setRevealing(false);
   }
