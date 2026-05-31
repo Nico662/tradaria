@@ -111,6 +111,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
   const [asyncCode,      setAsyncCode]      = useState(null);
   const [asyncCharts,    setAsyncCharts]    = useState([]);
   const [asyncDuelData,  setAsyncDuelData]  = useState(null);
+  const [myDuels,        setMyDuels]        = useState(null); // null = not loaded yet
   const asyncAnswersRef  = useRef([]);
   const asyncScoreRef    = useRef(0);
 
@@ -132,6 +133,15 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
       clearTimeout(effectTimerRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem('tradara_token');
+    if (!token) return;
+    fetch(`${SERVER}/arena/async/my-duels`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then(data => { if (data.duels) setMyDuels(data.duels); })
+      .catch(() => {});
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (screen !== 'gameover' || !finalData || finalData.forfeited) return;
@@ -556,6 +566,25 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
     onBack();
   }
 
+  async function openMyDuel(code) {
+    try {
+      const res  = await fetch(`${SERVER}/arena/async/${code}`);
+      const data = await res.json();
+      if (!data.duel) return;
+      setAsyncCode(code);
+      setAsyncDuelData(data.duel);
+      const myId       = String(user?._id || user?.id || '');
+      const isChallenger = myId && data.duel.challengerUserId && String(data.duel.challengerUserId) === myId;
+      if (isChallenger) {
+        setAsyncDuelMode('challenger');
+        setScreen(data.duel.status === 'completed' ? 'async_results' : data.duel.status === 'waiting_rival' ? 'async_waiting_rival' : 'async_expired');
+      } else {
+        setAsyncDuelMode('rival');
+        setScreen(data.duel.status === 'completed' ? 'async_results' : data.duel.status === 'expired' ? 'async_expired' : 'async_accept');
+      }
+    } catch {}
+  }
+
   function acceptAsyncChallenge() {
     if (!name.trim()) return;
     const charts = asyncDuelData?.charts;
@@ -874,6 +903,56 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
             </button>
           </div>
         </div>
+
+        {myDuels !== null && (
+          <div style={{ marginTop: '24px' }}>
+            <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '10px', fontFamily: "'Space Mono', monospace" }}>{t.arena.myDuelsTitle}</div>
+            {myDuels.length === 0 ? (
+              <div style={{ fontSize: '10px', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", padding: '12px 0' }}>{t.arena.myDuelsEmpty}</div>
+            ) : myDuels.map(d => {
+              const isWaiting   = d.status === 'waiting_challenger' || d.status === 'waiting_rival';
+              const isCompleted = d.status === 'completed';
+              const isExpired   = d.status === 'expired';
+              const won  = isCompleted && d.myCorrect > d.oppCorrect;
+              const lost = isCompleted && d.myCorrect < d.oppCorrect;
+              const draw = isCompleted && d.myCorrect === d.oppCorrect;
+              const statusLabel = isWaiting ? t.arena.myDuelsWaiting : isCompleted ? t.arena.myDuelsCompleted : t.arena.myDuelsExpired;
+              const statusColor = isWaiting ? '#f5c842' : isCompleted ? '#22d3a5' : 'var(--t6)';
+              return (
+                <button key={d.code} onClick={() => openMyDuel(d.code)}
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', marginBottom: '6px', cursor: 'pointer', textAlign: 'left' }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = statusColor}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--bd)'}
+                >
+                  <div>
+                    <div style={{ fontFamily: "'Space Mono', monospace", fontWeight: 700, fontSize: '11px', color: 'var(--t2)', letterSpacing: '0.12em', marginBottom: '3px' }}>{d.code}</div>
+                    <div style={{ fontSize: '9px', color: statusColor, fontFamily: "'Space Mono', monospace" }}>{statusLabel}</div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    {isCompleted && (
+                      <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: won ? '#22d3a5' : lost ? '#f05454' : '#f5c842', marginBottom: '2px' }}>
+                        {d.myCorrect} – {d.oppCorrect}
+                      </div>
+                    )}
+                    {isCompleted && (
+                      <div style={{ fontSize: '8px', color: won ? '#22d3a5' : lost ? '#f05454' : '#f5c842', fontFamily: "'Space Mono', monospace" }}>
+                        {won ? t.arena.myDuelsWon : lost ? t.arena.myDuelsLost : t.arena.myDuelsDraw}
+                      </div>
+                    )}
+                    {isWaiting && d.status === 'waiting_rival' && (
+                      <div style={{ fontSize: '8px', color: '#f5c842', fontFamily: "'Space Mono', monospace" }}>
+                        {t.arena.myDuelsExpiresIn} {d.hoursLeft}h
+                      </div>
+                    )}
+                    {isExpired && (
+                      <div style={{ fontSize: '8px', color: 'var(--t6)', fontFamily: "'Space Mono', monospace" }}>—</div>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         <div style={{ marginTop: '20px', padding: '16px', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px' }}>
           <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px' }}>{t.arena.howTitle}</div>

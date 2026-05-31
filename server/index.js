@@ -1370,6 +1370,44 @@ app.post('/arena/async/create', async (req, res) => {
   }
 });
 
+app.get('/arena/async/my-duels', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const uid     = decoded.id;
+    const duels   = await AsyncDuel.find({
+      $or: [{ 'challenger.userId': uid }, { 'rival.userId': uid }],
+    }).sort({ createdAt: -1 }).limit(10);
+
+    const now = Date.now();
+    const result = duels.map(d => {
+      const isChallenger  = String(d.challenger.userId) === String(uid);
+      const status        = d.status === 'waiting_rival' && new Date(d.expiresAt) < now ? 'expired' : d.status;
+      const myScore       = isChallenger ? d.challenger.score : d.rival.score;
+      const oppScore      = isChallenger ? d.rival.score       : d.challenger.score;
+      const oppName       = isChallenger ? d.rival.name        : d.challenger.name;
+      const myCorrect     = Number.isFinite(myScore)  ? Math.round(myScore  / 100) : null;
+      const oppCorrect    = Number.isFinite(oppScore) ? Math.round(oppScore / 100) : null;
+      const hoursLeft     = Math.max(0, Math.floor((new Date(d.expiresAt) - now) / 3600000));
+      return {
+        code:        d.code,
+        status,
+        isChallenger,
+        myCorrect,
+        oppCorrect,
+        oppName,
+        hoursLeft,
+        expiresAt:   d.expiresAt,
+        createdAt:   d.createdAt,
+      };
+    });
+    res.json({ duels: result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/arena/async/:code', async (req, res) => {
   try {
     const duel = await AsyncDuel.findOne({ code: req.params.code.toUpperCase() });
