@@ -61,7 +61,7 @@ function botMakeChoice(direction) {
   return ['long', 'short', 'skip'][Math.floor(Math.random() * 3)];
 }
 
-export default function Arena({ onBack, challengeRoomCode }) {
+export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
   const { t, lang, setLang } = useLang();
   const { activeCosmetics, user } = useAuth();
   const [activeEffect, setActiveEffect] = useState(false);
@@ -106,6 +106,14 @@ export default function Arena({ onBack, challengeRoomCode }) {
   const [personalStats,    setPersonalStats]      = useState(null);
   const BOT_TOTAL = 10;
 
+  const [isAsyncGame,    setIsAsyncGame]    = useState(false);
+  const [asyncDuelMode,  setAsyncDuelMode]  = useState(null); // 'challenger' | 'rival'
+  const [asyncCode,      setAsyncCode]      = useState(null);
+  const [asyncCharts,    setAsyncCharts]    = useState([]);
+  const [asyncDuelData,  setAsyncDuelData]  = useState(null);
+  const asyncAnswersRef  = useRef([]);
+  const asyncScoreRef    = useRef(0);
+
   function tryUnlockArenaBadge(id) {
     const unlocked = unlockBadge(id);
     if (unlocked) {
@@ -141,6 +149,28 @@ export default function Arena({ onBack, challengeRoomCode }) {
     fetch(`${SERVER}/stats/personal`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json()).then(setPersonalStats).catch(() => {});
   }, [screen]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-load async duel when coming from a ?reto= link
+  useEffect(() => {
+    if (!asyncDuelCode) return;
+    (async () => {
+      try {
+        const res  = await fetch(`${SERVER}/arena/async/${asyncDuelCode}`);
+        const data = await res.json();
+        if (!data.duel) return;
+        setAsyncCode(asyncDuelCode);
+        setAsyncDuelData(data.duel);
+        setAsyncDuelMode('rival');
+        if (data.duel.status === 'expired') {
+          setScreen('async_expired');
+        } else if (data.duel.status === 'completed') {
+          setScreen('async_results');
+        } else {
+          setScreen('async_accept');
+        }
+      } catch {}
+    })();
+  }, [asyncDuelCode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-join when coming from a friend challenge
   useEffect(() => {
@@ -388,6 +418,39 @@ export default function Arena({ onBack, challengeRoomCode }) {
     tryUnlockArenaBadge('recruiter');
   }
 
+  async function startAsyncChallenge() {
+    if (!name.trim()) return;
+    const token = localStorage.getItem('tradara_token');
+    if (!token) { setStatus(t.arena.asyncNotLoggedIn); return; }
+    setStatus('...');
+    try {
+      const res  = await fetch(`${SERVER}/arena/async/create`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name.trim() }),
+      });
+      const data = await res.json();
+      if (!data.code) { setStatus(data.error || 'Error'); return; }
+      setStatus('');
+      setAsyncCode(data.code);
+      setAsyncDuelMode('challenger');
+      setIsAsyncGame(true);
+      asyncAnswersRef.current = [];
+      asyncScoreRef.current   = 0;
+      setAsyncCharts(data.charts);
+      const first = data.charts[0];
+      setGameData({ ...first, round: 1, total: 10 });
+      setRound(1);
+      setTotal(10);
+      setPhase('choose');
+      setResult(null);
+      setScores({ me: 0 });
+      setMyId('me');
+      setOpponent('?');
+      setScreen('game');
+    } catch { setStatus('Network error'); }
+  }
+
   function joinRoom() {
     if (!name.trim() || !joinCode.trim()) return;
     const socket = initSocket(name.trim());
@@ -402,9 +465,62 @@ export default function Arena({ onBack, challengeRoomCode }) {
     setShowChat(false);
   }
 
+  function makeAsyncChoice(choice) {
+    if (phase !== 'choose') return;
+    const chartIdx  = round - 1;
+    const chartData = asyncCharts[chartIdx];
+    if (!chartData) return;
+    const lastClose  = chartData.visible[chartData.visible.length - 1].close;
+    const lastFuture = chartData.future[chartData.future.length  - 1].close;
+    const pctMove    = (lastFuture - lastClose) / lastClose * 100;
+    const direction  = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
+    const win = (choice === 'long'  && direction === 'up')
+             || (choice === 'short' && direction === 'down')
+             || (choice === 'skip'  && direction === 'flat');
+    const pts = win && choice !== 'skip' ? 100 : win && choice === 'skip' ? 50 : 0;
+    if (win) triggerEffect();
+    asyncAnswersRef.current = [...asyncAnswersRef.current, { choice, win, pts, direction, pctMove: +pctMove.toFixed(2) }];
+    asyncScoreRef.current   = asyncScoreRef.current + pts;
+    setScores(s => ({ ...s, me: asyncScoreRef.current }));
+    setResult({ direction, pctMove: +pctMove.toFixed(2), results: { me: { choice, win } }, scores: { me: asyncScoreRef.current } });
+    setPhase('result');
+  }
+
+  async function nextAsyncRound() {
+    if (round >= total) {
+      const token    = localStorage.getItem('tradara_token');
+      const finalScore = asyncScoreRef.current;
+      try {
+        const res  = await fetch(`${SERVER}/arena/async/${asyncCode}/submit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+          body: JSON.stringify({ name: name.trim(), answers: asyncAnswersRef.current, score: finalScore, role: asyncDuelMode }),
+        });
+        const data = await res.json();
+        if (asyncDuelMode === 'rival' && data.duel) {
+          setAsyncDuelData(data.duel);
+          setScreen('async_results');
+        } else {
+          setScreen('async_challenge_sent');
+        }
+      } catch {
+        if (asyncDuelMode === 'rival') setScreen('async_results');
+        else setScreen('async_challenge_sent');
+      }
+      return;
+    }
+    const nextIdx   = round; // round is 1-indexed, asyncCharts is 0-indexed
+    const nextChart = asyncCharts[nextIdx];
+    setGameData({ ...nextChart, round: round + 1, total });
+    setRound(r => r + 1);
+    setResult(null);
+    setPhase('choose');
+  }
+
   function makeChoice(choice) {
     if (phase !== 'choose') return;
-    if (isBotGame) { makeBotChoice(choice); return; }
+    if (isBotGame)    { makeBotChoice(choice);   return; }
+    if (isAsyncGame)  { makeAsyncChoice(choice); return; }
     clearInterval(timerRef.current);
     setPhase('waiting_opponent');
     setStatus(t.arena.waitingOpp);
@@ -412,14 +528,235 @@ export default function Arena({ onBack, challengeRoomCode }) {
   }
 
   function goBack() {
-    if (screen === 'game' && !isBotGame) socketRef.current?.emit('game:forfeit');
+    if (screen === 'game' && !isBotGame && !isAsyncGame) socketRef.current?.emit('game:forfeit');
     socketRef.current?.disconnect();
     clearInterval(timerRef.current);
     clearInterval(rematchTimerRef.current);
     clearTimeout(botOuterTimerRef.current);
     clearTimeout(botInnerTimerRef.current);
     resetBotState();
+    setIsAsyncGame(false);
+    setAsyncDuelMode(null);
+    setAsyncCode(null);
+    setAsyncCharts([]);
+    setAsyncDuelData(null);
     onBack();
+  }
+
+  function acceptAsyncChallenge() {
+    if (!name.trim()) return;
+    const charts = asyncDuelData?.charts;
+    if (!charts?.length) return;
+    setIsAsyncGame(true);
+    asyncAnswersRef.current = [];
+    asyncScoreRef.current   = 0;
+    setAsyncCharts(charts);
+    const first = charts[0];
+    setGameData({ ...first, round: 1, total: 10 });
+    setRound(1);
+    setTotal(10);
+    setPhase('choose');
+    setResult(null);
+    setScores({ me: 0 });
+    setMyId('me');
+    setOpponent(asyncDuelData.challenger.name);
+    setScreen('game');
+  }
+
+  // Async: rival accept screen
+  if (screen === 'async_accept' && asyncDuelData) return (
+    <div id="gtm-root" style={{ position: 'relative' }}>
+      <div className="scanlines" />
+      <div style={{ padding: '40px 28px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
+        <button onClick={goBack}
+          style={{ position: 'absolute', top: '12px', left: '20px', background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}>
+          ← {t.arena.menu}
+        </button>
+        <div style={{ fontSize: '40px', marginBottom: '16px' }}>⚔️</div>
+        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: 'var(--t1)', marginBottom: '8px' }}>
+          {t.arena.asyncAcceptTitle}
+        </div>
+        <div style={{ fontSize: '11px', color: 'var(--t5)', marginBottom: '4px' }}>
+          {t.arena.asyncFrom}: <span style={{ color: '#f5c842', fontWeight: 700 }}>{asyncDuelData.challenger.name}</span>
+        </div>
+        <div style={{ fontSize: '10px', color: 'var(--t6)', marginBottom: '32px', letterSpacing: '0.04em' }}>
+          {t.arena.asyncCanYouBeat}
+        </div>
+        <div style={{ marginBottom: '20px' }}>
+          <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>{t.arena.yourName}</div>
+          <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="..." maxLength={16}
+            style={{ width: '100%', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '6px', padding: '12px 14px', color: 'var(--t2)', fontFamily: "'Space Mono', monospace", fontSize: '13px', outline: 'none', boxSizing: 'border-box' }} />
+        </div>
+        <button onClick={acceptAsyncChallenge} disabled={!name.trim()}
+          style={{ width: '100%', padding: '16px', background: name.trim() ? 'rgba(240,84,84,0.1)' : 'var(--bg-card)', border: `1px solid ${name.trim() ? '#f05454' : 'var(--bd)'}`, borderRadius: '8px', color: name.trim() ? '#f05454' : 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: name.trim() ? 'pointer' : 'not-allowed' }}>
+          {t.arena.asyncAcceptBtn}
+        </button>
+      </div>
+    </div>
+  );
+
+  // Async: expired
+  if (screen === 'async_expired') return (
+    <div id="gtm-root" style={{ position: 'relative' }}>
+      <div className="scanlines" />
+      <div style={{ padding: '40px 28px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
+        <button onClick={goBack} style={{ position: 'absolute', top: '12px', left: '20px', background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}>← {t.arena.menu}</button>
+        <div style={{ fontSize: '40px', marginBottom: '16px' }}>⌛</div>
+        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: '#f05454' }}>{t.arena.asyncExpired}</div>
+      </div>
+    </div>
+  );
+
+  // Async: challenge sent (challenger sees this after submitting)
+  if (screen === 'async_challenge_sent') {
+    const correctCount = asyncAnswersRef.current.filter(a => a.win).length;
+    const link = `${window.location.origin}${window.location.pathname}?reto=${asyncCode}`;
+    const handleCopy = () => { navigator.clipboard.writeText(link).catch(() => {}); setStatus(t.arena.asyncCopied); setTimeout(() => setStatus(''), 2000); };
+    const handleShare = () => {
+      if (navigator.share) {
+        navigator.share({ title: 'Tradara Arena', text: `Reta mis ${correctCount}/10 en Tradara`, url: link }).catch(() => {});
+      } else { handleCopy(); }
+    };
+    return (
+      <div id="gtm-root" style={{ position: 'relative' }}>
+        <div className="scanlines" />
+        <div style={{ padding: '40px 28px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
+          <button onClick={goBack} style={{ position: 'absolute', top: '12px', left: '20px', background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}>← {t.arena.menu}</button>
+          <div style={{ fontSize: '40px', marginBottom: '16px' }}>🎯</div>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: '#f5c842', marginBottom: '8px' }}>{t.arena.asyncSentTitle}</div>
+          <div style={{ fontSize: '13px', color: 'var(--t3)', marginBottom: '24px' }}>
+            {t.arena.asyncYourScore}: <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: '#f5c842' }}>{correctCount}/10</span>
+          </div>
+          <div style={{ padding: '16px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '8px', marginBottom: '20px' }}>
+            <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>Link</div>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: '#22d3a5', wordBreak: 'break-all', marginBottom: '12px' }}>{link}</div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button onClick={handleCopy}
+                style={{ flex: 1, padding: '10px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>
+                {status === t.arena.asyncCopied ? status : t.arena.asyncCopyLink}
+              </button>
+              <button onClick={handleShare}
+                style={{ flex: 1, padding: '10px', background: 'rgba(245,200,66,0.08)', border: '1px solid #f5c842', borderRadius: '6px', color: '#f5c842', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>
+                {t.arena.asyncShare}
+              </button>
+            </div>
+          </div>
+          <div style={{ fontSize: '10px', color: 'var(--t6)', letterSpacing: '0.06em' }}>{t.arena.asyncRivalTime}</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Async: results (both players see this after duel completed)
+  if (screen === 'async_results' && asyncDuelData) {
+    const chal     = asyncDuelData.challenger;
+    const riv      = asyncDuelData.rival;
+    const chalCorrect = chal.answers ? chal.answers.filter(a => a.win).length : Math.round((chal.score || 0) / 100);
+    const rivCorrect  = riv.answers  ? riv.answers.filter(a => a.win).length  : Math.round((riv.score  || 0) / 100);
+    const chalWon  = (chal.score || 0) > (riv.score || 0);
+    const isDraw   = (chal.score || 0) === (riv.score || 0);
+    const handleShare = async () => {
+      const el = document.getElementById('async-share-card');
+      if (!el) return;
+      const canvas = await html2canvas(el, { backgroundColor: '#0a0c0f', scale: 2 });
+      const link = document.createElement('a');
+      link.download = 'tradara-duel.png';
+      link.href = canvas.toDataURL();
+      link.click();
+    };
+    const handleRematch = () => {
+      setIsAsyncGame(false);
+      setAsyncDuelMode(null);
+      setAsyncCode(null);
+      setAsyncCharts([]);
+      setAsyncDuelData(null);
+      asyncAnswersRef.current = [];
+      asyncScoreRef.current   = 0;
+      setScreen('lobby');
+    };
+    const charts = asyncDuelData.charts || [];
+    return (
+      <div id="gtm-root" style={{ position: 'relative' }}>
+        <div className="scanlines" />
+        <div style={{ padding: '40px 28px 36px', position: 'relative', zIndex: 2 }}>
+          <button onClick={goBack} style={{ position: 'absolute', top: '12px', left: '20px', background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}>← {t.arena.menu}</button>
+          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: '#f5c842', marginBottom: '16px', letterSpacing: '0.06em' }}>{t.arena.asyncCompleted}</div>
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '8px' }}>
+              <div style={{ flex: 1, padding: '16px', background: chalWon ? 'rgba(34,211,165,0.08)' : 'var(--bg-card)', border: `1px solid ${chalWon ? '#22d3a5' : 'var(--bd)'}`, borderRadius: '10px' }}>
+                {chalWon && !isDraw && <div style={{ fontSize: '8px', color: '#22d3a5', letterSpacing: '0.1em', marginBottom: '4px' }}>{t.arena.asyncWinner}</div>}
+                <div style={{ fontSize: '9px', color: 'var(--t5)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.06em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{chal.name || '—'}</div>
+                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px', color: '#22d3a5' }}>{chalCorrect}<span style={{ fontSize: '14px', color: 'var(--t5)' }}>/10</span></div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 6px' }}>
+                <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '12px', color: 'var(--t5)' }}>vs</span>
+                {isDraw && <span style={{ fontSize: '9px', color: '#f5c842', marginTop: '4px' }}>{t.arena.asyncDraw}</span>}
+              </div>
+              <div style={{ flex: 1, padding: '16px', background: !chalWon && !isDraw ? 'rgba(240,84,84,0.08)' : 'var(--bg-card)', border: `1px solid ${!chalWon && !isDraw ? '#f05454' : 'var(--bd)'}`, borderRadius: '10px' }}>
+                {!chalWon && !isDraw && <div style={{ fontSize: '8px', color: '#f05454', letterSpacing: '0.1em', marginBottom: '4px' }}>{t.arena.asyncWinner}</div>}
+                <div style={{ fontSize: '9px', color: 'var(--t5)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.06em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{riv.name || '—'}</div>
+                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px', color: '#f05454' }}>{rivCorrect}<span style={{ fontSize: '14px', color: 'var(--t5)' }}>/10</span></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Round by round table */}
+          {chal.answers?.length > 0 && (
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px', fontFamily: "'Space Mono', monospace" }}>{t.arena.asyncRoundTable}</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '28px 1fr 72px 72px', gap: '4px 8px', fontSize: '8px', color: 'var(--t5)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '6px', padding: '0 2px' }}>
+                <span>#</span><span>{charts[0]?.asset ? 'Asset' : ''}</span><span style={{ textAlign: 'center' }}>{chal.name?.slice(0, 6) || '—'}</span><span style={{ textAlign: 'center' }}>{riv.name?.slice(0, 6) || '—'}</span>
+              </div>
+              {chal.answers.map((ca, i) => {
+                const ra = riv.answers?.[i];
+                const chart = charts[i];
+                return (
+                  <div key={i} style={{ display: 'grid', gridTemplateColumns: '28px 1fr 72px 72px', gap: '4px 8px', padding: '7px 2px', borderBottom: '1px solid var(--bd)', alignItems: 'center' }}>
+                    <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t6)' }}>{i + 1}</span>
+                    <span style={{ fontSize: '9px', color: 'var(--t3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{chart?.asset || '—'}</span>
+                    <div style={{ textAlign: 'center', fontSize: '9px', color: ca.win ? '#22d3a5' : '#f05454', fontFamily: "'Space Mono', monospace" }}>
+                      {ca.choice?.toUpperCase().slice(0, 1)} {ca.win ? '✓' : '✗'}
+                    </div>
+                    <div style={{ textAlign: 'center', fontSize: '9px', color: ra ? (ra.win ? '#22d3a5' : '#f05454') : 'var(--t6)', fontFamily: "'Space Mono', monospace" }}>
+                      {ra ? `${ra.choice?.toUpperCase().slice(0, 1)} ${ra.win ? '✓' : '✗'}` : '—'}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+            <button onClick={handleRematch}
+              style={{ flex: 1, padding: '12px', background: 'rgba(240,84,84,0.08)', border: '1px solid #f05454', borderRadius: '6px', color: '#f05454', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+              ⚔️ {t.arena.asyncRematch}
+            </button>
+            <button onClick={handleShare}
+              style={{ flex: 1, padding: '12px', background: 'rgba(245,200,66,0.06)', border: '1px solid #f5c842', borderRadius: '6px', color: '#f5c842', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+              📸 {t.arena.share}
+            </button>
+          </div>
+
+          {/* Hidden share card */}
+          <div id="async-share-card" style={{ position: 'absolute', left: '-9999px', top: 0, width: '320px', background: '#0a0c0f', border: '1px solid #f5c842', borderRadius: '12px', padding: '28px 24px', fontFamily: "'Space Mono', monospace" }}>
+            <div style={{ fontSize: '10px', color: '#5a6a7d', letterSpacing: '0.1em', marginBottom: '16px' }}>⚔️ TRADARA ASYNC DUEL</div>
+            <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
+              <div style={{ flex: 1, textAlign: 'center' }}>
+                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '36px', color: '#22d3a5' }}>{chalCorrect}</div>
+                <div style={{ fontSize: '9px', color: '#5a6a7d', marginTop: '2px' }}>{chal.name}</div>
+              </div>
+              <div style={{ alignSelf: 'center', color: '#5a6a7d' }}>vs</div>
+              <div style={{ flex: 1, textAlign: 'center' }}>
+                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '36px', color: '#f05454' }}>{rivCorrect}</div>
+                <div style={{ fontSize: '9px', color: '#5a6a7d', marginTop: '2px' }}>{riv.name}</div>
+              </div>
+            </div>
+            <div style={{ fontSize: '9px', color: '#f5c842', letterSpacing: '0.1em' }}>tradara.dev</div>
+          </div>
+        </div>
+        {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
+      </div>
+    );
   }
 
   // ── Lobby ─────────────────────────────────────────────────────────
@@ -470,6 +807,13 @@ export default function Arena({ onBack, challengeRoomCode }) {
             onMouseLeave={e => { e.currentTarget.style.borderColor = name.trim() ? 'var(--bd2)' : 'var(--bd)'; e.currentTarget.style.color = name.trim() ? 'var(--t3)' : 'var(--t6)'; }}
           >
             🔒 {t.arena.createRoom}
+          </button>
+          <button onClick={startAsyncChallenge} disabled={!name.trim() || !localStorage.getItem('tradara_token')}
+            style={{ width: '100%', padding: '14px', background: 'var(--bg-card)', border: `1px solid ${name.trim() ? 'rgba(245,200,66,0.5)' : 'var(--bd)'}`, borderRadius: '8px', color: name.trim() ? '#f5c842' : 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: name.trim() ? 'pointer' : 'not-allowed', transition: 'all 0.18s' }}
+            onMouseEnter={e => { if (name.trim()) { e.currentTarget.style.borderColor = '#f5c842'; e.currentTarget.style.background = 'rgba(245,200,66,0.08)'; } }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = name.trim() ? 'rgba(245,200,66,0.5)' : 'var(--bd)'; e.currentTarget.style.background = 'var(--bg-card)'; }}
+          >
+            {t.arena.asyncBtn}
           </button>
           <div style={{ display: 'flex', gap: '8px' }}>
             <input type="text" value={joinCode} onChange={e => setJoinCode(e.target.value.toUpperCase())} onKeyDown={e => e.key === 'Enter' && joinRoom()} placeholder="XKQZ" maxLength={4}
@@ -570,7 +914,7 @@ export default function Arena({ onBack, challengeRoomCode }) {
 
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
             <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{t.game.round.toLowerCase()} {round}/{total}</div>
-            {phase === 'choose' && (
+            {phase === 'choose' && !isAsyncGame && (
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: timeLeft <= 5 ? '#f05454' : '#f5c842' }}>
                 {timeLeft}s
               </div>
@@ -652,10 +996,16 @@ export default function Arena({ onBack, challengeRoomCode }) {
               <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.06em' }}>
                 {t.game.price} {result.direction === 'up' ? t.arena.priceUp : result.direction === 'down' ? t.arena.priceDown : t.arena.priceFlat} {result.pctMove > 0 ? '+' : ''}{result.pctMove.toFixed(2)}%
               </div>
-              {!isBotGame && (
+              {!isBotGame && !isAsyncGame && (
                 <div style={{ marginTop: '8px', fontSize: '9px', color: 'var(--t6)', textAlign: 'center', letterSpacing: '0.06em' }}>
                   {t.arena.nextRound}
                 </div>
+              )}
+              {isAsyncGame && (
+                <button onClick={nextAsyncRound}
+                  style={{ marginTop: '10px', width: '100%', padding: '10px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', cursor: 'pointer' }}>
+                  {round >= total ? '✓ ' + (t.game.finish || 'Finish') : (t.game.next || 'Next →')}
+                </button>
               )}
             </div>
           </div>

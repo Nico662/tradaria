@@ -99,6 +99,7 @@ export default function App() {
   const [challengeSocket,     setChallengeSocket]     = useState(null);
   const [pendingChallenge,    setPendingChallenge]    = useState(null); // incoming
   const [challengeRoomCode,   setChallengeRoomCode]   = useState(null);
+  const [asyncDuelCode,       setAsyncDuelCode]       = useState(null);
 
   useEffect(() => {
     if (!user?.username) return;
@@ -159,6 +160,15 @@ export default function App() {
       setScreen('teacher_dashboard');
     }
   }, [user?.role]);
+
+  useEffect(() => {
+    const params   = new URLSearchParams(window.location.search);
+    const retoCode = params.get('reto');
+    if (retoCode) {
+      setAsyncDuelCode(retoCode.toUpperCase());
+      setScreen('arena');
+    }
+  }, []);
   function analyzeCandles(candles) {
   if (!candles || candles.length < 5) return null;
    const last5    = candles.slice(-5);
@@ -611,7 +621,7 @@ export default function App() {
 
   if (screen === 'arena') return (
     <>
-      <Arena onBack={() => { setScreen('home'); setChallengeRoomCode(null); }} challengeRoomCode={challengeRoomCode} />
+      <Arena onBack={() => { setScreen('home'); setChallengeRoomCode(null); setAsyncDuelCode(null); }} challengeRoomCode={challengeRoomCode} asyncDuelCode={asyncDuelCode} />
       {challengeOverlay}
     </>
   );

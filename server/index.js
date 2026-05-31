@@ -261,6 +261,29 @@ const TournamentSessionSchema = new mongoose.Schema({
 TournamentSessionSchema.index({ weekId: 1, userId: 1 }, { unique: true });
 const TournamentSession = mongoose.model('TournamentSession', TournamentSessionSchema);
 
+const AsyncDuelSchema = new mongoose.Schema({
+  code:       { type: String, required: true, unique: true },
+  charts:     { type: Array, default: [] },
+  challenger: {
+    userId:      { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    name:        { type: String, default: '' },
+    answers:     { type: Array, default: [] },
+    score:       { type: Number, default: 0 },
+    completedAt: { type: Date, default: null },
+  },
+  rival: {
+    userId:      { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    name:        { type: String, default: '' },
+    answers:     { type: Array, default: [] },
+    score:       { type: Number, default: 0 },
+    completedAt: { type: Date, default: null },
+  },
+  status:    { type: String, enum: ['waiting_challenger', 'waiting_rival', 'completed', 'expired'], default: 'waiting_challenger' },
+  createdAt: { type: Date, default: Date.now },
+  expiresAt: { type: Date, required: true },
+});
+const AsyncDuel = mongoose.model('AsyncDuel', AsyncDuelSchema);
+
 // ── VAPID / Push ──────────────────────────────────────────────────
 webpush.setVapidDetails(
   'mailto:nicolasvidalcorrecher@tradara.dev',
@@ -1298,6 +1321,113 @@ app.post('/tournament/progress', async (req, res) => {
       { currentRound, score, history },
     );
     res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── Async duel routes ─────────────────────────────────────────────
+app.post('/arena/async/create', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const user    = await User.findById(decoded.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    const challengerName = req.body.name || user.username || user.name;
+
+    const shuffled = [...ASSETS].sort(() => Math.random() - 0.5);
+    const charts   = [];
+    for (const asset of shuffled) {
+      if (charts.length >= 10) break;
+      try {
+        const candles      = await fetchCandles({ ...asset, interval: '1h' });
+        const cleanCandles = candles.filter(c => c && c.open > 0 && c.high > 0 && c.low > 0 && c.close > 0);
+        if (cleanCandles.length < 100) continue;
+        const win = randomWindow(cleanCandles);
+        charts.push({ asset: asset.name, interval: '1h', visible: win.visible, future: win.future });
+      } catch (e) { console.log('Async duel chart error:', e.message); }
+    }
+    if (charts.length < 10) return res.status(500).json({ error: 'Failed to generate charts' });
+
+    let code, attempts = 0;
+    do {
+      code = Array.from({ length: 4 }, () => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random() * 26)]).join('');
+      attempts++;
+    } while (attempts < 10 && await AsyncDuel.findOne({ code }));
+
+    const now       = new Date();
+    const expiresAt = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+    const duel      = await AsyncDuel.create({
+      code, charts,
+      challenger: { userId: user._id, name: challengerName },
+      status: 'waiting_challenger',
+      createdAt: now, expiresAt,
+    });
+    res.json({ code: duel.code, charts: duel.charts, challengerName });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/arena/async/:code', async (req, res) => {
+  try {
+    const duel = await AsyncDuel.findOne({ code: req.params.code.toUpperCase() });
+    if (!duel) return res.status(404).json({ error: 'Duel not found' });
+    if (duel.status === 'waiting_rival' && new Date() > duel.expiresAt) {
+      await AsyncDuel.findByIdAndUpdate(duel._id, { status: 'expired' });
+      return res.json({ duel: { code: duel.code, status: 'expired', challenger: { name: duel.challenger.name }, rival: { name: '' }, charts: [], expiresAt: duel.expiresAt } });
+    }
+    const completed = duel.status === 'completed';
+    res.json({
+      duel: {
+        code:       duel.code,
+        status:     duel.status,
+        charts:     duel.charts,
+        challenger: { name: duel.challenger.name, score: completed ? duel.challenger.score : null, answers: completed ? duel.challenger.answers : [] },
+        rival:      { name: duel.rival.name,       score: completed ? duel.rival.score       : null, answers: completed ? duel.rival.answers       : [] },
+        expiresAt:  duel.expiresAt,
+        createdAt:  duel.createdAt,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/arena/async/:code/submit', async (req, res) => {
+  try {
+    const code = req.params.code.toUpperCase();
+    const duel = await AsyncDuel.findOne({ code });
+    if (!duel) return res.status(404).json({ error: 'Duel not found' });
+    const { name, answers, score, role } = req.body;
+    let userId = null;
+    const auth = req.headers.authorization;
+    if (auth) { try { userId = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET).id; } catch {} }
+
+    if (role === 'challenger') {
+      if (duel.status !== 'waiting_challenger') return res.status(400).json({ error: 'Already submitted' });
+      await AsyncDuel.findByIdAndUpdate(duel._id, { 'challenger.answers': answers, 'challenger.score': score, 'challenger.completedAt': new Date(), status: 'waiting_rival' });
+    } else {
+      if (duel.status !== 'waiting_rival') return res.status(400).json({ error: 'Cannot submit now' });
+      await AsyncDuel.findByIdAndUpdate(duel._id, { 'rival.name': name, 'rival.userId': userId, 'rival.answers': answers, 'rival.score': score, 'rival.completedAt': new Date(), status: 'completed' });
+    }
+    const updated = await AsyncDuel.findOne({ code });
+    res.json({ ok: true, duel: {
+      code: updated.code, status: updated.status, charts: updated.charts,
+      challenger: { name: updated.challenger.name, score: updated.challenger.score, answers: updated.challenger.answers },
+      rival:      { name: updated.rival.name,       score: updated.rival.score,       answers: updated.rival.answers },
+    }});
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/arena/async/:code/status', async (req, res) => {
+  try {
+    const duel = await AsyncDuel.findOne({ code: req.params.code.toUpperCase() });
+    if (!duel) return res.status(404).json({ error: 'Not found' });
+    res.json({ status: duel.status, expiresAt: duel.expiresAt });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
