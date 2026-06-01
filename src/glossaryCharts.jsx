@@ -1146,6 +1146,86 @@ function SupportChart() {
   );
 }
 
+// ─── Resistance Chart ────────────────────────────────────────────────────────
+
+function ResistanceChart() {
+  // price range 128–180 → y range 12–148  (scale 2.615 px/unit)
+  const py = p => 12 + (180 - p) * 136 / 52;
+
+  const resistanceLevel = 164;
+  const resistanceY     = py(resistanceLevel);
+
+  const candles = [
+    // Context — uptrend approaching resistance
+    { x: 14,  O: 136, H: 140, L: 134, C: 139 },
+    { x: 27,  O: 139, H: 144, L: 137, C: 143 },
+    { x: 40,  O: 143, H: 149, L: 141, C: 147 },
+    // 1st touch — wick into resistance, close below
+    { x: 53,  O: 147, H: 167, L: 145, C: 156, bw: 10 },
+    // 1st rejection
+    { x: 66,  O: 156, H: 161, L: 147, C: 149, bw: 10 },
+    // Pullback then 2nd approach
+    { x: 79,  O: 149, H: 154, L: 147, C: 152 },
+    { x: 92,  O: 152, H: 157, L: 150, C: 155 },
+    // 2nd touch — wick into resistance, close below
+    { x: 105, O: 155, H: 167, L: 153, C: 157, bw: 10 },
+    // 2nd rejection — big bearish candle
+    { x: 118, O: 157, H: 161, L: 147, C: 149, bw: 10 },
+    // Continuation down
+    { x: 131, O: 149, H: 151, L: 141, C: 143 },
+    { x: 144, O: 143, H: 145, L: 136, C: 138 },
+    { x: 157, O: 138, H: 140, L: 131, C: 134 },
+  ];
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="#060b10" rx="8" />
+
+      {/* Grid */}
+      {[40, 65, 90, 115, 140].map(y => (
+        <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
+      ))}
+
+      {/* Resistance zone fill */}
+      <rect x="4" y={resistanceY - 10} width="180" height="10" fill="#e055550d" />
+
+      {/* Resistance level line */}
+      <line x1="4" y1={resistanceY} x2="182" y2={resistanceY} stroke="#e05555" strokeWidth="1.1" strokeDasharray="4 2.5" opacity="0.65" />
+
+      {/* Candles */}
+      {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
+        const bull  = C >= O;
+        const col   = bull ? '#22d3a5' : '#e05555';
+        const bodyY = py(Math.max(O, C));
+        const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="1" opacity="0.75" />
+            <rect x={x - bw / 2} y={bodyY} width={bw} height={bodyH} fill={col} rx="0.5" opacity="0.95" />
+          </g>
+        );
+      })}
+
+      {/* Resistance label — right side */}
+      <text x="182" y={resistanceY - 3} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="8" fontWeight="bold" fill="#e05555" opacity="0.9">RES</text>
+
+      {/* 1st rejection annotation */}
+      <text x="59" y={resistanceY + 14} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#e05555" opacity="0.9">↓ reject 1</text>
+      <line x1="59" y1={resistanceY + 1} x2="59" y2={resistanceY + 8} stroke="#e05555" strokeWidth="0.6" opacity="0.4" />
+
+      {/* 2nd rejection annotation */}
+      <text x="111" y={resistanceY + 14} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#e05555" opacity="0.9">↓ reject 2</text>
+      <line x1="111" y1={resistanceY + 1} x2="111" y2={resistanceY + 8} stroke="#e05555" strokeWidth="0.6" opacity="0.4" />
+
+      {/* "selling pressure" label inside zone */}
+      <text x="8" y={resistanceY - 2} fontFamily="'Space Mono', monospace" fontSize="4.8" fill="#e05555" opacity="0.5" letterSpacing="0.08em">selling pressure</text>
+
+      {/* Watermark */}
+      <text x="6" y="154" fontFamily="'Space Mono', monospace" fontSize="5" fill="#172030" letterSpacing="0.1em">RESISTANCE LEVEL</text>
+    </svg>
+  );
+}
+
 // ─── ICT Kill Zones Chart ────────────────────────────────────────────────────
 
 function KillZonesChart() {
@@ -1275,5 +1355,6 @@ export const CHARTS = {
   ote:                 OTEChart,
   smart_money:         SmartMoneyChart,
   support:             SupportChart,
+  resistance:          ResistanceChart,
   kill_zones:          KillZonesChart,
 };

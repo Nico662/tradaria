@@ -336,6 +336,7 @@ export const GLOSSARY = [
       es: 'La resistencia se convierte en soporte una vez rota — "cambio de rol". Uno de los fenómenos más fiables del análisis técnico.',
       de: 'Widerstand wird zur Unterstützung, wenn er gebrochen wird — bekannt als "Rollentausch."',
     },
+    chartId: 'resistance',
   },
   {
     word: { en: 'Trend', es: 'Tendencia', de: 'Trend' },
