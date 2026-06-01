@@ -2109,6 +2109,56 @@ cron.schedule('0 0 * * *', async () => {
     res.status(500).json({ error: err.message });
   }
 });
+
+let revenueCache = null;
+let revenueCacheAt = 0;
+const REVENUE_CACHE_TTL = 5 * 60 * 1000;
+
+app.get('/stats/revenue', async (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  try {
+    if (revenueCache && Date.now() - revenueCacheAt < REVENUE_CACHE_TTL) {
+      return res.json(revenueCache);
+    }
+
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfDay   = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    let totalRevenue = 0;
+    let monthRevenue = 0;
+    let todayRevenue = 0;
+
+    let hasMore = true;
+    let startingAfter = undefined;
+    while (hasMore) {
+      const params = { limit: 100, currency: 'eur', status: 'succeeded' };
+      if (startingAfter) params.starting_after = startingAfter;
+      const page = await stripe.charges.list(params);
+      for (const charge of page.data) {
+        const amount = charge.amount / 100;
+        const created = new Date(charge.created * 1000);
+        totalRevenue += amount;
+        if (created >= startOfMonth) monthRevenue += amount;
+        if (created >= startOfDay)   todayRevenue += amount;
+      }
+      hasMore = page.has_more;
+      if (hasMore) startingAfter = page.data[page.data.length - 1].id;
+    }
+
+    revenueCache = {
+      totalRevenue: +totalRevenue.toFixed(2),
+      monthRevenue: +monthRevenue.toFixed(2),
+      todayRevenue: +todayRevenue.toFixed(2),
+      currency: 'eur',
+    };
+    revenueCacheAt = Date.now();
+    res.json(revenueCache);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── Portfolio routes ──────────────────────────────────────────────
 
 // Obtener todos los precios
