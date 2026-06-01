@@ -1240,7 +1240,12 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                 <div style={{ fontSize: '11px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace" }}>{t.portfolio.noWeeklyData}</div>
               </div>
             ) : (
-              <LeaderboardList entries={weeklyLeaderboard} userPosition={userPositionWeekly} user={user} onViewProfile={onViewProfile} t={t} />
+              <>
+                <div style={{ fontSize: '9px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", letterSpacing: '0.08em', marginBottom: '12px', textAlign: 'center' }}>
+                  — {t.portfolio.thisWeek} —
+                </div>
+                <LeaderboardList entries={weeklyLeaderboard} userPosition={userPositionWeekly} user={user} onViewProfile={onViewProfile} t={t} />
+              </>
             )
           )}
         </div>

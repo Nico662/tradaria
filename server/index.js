@@ -2640,6 +2640,15 @@ app.get('/portfolio/weekly/leaderboard', async (req, res) => {
       return res.json({ leaderboard: [], userPosition: null });
     }
 
+    // Weekly baseline: last snapshot BEFORE Monday for each active user
+    const baselineHistory = await PortfolioHistory.aggregate([
+      { $match: { userId: { $in: activeUserIds }, date: { $lt: mondayStr } } },
+      { $sort: { date: -1 } },
+      { $group: { _id: '$userId', totalValue: { $first: '$totalValue' } } },
+    ]);
+    const baselineMap = {};
+    baselineHistory.forEach(h => { baselineMap[String(h._id)] = h.totalValue; });
+
     const portfolios = await Portfolio.find({ userId: { $in: activeUserIds } })
       .populate('userId', 'name avatar customAvatar username activeCosmetics');
     const prices     = await Promise.all(PORTFOLIO_ASSETS.map(a => getPrice(a).catch(() => null)));
@@ -2649,7 +2658,8 @@ app.get('/portfolio/weekly/leaderboard', async (req, res) => {
     const allLeaderboard = portfolios.map(p => {
       const invested   = p.positions.reduce((s, pos) => s + (priceMap[pos.symbol] || pos.avgPrice) * pos.qty, 0);
       const totalValue = p.cash + invested;
-      const returnPct  = ((totalValue - 50000) / 50000) * 100;
+      const baseline   = baselineMap[String(p.userId?._id)] ?? 50000;
+      const returnPct  = ((totalValue - baseline) / baseline) * 100;
       return {
         userId:          String(p.userId?._id || ''),
         name:            p.userId?.username || p.userId?.name || 'Anonymous',
@@ -2661,7 +2671,7 @@ app.get('/portfolio/weekly/leaderboard', async (req, res) => {
         returnPct,
         cash:            p.cash,
       };
-    }).sort((a, b) => b.totalValue - a.totalValue);
+    }).sort((a, b) => b.returnPct - a.returnPct);
 
     const top10 = allLeaderboard.slice(0, 10);
     let userPosition = null;
