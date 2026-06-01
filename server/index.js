@@ -69,6 +69,10 @@ mongoose.connect(MONGODB_URI, { autoIndex: false })
       await db.collection('users').dropIndex('username_1');
       console.log('Índice username_1 eliminado');
     }
+    const { deletedCount } = await db.collection('asyncduels').deleteMany({
+      $or: [{ expiresAt: null }, { expiresAt: { $exists: false } }],
+    });
+    if (deletedCount > 0) console.log(`Retos fantasma eliminados: ${deletedCount}`);
   })
   .catch(err => console.error('MongoDB error:', err));
 
@@ -1335,6 +1339,16 @@ app.post('/arena/async/create', async (req, res) => {
     const user    = await User.findById(decoded.id);
     if (!user) return res.status(404).json({ error: 'User not found' });
     const challengerName = req.body.name || user.username || user.name;
+
+    const recentCutoff = new Date(Date.now() - 60 * 1000);
+    const existing = await AsyncDuel.findOne({
+      'challenger.userId': user._id,
+      status: 'waiting_challenger',
+      createdAt: { $gte: recentCutoff },
+    });
+    if (existing) {
+      return res.json({ code: existing.code, charts: existing.charts, challengerName });
+    }
 
     const shuffled = [...ASSETS].sort(() => Math.random() - 0.5);
     const charts   = [];

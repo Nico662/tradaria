@@ -112,6 +112,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
   const [asyncCharts,    setAsyncCharts]    = useState([]);
   const [asyncDuelData,  setAsyncDuelData]  = useState(null);
   const [myDuels,        setMyDuels]        = useState(null); // null = not loaded yet
+  const [isCreating,     setIsCreating]     = useState(false);
   const asyncAnswersRef  = useRef([]);
   const asyncScoreRef    = useRef(0);
 
@@ -442,9 +443,10 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
   }
 
   async function startAsyncChallenge() {
-    if (!name.trim()) return;
+    if (!name.trim() || isCreating) return;
     const token = localStorage.getItem('tradara_token');
     if (!token) { setStatus(t.arena.asyncNotLoggedIn); return; }
+    setIsCreating(true);
     setStatus('...');
     try {
       const res  = await fetch(`${SERVER}/arena/async/create`, {
@@ -472,6 +474,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
       setOpponent('?');
       setScreen('game');
     } catch { setStatus('Network error'); }
+    finally { setIsCreating(false); }
   }
 
   function joinRoom() {
@@ -887,7 +890,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
           >
             🔒 {t.arena.createRoom}
           </button>
-          <button onClick={startAsyncChallenge} disabled={!name.trim() || !localStorage.getItem('tradara_token')}
+          <button onClick={startAsyncChallenge} disabled={!name.trim() || !localStorage.getItem('tradara_token') || isCreating}
             style={{ width: '100%', padding: '14px', background: 'var(--bg-card)', border: `1px solid ${name.trim() ? 'rgba(245,200,66,0.5)' : 'var(--bd)'}`, borderRadius: '8px', color: name.trim() ? '#f5c842' : 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: name.trim() ? 'pointer' : 'not-allowed', transition: 'all 0.18s' }}
             onMouseEnter={e => { if (name.trim()) { e.currentTarget.style.borderColor = '#f5c842'; e.currentTarget.style.background = 'rgba(245,200,66,0.08)'; } }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = name.trim() ? 'rgba(245,200,66,0.5)' : 'var(--bd)'; e.currentTarget.style.background = 'var(--bg-card)'; }}
