@@ -1338,6 +1338,100 @@ function KillZonesChart() {
   );
 }
 
+// ─── Trend Chart ────────────────────────────────────────────────────────────
+
+function TrendChart() {
+  // price range 113–149 → y range 12–148
+  const py = p => 12 + (149 - p) * 136 / 36;
+
+  const upCandles = [
+    { x: 13,  O: 116, H: 120, L: 114, C: 119 },
+    { x: 26,  O: 118, H: 123, L: 116, C: 122 },
+    { x: 39,  O: 121, H: 127, L: 119, C: 126 }, // HH1
+    { x: 52,  O: 125, H: 127, L: 121, C: 122 }, // HL1
+    { x: 65,  O: 122, H: 132, L: 120, C: 131 }, // HH2
+    { x: 78,  O: 130, H: 132, L: 126, C: 127 }, // HL2
+    { x: 90,  O: 127, H: 141, L: 125, C: 139 }, // HH3 (peak)
+  ];
+
+  const downCandles = [
+    { x: 103, O: 138, H: 140, L: 130, C: 131 },
+    { x: 116, O: 131, H: 136, L: 129, C: 135 }, // LH1
+    { x: 129, O: 134, H: 136, L: 122, C: 123 }, // LL1
+    { x: 142, O: 123, H: 128, L: 121, C: 127 }, // LH2
+    { x: 155, O: 127, H: 129, L: 116, C: 117 }, // LL2
+  ];
+
+  // Uptrend support line: through swing lows at x=13 (114) and x=78 (126)
+  const utX1 = 13,  utY1 = py(114);
+  const utX2 = 96,  utY2 = utY1 + (96 - 13) * (py(126) - py(114)) / (78 - 13);
+
+  // Downtrend resistance line: through swing highs at x=116 (136) and x=142 (128)
+  const dtSlope = (py(128) - py(136)) / (142 - 116);
+  const dtX1 = 101, dtY1 = py(136) - (116 - 101) * dtSlope;
+  const dtX2 = 168, dtY2 = py(128) + (168 - 142) * dtSlope;
+
+  const renderCandles = (list, prefix) => list.map(({ x, O, H, L, C, bw = 8 }, i) => {
+    const bull  = C >= O;
+    const col   = bull ? '#22d3a5' : '#e05555';
+    const bodyY = py(Math.max(O, C));
+    const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+    return (
+      <g key={`${prefix}${i}`}>
+        <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="1" opacity="0.75" />
+        <rect x={x - bw / 2} y={bodyY} width={bw} height={bodyH} fill={col} rx="0.5" opacity="0.95" />
+      </g>
+    );
+  });
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="#060b10" rx="8" />
+
+      {/* Phase tints */}
+      <rect x="4"  y="12" width="90" height="136" fill="#22d3a508" />
+      <rect x="98" y="12" width="86" height="136" fill="#e0555508" />
+
+      {/* Grid */}
+      {[40, 65, 90, 115, 140].map(y => (
+        <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
+      ))}
+
+      {/* Phase divider */}
+      <line x1="97" y1="14" x2="97" y2="146" stroke="#1e2e40" strokeWidth="1" strokeDasharray="3 3" />
+
+      {/* Trend lines */}
+      <line x1={utX1} y1={utY1} x2={utX2} y2={utY2} stroke="#22d3a5" strokeWidth="1.3" strokeDasharray="4 2" opacity="0.75" />
+      <line x1={dtX1} y1={dtY1} x2={dtX2} y2={dtY2} stroke="#e05555" strokeWidth="1.3" strokeDasharray="4 2" opacity="0.75" />
+
+      {/* Candles */}
+      {renderCandles(upCandles, 'u')}
+      {renderCandles(downCandles, 'd')}
+
+      {/* HH labels */}
+      <text x="39" y={py(127) - 4} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="#22d3a5" opacity="0.9">HH</text>
+      <text x="65" y={py(132) - 4} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="#22d3a5" opacity="0.9">HH</text>
+      <text x="90" y={py(141) - 4} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="#22d3a5" opacity="0.9">HH</text>
+
+      {/* HL labels */}
+      <text x="52" y={py(121) + 9} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#22d3a5" opacity="0.7">HL</text>
+      <text x="78" y={py(126) + 9} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#22d3a5" opacity="0.7">HL</text>
+
+      {/* LH labels */}
+      <text x="116" y={py(136) - 4} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="#e05555" opacity="0.9">LH</text>
+      <text x="142" y={py(128) - 4} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="#e05555" opacity="0.9">LH</text>
+
+      {/* LL labels */}
+      <text x="129" y={py(122) + 9} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#e05555" opacity="0.7">LL</text>
+      <text x="155" y={py(116) + 9} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#e05555" opacity="0.7">LL</text>
+
+      {/* Section labels */}
+      <text x="48"  y="153" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="6" fill="#22d3a5" opacity="0.5" letterSpacing="0.06em">UPTREND ↑</text>
+      <text x="140" y="153" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="6" fill="#e05555" opacity="0.5" letterSpacing="0.06em">DOWNTREND ↓</text>
+    </svg>
+  );
+}
+
 // ─── exports ────────────────────────────────────────────────────────────────
 
 export const CHARTS = {
@@ -1357,4 +1451,5 @@ export const CHARTS = {
   support:             SupportChart,
   resistance:          ResistanceChart,
   kill_zones:          KillZonesChart,
+  trend:               TrendChart,
 };

@@ -339,6 +339,7 @@ export const GLOSSARY = [
     chartId: 'resistance',
   },
   {
+    chartId: 'trend',
     word: { en: 'Trend', es: 'Tendencia', de: 'Trend' },
     definition: {
       en: 'The general direction in which price is moving over time. Trends can be upward (bullish), downward (bearish), or sideways.',
