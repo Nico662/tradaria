@@ -386,13 +386,6 @@ export default function Home({ onSelect }) {
             ☕ Support tradaria
           </a>
 
-          <a href="https://www.producthunt.com/posts/tradaria?utm_source=badge-featured&utm_medium=badge" target="_blank" rel="noopener noreferrer">
-            <img
-              src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=tradaria&theme=dark&t=1"
-              alt="Tradaria on Product Hunt"
-              style={{ height: '54px', width: 'auto' }}
-            />
-          </a>
 
           <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', alignItems: 'center' }}>
             <span style={{ fontSize: '9px', color: 'var(--bd2)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
