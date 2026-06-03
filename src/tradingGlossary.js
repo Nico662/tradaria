@@ -376,6 +376,7 @@ export const GLOSSARY = [
       es: 'Tipos: estándar, dragonfly (mecha inferior larga = alcista), gravestone (mecha superior larga = bajista), piernas largas (indecisión extrema).',
       de: 'Typen: Standard, Libelle (langer unterer Docht = bullisch), Grabstein (langer oberer Docht = bärisch), langbeinig (extreme Unentschlossenheit).',
     },
+    chartId: 'doji',
   },
   {
     word: { en: 'RSI', es: 'RSI', de: 'RSI' },

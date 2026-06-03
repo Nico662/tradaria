@@ -1432,6 +1432,99 @@ function TrendChart() {
   );
 }
 
+// ─── Doji Chart ─────────────────────────────────────────────────────────────
+
+function DojiChart() {
+  const py = p => 12 + (155 - p) * 136 / 40;
+
+  const rally = [
+    { x: 12,  O: 116, H: 119, L: 115, C: 118 },
+    { x: 25,  O: 118, H: 122, L: 116, C: 121 },
+    { x: 38,  O: 120, H: 124, L: 118, C: 123 },
+    { x: 51,  O: 122, H: 126, L: 120, C: 125 },
+    { x: 64,  O: 124, H: 128, L: 122, C: 127 },
+    { x: 77,  O: 126, H: 130, L: 124, C: 129 },
+  ];
+
+  // Doji: open ≈ close, long symmetric wicks
+  const dX = 100;
+  const dO = 135, dC = 135.5, dH = 143, dL = 127;
+
+  const topY  = py(dH);
+  const botY  = py(dL);
+  const midY  = (py(dO) + py(dC)) / 2;
+  const bodyT = py(Math.max(dO, dC));
+  const bodyH = Math.max(py(Math.min(dO, dC)) - bodyT, 1.5);
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="#060b10" rx="8" />
+
+      {/* Grid */}
+      {[40, 65, 90, 115, 140].map(y => (
+        <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
+      ))}
+
+      {/* Doji glow */}
+      <rect x={dX - 12} y={topY - 2} width="24" height={botY - topY + 4}
+        fill="#f5c84210" rx="4" />
+
+      {/* Rally candles */}
+      {rally.map(({ x, O, H, L, C }, i) => {
+        const bY = py(Math.max(O, C));
+        const bH = Math.max(py(Math.min(O, C)) - bY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke="#22d3a5" strokeWidth="1" opacity="0.65" />
+            <rect x={x - 4} y={bY} width="8" height={bH} fill="#22d3a5" rx="0.5" opacity="0.85" />
+          </g>
+        );
+      })}
+
+      {/* Doji wick */}
+      <line x1={dX} y1={topY} x2={dX} y2={botY} stroke="#f5c842" strokeWidth="1.3" opacity="0.95" />
+      {/* Doji body (tiny) */}
+      <rect x={dX - 5} y={bodyT} width="10" height={bodyH} fill="#f5c842" rx="0.5" opacity="0.95" />
+
+      {/* DOJI label above candle */}
+      <text x={dX} y={topY - 7}
+        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        fontSize="6.5" fontWeight="bold" fill="#f5c842" letterSpacing="0.1em">DOJI</text>
+
+      {/* Annotation: upper wick */}
+      <line x1={dX + 8} y1={topY} x2={148} y2={topY}
+        stroke="#f5c842" strokeWidth="0.7" strokeDasharray="2 2" opacity="0.4" />
+      <text x={182} y={topY + 2}
+        textAnchor="end" fontFamily="'Space Mono', monospace"
+        fontSize="5.5" fill="#f5c842" opacity="0.7">upper wick</text>
+
+      {/* Annotation: open ≈ close */}
+      <line x1={dX + 8} y1={midY} x2={148} y2={midY}
+        stroke="#f5c842" strokeWidth="0.7" strokeDasharray="2 2" opacity="0.4" />
+      <text x={182} y={midY + 2}
+        textAnchor="end" fontFamily="'Space Mono', monospace"
+        fontSize="5.5" fill="#f5c842" opacity="0.7">open ≈ close</text>
+
+      {/* Annotation: lower wick */}
+      <line x1={dX + 8} y1={botY} x2={148} y2={botY}
+        stroke="#f5c842" strokeWidth="0.7" strokeDasharray="2 2" opacity="0.4" />
+      <text x={182} y={botY + 2}
+        textAnchor="end" fontFamily="'Space Mono', monospace"
+        fontSize="5.5" fill="#f5c842" opacity="0.7">lower wick</text>
+
+      {/* indecision label below doji */}
+      <text x={dX} y={botY + 11}
+        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#f5c842" opacity="0.45" letterSpacing="0.08em">indecision</text>
+
+      {/* Rally section label */}
+      <text x="44" y="153"
+        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        fontSize="6" fill="#22d3a5" opacity="0.45" letterSpacing="0.06em">RALLY ↑</text>
+    </svg>
+  );
+}
+
 // ─── exports ────────────────────────────────────────────────────────────────
 
 export const CHARTS = {
@@ -1452,4 +1545,5 @@ export const CHARTS = {
   resistance:          ResistanceChart,
   kill_zones:          KillZonesChart,
   trend:               TrendChart,
+  doji:                DojiChart,
 };
