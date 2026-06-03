@@ -500,7 +500,7 @@ app.use('/auth/sync',          syncLimiter);
 passport.use(new GoogleStrategy({
   clientID:     GOOGLE_CLIENT_ID,
   clientSecret: GOOGLE_CLIENT_SECRET,
-  callbackURL:  'https://tradaria-production.up.railway.app/auth/google/callback',
+  callbackURL:  'https://tradara-production.up.railway.app/auth/google/callback',
 }, async (accessToken, refreshToken, profile, done) => {
   try {
     const existingUser = await User.findOne({ googleId: profile.id });
