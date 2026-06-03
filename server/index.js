@@ -537,7 +537,7 @@ app.get('/auth/google',
 
 app.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: `${CLIENT_URL}?auth=error` }),
-  (req, res) => {
+  async (req, res) => {
     const token = jwt.sign(
       { id: req.user._id, email: req.user.email, name: req.user.name },
       JWT_SECRET,
