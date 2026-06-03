@@ -25,10 +25,22 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
-    if (token) {
-      localStorage.setItem('tradara_token', token);
+    const oauthCode = params.get('code');
+    if (oauthCode) {
       window.history.replaceState({}, '', '/');
+      fetch(`${SERVER}/auth/exchange`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: oauthCode }),
+      })
+        .then(r => r.ok ? r.json() : Promise.reject())
+        .then(({ token }) => {
+          localStorage.setItem('tradara_token', token);
+          fetchUser(token);
+          fetchPurchases(token);
+        })
+        .catch(() => setLoading(false));
+      return;
     }
     const saved = localStorage.getItem('tradara_token');
     if (saved) {

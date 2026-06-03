@@ -543,9 +543,24 @@ app.get('/auth/google/callback',
       JWT_SECRET,
       { expiresIn: '30d' }
     );
-    res.redirect(`${CLIENT_URL}?token=${token}`);
+    const oauthCode = require('crypto').randomBytes(32).toString('hex');
+    await redis.set(`oauth_code:${oauthCode}`, token, 'EX', 60);
+    res.redirect(`${CLIENT_URL}?code=${oauthCode}`);
   }
 );
+
+app.post('/auth/exchange', async (req, res) => {
+  try {
+    const { code } = req.body;
+    if (!code || typeof code !== 'string') return res.status(400).json({ error: 'Invalid code' });
+    const token = await redis.get(`oauth_code:${code}`);
+    if (!token) return res.status(400).json({ error: 'Code expired or invalid' });
+    await redis.del(`oauth_code:${code}`);
+    res.json({ token });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 app.post('/auth/logout', async (req, res) => {
   const auth = req.headers.authorization;
@@ -977,7 +992,8 @@ app.post('/tournament/paid/join', async (req, res) => {
 });
 
 app.post('/tournament/paid/:id/winner', async (req, res) => {
-  if (req.query.key !== 'tr4d4r4_adm1n') return res.status(403).json({ error: 'forbidden' });
+  const key = req.headers['x-admin-secret'];
+  if (!ADMIN_SECRET || key !== ADMIN_SECRET) return res.status(403).json({ error: 'forbidden' });
   try {
     const { userId } = req.body;
     const pt = await PaidTournament.findByIdAndUpdate(req.params.id, {
@@ -1459,8 +1475,34 @@ app.post('/arena/async/:code/submit', async (req, res) => {
     if (auth) { try { userId = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET).id; } catch {} }
 
     if (role === 'challenger') {
+      if (!userId) return res.status(401).json({ error: 'Authentication required' });
+      if (!duel.challenger.userId || userId !== duel.challenger.userId.toString()) return res.status(403).json({ error: 'Forbidden' });
       if (duel.status !== 'waiting_challenger') return res.status(400).json({ error: 'Already submitted' });
-      await AsyncDuel.findByIdAndUpdate(duel._id, { 'challenger.answers': answers, 'challenger.score': score, 'challenger.completedAt': new Date(), status: 'waiting_rival' });
+
+      const serverScore = duel.charts.reduce((total, chart, i) => {
+        const choice = answers?.[i]?.choice;
+        if (!choice) return total;
+        const lastClose  = chart.visible[chart.visible.length - 1].close;
+        const lastFuture = chart.future[chart.future.length - 1].close;
+        const pctMove    = (lastFuture - lastClose) / lastClose * 100;
+        const direction  = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
+        const win = (choice === 'long' && direction === 'up') || (choice === 'short' && direction === 'down') || (choice === 'skip' && direction === 'flat');
+        return total + (win && choice !== 'skip' ? 100 : win && choice === 'skip' ? 50 : 0);
+      }, 0);
+
+      const safeAnswers = (answers || []).map((a, i) => {
+        const chart      = duel.charts[i];
+        const choice     = ['long', 'short', 'skip'].includes(a?.choice) ? a.choice : 'skip';
+        const lastClose  = chart.visible[chart.visible.length - 1].close;
+        const lastFuture = chart.future[chart.future.length - 1].close;
+        const pctMove    = (lastFuture - lastClose) / lastClose * 100;
+        const direction  = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
+        const win = (choice === 'long' && direction === 'up') || (choice === 'short' && direction === 'down') || (choice === 'skip' && direction === 'flat');
+        const pts = win && choice !== 'skip' ? 100 : win && choice === 'skip' ? 50 : 0;
+        return { choice, win, pts, direction, pctMove: +pctMove.toFixed(2) };
+      });
+
+      await AsyncDuel.findByIdAndUpdate(duel._id, { 'challenger.answers': safeAnswers, 'challenger.score': serverScore, 'challenger.completedAt': new Date(), status: 'waiting_rival' });
     } else {
       if (duel.status !== 'waiting_rival') return res.status(400).json({ error: 'Cannot submit now' });
       await AsyncDuel.findByIdAndUpdate(duel._id, { 'rival.name': name, 'rival.userId': userId, 'rival.answers': answers, 'rival.score': score, 'rival.completedAt': new Date(), status: 'completed' });
@@ -2498,7 +2540,8 @@ app.post('/portfolio/sell', async (req, res) => {
   }
 });
 app.post('/admin/refund-unlisted/:username', async (req, res) => {
-  if (req.query.key !== 'tr4d4r4_adm1n') return res.status(403).json({ error: 'forbidden' });
+  const key = req.headers['x-admin-secret'];
+  if (!ADMIN_SECRET || key !== ADMIN_SECRET) return res.status(403).json({ error: 'forbidden' });
   try {
     const user = await User.findOne({ username: req.params.username.toLowerCase() });
     if (!user) return res.status(404).json({ error: 'user not found' });
