@@ -1,7 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { io } from 'socket.io-client';
 import { SERVER } from './config.js';
-import AdsenseBanner from './components/AdsenseBanner.jsx';
 import Pricing from './Pricing.jsx';
 import { ASSETS } from './assets.js';
 import Chart, { generateCandles } from "./Chart";
@@ -547,8 +546,6 @@ export default function App() {
               </div>
             </div>
           )}
-
-          <AdsenseBanner style={{ marginBottom: '12px' }} />
 
           <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
             <button onClick={shareResult}
