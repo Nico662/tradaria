@@ -18,7 +18,7 @@ const TOURNAMENT_SUB = {
 
 export default function Home({ onSelect }) {
   const { lang, t } = useLang();
-  const [dailyStreak] = useState(() => parseInt(localStorage.getItem('tradara_daily_streak') || '0'));
+  const [dailyStreak] = useState(() => parseInt(localStorage.getItem('tradaria_daily_streak') || '0'));
   const unlockedCount = getUnlocked().length;
   const xp    = getXP();
   const level = getLevel(xp);
@@ -30,7 +30,7 @@ export default function Home({ onSelect }) {
 
   useEffect(() => {
     if (!user?.academyId || !user?.isAcademyPro || academyName) return;
-    const tok = localStorage.getItem('tradara_token');
+    const tok = localStorage.getItem('tradaria_token');
     if (!tok) return;
     fetch(`${SERVER}/academy/${user.academyId}/name`, { headers: { Authorization: `Bearer ${tok}` } })
       .then(r => r.ok ? r.json() : null)
@@ -91,7 +91,7 @@ export default function Home({ onSelect }) {
     setAvatarLoading(true);
     try {
       const base64 = await resizeImage(file);
-      const token  = localStorage.getItem('tradara_token');
+      const token  = localStorage.getItem('tradaria_token');
       const res    = await fetch(`${SERVER}/auth/avatar`, {
         method:  'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -238,7 +238,7 @@ export default function Home({ onSelect }) {
               <line x1="50" y1="150" x2="50" y2="190" stroke="#22d3a5" strokeWidth="8" strokeLinecap="round"/>
             </svg>
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '42px', letterSpacing: '-0.02em', color: 'var(--t1)', textShadow: '0 0 60px rgba(34,211,165,0.2), 0 2px 20px rgba(0,0,0,0.5)' }}>
-              Tradara
+              Tradaria
             </div>
           </div>
           <div style={{ fontSize: '10px', color: '#5a6a7d', letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: '6px' }}>
@@ -378,18 +378,18 @@ export default function Home({ onSelect }) {
             </button>
           </div>
 
-          <a href="https://ko-fi.com/tradaranicolasvidal" target="_blank" rel="noopener noreferrer"
+          <a href="https://ko-fi.com/tradarianicolasvidal" target="_blank" rel="noopener noreferrer"
             style={{ background: 'transparent', border: '1px solid var(--bd)', borderRadius: '8px', padding: '8px 16px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             onMouseEnter={e => e.currentTarget.style.borderColor = '#f5c842'}
             onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--bd)'}
           >
-            ☕ Support tradara
+            ☕ Support tradaria
           </a>
 
-          <a href="https://www.producthunt.com/posts/tradara?utm_source=badge-featured&utm_medium=badge" target="_blank" rel="noopener noreferrer">
+          <a href="https://www.producthunt.com/posts/tradaria?utm_source=badge-featured&utm_medium=badge" target="_blank" rel="noopener noreferrer">
             <img
-              src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=tradara&theme=dark&t=1"
-              alt="Tradara on Product Hunt"
+              src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=tradaria&theme=dark&t=1"
+              alt="Tradaria on Product Hunt"
               style={{ height: '54px', width: 'auto' }}
             />
           </a>

@@ -54,7 +54,7 @@ export default function Stats({ onBack }) {
   const [error,   setError]   = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('tradara_token');
+    const token = localStorage.getItem('tradaria_token');
     if (!token) { setLoading(false); setError('login'); return; }
     fetch(`${SERVER}/stats/personal`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())

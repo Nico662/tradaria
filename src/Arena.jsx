@@ -135,7 +135,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem('tradara_token');
+    const token = localStorage.getItem('tradaria_token');
     if (!token) return;
     fetch(`${SERVER}/arena/async/my-duels`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
@@ -145,7 +145,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
 
   useEffect(() => {
     if (screen !== 'gameover' || !finalData || finalData.forfeited) return;
-    const token = localStorage.getItem('tradara_token');
+    const token = localStorage.getItem('tradaria_token');
     if (!token) return;
     const myScore  = isBotGame ? myBotScore : (finalData.scores?.[myId] ?? 0);
     const oppId    = myId ? Object.keys(finalData.scores ?? {}).find(id => id !== myId) : null;
@@ -287,13 +287,13 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
           const isDraw = newMyScore === newBotScore;
           setFinalData({ scores: { player: newMyScore, bot: newBotScore }, winner: iWon ? 'player' : isDraw ? 'draw' : 'bot' });
           if (iWon) {
-            const wins = parseInt(localStorage.getItem('tradara_arena_wins') || '0') + 1;
-            localStorage.setItem('tradara_arena_wins', String(wins));
+            const wins = parseInt(localStorage.getItem('tradaria_arena_wins') || '0') + 1;
+            localStorage.setItem('tradaria_arena_wins', String(wins));
             if (wins === 1) tryUnlockArenaBadge('first_blood');
             if (wins >= 5)  tryUnlockArenaBadge('dominator');
             if (newMyScore >= 1000) tryUnlockArenaBadge('unbeatable');
-            const arenaStreak = parseInt(localStorage.getItem('tradara_arena_win_streak') || '0') + 1;
-            localStorage.setItem('tradara_arena_win_streak', String(arenaStreak));
+            const arenaStreak = parseInt(localStorage.getItem('tradaria_arena_win_streak') || '0') + 1;
+            localStorage.setItem('tradaria_arena_win_streak', String(arenaStreak));
             if (arenaStreak >= 3) tryUnlockArenaBadge('arena_streak_3');
             if (arenaStreak >= 5) tryUnlockArenaBadge('arena_streak_5');
             const wr = incrementMission('win_arena');
@@ -301,7 +301,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
             const wwr = incrementWeeklyMission('weekly_arena_5');
             if (wwr.completed) pushMission({ xpEarned: wwr.xpEarned, title: wwr.mission.title });
           } else {
-            localStorage.setItem('tradara_arena_win_streak', '0');
+            localStorage.setItem('tradaria_arena_win_streak', '0');
           }
           const pr = incrementMission('play_arena');
           if (pr.completed) pushMission({ xpEarned: pr.xpEarned, title: pr.mission.title });
@@ -356,13 +356,13 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
       const oppId    = Object.keys(d.scores ?? {}).find(id => id !== socket.id);
       const oppScore = d.scores?.[oppId] ?? 0;
       if (myScore > oppScore) {
-        const wins = parseInt(localStorage.getItem('tradara_arena_wins') || '0') + 1;
-        localStorage.setItem('tradara_arena_wins', String(wins));
+        const wins = parseInt(localStorage.getItem('tradaria_arena_wins') || '0') + 1;
+        localStorage.setItem('tradaria_arena_wins', String(wins));
         if (wins === 1) tryUnlockArenaBadge('first_blood');
         if (wins >= 5)  tryUnlockArenaBadge('dominator');
         if (myScore >= 1000) tryUnlockArenaBadge('unbeatable');
-        const arenaStreak = parseInt(localStorage.getItem('tradara_arena_win_streak') || '0') + 1;
-        localStorage.setItem('tradara_arena_win_streak', String(arenaStreak));
+        const arenaStreak = parseInt(localStorage.getItem('tradaria_arena_win_streak') || '0') + 1;
+        localStorage.setItem('tradaria_arena_win_streak', String(arenaStreak));
         if (arenaStreak >= 3) tryUnlockArenaBadge('arena_streak_3');
         if (arenaStreak >= 5) tryUnlockArenaBadge('arena_streak_5');
         const wr = incrementMission('win_arena');
@@ -370,7 +370,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
         const wwr = incrementWeeklyMission('weekly_arena_5');
         if (wwr.completed) pushMission({ xpEarned: wwr.xpEarned, title: wwr.mission.title });
       } else {
-        localStorage.setItem('tradara_arena_win_streak', '0');
+        localStorage.setItem('tradaria_arena_win_streak', '0');
       }
       const pr = incrementMission('play_arena');
       if (pr.completed) pushMission({ xpEarned: pr.xpEarned, title: pr.mission.title });
@@ -384,12 +384,12 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
       clearInterval(timerRef.current);
       setFinalData({ forfeited: true, winner: d.winner });
       setScreen('gameover');
-      const wins = parseInt(localStorage.getItem('tradara_arena_wins') || '0') + 1;
-      localStorage.setItem('tradara_arena_wins', String(wins));
+      const wins = parseInt(localStorage.getItem('tradaria_arena_wins') || '0') + 1;
+      localStorage.setItem('tradaria_arena_wins', String(wins));
       if (wins === 1) tryUnlockArenaBadge('first_blood');
       if (wins >= 5)  tryUnlockArenaBadge('dominator');
-      const arenaStreak = parseInt(localStorage.getItem('tradara_arena_win_streak') || '0') + 1;
-      localStorage.setItem('tradara_arena_win_streak', String(arenaStreak));
+      const arenaStreak = parseInt(localStorage.getItem('tradaria_arena_win_streak') || '0') + 1;
+      localStorage.setItem('tradaria_arena_win_streak', String(arenaStreak));
       if (arenaStreak >= 3) tryUnlockArenaBadge('arena_streak_3');
       if (arenaStreak >= 5) tryUnlockArenaBadge('arena_streak_5');
       const fwr = incrementMission('win_arena');
@@ -443,7 +443,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
 
   async function startAsyncChallenge() {
     if (!name.trim() || isCreating) return;
-    const token = localStorage.getItem('tradara_token');
+    const token = localStorage.getItem('tradaria_token');
     if (!token) { setStatus(t.arena.asyncNotLoggedIn); return; }
     setIsCreating(true);
     setStatus('...');
@@ -513,7 +513,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
 
   async function nextAsyncRound() {
     if (round >= total) {
-      const token    = localStorage.getItem('tradara_token');
+      const token    = localStorage.getItem('tradaria_token');
       const finalScore = asyncScoreRef.current;
       try {
         const res  = await fetch(`${SERVER}/arena/async/${asyncCode}/submit`, {
@@ -695,7 +695,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
     const handleCopy = () => { navigator.clipboard.writeText(link).catch(() => {}); setStatus(t.arena.asyncCopied); setTimeout(() => setStatus(''), 2000); };
     const handleShare = () => {
       if (navigator.share) {
-        navigator.share({ title: 'Tradara Arena', text: `Reta mis ${correctCount}/10 en Tradara`, url: link }).catch(() => {});
+        navigator.share({ title: 'Tradaria Arena', text: `Reta mis ${correctCount}/10 en Tradaria`, url: link }).catch(() => {});
       } else { handleCopy(); }
     };
     return (
@@ -741,7 +741,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
       if (!el) return;
       const canvas = await html2canvas(el, { backgroundColor: '#0a0c0f', scale: 2 });
       const link = document.createElement('a');
-      link.download = 'tradara-duel.png';
+      link.download = 'tradaria-duel.png';
       link.href = canvas.toDataURL();
       link.click();
     };
@@ -820,7 +820,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
 
           {/* Hidden share card */}
           <div id="async-share-card" style={{ position: 'absolute', left: '-9999px', top: 0, width: '320px', background: '#0a0c0f', border: '1px solid #f5c842', borderRadius: '12px', padding: '28px 24px', fontFamily: "'Space Mono', monospace" }}>
-            <div style={{ fontSize: '10px', color: '#5a6a7d', letterSpacing: '0.1em', marginBottom: '16px' }}>⚔️ TRADARA ASYNC DUEL</div>
+            <div style={{ fontSize: '10px', color: '#5a6a7d', letterSpacing: '0.1em', marginBottom: '16px' }}>⚔️ TRADARIA ASYNC DUEL</div>
             <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
               <div style={{ flex: 1, textAlign: 'center' }}>
                 <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '36px', color: '#22d3a5' }}>{chalCorrect}</div>
@@ -832,7 +832,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
                 <div style={{ fontSize: '9px', color: '#5a6a7d', marginTop: '2px' }}>{riv.name}</div>
               </div>
             </div>
-            <div style={{ fontSize: '9px', color: '#f5c842', letterSpacing: '0.1em' }}>tradara.dev</div>
+            <div style={{ fontSize: '9px', color: '#f5c842', letterSpacing: '0.1em' }}>tradaria.dev</div>
           </div>
         </div>
         {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
@@ -889,7 +889,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
           >
             🔒 {t.arena.createRoom}
           </button>
-          <button onClick={startAsyncChallenge} disabled={!name.trim() || !localStorage.getItem('tradara_token') || isCreating}
+          <button onClick={startAsyncChallenge} disabled={!name.trim() || !localStorage.getItem('tradaria_token') || isCreating}
             style={{ width: '100%', padding: '14px', background: 'var(--bg-card)', border: `1px solid ${name.trim() ? 'rgba(245,200,66,0.5)' : 'var(--bd)'}`, borderRadius: '8px', color: name.trim() ? '#f5c842' : 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: name.trim() ? 'pointer' : 'not-allowed', transition: 'all 0.18s' }}
             onMouseEnter={e => { if (name.trim()) { e.currentTarget.style.borderColor = '#f5c842'; e.currentTarget.style.background = 'rgba(245,200,66,0.08)'; } }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = name.trim() ? 'rgba(245,200,66,0.5)' : 'var(--bd)'; e.currentTarget.style.background = 'var(--bg-card)'; }}
@@ -1318,17 +1318,17 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
             if (!el) return;
             const canvas = await html2canvas(el, { backgroundColor: 'var(--bg-page)', scale: 2 });
             const link = document.createElement('a');
-            link.download = 'tradara-arena.png';
+            link.download = 'tradaria-arena.png';
             link.href = canvas.toDataURL();
             link.click();
-            const tok = localStorage.getItem('tradara_token');
+            const tok = localStorage.getItem('tradaria_token');
             if (tok) fetch(`${SERVER}/stats/share`, { method: 'POST', headers: { Authorization: `Bearer ${tok}` } }).catch(() => {});
           }} style={{ marginTop: '4px', width: '100%', padding: '12px', background: 'rgba(34,211,165,0.06)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
             📸 {t.daily.share}
           </button>
         </div>
         <div id="share-card-arena" style={{ position: 'absolute', left: '-9999px', top: 0, width: '320px', background: 'var(--bg-page)', border: `1px solid ${iWon ? '#22d3a5' : isDraw ? '#f5c842' : '#f05454'}`, borderRadius: '12px', padding: '28px 24px', fontFamily: "'Space Mono', monospace" }}>
-          <div style={{ fontSize: '10px', color: 'var(--t6)', letterSpacing: '0.1em', marginBottom: '16px' }}>⚡ TRADARA ARENA</div>
+          <div style={{ fontSize: '10px', color: 'var(--t6)', letterSpacing: '0.1em', marginBottom: '16px' }}>⚡ TRADARIA ARENA</div>
           <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px', color: iWon ? '#22d3a5' : isDraw ? '#f5c842' : '#f05454', marginBottom: '20px' }}>
             {iWon ? t.arena.won : isDraw ? t.arena.draw : t.arena.lost}
           </div>
@@ -1343,7 +1343,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
               <div style={{ fontSize: '9px', color: 'var(--t6)', marginTop: '2px' }}>{opponent}</div>
             </div>
           </div>
-          <div style={{ fontSize: '9px', color: '#22d3a5', letterSpacing: '0.1em', marginTop: '8px' }}>tradara.dev</div>
+          <div style={{ fontSize: '9px', color: '#22d3a5', letterSpacing: '0.1em', marginTop: '8px' }}>tradaria.dev</div>
         </div>
         {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
         {missionToast[0] && <MissionNotification data={missionToast[0]} onDone={() => setMissionToast(q => q.slice(1))} />}

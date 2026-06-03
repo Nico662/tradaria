@@ -64,9 +64,9 @@ export default function Daily({ onBack }) {
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
 
-    const played = localStorage.getItem('tradara_daily_played');
+    const played = localStorage.getItem('tradaria_daily_played');
     if (played === today) {
-      const saved = JSON.parse(localStorage.getItem('tradara_daily_result') || 'null');
+      const saved = JSON.parse(localStorage.getItem('tradaria_daily_result') || 'null');
       if (saved) {
         saved.win = saved.win === true || saved.win === 'true';
         setResult(saved);
@@ -78,8 +78,8 @@ export default function Daily({ onBack }) {
     if (user?.dailyResult?.date === today) {
       const res = { ...user.dailyResult };
       res.win = res.win === true;
-      localStorage.setItem('tradara_daily_played', today);
-      localStorage.setItem('tradara_daily_result', JSON.stringify(res));
+      localStorage.setItem('tradaria_daily_played', today);
+      localStorage.setItem('tradaria_daily_result', JSON.stringify(res));
       setResult(res);
       setPhase('already');
       return;
@@ -127,8 +127,8 @@ export default function Daily({ onBack }) {
   setResult(res);
 
   const today = new Date().toISOString().split('T')[0];
-  localStorage.setItem('tradara_daily_played', today);
-  localStorage.setItem('tradara_daily_result', JSON.stringify(res));
+  localStorage.setItem('tradaria_daily_played', today);
+  localStorage.setItem('tradaria_daily_result', JSON.stringify(res));
 
   const mr = incrementMission('play_daily');
   if (mr.completed) pushMission({ xpEarned: mr.xpEarned, title: mr.mission.title });
@@ -142,24 +142,24 @@ export default function Daily({ onBack }) {
     const prevXP = getXP();
     const newXP  = addXP(15);
     checkLevelUp(prevXP, newXP);
-    syncProgress(newXP, JSON.parse(localStorage.getItem('tradara_badges') || '[]'));
+    syncProgress(newXP, JSON.parse(localStorage.getItem('tradaria_badges') || '[]'));
     setFloatingXP(15);
     setTimeout(() => setFloatingXP(null), 2000);
     triggerEffect();
   }
 
-  const lastDaily = localStorage.getItem('tradara_daily_last');
+  const lastDaily = localStorage.getItem('tradaria_daily_last');
   const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-  const current   = parseInt(localStorage.getItem('tradara_daily_streak') || '0');
+  const current   = parseInt(localStorage.getItem('tradaria_daily_streak') || '0');
   const newStreak = lastDaily === yesterday ? current + 1 : 1;
-  localStorage.setItem('tradara_daily_streak', String(newStreak));
-  localStorage.setItem('tradara_daily_last', today);
+  localStorage.setItem('tradaria_daily_streak', String(newStreak));
+  localStorage.setItem('tradaria_daily_last', today);
 
   if (newStreak >= 3)  tryUnlockDailyBadge('daily_streak_3');
   if (newStreak >= 7)  tryUnlockDailyBadge('daily_streak_7');
   if (newStreak >= 30) tryUnlockDailyBadge('daily_streak_30');
 
-  const weekKey  = `tradara_daily_week_${new Date().toISOString().slice(0, 7)}`;
+  const weekKey  = `tradaria_daily_week_${new Date().toISOString().slice(0, 7)}`;
   const weekDays = JSON.parse(localStorage.getItem(weekKey) || '[]');
   const todayDay = new Date().getDay();
   if (!weekDays.includes(todayDay)) {
@@ -173,14 +173,14 @@ export default function Daily({ onBack }) {
   if (hour === 3) { tryUnlockDailyBadge('ghost'); tryUnlockDailyBadge('secret_night'); }
 
   // Sincronizar streak con servidor
-  const token = localStorage.getItem('tradara_token');
+  const token = localStorage.getItem('tradaria_token');
   if (token) {
     fetch(`${SERVER}/auth/sync`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        xp:          parseInt(localStorage.getItem('tradara_xp') || '0'),
-        badges:      JSON.parse(localStorage.getItem('tradara_badges') || '[]'),
+        xp:          parseInt(localStorage.getItem('tradaria_xp') || '0'),
+        badges:      JSON.parse(localStorage.getItem('tradaria_badges') || '[]'),
         dailyStreak: newStreak,
         lastPlayed:  today,
         dailyResult: res,
@@ -191,19 +191,19 @@ export default function Daily({ onBack }) {
 
   const shareResult = () => {
     if (!result) return;
-    const streak = localStorage.getItem('tradara_daily_streak') || '1';
+    const streak = localStorage.getItem('tradaria_daily_streak') || '1';
     const dir = result.direction === 'up' ? '▲' : result.direction === 'down' ? '▼' : '—';
     const pct = `${result.pctMove > 0 ? '+' : ''}${result.pctMove.toFixed(2)}%`;
-    const text = `⚡ Tradara Daily Challenge\n${new Date().toISOString().split('T')[0]}\n\n${result.win ? '✅ CORRECT' : '❌ WRONG'} — ${dir} ${pct}\n🔥 ${streak} day streak\n\ntradara.dev`;
+    const text = `⚡ Tradaria Daily Challenge\n${new Date().toISOString().split('T')[0]}\n\n${result.win ? '✅ CORRECT' : '❌ WRONG'} — ${dir} ${pct}\n🔥 ${streak} day streak\n\ntradaria.dev`;
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
-    const tok = localStorage.getItem('tradara_token');
+    const tok = localStorage.getItem('tradaria_token');
     if (tok) fetch(`${SERVER}/stats/share`, { method: 'POST', headers: { Authorization: `Bearer ${tok}` } }).catch(() => {});
     const prevXP = getXP(); checkLevelUp(prevXP, addXP(5));
-    const shares = parseInt(localStorage.getItem('tradara_share_count') || '0') + 1;
-    localStorage.setItem('tradara_share_count', String(shares));
+    const shares = parseInt(localStorage.getItem('tradaria_share_count') || '0') + 1;
+    localStorage.setItem('tradaria_share_count', String(shares));
     if (shares >= 3) tryUnlockDailyBadge('screenshot_ready');
   };
 
@@ -303,7 +303,7 @@ export default function Daily({ onBack }) {
                 {user?.username && (
                   <button
                     onClick={() => {
-                      navigator.clipboard.writeText(`https://tradara.dev?ref=@${user.username}`);
+                      navigator.clipboard.writeText(`https://tradaria.dev?ref=@${user.username}`);
                       setCopiedInvite(true);
                       setTimeout(() => setCopiedInvite(false), 2000);
                     }}
@@ -333,7 +333,7 @@ export default function Daily({ onBack }) {
             {user?.username && (
               <button
                 onClick={() => {
-                  navigator.clipboard.writeText(`https://tradara.dev?ref=@${user.username}`);
+                  navigator.clipboard.writeText(`https://tradaria.dev?ref=@${user.username}`);
                   setCopiedInvite(true);
                   setTimeout(() => setCopiedInvite(false), 2000);
                 }}

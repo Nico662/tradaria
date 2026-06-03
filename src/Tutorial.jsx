@@ -55,7 +55,7 @@ export default function Tutorial({ onDone }) {
   const current = STEPS[step];
 
   function dismiss() {
-    localStorage.setItem('tradara_tutorial_done', 'true');
+    localStorage.setItem('tradaria_tutorial_done', 'true');
     onDone();
   }
 

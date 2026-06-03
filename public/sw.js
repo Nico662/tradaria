@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tradara-v3';
+const CACHE_NAME = 'tradaria-v3';
 
 const STATIC_ASSETS = [
   '/',
@@ -31,10 +31,10 @@ self.addEventListener('fetch', (event) => {
   // Solo interceptar GET
   if (event.request.method !== 'GET') return;
 
-  // No interceptar llamadas al servidor de Tradara ni a APIs externas
+  // No interceptar llamadas al servidor de Tradaria ni a APIs externas
   const url = new URL(event.request.url);
   if (
-    url.hostname === 'tradara-production.up.railway.app' ||
+    url.hostname === 'tradaria-production.up.railway.app' ||
     url.hostname === 'api.binance.com' ||
     url.hostname === 'glad-teal-76856.upstash.io'
   ) return;
@@ -66,11 +66,11 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('push', (event) => {
   const data = event.data?.json() ?? {};
   event.waitUntil(
-    self.registration.showNotification(data.title ?? '⚡ Tradara', {
+    self.registration.showNotification(data.title ?? '⚡ Tradaria', {
       body:  data.body ?? 'Daily challenge is ready!',
       icon:  '/icon-192.png',
       badge: '/icon-192.png',
-      data:  { url: data.url ?? 'https://tradara.dev' },
+      data:  { url: data.url ?? 'https://tradaria.dev' },
     })
   );
 });
@@ -78,6 +78,6 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   event.waitUntil(
-    clients.openWindow(event.notification.data?.url ?? 'https://tradara.dev')
+    clients.openWindow(event.notification.data?.url ?? 'https://tradaria.dev')
   );
 });

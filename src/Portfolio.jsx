@@ -173,7 +173,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
   const [duelLoading, setDuelLoading]       = useState(false);
   const [duelMsg, setDuelMsg]               = useState('');
   const [showWelcome, setShowWelcome]       = useState(false);
-  const [inputMode, setInputMode]           = useState(() => localStorage.getItem('tradara_portfolio_input_mode') || 'units');
+  const [inputMode, setInputMode]           = useState(() => localStorage.getItem('tradaria_portfolio_input_mode') || 'units');
   const [alerts, setAlerts]                 = useState([]);
   const [alertModal, setAlertModal]         = useState(null);
   const [alertPrice, setAlertPrice]         = useState('');
@@ -187,11 +187,11 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
   const [compareExpanded, setCompareExpanded] = useState(false);
   const chartRef = useRef(null);
 
-  const token = localStorage.getItem('tradara_token');
+  const token = localStorage.getItem('tradaria_token');
 
   // ── Price alerts ──────────────────────────────────────────────────
   async function fetchAlerts() {
-    const tok = localStorage.getItem('tradara_token');
+    const tok = localStorage.getItem('tradaria_token');
     try {
       const res = await fetch(`${SERVER}/api/alerts`, { headers: { Authorization: `Bearer ${tok}` } });
       if (res.ok) setAlerts(await res.json());
@@ -200,7 +200,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
 
   async function saveAlert(ticker, targetPrice, condition) {
     if (!targetPrice || isNaN(targetPrice) || targetPrice <= 0) return;
-    const tok = localStorage.getItem('tradara_token');
+    const tok = localStorage.getItem('tradaria_token');
     const res = await fetch(`${SERVER}/api/alerts`, {
       method:  'POST',
       headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
@@ -214,7 +214,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
   }
 
   async function deleteAlert(alertId) {
-    const tok = localStorage.getItem('tradara_token');
+    const tok = localStorage.getItem('tradaria_token');
     await fetch(`${SERVER}/api/alerts/${alertId}`, {
       method:  'DELETE',
       headers: { Authorization: `Bearer ${tok}` },
@@ -238,7 +238,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
 
   // ── Position notes ────────────────────────────────────────────────
   async function fetchNotes() {
-    const tok = localStorage.getItem('tradara_token');
+    const tok = localStorage.getItem('tradaria_token');
     try {
       const res = await fetch(`${SERVER}/api/portfolio/notes`, { headers: { Authorization: `Bearer ${tok}` } });
       if (res.ok) {
@@ -253,7 +253,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
   async function saveNote(ticker, text) {
     if (!text.trim()) return;
     setNoteSaving(true);
-    const tok = localStorage.getItem('tradara_token');
+    const tok = localStorage.getItem('tradaria_token');
     try {
       const res = await fetch(`${SERVER}/api/portfolio/note`, {
         method:  'POST',
@@ -269,7 +269,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
   }
 
   async function deleteNote(ticker) {
-    const tok = localStorage.getItem('tradara_token');
+    const tok = localStorage.getItem('tradaria_token');
     try {
       await fetch(`${SERVER}/api/portfolio/note/${ticker}`, { method: 'DELETE', headers: { Authorization: `Bearer ${tok}` } });
       setNotes(prev => { const n = { ...prev }; delete n[ticker]; return n; });
@@ -281,7 +281,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
   async function loadCompare() {
     if (compareLoading) return;
     setCompareLoading(true);
-    const tok = localStorage.getItem('tradara_token');
+    const tok = localStorage.getItem('tradaria_token');
     try {
       const res = await fetch(`${SERVER}/api/portfolio/compare`, { headers: { Authorization: `Bearer ${tok}` } });
       if (res.ok) setCompareData(await res.json());
@@ -290,9 +290,9 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
   }
 
   function dismissWelcome() {
-    localStorage.setItem('tradara_portfolio_welcomed', 'true');
+    localStorage.setItem('tradaria_portfolio_welcomed', 'true');
     setShowWelcome(false);
-    const tok = localStorage.getItem('tradara_token');
+    const tok = localStorage.getItem('tradaria_token');
     if (tok) {
       fetch(`${SERVER}/portfolio/tutorial-seen`, {
         method: 'POST',
@@ -310,7 +310,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
   }
 
   const loadAll = useCallback(async () => {
-    const tok = localStorage.getItem('tradara_token');
+    const tok = localStorage.getItem('tradaria_token');
     try {
       const [pricesRes, portfolioRes] = await Promise.all([
         fetch(`${SERVER}/portfolio/prices`),
@@ -320,7 +320,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
       const portfolioData = await portfolioRes.json();
       setPrices(pricesData);
       setPortfolio(portfolioData);
-      if (!portfolioData.tutorialSeen && !localStorage.getItem('tradara_portfolio_welcomed')) {
+      if (!portfolioData.tutorialSeen && !localStorage.getItem('tradaria_portfolio_welcomed')) {
         setShowWelcome(true);
         return;
       }
@@ -496,8 +496,8 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
       if (!data.ok) { setError(data.error); setLoading(false); return; }
       setTradeMsg(action === 'buy' ? '✓ ' + t.portfolio.purchase : '✓ ' + t.portfolio.sale);
       setTimeout(() => setTradeMsg(''), 2000);
-      const trades = parseInt(localStorage.getItem('tradara_portfolio_trades') || '0') + 1;
-      localStorage.setItem('tradara_portfolio_trades', String(trades));
+      const trades = parseInt(localStorage.getItem('tradaria_portfolio_trades') || '0') + 1;
+      localStorage.setItem('tradaria_portfolio_trades', String(trades));
       if (trades >= 50) tryUnlockPortfolioBadge('portfolio_trader');
       const mKey = action === 'buy' ? 'portfolio_buy' : 'portfolio_sell';
       const mr = incrementMission(mKey);
@@ -721,7 +721,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
             ].map(m => (
               <button key={m.id} onClick={() => {
                 setInputMode(m.id);
-                localStorage.setItem('tradara_portfolio_input_mode', m.id);
+                localStorage.setItem('tradaria_portfolio_input_mode', m.id);
                 setQty('');
               }} style={{ flex: 1, padding: '6px 8px', borderRadius: '5px', border: `1px solid ${inputMode === m.id ? '#378ADD' : 'var(--bd)'}`, background: inputMode === m.id ? 'rgba(55,138,221,0.08)' : 'transparent', color: inputMode === m.id ? '#378ADD' : 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em' }}>
                 {m.label}

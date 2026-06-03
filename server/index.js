@@ -37,7 +37,7 @@ const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 const GOOGLE_CLIENT_ID     = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const MONGODB_URI          = process.env.MONGODB_URI;
-const CLIENT_URL           = 'https://tradara.dev';
+const CLIENT_URL           = 'https://tradaria.dev';
 const PORT                 = process.env.PORT || 3001;
 const FINNHUB_KEY = process.env.FINNHUB_KEY;
 
@@ -47,7 +47,7 @@ const yf     = new YahooFinance();
 // ── Express ───────────────────────────────────────────────────────
 const app        = express();
 const httpServer = http.createServer(app);
-const ALLOWED_ORIGINS = ['https://tradara.dev', 'https://www.tradara.dev'];
+const ALLOWED_ORIGINS = ['https://tradaria.dev', 'https://www.tradaria.dev'];
 const io         = new Server(httpServer, { cors: { origin: ALLOWED_ORIGINS, credentials: true } });
 app.set('trust proxy', 1);
 app.use(helmet({ crossOriginResourcePolicy: false }));
@@ -290,7 +290,7 @@ const AsyncDuel = mongoose.model('AsyncDuel', AsyncDuelSchema);
 
 // ── VAPID / Push ──────────────────────────────────────────────────
 webpush.setVapidDetails(
-  'mailto:nicolasvidalcorrecher@tradara.dev',
+  'mailto:nicolasvidalcorrecher@tradaria.dev',
   process.env.VAPID_PUBLIC_KEY,
   process.env.VAPID_PRIVATE_KEY
 );
@@ -452,7 +452,7 @@ async function getPrice(asset) {
 }
 // ── Middlewares ───────────────────────────────────────────────────
 app.use(cors({
-  origin: ['https://tradara.dev', 'https://www.tradara.dev'],
+  origin: ['https://tradaria.dev', 'https://www.tradaria.dev'],
   credentials: true,
 }));
 
@@ -500,7 +500,7 @@ app.use('/auth/sync',          syncLimiter);
 passport.use(new GoogleStrategy({
   clientID:     GOOGLE_CLIENT_ID,
   clientSecret: GOOGLE_CLIENT_SECRET,
-  callbackURL:  'https://tradara-production.up.railway.app/auth/google/callback',
+  callbackURL:  'https://tradaria-production.up.railway.app/auth/google/callback',
 }, async (accessToken, refreshToken, profile, done) => {
   try {
     const existingUser = await User.findOne({ googleId: profile.id });
@@ -735,7 +735,7 @@ app.post('/shop/checkout', async (req, res) => {
       line_items: [{
         price_data: {
           currency: 'eur',
-          product_data: { name: `Tradara — ${item.name}` },
+          product_data: { name: `Tradaria — ${item.name}` },
           unit_amount: item.price,
         },
         quantity: 1,
@@ -862,7 +862,7 @@ app.post('/pro/checkout', async (req, res) => {
       line_items: [{
         price_data: {
           currency: 'eur',
-          product_data: { name: 'Tradara Pro', description: 'Suscripción mensual — sin anuncios, regeneración de vidas, badge Pro y más.' },
+          product_data: { name: 'Tradaria Pro', description: 'Suscripción mensual — sin anuncios, regeneración de vidas, badge Pro y más.' },
           unit_amount: 399,
           recurring: { interval: 'month' },
         },
@@ -974,7 +974,7 @@ app.post('/tournament/paid/join', async (req, res) => {
       line_items: [{
         price_data: {
           currency: 'eur',
-          product_data: { name: `Torneo Tradara — entrada €${pt.entryFee}`, description: `Premio al ganador: €${pt.prize}` },
+          product_data: { name: `Torneo Tradaria — entrada €${pt.entryFee}`, description: `Premio al ganador: €${pt.prize}` },
           unit_amount: pt.entryFee * 100,
         },
         quantity: 1,
@@ -1565,7 +1565,7 @@ app.post('/push/send', async (req, res) => {
   const payload = JSON.stringify({
     title: '⚡ Daily Challenge',
     body:  "Today's chart is ready. Can you call it?",
-    url:   'https://tradara.dev',
+    url:   'https://tradaria.dev',
   });
   const promises = pushSubscriptions.map(sub =>
     webpush.sendNotification(sub, payload).catch(async err => {
@@ -1957,7 +1957,7 @@ cron.schedule('*/15 * * * *', async () => {
         const payload = JSON.stringify({
           title: `${emoji} Alerta: ${alert.ticker}`,
           body:  `${alert.ticker} ha ${dir} $${currentPrice.toFixed(2)} (objetivo: $${alert.targetPrice})`,
-          url:   'https://tradara.dev',
+          url:   'https://tradaria.dev',
         });
         await webpush.sendNotification(sub, payload).catch(async err => {
           if (err.statusCode === 410) await redis.del(`push_user_sub:${alert.userId}`);
@@ -1978,7 +1978,7 @@ cron.schedule('0 8 * * *', async () => {
   const payload = JSON.stringify({
     title: '⚡ Daily Challenge',
     body:  "Today's chart is ready. Can you call it?",
-    url:   'https://tradara.dev',
+    url:   'https://tradaria.dev',
   });
   const promises = pushSubscriptions.map(sub =>
     webpush.sendNotification(sub, payload).catch(async err => {
@@ -1998,7 +1998,7 @@ cron.schedule('30 13 * * 1-5', async () => {
   const payload = JSON.stringify({
     title: '📈 El mercado acaba de abrir',
     body:  'NYSE y NASDAQ abiertos. Revisa tu portfolio.',
-    url:   'https://tradara.dev',
+    url:   'https://tradaria.dev',
   });
   const promises = pushSubscriptions.map(sub =>
     webpush.sendNotification(sub, payload).catch(async err => {
@@ -2018,7 +2018,7 @@ cron.schedule('0 20 * * 1-5', async () => {
   const payload = JSON.stringify({
     title: '🔔 El mercado ha cerrado',
     body:  'Revisa cómo ha ido tu portfolio hoy.',
-    url:   'https://tradara.dev',
+    url:   'https://tradaria.dev',
   });
   const promises = pushSubscriptions.map(sub =>
     webpush.sendNotification(sub, payload).catch(async err => {
@@ -2051,7 +2051,7 @@ cron.schedule('0 7 * * *', async () => {
       const payload = JSON.stringify({
         title: `${emoji} Tu portfolio hoy`,
         body:  `${sign}${changePct}% (${sign}${change.toFixed(0)}) · Valor total: ${histToday.totalValue.toFixed(0)}`,
-        url:   'https://tradara.dev',
+        url:   'https://tradaria.dev',
       });
       await webpush.sendNotification(sub, payload).catch(async err => {
         if (err.statusCode === 410) await redis.del(`push_user_sub:${portfolio.userId._id}`);
@@ -2088,7 +2088,7 @@ cron.schedule('0 21 * * *', async () => {
       const payload = JSON.stringify({
         title: '⚡ Tu racha está en peligro',
         body:  `Llevas ${user.dailyStreak} días seguidos. Te quedan 3 horas para mantenerla.`,
-        url:   'https://tradara.dev',
+        url:   'https://tradaria.dev',
       });
 
       await webpush.sendNotification(sub, payload).catch(async err => {
@@ -2688,7 +2688,7 @@ app.post('/portfolio/snapshot', async (req, res) => {
             const payload = JSON.stringify({
               title: '📉 Te han superado en el ranking',
               body:  `${myName} te ha superado. Su portfolio: ${myData.returnPct >= 0 ? '+' : ''}${myData.returnPct.toFixed(1)}% · El tuyo: ${surpassedUser.returnPct >= 0 ? '+' : ''}${surpassedUser.returnPct.toFixed(1)}%`,
-              url:   'https://tradara.dev',
+              url:   'https://tradaria.dev',
             });
             await webpush.sendNotification(sub, payload).catch(() => {});
             console.log(`[leaderboard-notif] notification sent to ${surpassedUser.userId}`);
@@ -3156,7 +3156,7 @@ app.post('/stripe/academy-portal', async (req, res) => {
       return res.status(400).json({ error: 'No hay suscripción activa' });
     const session = await stripe.billingPortal.sessions.create({
       customer:   academy.stripeCustomerId,
-      return_url: 'https://tradara.dev/teacher-dashboard',
+      return_url: 'https://tradaria.dev/teacher-dashboard',
     });
     res.json({ url: session.url });
   } catch (err) {

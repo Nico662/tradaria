@@ -84,10 +84,10 @@ export default function Historical({ onBack }) {
       setTimeout(() => setFloatingXP(null), 2000);
     }, 50);
 
-    const completed = JSON.parse(localStorage.getItem('tradara_historical_completed') || '[]');
+    const completed = JSON.parse(localStorage.getItem('tradaria_historical_completed') || '[]');
     if (!completed.includes(event.id)) {
       completed.push(event.id);
-      localStorage.setItem('tradara_historical_completed', JSON.stringify(completed));
+      localStorage.setItem('tradaria_historical_completed', JSON.stringify(completed));
     }
     if (completed.length >= 10) tryUnlockHistoricalBadge('historian');
     if (completed.length >= 50) tryUnlockHistoricalBadge('time_traveler');
@@ -100,7 +100,7 @@ export default function Historical({ onBack }) {
 
   const shareResult = () => {
     if (!result || !event) return;
-    const text = `📜 Tradara Historical Mode\n${event.emoji} ${event.title}\n\n${result.win ? '✅ CORRECT' : '❌ WRONG'} — ${result.direction === 'up' ? '▲' : result.direction === 'down' ? '▼' : '—'} ${result.pctMove > 0 ? '+' : ''}${result.pctMove.toFixed(2)}%\n\nCan you beat history? tradara.dev`;
+    const text = `📜 Tradaria Historical Mode\n${event.emoji} ${event.title}\n\n${result.win ? '✅ CORRECT' : '❌ WRONG'} — ${result.direction === 'up' ? '▲' : result.direction === 'down' ? '▼' : '—'} ${result.pctMove > 0 ? '+' : ''}${result.pctMove.toFixed(2)}%\n\nCan you beat history? tradaria.dev`;
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);

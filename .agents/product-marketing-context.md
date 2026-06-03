@@ -1,8 +1,8 @@
-# Tradara — Product & Marketing Context
+# Tradaria — Product & Marketing Context
 
 ## Producto
-Tradara es un juego de trading con datos reales donde predices si el mercado sube o baja.
-URL: tradara.dev
+Tradaria es un juego de trading con datos reales donde predices si el mercado sube o baja.
+URL: tradaria.dev
 
 ## Audiencia
 - Traders novatos/intermedios que quieren practicar sin arriesgar dinero

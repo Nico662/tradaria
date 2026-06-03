@@ -5,7 +5,7 @@ export const LangContext = createContext();
 
 export function LangProvider({ children }) {
   const [lang, setLangState] = useState(() => {
-    const saved = localStorage.getItem('tradara_lang');
+    const saved = localStorage.getItem('tradaria_lang');
     if (saved && LANGS[saved]) return saved;
     const browser = navigator.language?.slice(0, 2).toLowerCase();
     return ['en', 'es', 'de'].includes(browser) ? browser : 'en';
@@ -13,7 +13,7 @@ export function LangProvider({ children }) {
 
   const setLang = (l) => {
     setLangState(l);
-    localStorage.setItem('tradara_lang', l);
+    localStorage.setItem('tradaria_lang', l);
   };
 
   const t = LANGS[lang];

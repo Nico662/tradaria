@@ -45,7 +45,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
 
   async function loadAcademyTournament() {
     if (!academyId) return;
-    const token = localStorage.getItem('tradara_token');
+    const token = localStorage.getItem('tradaria_token');
     try {
       const res  = await fetch(`${SERVER}/academy/${academyId}/tournament/active`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -87,7 +87,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
     setDeletingId(tournamentId);
     setDeleteError('');
     try {
-      const token = localStorage.getItem('tradara_token');
+      const token = localStorage.getItem('tradaria_token');
       const res = await fetch(`${SERVER}/tournament/paid/${tournamentId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
@@ -111,7 +111,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
     if (!Number.isInteger(n) || n < 2 || n > 10) return;
     setCreating(true);
     try {
-      const token = localStorage.getItem('tradara_token');
+      const token = localStorage.getItem('tradaria_token');
       const res = await fetch(`${SERVER}/tournament/paid/create`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -131,7 +131,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
     if (!user) return;
     setJoiningId(tournamentId);
     try {
-      const token = localStorage.getItem('tradara_token');
+      const token = localStorage.getItem('tradaria_token');
       const res   = await fetch(`${SERVER}/tournament/paid/join`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -145,7 +145,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
 
   async function init() {
     if (!user) { setPhase('login'); return; }
-    const token = localStorage.getItem('tradara_token');
+    const token = localStorage.getItem('tradaria_token');
     if (academyTournamentId && academyId) {
       const tourRes  = await fetch(`${SERVER}/academy/${academyId}/tournament/active`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -240,10 +240,10 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
   }
 
   async function nextRound() {
-    const token = localStorage.getItem('tradara_token');
+    const token = localStorage.getItem('tradaria_token');
     if (round + 1 >= rounds.length) {
       const finalScore = score;
-      const cosmetics = JSON.parse(localStorage.getItem('tradara_cosmetics') || '{}');
+      const cosmetics = JSON.parse(localStorage.getItem('tradaria_cosmetics') || '{}');
       const cosmeticAvatar = cosmetics.avatar ? AVATAR_EMOJIS[cosmetics.avatar] : null;
       if (academyTournamentId && academyId) {
         await fetch(`${SERVER}/academy/${academyId}/tournament/${academyTournamentId}/score`, {
@@ -260,7 +260,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
       }
       const xpGained = Math.floor(finalScore / 10);
       const newXP = addXP(xpGained);
-      const badges = JSON.parse(localStorage.getItem('tradara_badges') || '[]');
+      const badges = JSON.parse(localStorage.getItem('tradaria_badges') || '[]');
       syncProgress(newXP, badges);
       if (academyTournamentId && academyId) {
         await loadAcademyTournament();
@@ -614,10 +614,10 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
             if (!el) return;
             const canvas = await html2canvas(el, { backgroundColor: 'var(--bg-page)', scale: 2 });
             const link = document.createElement('a');
-            link.download = 'tradara-tournament.png';
+            link.download = 'tradaria-tournament.png';
             link.href = canvas.toDataURL();
             link.click();
-            const tok = localStorage.getItem('tradara_token');
+            const tok = localStorage.getItem('tradaria_token');
             if (tok) fetch(`${SERVER}/stats/share`, { method: 'POST', headers: { Authorization: `Bearer ${tok}` } }).catch(() => {});
             addXP(5);
           }} style={{ marginTop: '16px', width: '100%', padding: '12px', background: 'rgba(245,200,66,0.06)', border: '1px solid #f5c842', borderRadius: '6px', color: '#f5c842', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
@@ -626,13 +626,13 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
         </div>
 
         <div id="share-card-tournament" style={{ position: 'absolute', left: '-9999px', top: 0, width: '320px', background: 'var(--bg-page)', border: '1px solid #f5c842', borderRadius: '12px', padding: '28px 24px', fontFamily: "'Space Mono', monospace" }}>
-          <div style={{ fontSize: '10px', color: 'var(--t6)', letterSpacing: '0.1em', marginBottom: '16px' }}>🏆 TRADARA TOURNAMENT</div>
+          <div style={{ fontSize: '10px', color: 'var(--t6)', letterSpacing: '0.1em', marginBottom: '16px' }}>🏆 TRADARIA TOURNAMENT</div>
           <div style={{ fontSize: '11px', color: '#5a6a7d', marginBottom: '16px' }}>{formatWeekId(weekId)}</div>
           <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '48px', color: '#f5c842', letterSpacing: '-0.02em', lineHeight: 1, marginBottom: '4px' }}>
             {phase === 'finished' ? score : alreadyScore}
           </div>
           <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '16px' }}>{t.gameover.finalScore}</div>
-          <div style={{ fontSize: '9px', color: '#f5c842', letterSpacing: '0.1em', marginTop: '8px' }}>tradara.dev</div>
+          <div style={{ fontSize: '9px', color: '#f5c842', letterSpacing: '0.1em', marginTop: '8px' }}>tradaria.dev</div>
         </div>
 
         {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}

@@ -133,7 +133,7 @@ function PreviewTheme({ item }) {
       margin: '4px 0',
     }}>
       <div style={{ padding: '3px 6px', borderBottom: `1px solid ${c.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-        <span style={{ fontSize: '6px', color: c.accent, fontFamily: "'Space Mono', monospace", fontWeight: 700, letterSpacing: '0.08em' }}>TRADARA</span>
+        <span style={{ fontSize: '6px', color: c.accent, fontFamily: "'Space Mono', monospace", fontWeight: 700, letterSpacing: '0.08em' }}>TRADARIA</span>
         <div style={{ display: 'flex', gap: '6px' }}>
           <span style={{ fontSize: '5px', color: c.text, fontFamily: "'Space Mono', monospace" }}>RND 3/10</span>
           <span style={{ fontSize: '5px', color: c.accent, fontFamily: "'Space Mono', monospace" }}>300</span>
@@ -320,7 +320,7 @@ export default function Shop({ onBack }) {
   const cosmeticType = CATEGORY_TYPES[activeCategory];
 
   async function handleBuy(itemId) {
-    const token = localStorage.getItem('tradara_token');
+    const token = localStorage.getItem('tradaria_token');
     if (!token) {
       alert(t.shop.signIn);
       return;
@@ -329,7 +329,7 @@ export default function Shop({ onBack }) {
     try {
       const res = await fetch(`${SERVER}/shop/checkout`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('tradara_token')}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('tradaria_token')}` },
         body: JSON.stringify({ itemId }),
       });
       const data = await res.json();

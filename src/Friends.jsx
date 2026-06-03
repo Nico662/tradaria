@@ -10,7 +10,7 @@ import FounderBadge, { isFounder } from './FounderBadge.jsx';
 
 function authHeaders() {
   return {
-    Authorization: `Bearer ${localStorage.getItem('tradara_token')}`,
+    Authorization: `Bearer ${localStorage.getItem('tradaria_token')}`,
     'Content-Type': 'application/json',
   };
 }
@@ -169,7 +169,7 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
 
   function copyInviteLink() {
     if (!user?.username) return;
-    navigator.clipboard.writeText(`https://tradara.dev?ref=@${user.username}`);
+    navigator.clipboard.writeText(`https://tradaria.dev?ref=@${user.username}`);
     setCopiedInvite(true);
     setTimeout(() => setCopiedInvite(false), 2000);
   }

@@ -7,13 +7,13 @@ export const LEVELS = [
 ];
 
 export function getXP() {
-  return parseInt(localStorage.getItem('tradara_xp') || '0');
+  return parseInt(localStorage.getItem('tradaria_xp') || '0');
 }
 
 export function addXP(amount) {
   const current = getXP();
   const newXP   = current + amount;
-  localStorage.setItem('tradara_xp', String(newXP));
+  localStorage.setItem('tradaria_xp', String(newXP));
   return newXP;
 }
 

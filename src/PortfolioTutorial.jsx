@@ -120,7 +120,7 @@ export default function PortfolioTutorial({ onDone }) {
   const current = STEPS[step];
 
   function dismiss() {
-    localStorage.setItem('tradara_portfolio_welcomed', 'true');
+    localStorage.setItem('tradaria_portfolio_welcomed', 'true');
     onDone();
   }
 

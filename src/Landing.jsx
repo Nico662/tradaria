@@ -125,7 +125,7 @@ function DemoChart() {
 
 export default function Landing({ onEnter }) {
   function enter() {
-    localStorage.setItem('tradara_landing_seen', 'true');
+    localStorage.setItem('tradaria_landing_seen', 'true');
     onEnter();
   }
 
@@ -162,7 +162,7 @@ export default function Landing({ onEnter }) {
               <line x1="50" y1="150" x2="50" y2="190" stroke="#22d3a5" strokeWidth="8" strokeLinecap="round"/>
             </svg>
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '38px', letterSpacing: '-0.02em', color: '#f0f0f0', textShadow: '0 0 60px rgba(34,211,165,0.2)' }}>
-              Tradara
+              Tradaria
             </div>
           </div>
           <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '26px', color: '#f0f0f0', lineHeight: 1.2, marginBottom: '10px', letterSpacing: '-0.01em' }}>

@@ -19,7 +19,7 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
     async function load() {
       try {
         const headers = {};
-        const token = localStorage.getItem('tradara_token');
+        const token = localStorage.getItem('tradaria_token');
         if (token) headers.Authorization = `Bearer ${token}`;
         const res = await fetch(`${SERVER}/u/${encodeURIComponent(username)}`, { headers });
         if (!res.ok) { setError(t.profile.notFound); setLoading(false); return; }
@@ -35,7 +35,7 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
   }, [username]);
 
   async function sendFriendRequest() {
-    const token = localStorage.getItem('tradara_token');
+    const token = localStorage.getItem('tradaria_token');
     try {
       const res = await fetch(`${SERVER}/friends/request`, {
         method:  'POST',
@@ -176,7 +176,7 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
             )
           )}
 
-          <a href="https://tradara.dev"
+          <a href="https://tradaria.dev"
             style={{ display: 'block', textAlign: 'center', padding: '14px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '8px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', textDecoration: 'none' }}>
             {t.profile.playOn}
           </a>

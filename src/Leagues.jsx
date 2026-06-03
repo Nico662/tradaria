@@ -16,7 +16,7 @@ export default function Leagues({ onOpenLeague, onBack }) {
   const [msg, setMsg]             = useState(null); // { text, ok }
   const [submitting, setSubmitting] = useState(false);
 
-  const tok = localStorage.getItem('tradara_token');
+  const tok = localStorage.getItem('tradaria_token');
 
   async function loadLeagues() {
     if (!tok) return;

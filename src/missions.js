@@ -36,14 +36,14 @@ export function getTodayMissions() {
 
 export function getMissionProgress(missionId) {
   const today = new Date().toISOString().split('T')[0];
-  const key   = `tradara_missions_${today}`;
+  const key   = `tradaria_missions_${today}`;
   const data  = JSON.parse(localStorage.getItem(key) || '{}');
   return data[missionId] || 0;
 }
 
 export function incrementMission(missionId, amount = 1) {
   const today    = new Date().toISOString().split('T')[0];
-  const key      = `tradara_missions_${today}`;
+  const key      = `tradaria_missions_${today}`;
   const data     = JSON.parse(localStorage.getItem(key) || '{}');
   const missions = getTodayMissions();
   const mission  = missions.find(m => m.id === missionId);
@@ -55,8 +55,8 @@ export function incrementMission(missionId, amount = 1) {
   localStorage.setItem(key, JSON.stringify(data));
   if (next >= mission.target) {
     addXP(mission.xp);
-    const total = parseInt(localStorage.getItem('tradara_missions_completed_total') || '0') + 1;
-    localStorage.setItem('tradara_missions_completed_total', String(total));
+    const total = parseInt(localStorage.getItem('tradaria_missions_completed_total') || '0') + 1;
+    localStorage.setItem('tradaria_missions_completed_total', String(total));
     if (total === 1) unlockBadge('mission_first');
     if (total >= 30) unlockBadge('mission_master');
     return { completed: true, xpEarned: mission.xp, mission };
@@ -91,7 +91,7 @@ export function getWeeklyMission() {
 
 export function getWeeklyProgress() {
   const monday  = getWeekMonday();
-  const weekKey = `tradara_weekly_mission_${monday}`;
+  const weekKey = `tradaria_weekly_mission_${monday}`;
   const data    = JSON.parse(localStorage.getItem(weekKey) || '{}');
   const mission = getWeeklyMission();
   return data[mission.id] || 0;
@@ -99,7 +99,7 @@ export function getWeeklyProgress() {
 
 export function incrementWeeklyMission(missionId, amount = 1) {
   const monday  = getWeekMonday();
-  const weekKey = `tradara_weekly_mission_${monday}`;
+  const weekKey = `tradaria_weekly_mission_${monday}`;
   const data    = JSON.parse(localStorage.getItem(weekKey) || '{}');
   const mission = getWeeklyMission();
   if (mission.id !== missionId) return { completed: false, xpEarned: 0 };
@@ -117,7 +117,7 @@ export function incrementWeeklyMission(missionId, amount = 1) {
 
 export function recordModePlayed(mode) {
   const today = new Date().toISOString().split('T')[0];
-  const key   = `tradara_modes_${today}`;
+  const key   = `tradaria_modes_${today}`;
   const modes = JSON.parse(localStorage.getItem(key) || '[]');
   if (!modes.includes(mode)) {
     modes.push(mode);
@@ -129,7 +129,7 @@ export function recordModePlayed(mode) {
 
 export function recordWeeklyModePlayed(mode) {
   const monday   = getWeekMonday();
-  const key      = `tradara_weekly_modes_${monday}`;
+  const key      = `tradaria_weekly_modes_${monday}`;
   const modes    = JSON.parse(localStorage.getItem(key) || '[]');
   if (!modes.includes(mode)) {
     modes.push(mode);

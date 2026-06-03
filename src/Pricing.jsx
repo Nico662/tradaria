@@ -23,7 +23,7 @@ export default function Pricing({ onBack, fromTournament }) {
     if (!user) { setMsg(t.pricing.signInFirst); return; }
     setLoading(true);
     try {
-      const token = localStorage.getItem('tradara_token');
+      const token = localStorage.getItem('tradaria_token');
       const res   = await fetch(`${SERVER}/pro/checkout`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },

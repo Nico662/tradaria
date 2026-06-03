@@ -82,7 +82,7 @@ function FieldInput({ label, type = 'text', value, onChange, placeholder }) {
 // ── Create academy screen (shown when teacher has no academy yet) ──
 function CreateAcademyScreen({ onBack, onCreated }) {
   const { t } = useLang();
-  const tok = localStorage.getItem('tradara_token');
+  const tok = localStorage.getItem('tradaria_token');
   const [name,        setName]        = useState('');
   const [submitting,  setSubmitting]  = useState(false);
   const [err,         setErr]         = useState(null);
@@ -165,7 +165,7 @@ function CreateAcademyScreen({ onBack, onCreated }) {
 // ── Dashboard content (academyId guaranteed valid) ────────────────
 function AcademyDashboard({ academyId, onBack }) {
   const { t } = useLang();
-  const tok = localStorage.getItem('tradara_token');
+  const tok = localStorage.getItem('tradaria_token');
 
   const [academy,    setAcademy]    = useState(null);
   const [loading,    setLoading]    = useState(true);

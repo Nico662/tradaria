@@ -35,14 +35,14 @@ export default function Survival({ onBack }) {
   const [selected,    setSelected]   = useState(null);
   const [gameOver,    setGameOver]   = useState(false);
   const [revealing,   setRevealing]  = useState(false);
-  const [highscore,   setHighscore]  = useState(() => parseInt(localStorage.getItem('tradara_survival_highscore') || '0'));
+  const [highscore,   setHighscore]  = useState(() => parseInt(localStorage.getItem('tradaria_survival_highscore') || '0'));
   const [newBadge,    setNewBadge]   = useState(null);
   const [floatingXP,  setFloatingXP] = useState(null);
   const [liveLost,    setLiveLost]   = useState(false);
   const [missionToast, setMissionToast] = useState([]);
   const pushMission = data => setMissionToast(q => [...q, data]);
   const floatingXPKeyRef = useRef(0);
-  const highscoreRef   = useRef(parseInt(localStorage.getItem('tradara_survival_highscore') || '0'));
+  const highscoreRef   = useRef(parseInt(localStorage.getItem('tradaria_survival_highscore') || '0'));
   const effectTimerRef = useRef(null);
   const [activeEffect,setActiveEffect] = useState(false);
   const chartRef = useRef(null);
@@ -52,7 +52,7 @@ export default function Survival({ onBack }) {
     if (unlocked) {
       const badge = BADGES.find(b => b.id === id);
       if (badge) setNewBadge(badge);
-      const badges = JSON.parse(localStorage.getItem('tradara_badges') || '[]');
+      const badges = JSON.parse(localStorage.getItem('tradaria_badges') || '[]');
       syncProgress(getXP(), badges);
     }
   }
@@ -67,7 +67,7 @@ export default function Survival({ onBack }) {
       setFloatingXP(amount);
       setTimeout(() => setFloatingXP(null), 2000);
     }, 50);
-    const badges = JSON.parse(localStorage.getItem('tradara_badges') || '[]');
+    const badges = JSON.parse(localStorage.getItem('tradaria_badges') || '[]');
     syncProgress(newXP, badges);
   }
 
@@ -110,7 +110,7 @@ export default function Survival({ onBack }) {
         if (ns > highscoreRef.current) {
           highscoreRef.current = ns;
           setHighscore(ns);
-          localStorage.setItem('tradara_survival_highscore', String(ns));
+          localStorage.setItem('tradaria_survival_highscore', String(ns));
         }
         return ns;
       });
@@ -125,7 +125,7 @@ export default function Survival({ onBack }) {
         if (ns > highscoreRef.current) {
           highscoreRef.current = ns;
           setHighscore(ns);
-          localStorage.setItem('tradara_survival_highscore', String(ns));
+          localStorage.setItem('tradaria_survival_highscore', String(ns));
         }
         return ns;
       });
@@ -204,7 +204,7 @@ export default function Survival({ onBack }) {
 
   useEffect(() => {
     if (!gameOver) return;
-    const token = localStorage.getItem('tradara_token');
+    const token = localStorage.getItem('tradaria_token');
     if (!token) return;
     const wins   = history.filter(h => h === 'win').length;
     const losses = history.filter(h => h === 'lose').length;
@@ -224,10 +224,10 @@ export default function Survival({ onBack }) {
     if (!el) return;
     const canvas = await html2canvas(el, { backgroundColor: 'var(--bg-page)', scale: 2 });
     const link = document.createElement('a');
-    link.download = 'tradara-survival.png';
+    link.download = 'tradaria-survival.png';
     link.href = canvas.toDataURL();
     link.click();
-    const tok = localStorage.getItem('tradara_token');
+    const tok = localStorage.getItem('tradaria_token');
     if (tok) fetch(`${SERVER}/stats/share`, { method: 'POST', headers: { Authorization: `Bearer ${tok}` } }).catch(() => {});
     addXP(5);
   };
@@ -316,7 +316,7 @@ export default function Survival({ onBack }) {
           </button>
         </div>
         <div id="share-card-survival" style={{ position: 'absolute', left: '-9999px', top: 0, width: '320px', background: 'var(--bg-page)', border: '1px solid #f05454', borderRadius: '12px', padding: '28px 24px', fontFamily: "'Space Mono', monospace" }}>
-          <div style={{ fontSize: '10px', color: 'var(--t6)', letterSpacing: '0.1em', marginBottom: '16px' }}>☠️ TRADARA SURVIVAL</div>
+          <div style={{ fontSize: '10px', color: 'var(--t6)', letterSpacing: '0.1em', marginBottom: '16px' }}>☠️ TRADARIA SURVIVAL</div>
           <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '48px', color: '#f5c842', letterSpacing: '-0.02em', lineHeight: 1, marginBottom: '4px' }}>{score}</div>
           <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '16px' }}>{t.survival.finalScore}</div>
           {isNewHS && <div style={{ fontSize: '10px', color: '#22d3a5', marginBottom: '8px' }}>{t.survival.newHighscore}</div>}
@@ -325,7 +325,7 @@ export default function Survival({ onBack }) {
             <div><span style={{ fontSize: '16px', fontWeight: 800, color: '#22d3a5' }}>{wins}</span><div style={{ fontSize: '8px', color: 'var(--t5)' }}>correct</div></div>
             <div><span style={{ fontSize: '16px', fontWeight: 800, color: '#f5c842' }}>{accuracy}%</span><div style={{ fontSize: '8px', color: 'var(--t5)' }}>accuracy</div></div>
           </div>
-          <div style={{ fontSize: '9px', color: '#22d3a5', letterSpacing: '0.1em', marginTop: '8px' }}>tradara.dev</div>
+          <div style={{ fontSize: '9px', color: '#22d3a5', letterSpacing: '0.1em', marginTop: '8px' }}>tradaria.dev</div>
         </div>
         {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
       </div>

@@ -62,7 +62,7 @@ export default function App() {
   });
   const [leagueId, setLeagueId] = useState(null);
   const [academyTournamentCtx, setAcademyTournamentCtx] = useState(null); // { academyId, tournamentId }
-  const [showLanding,  setShowLanding]  = useState(() => !localStorage.getItem('tradara_landing_seen'));
+  const [showLanding,  setShowLanding]  = useState(() => !localStorage.getItem('tradaria_landing_seen'));
   const [showTutorial, setShowTutorial] = useState(false);
   const [category,    setCategory]  = useState('all');
   const [asset,       setAsset]     = useState(() => randomAsset('all'));
@@ -75,7 +75,7 @@ export default function App() {
   const [selected,    setSelected]  = useState(null);
   const [gameOver,    setGameOver]  = useState(false);
   const [revealing,   setRevealing] = useState(false);
-  const [highscore,   setHighscore] = useState(() => parseInt(localStorage.getItem('tradara_highscore') || '0'));
+  const [highscore,   setHighscore] = useState(() => parseInt(localStorage.getItem('tradaria_highscore') || '0'));
   const [newBadge,    setNewBadge]  = useState(null);
   const [personalStats, setPersonalStats] = useState(null);
   const [xp,          setXp]        = useState(() => getXP());
@@ -145,7 +145,7 @@ export default function App() {
    }, [activeCosmetics?.theme]);
 
   useEffect(() => {
-    const mode = localStorage.getItem('tradara_theme_mode') || 'dark';
+    const mode = localStorage.getItem('tradaria_theme_mode') || 'dark';
     const root = document.getElementById('root');
     if (mode === 'light') root.classList.add('light-mode');
     else root.classList.remove('light-mode');
@@ -189,7 +189,7 @@ export default function App() {
     if (unlocked) {
       const badge = BADGES.find(b => b.id === id);
       if (badge) setNewBadge(badge);
-      const badges = JSON.parse(localStorage.getItem('tradara_badges') || '[]');
+      const badges = JSON.parse(localStorage.getItem('tradaria_badges') || '[]');
       const xp = getXP();
       syncProgress(xp, badges);
     }
@@ -206,7 +206,7 @@ export default function App() {
       setFloatingXP(amount);
       setTimeout(() => setFloatingXP(null), 2000);
     }, 50);
-    const badges = JSON.parse(localStorage.getItem('tradara_badges') || '[]');
+    const badges = JSON.parse(localStorage.getItem('tradaria_badges') || '[]');
     syncProgress(newXP, badges);
   }
 
@@ -217,13 +217,13 @@ export default function App() {
 
   function updateDailyStreak() {
     const today      = new Date().toISOString().split('T')[0];
-    const lastPlayed = localStorage.getItem('tradara_daily_last');
+    const lastPlayed = localStorage.getItem('tradaria_daily_last');
     const yesterday  = new Date(Date.now() - 86400000).toISOString().split('T')[0];
     if (lastPlayed === today) return;
-    const current   = parseInt(localStorage.getItem('tradara_daily_streak') || '0');
+    const current   = parseInt(localStorage.getItem('tradaria_daily_streak') || '0');
     const newStreak = lastPlayed === yesterday ? current + 1 : 1;
-    localStorage.setItem('tradara_daily_streak', String(newStreak));
-    localStorage.setItem('tradara_daily_last', today);
+    localStorage.setItem('tradaria_daily_streak', String(newStreak));
+    localStorage.setItem('tradaria_daily_last', today);
     if (newStreak >= 3)   tryUnlockBadge('consistent');
     if (newStreak >= 7)   tryUnlockBadge('dedicated');
     if (newStreak >= 14)  tryUnlockBadge('streak_14');
@@ -263,33 +263,33 @@ export default function App() {
       setScore(newScore);
       if (newScore > highscore) {
         setHighscore(newScore);
-        localStorage.setItem('tradara_highscore', String(newScore));
+        localStorage.setItem('tradaria_highscore', String(newScore));
       }
       setStreak(s => s + 1);
       if (streak >= 2) playStreak(); else playWin();
       triggerEffect();
       earnXP(10);
-      localStorage.setItem('tradara_lose_streak', '0');
+      localStorage.setItem('tradaria_lose_streak', '0');
     } else if (win && neutral) {
       pts = 50;
       const newScore = score + pts;
       setScore(newScore);
       if (newScore > highscore) {
         setHighscore(newScore);
-        localStorage.setItem('tradara_highscore', String(newScore));
+        localStorage.setItem('tradaria_highscore', String(newScore));
       }
       setStreak(s => s + 1);
       playWin();
       triggerEffect();
       earnXP(5);
-      localStorage.setItem('tradara_lose_streak', '0');
+      localStorage.setItem('tradaria_lose_streak', '0');
     } else if (!win && !neutral) {
       pts = -50;
       setScore(s => Math.max(0, s + pts));
       setStreak(0);
       playLose();
-      const loseStreak = parseInt(localStorage.getItem('tradara_lose_streak') || '0') + 1;
-      localStorage.setItem('tradara_lose_streak', String(loseStreak));
+      const loseStreak = parseInt(localStorage.getItem('tradaria_lose_streak') || '0') + 1;
+      localStorage.setItem('tradaria_lose_streak', String(loseStreak));
       if (loseStreak >= 10) tryUnlockBadge('rekt');
     }
 
@@ -297,33 +297,33 @@ export default function App() {
     if (win && streak + 1 >= 10) tryUnlockBadge('on_fire');
 
     if (choice === 'skip' && win) {
-      const skipStreak = parseInt(localStorage.getItem('tradara_skip_streak') || '0') + 1;
-      localStorage.setItem('tradara_skip_streak', String(skipStreak));
+      const skipStreak = parseInt(localStorage.getItem('tradaria_skip_streak') || '0') + 1;
+      localStorage.setItem('tradaria_skip_streak', String(skipStreak));
       if (skipStreak >= 3) tryUnlockBadge('diamond_hands');
     } else {
-      localStorage.setItem('tradara_skip_streak', '0');
+      localStorage.setItem('tradaria_skip_streak', '0');
     }
 
     if (asset.name === 'BTC/USD' && win) {
-      const btcWins = parseInt(localStorage.getItem('tradara_btc_wins') || '0') + 1;
-      localStorage.setItem('tradara_btc_wins', String(btcWins));
+      const btcWins = parseInt(localStorage.getItem('tradaria_btc_wins') || '0') + 1;
+      localStorage.setItem('tradaria_btc_wins', String(btcWins));
       if (btcWins >= 10) tryUnlockBadge('bitcoin_maxi');
     }
 
     if (asset.cat === 'forex' && win) {
-      const forexStreak = parseInt(localStorage.getItem('tradara_forex_streak') || '0') + 1;
-      localStorage.setItem('tradara_forex_streak', String(forexStreak));
+      const forexStreak = parseInt(localStorage.getItem('tradaria_forex_streak') || '0') + 1;
+      localStorage.setItem('tradaria_forex_streak', String(forexStreak));
       if (forexStreak >= 5) tryUnlockBadge('forex_king');
     } else if (asset.cat === 'forex' && !win) {
-      localStorage.setItem('tradara_forex_streak', '0');
+      localStorage.setItem('tradaria_forex_streak', '0');
     }
 
     if (win && asset.base() >= 10000) {
-      const whaleWins = parseInt(localStorage.getItem('tradara_whale_wins') || '0') + 1;
-      localStorage.setItem('tradara_whale_wins', String(whaleWins));
+      const whaleWins = parseInt(localStorage.getItem('tradaria_whale_wins') || '0') + 1;
+      localStorage.setItem('tradaria_whale_wins', String(whaleWins));
       if (whaleWins >= 3) tryUnlockBadge('whale');
     } else if (!win) {
-      localStorage.setItem('tradara_whale_wins', '0');
+      localStorage.setItem('tradaria_whale_wins', '0');
     }
 
     if (win) wonCatsRef.current.add(asset.cat);
@@ -354,7 +354,7 @@ export default function App() {
 
   useEffect(() => {
     if (!gameOver) return;
-    const token = localStorage.getItem('tradara_token');
+    const token = localStorage.getItem('tradaria_token');
     if (!token) return;
     const wins     = history.filter(h => h === 'win').length;
     const losses   = history.filter(h => h === 'lose').length;
@@ -444,7 +444,7 @@ export default function App() {
     if (!el) return;
     const canvas = await html2canvas(el, { backgroundColor: 'var(--bg-page)', scale: 2 });
     const link = document.createElement('a');
-    link.download = 'tradara-result.png';
+    link.download = 'tradaria-result.png';
     link.href = canvas.toDataURL();
     link.click();
   };
@@ -494,7 +494,7 @@ export default function App() {
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: 'var(--t1)' }}>
                 GUESS <span style={{ color: '#22d3a5' }}>THE</span> MARKET
               </div>
-              <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.1em' }}>tradara.dev</div>
+              <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.1em' }}>tradaria.dev</div>
             </div>
             <div style={{ textAlign: 'center', marginBottom: '20px' }}>
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '52px', color: '#f5c842', letterSpacing: '-0.02em', lineHeight: 1 }}>
@@ -607,7 +607,7 @@ export default function App() {
           else if (mode === 'student_dashboard') setScreen('student_dashboard');
           else {
             setScreen('game');
-            if (!localStorage.getItem('tradara_tutorial_done')) setShowTutorial(true);
+            if (!localStorage.getItem('tradaria_tutorial_done')) setShowTutorial(true);
           }
         }} />
         <NotificationBanner />

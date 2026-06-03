@@ -12,7 +12,7 @@ const STRINGS = {
     notifications: 'Notifications',
     notifOn: '✓ Notifications enabled', notifOff: 'Enable notifications',
     account: 'Account', username: 'Username', edit: 'Edit', signOut: 'Sign out',
-    about: 'About Tradara', builtBy: 'Built by Nicolás Vidal',
+    about: 'About Tradaria', builtBy: 'Built by Nicolás Vidal',
   },
   es: {
     title: 'Configuración', back: '← volver',
@@ -21,7 +21,7 @@ const STRINGS = {
     notifications: 'Notificaciones',
     notifOn: '✓ Notificaciones activadas', notifOff: 'Activar notificaciones',
     account: 'Cuenta', username: 'Nombre de usuario', edit: 'Editar', signOut: 'Cerrar sesión',
-    about: 'Sobre Tradara', builtBy: 'Construido por Nicolás Vidal',
+    about: 'Sobre Tradaria', builtBy: 'Construido por Nicolás Vidal',
   },
   de: {
     title: 'Einstellungen', back: '← zurück',
@@ -30,7 +30,7 @@ const STRINGS = {
     notifications: 'Benachrichtigungen',
     notifOn: '✓ Benachrichtigungen aktiv', notifOff: 'Benachrichtigungen aktivieren',
     account: 'Konto', username: 'Benutzername', edit: 'Bearbeiten', signOut: 'Abmelden',
-    about: 'Über Tradara', builtBy: 'Erstellt von Nicolás Vidal',
+    about: 'Über Tradaria', builtBy: 'Erstellt von Nicolás Vidal',
   },
 };
 
@@ -86,7 +86,7 @@ export default function Settings({ onBack }) {
   const s = STRINGS[lang] || STRINGS.en;
 
   const [isDark, setIsDark] = useState(
-    () => (localStorage.getItem('tradara_theme_mode') || 'dark') === 'dark'
+    () => (localStorage.getItem('tradaria_theme_mode') || 'dark') === 'dark'
   );
   const [notifEnabled, setNotifEnabled] = useState(
     () => typeof Notification !== 'undefined' && Notification.permission === 'granted'
@@ -99,7 +99,7 @@ export default function Settings({ onBack }) {
   async function handleCancelSubscription() {
     setCancelLoading(true);
     try {
-      const token = localStorage.getItem('tradara_token');
+      const token = localStorage.getItem('tradaria_token');
       const res   = await fetch(`${SERVER}/pro/cancel`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
@@ -116,7 +116,7 @@ export default function Settings({ onBack }) {
   function toggleTheme() {
     const newMode = isDark ? 'light' : 'dark';
     setIsDark(!isDark);
-    localStorage.setItem('tradara_theme_mode', newMode);
+    localStorage.setItem('tradaria_theme_mode', newMode);
     const root = document.getElementById('root');
     if (newMode === 'light') root.classList.add('light-mode');
     else root.classList.remove('light-mode');
@@ -311,8 +311,8 @@ export default function Settings({ onBack }) {
           <Row label={s.builtBy}>
             <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t5)' }}>© 2025</span>
           </Row>
-          <Row label="tradara.dev" last>
-            <a href="https://tradara.dev" target="_blank" rel="noopener noreferrer"
+          <Row label="tradaria.dev" last>
+            <a href="https://tradaria.dev" target="_blank" rel="noopener noreferrer"
               style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: '#22d3a5', textDecoration: 'none' }}>
               ↗
             </a>

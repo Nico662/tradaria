@@ -57,8 +57,8 @@ export const BADGES = [
   { id: 'portfolio_trader',  icon: '⚡', name: 'Active Trader',      desc: 'Make 50 total trades in Portfolio Mode',         secret: false },
 
   // Social
-  { id: 'social_first',      icon: '🤝', name: 'First Friend',       desc: 'Add your first friend on Tradara',               secret: false },
-  { id: 'social_squad',      icon: '👥', name: 'Squad Goals',        desc: 'Have 5 friends on Tradara',                      secret: false },
+  { id: 'social_first',      icon: '🤝', name: 'First Friend',       desc: 'Add your first friend on Tradaria',               secret: false },
+  { id: 'social_squad',      icon: '👥', name: 'Squad Goals',        desc: 'Have 5 friends on Tradaria',                      secret: false },
   { id: 'social_duel_win',   icon: '⚔️', name: 'Duel Winner',        desc: 'Win your first portfolio duel',                  secret: false },
   { id: 'social_duel_3',     icon: '🏆', name: 'Duelist',            desc: 'Win 3 portfolio duels',                          secret: false },
   { id: 'social_challenger', icon: '💪', name: 'Challenger',         desc: 'Challenge 5 different friends in Arena',         secret: false },
@@ -82,7 +82,7 @@ export const BADGES = [
 
 export function getUnlocked() {
   try {
-    return JSON.parse(localStorage.getItem('tradara_badges') || '[]');
+    return JSON.parse(localStorage.getItem('tradaria_badges') || '[]');
   } catch { return []; }
 }
 
@@ -90,6 +90,6 @@ export function unlockBadge(id) {
   const unlocked = getUnlocked();
   if (unlocked.includes(id)) return false;
   unlocked.push(id);
-  localStorage.setItem('tradara_badges', JSON.stringify(unlocked));
+  localStorage.setItem('tradaria_badges', JSON.stringify(unlocked));
   return true;
 }

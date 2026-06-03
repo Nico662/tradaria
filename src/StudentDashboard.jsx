@@ -21,7 +21,7 @@ function Medal({ pos }) {
 export default function StudentDashboard({ onBack, onPlayTournament }) {
   const { user } = useAuth();
   const { t } = useLang();
-  const tok        = localStorage.getItem('tradara_token');
+  const tok        = localStorage.getItem('tradaria_token');
   const academyId  = user?.academyId;
   const academyName = localStorage.getItem('academy_name') || 'Mi Academia';
 

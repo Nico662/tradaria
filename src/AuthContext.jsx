@@ -10,7 +10,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [purchases, setPurchases] = useState([]);
   const [activeCosmetics, setActiveCosmetics] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('tradara_cosmetics') || '{}'); } catch { return {}; }
+    try { return JSON.parse(localStorage.getItem('tradaria_cosmetics') || '{}'); } catch { return {}; }
   });
   const [levelUpData, setLevelUpData] = useState(null);
 
@@ -35,14 +35,14 @@ export function AuthProvider({ children }) {
       })
         .then(r => r.ok ? r.json() : Promise.reject())
         .then(({ token }) => {
-          localStorage.setItem('tradara_token', token);
+          localStorage.setItem('tradaria_token', token);
           fetchUser(token);
           fetchPurchases(token);
         })
         .catch(() => setLoading(false));
       return;
     }
-    const saved = localStorage.getItem('tradara_token');
+    const saved = localStorage.getItem('tradaria_token');
     if (saved) {
       fetchUser(saved);
       fetchPurchases(saved);
@@ -66,8 +66,8 @@ export function AuthProvider({ children }) {
   function equipCosmetic(type, id) {
     const updated = { ...activeCosmetics, [type]: id };
     setActiveCosmetics(updated);
-    localStorage.setItem('tradara_cosmetics', JSON.stringify(updated));
-    const token = localStorage.getItem('tradara_token');
+    localStorage.setItem('tradaria_cosmetics', JSON.stringify(updated));
+    const token = localStorage.getItem('tradaria_token');
     if (token) {
       fetch(`${SERVER}/auth/cosmetics`, {
         method: 'POST',
@@ -81,8 +81,8 @@ export function AuthProvider({ children }) {
     const updated = { ...activeCosmetics };
     delete updated[type];
     setActiveCosmetics(updated);
-    localStorage.setItem('tradara_cosmetics', JSON.stringify(updated));
-    const token = localStorage.getItem('tradara_token');
+    localStorage.setItem('tradaria_cosmetics', JSON.stringify(updated));
+    const token = localStorage.getItem('tradaria_token');
     if (token) {
       fetch(`${SERVER}/auth/cosmetics`, {
         method: 'POST',
@@ -126,37 +126,37 @@ export function AuthProvider({ children }) {
         // Sincronizar cosméticos desde el servidor
         if (data.activeCosmetics && Object.keys(data.activeCosmetics).length > 0) {
           setActiveCosmetics(data.activeCosmetics);
-          localStorage.setItem('tradara_cosmetics', JSON.stringify(data.activeCosmetics));
+          localStorage.setItem('tradaria_cosmetics', JSON.stringify(data.activeCosmetics));
         }
 
         // Sincronizar XP
-        const localXP = parseInt(localStorage.getItem('tradara_xp') || '0');
+        const localXP = parseInt(localStorage.getItem('tradaria_xp') || '0');
         if (data.xp > localXP) {
-          localStorage.setItem('tradara_xp', String(data.xp));
+          localStorage.setItem('tradaria_xp', String(data.xp));
         }
 
         // Sincronizar badges
-        const localBadges = JSON.parse(localStorage.getItem('tradara_badges') || '[]');
+        const localBadges = JSON.parse(localStorage.getItem('tradaria_badges') || '[]');
         const merged = [...new Set([...data.badges, ...localBadges])];
-        localStorage.setItem('tradara_badges', JSON.stringify(merged));
+        localStorage.setItem('tradaria_badges', JSON.stringify(merged));
 
         // Sincronizar streak
         const serverStreak     = data.dailyStreak || 0;
         const serverLastPlayed = data.lastPlayed || null;
-        const localStreak      = parseInt(localStorage.getItem('tradara_daily_streak') || '0');
+        const localStreak      = parseInt(localStorage.getItem('tradaria_daily_streak') || '0');
         const bestStreak       = Math.max(serverStreak, localStreak);
-        localStorage.setItem('tradara_daily_streak', String(bestStreak));
+        localStorage.setItem('tradaria_daily_streak', String(bestStreak));
 
         // Normalizar y unificar fechas
-        const localLast1 = normalizeDateStr(localStorage.getItem('tradara_daily_last'));
-        const localLast2 = normalizeDateStr(localStorage.getItem('tradara_last_played'));
+        const localLast1 = normalizeDateStr(localStorage.getItem('tradaria_daily_last'));
+        const localLast2 = normalizeDateStr(localStorage.getItem('tradaria_last_played'));
         const bestLast   = normalizeDateStr(serverLastPlayed) || localLast1 || localLast2 || null;
         if (bestLast) {
-          localStorage.setItem('tradara_daily_last', bestLast);
-          localStorage.setItem('tradara_last_played', bestLast);
+          localStorage.setItem('tradaria_daily_last', bestLast);
+          localStorage.setItem('tradaria_last_played', bestLast);
           const todayISO = new Date().toISOString().split('T')[0];
           if (bestLast === todayISO) {
-            localStorage.setItem('tradara_daily_played', todayISO);
+            localStorage.setItem('tradaria_daily_played', todayISO);
           }
         }
 
@@ -175,18 +175,18 @@ export function AuthProvider({ children }) {
           });
         }
       } else {
-        localStorage.removeItem('tradara_token');
+        localStorage.removeItem('tradaria_token');
       }
     } catch (e) {}
     setLoading(false);
   }
 
   async function syncProgress(xp, badges) {
-    const token = localStorage.getItem('tradara_token');
+    const token = localStorage.getItem('tradaria_token');
     if (!token) return;
     try {
-      const dailyStreak = parseInt(localStorage.getItem('tradara_daily_streak') || '0');
-      const lastPlayed  = localStorage.getItem('tradara_daily_last') || null;
+      const dailyStreak = parseInt(localStorage.getItem('tradaria_daily_streak') || '0');
+      const lastPlayed  = localStorage.getItem('tradaria_daily_last') || null;
       await fetch(`${SERVER}/auth/sync`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -200,15 +200,15 @@ export function AuthProvider({ children }) {
   }
 
   function logout() {
-    const token = localStorage.getItem('tradara_token');
+    const token = localStorage.getItem('tradaria_token');
     if (token) {
       fetch(`${SERVER}/auth/logout`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       }).catch(() => {});
     }
-    localStorage.removeItem('tradara_token');
-    localStorage.removeItem('tradara_cosmetics');
+    localStorage.removeItem('tradaria_token');
+    localStorage.removeItem('tradaria_cosmetics');
     setUser(null);
     setPurchases([]);
     setActiveCosmetics({});

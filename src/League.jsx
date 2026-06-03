@@ -18,7 +18,7 @@ export default function League({ leagueId, onBack }) {
   const [copied, setCopied]   = useState(false);
   const [busy, setBusy]       = useState(false);
 
-  const tok = localStorage.getItem('tradara_token');
+  const tok = localStorage.getItem('tradaria_token');
 
   useEffect(() => {
     fetch(`${SERVER}/leagues/${leagueId}/ranking`, {

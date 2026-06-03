@@ -12,7 +12,7 @@ export default function ProGate({ children, feature = '' }) {
     if (!user) return;
     setLoading(true);
     try {
-      const token = localStorage.getItem('tradara_token');
+      const token = localStorage.getItem('tradaria_token');
       const res   = await fetch(`${SERVER}/pro/checkout`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },

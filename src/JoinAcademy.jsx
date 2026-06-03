@@ -8,7 +8,7 @@ const CODE_LENGTH = 9; // "ABCD-1234"
 export default function JoinAcademy({ onBack }) {
   const { updateUser } = useAuth();
   const { t } = useLang();
-  const tok = localStorage.getItem('tradara_token');
+  const tok = localStorage.getItem('tradaria_token');
 
   const [code,           setCode]           = useState('');
   const [preview,        setPreview]        = useState(null);

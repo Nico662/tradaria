@@ -35,7 +35,7 @@ export default function UsernameModal({ onDone }) {
     if (!available || saving) return;
     setSaving(true);
     try {
-      const token = localStorage.getItem('tradara_token');
+      const token = localStorage.getItem('tradaria_token');
       const res   = await fetch(`${SERVER}/auth/username/set`, {
         method:  'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },

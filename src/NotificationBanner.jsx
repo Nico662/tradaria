@@ -40,12 +40,12 @@ export default function NotificationBanner() {
 
   function dismiss() {
     setShow(false);
-    localStorage.setItem('tradara_push_dismissed', '1');
+    localStorage.setItem('tradaria_push_dismissed', '1');
   }
 
   useEffect(() => {
     if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
-    const dismissed = localStorage.getItem('tradara_push_dismissed');
+    const dismissed = localStorage.getItem('tradaria_push_dismissed');
     if (dismissed) return;
     if (Notification.permission === 'granted') {
       subscribeUser();
