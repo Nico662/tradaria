@@ -544,7 +544,7 @@ app.get('/auth/google/callback',
       { expiresIn: '30d' }
     );
     const oauthCode = require('crypto').randomBytes(32).toString('hex');
-    await redis.set(`oauth_code:${oauthCode}`, token, 'EX', 60);
+    await redis.set(`oauth_code:${oauthCode}`, token, { ex: 60 });
     res.redirect(`${CLIENT_URL}?code=${oauthCode}`);
   }
 );
