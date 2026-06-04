@@ -1525,6 +1525,119 @@ function DojiChart() {
   );
 }
 
+// ─── RSI Chart ──────────────────────────────────────────────────────────────
+
+function RSIChart() {
+  // Top panel: price candles  y 12–92  (price 120–160, 80 px)
+  const py = p => 12 + (160 - p) * 2;
+
+  // Bottom panel: RSI oscillator  y 103–143  (RSI 0–100, 40 px)
+  const ry = r => 103 + (100 - r) * 0.4;
+
+  const candles = [
+    { x: 13,  O: 128, H: 131, L: 126, C: 130 },
+    { x: 29,  O: 130, H: 134, L: 128, C: 133 },
+    { x: 45,  O: 133, H: 137, L: 131, C: 136 },
+    { x: 61,  O: 136, H: 140, L: 134, C: 139 },
+    { x: 77,  O: 139, H: 144, L: 137, C: 143, bw: 9 }, // first peak H1
+    { x: 93,  O: 142, H: 144, L: 136, C: 138 },
+    { x: 109, O: 138, H: 140, L: 133, C: 135 },
+    { x: 125, O: 135, H: 140, L: 133, C: 139 },
+    { x: 141, O: 139, H: 148, L: 137, C: 147 },
+    { x: 157, O: 147, H: 153, L: 145, C: 149, bw: 9 }, // second peak H2 (higher)
+    { x: 173, O: 149, H: 151, L: 142, C: 144 },
+  ];
+
+  // RSI values aligned to each candle (first peak 78, second peak 66 → bearish divergence)
+  const rsiVals = [45, 52, 60, 67, 78, 58, 51, 58, 65, 66, 52];
+  const rsiPath = candles
+    .map((c, i) => `${i === 0 ? 'M' : 'L'}${c.x},${ry(rsiVals[i]).toFixed(1)}`)
+    .join(' ');
+
+  const pk1x  = 77,  pk1py = py(144), pk1ry = ry(78);
+  const pk2x  = 157, pk2py = py(153), pk2ry = ry(66);
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="#060b10" rx="8" />
+
+      {/* ── PRICE PANEL ── */}
+      {[30, 50, 70, 90].map(y => (
+        <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
+      ))}
+
+      {/* Price: higher-high diagonal */}
+      <line x1={pk1x} y1={pk1py} x2={pk2x} y2={pk2py}
+        stroke="#e05555" strokeWidth="1.1" strokeDasharray="4 2" opacity="0.6" />
+      <circle cx={pk1x} cy={pk1py} r="2.5" fill="none" stroke="#e05555" strokeWidth="1" opacity="0.8" />
+      <circle cx={pk2x} cy={pk2py} r="2.5" fill="none" stroke="#e05555" strokeWidth="1" opacity="0.8" />
+      <text x={pk2x} y={pk2py - 6} textAnchor="middle"
+        fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold"
+        fill="#e05555" opacity="0.85">HH</text>
+
+      {/* Candles */}
+      {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
+        const bull  = C >= O;
+        const col   = bull ? '#22d3a5' : '#e05555';
+        const bodyY = py(Math.max(O, C));
+        const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="1" opacity="0.75" />
+            <rect x={x - bw / 2} y={bodyY} width={bw} height={bodyH} fill={col} rx="0.5" opacity="0.95" />
+          </g>
+        );
+      })}
+
+      <text x="9" y="11" fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#e05555" opacity="0.6">price ↑ HH</text>
+
+      {/* ── SEPARATOR ── */}
+      <line x1="6" y1="97" x2="182" y2="97" stroke="#1e2d3d" strokeWidth="0.8" />
+      <text x="8" y="101" fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#2a3d52">RSI(14)</text>
+
+      {/* ── RSI PANEL ── */}
+
+      {/* Overbought / oversold zones */}
+      <rect x="6" y={ry(100)} width="176" height={ry(70) - ry(100)} fill="#e0555508" />
+      <rect x="6" y={ry(30)}  width="176" height={ry(0)  - ry(30)}  fill="#22d3a508" />
+
+      {/* Level lines */}
+      <line x1="6" y1={ry(70)} x2="182" y2={ry(70)}
+        stroke="#e05555" strokeWidth="0.8" strokeDasharray="3 2" opacity="0.45" />
+      <text x="8" y={ry(70) - 1} fontFamily="'Space Mono', monospace"
+        fontSize="4.5" fill="#e05555" opacity="0.55">70</text>
+
+      <line x1="6" y1={ry(50)} x2="182" y2={ry(50)}
+        stroke="#2a3d52" strokeWidth="0.6" opacity="0.45" />
+
+      <line x1="6" y1={ry(30)} x2="182" y2={ry(30)}
+        stroke="#22d3a5" strokeWidth="0.8" strokeDasharray="3 2" opacity="0.45" />
+      <text x="8" y={ry(30) + 5} fontFamily="'Space Mono', monospace"
+        fontSize="4.5" fill="#22d3a5" opacity="0.55">30</text>
+
+      {/* RSI line */}
+      <path d={rsiPath} fill="none" stroke="#f5c842" strokeWidth="1.5" opacity="0.9" />
+
+      {/* RSI: lower-high diagonal */}
+      <line x1={pk1x} y1={pk1ry} x2={pk2x} y2={pk2ry}
+        stroke="#e05555" strokeWidth="1.1" strokeDasharray="4 2" opacity="0.6" />
+      <circle cx={pk1x} cy={pk1ry} r="2.5" fill="none" stroke="#e05555" strokeWidth="1" opacity="0.8" />
+      <circle cx={pk2x} cy={pk2ry} r="2.5" fill="none" stroke="#e05555" strokeWidth="1" opacity="0.8" />
+      <text x={pk2x} y={pk2ry + 9} textAnchor="middle"
+        fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold"
+        fill="#e05555" opacity="0.85">LH</text>
+
+      <text x="9" y={ry(100) + 8} fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#e05555" opacity="0.6">RSI ↓ LH</text>
+
+      {/* Watermark */}
+      <text x="6" y="154" fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#172030" letterSpacing="0.1em">BEARISH DIVERGENCE</text>
+    </svg>
+  );
+}
+
 // ─── exports ────────────────────────────────────────────────────────────────
 
 export const CHARTS = {
@@ -1546,4 +1659,5 @@ export const CHARTS = {
   kill_zones:          KillZonesChart,
   trend:               TrendChart,
   doji:                DojiChart,
+  rsi:                 RSIChart,
 };

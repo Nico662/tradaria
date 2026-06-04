@@ -379,6 +379,7 @@ export const GLOSSARY = [
     chartId: 'doji',
   },
   {
+    chartId: 'rsi',
     word: { en: 'RSI', es: 'RSI', de: 'RSI' },
     definition: {
       en: 'Relative Strength Index: a momentum indicator measuring speed and magnitude of price changes. Above 70 = overbought; below 30 = oversold.',
