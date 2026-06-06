@@ -27,6 +27,7 @@ export default function Home({ onSelect }) {
   const [avatarLoading, setAvatarLoading] = useState(false);
   const fileInputRef = useRef(null);
   const [academyName, setAcademyName] = useState(() => localStorage.getItem('academy_name') || null);
+  const [hasPendingFriends, setHasPendingFriends] = useState(false);
 
   useEffect(() => {
     if (!user?.academyId || !user?.isAcademyPro || academyName) return;
@@ -37,6 +38,15 @@ export default function Home({ onSelect }) {
       .then(d => { if (d?.name) { setAcademyName(d.name); localStorage.setItem('academy_name', d.name); } })
       .catch(() => {});
   }, [user?.academyId, user?.isAcademyPro]);
+
+  useEffect(() => {
+    const tok = localStorage.getItem('tradaria_token');
+    if (!tok || !user) return;
+    fetch(`${SERVER}/friends/pending`, { headers: { Authorization: `Bearer ${tok}` } })
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setHasPendingFriends(Array.isArray(data) ? data.length > 0 : false))
+      .catch(() => {});
+  }, [user]);
 
   const frameStyle = FRAME_STYLES[activeCosmetics.frame] || { border: '1px solid #22d3a5' };
 
@@ -121,11 +131,16 @@ export default function Home({ onSelect }) {
               { id: 'friends',  icon: '🤝', hover: '#22d3a5' },
               { id: 'settings', icon: '⚙️', hover: 'var(--t4)' },
             ].map(({ id, icon, hover }) => (
-              <button key={id} onClick={() => onSelect(id)}
-                style={{ background: 'transparent', border: '1px solid var(--bd)', borderRadius: '50%', width: '34px', height: '34px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', flexShrink: 0 }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = hover}
-                onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--bd)'}
-              >{icon}</button>
+              <div key={id} style={{ position: 'relative', flexShrink: 0 }}>
+                <button onClick={() => { if (id === 'friends') setHasPendingFriends(false); onSelect(id); }}
+                  style={{ background: 'transparent', border: '1px solid var(--bd)', borderRadius: '50%', width: '34px', height: '34px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = hover}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--bd)'}
+                >{icon}</button>
+                {id === 'friends' && hasPendingFriends && (
+                  <span style={{ position: 'absolute', top: '1px', right: '1px', width: '10px', height: '10px', borderRadius: '50%', background: '#e05555', border: '1.5px solid var(--bg, #060b10)', pointerEvents: 'none' }} />
+                )}
+              </div>
             ))}
             {user?.role === 'teacher' && (
               <button onClick={() => onSelect('teacher_dashboard')}
