@@ -399,6 +399,7 @@ export const GLOSSARY = [
     },
   },
   {
+    chartId: 'macd',
     word: { en: 'MACD', es: 'MACD', de: 'MACD' },
     definition: {
       en: 'Moving Average Convergence Divergence: shows trend direction and momentum by comparing two moving averages.',

@@ -1525,6 +1525,128 @@ function DojiChart() {
   );
 }
 
+// ─── MACD Chart ─────────────────────────────────────────────────────────────
+
+function MACDChart() {
+  // Top panel: price candles  y 12–92  (price 120–160, 80 px)
+  const py = p => 12 + (160 - p) * 2;
+
+  // Bottom panel: MACD  y 103–148  (45 px). Zero line at midpoint y 125.5.
+  const zeroY  = 125.5;
+  const my = v => zeroY - v * 9;  // ±2.5 MACD units → ±22.5 px
+
+  const candles = [
+    { x: 13,  O: 128, H: 131, L: 126, C: 129 },
+    { x: 26,  O: 129, H: 132, L: 127, C: 130 },
+    { x: 39,  O: 130, H: 133, L: 128, C: 129 }, // losing momentum
+    { x: 52,  O: 129, H: 131, L: 125, C: 126 },
+    { x: 65,  O: 126, H: 128, L: 122, C: 123 }, // bottom
+    { x: 78,  O: 123, H: 126, L: 121, C: 125 }, // reversal starts
+    { x: 91,  O: 125, H: 129, L: 123, C: 128 },
+    { x: 104, O: 128, H: 133, L: 126, C: 132 }, // crossover candle
+    { x: 117, O: 132, H: 137, L: 130, C: 136 },
+    { x: 130, O: 136, H: 141, L: 134, C: 140 },
+    { x: 143, O: 140, H: 145, L: 138, C: 144 },
+    { x: 156, O: 144, H: 149, L: 142, C: 148 },
+    { x: 169, O: 148, H: 152, L: 146, C: 151 },
+  ];
+
+  // MACD line values (12-EMA minus 26-EMA, scaled)
+  const macdVals   = [-1.8, -2.1, -2.3, -2.0, -1.5, -0.8, -0.1, 0.5, 1.1, 1.6, 2.0, 2.2, 2.3];
+  // Signal line (9-EMA of MACD, lags slightly)
+  const signalVals = [-1.2, -1.5, -1.8, -1.9, -1.8, -1.5, -1.0, -0.4, 0.2, 0.8, 1.3, 1.7, 2.0];
+
+  // Histogram = MACD − Signal
+  const histVals = macdVals.map((m, i) => m - signalVals[i]);
+  // histVals approx: [-0.6,-0.6,-0.5,-0.1,0.3,0.7,0.9,0.9,0.9,0.8,0.7,0.5,0.3]
+
+  const macdPath   = candles.map((c, i) => `${i === 0 ? 'M' : 'L'}${c.x},${my(macdVals[i]).toFixed(1)}`).join(' ');
+  const signalPath = candles.map((c, i) => `${i === 0 ? 'M' : 'L'}${c.x},${my(signalVals[i]).toFixed(1)}`).join(' ');
+
+  // Crossover happens between index 6 (x=91, MACD=-0.1, Signal=-1.0) and index 7 (x=104, MACD=+0.5, Signal=-0.4)
+  // Mark the crossover at ~x=98 (midpoint)
+  const crossX = 97;
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="#060b10" rx="8" />
+
+      {/* ── PRICE PANEL ── */}
+      {[30, 50, 70, 90].map(y => (
+        <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
+      ))}
+
+      {/* Candles */}
+      {candles.map(({ x, O, H, L, C }, i) => {
+        const bull  = C >= O;
+        const col   = bull ? '#22d3a5' : '#e05555';
+        const bodyY = py(Math.max(O, C));
+        const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="1" opacity="0.75" />
+            <rect x={x - 4} y={bodyY} width={8} height={bodyH} fill={col} rx="0.5" opacity="0.95" />
+          </g>
+        );
+      })}
+
+      {/* Crossover vertical guide */}
+      <line x1={crossX} y1="14" x2={crossX} y2="92"
+        stroke="#f5c842" strokeWidth="0.7" strokeDasharray="3 2" opacity="0.35" />
+
+      {/* "↑ crossover" annotation */}
+      <text x={crossX} y="11" textAnchor="middle"
+        fontFamily="'Space Mono', monospace" fontSize="5" fill="#f5c842" opacity="0.8">↑ cross</text>
+
+      {/* ── SEPARATOR ── */}
+      <line x1="6" y1="97" x2="182" y2="97" stroke="#1e2d3d" strokeWidth="0.8" />
+      <text x="8" y="101" fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#2a3d52">MACD(12,26,9)</text>
+
+      {/* ── MACD PANEL ── */}
+
+      {/* Zero line */}
+      <line x1="6" y1={zeroY} x2="182" y2={zeroY}
+        stroke="#2a3d52" strokeWidth="0.8" opacity="0.6" />
+      <text x="8" y={zeroY - 1.5}
+        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#2a3d52" opacity="0.6">0</text>
+
+      {/* Crossover vertical guide in MACD panel */}
+      <line x1={crossX} y1="103" x2={crossX} y2="148"
+        stroke="#f5c842" strokeWidth="0.7" strokeDasharray="3 2" opacity="0.35" />
+
+      {/* Histogram bars */}
+      {candles.map(({ x }, i) => {
+        const hv  = histVals[i];
+        const col = hv >= 0 ? '#22d3a5' : '#e05555';
+        const barY = hv >= 0 ? my(hv) : zeroY;
+        const barH = Math.abs(my(hv) - zeroY);
+        return (
+          <rect key={i}
+            x={x - 4} y={barY}
+            width={8} height={Math.max(barH, 0.8)}
+            fill={col} opacity="0.35" rx="0.5" />
+        );
+      })}
+
+      {/* Signal line */}
+      <path d={signalPath} fill="none" stroke="#f5c842" strokeWidth="1.3" opacity="0.85" />
+
+      {/* MACD line */}
+      <path d={macdPath} fill="none" stroke="#22d3a5" strokeWidth="1.5" opacity="0.9" />
+
+      {/* Legend */}
+      <line x1="8"  y1="144" x2="18" y2="144" stroke="#22d3a5" strokeWidth="1.5" opacity="0.9" />
+      <text x="20" y="147" fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#22d3a5" opacity="0.8">MACD</text>
+      <line x1="48" y1="144" x2="58" y2="144" stroke="#f5c842" strokeWidth="1.3" opacity="0.85" />
+      <text x="60" y="147" fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#f5c842" opacity="0.8">Signal</text>
+
+      {/* Watermark */}
+      <text x="182" y="154" textAnchor="end" fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#172030" letterSpacing="0.1em">BULLISH CROSSOVER</text>
+    </svg>
+  );
+}
+
 // ─── Volume Chart ───────────────────────────────────────────────────────────
 
 function VolumeChart() {
@@ -1765,4 +1887,5 @@ export const CHARTS = {
   doji:                DojiChart,
   rsi:                 RSIChart,
   volume:              VolumeChart,
+  macd:                MACDChart,
 };
