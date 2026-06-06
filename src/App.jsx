@@ -36,6 +36,7 @@ import Settings from './Settings.jsx';
 import JoinAcademy from './JoinAcademy.jsx';
 import TeacherDashboard from './TeacherDashboard.jsx';
 import StudentDashboard from './StudentDashboard.jsx';
+import AcadiasLanding from './AcadiasLanding.jsx';
 
 
 const CATEGORIES = [
@@ -54,7 +55,9 @@ function randomAsset(cat = 'all') {
 export default function App() {
   const [screen,      setScreen]    = useState(() => {
     const p = window.location.pathname;
-    return p.startsWith('/u/') ? 'public_profile' : 'home';
+    if (p.startsWith('/u/')) return 'public_profile';
+    if (p === '/academias') return 'academias_landing';
+    return 'home';
   });
   const [publicProfileUsername, setPublicProfileUsername] = useState(() => {
     const p = window.location.pathname;
@@ -577,6 +580,11 @@ export default function App() {
         {challengeOverlay}
       </div>
     );
+  }
+
+  // ── Academias landing (standalone B2B page at /academias) ─────────
+  if (screen === 'academias_landing') {
+    return <AcadiasLanding onEnter={() => { window.history.pushState({}, '', '/'); setScreen('home'); }} />;
   }
 
   // ── Landing ───────────────────────────────────────────────────────
