@@ -570,6 +570,7 @@ export const LANGS = {
       finalTitle: 'Start seeing which students actually practice',
       finalCta: 'Activate my academy free',
       finalSub1: '30 days free', finalSub2: 'No credit card', finalSub3: 'Cancel anytime',
+      skip: 'Skip', prev: '← Back', next: 'Next →', start: 'Activate free →',
     },
   },
 
@@ -1144,6 +1145,7 @@ export const LANGS = {
       finalTitle: 'Empieza a ver qué alumnos realmente practican',
       finalCta: 'Activar mi academia gratis',
       finalSub1: '30 días gratis', finalSub2: 'Sin tarjeta', finalSub3: 'Cancela cuando quieras',
+      skip: 'Saltar', prev: '← Atrás', next: 'Siguiente →', start: 'Activar gratis →',
     },
   },
 
@@ -1718,6 +1720,7 @@ export const LANGS = {
       finalTitle: 'Sieh jetzt, welche Schüler wirklich üben',
       finalCta: 'Meine Akademie kostenlos aktivieren',
       finalSub1: '30 Tage kostenlos', finalSub2: 'Keine Kreditkarte', finalSub3: 'Jederzeit kündbar',
+      skip: 'Überspringen', prev: '← Zurück', next: 'Weiter →', start: 'Kostenlos aktivieren →',
     },
   },
 };
