@@ -418,6 +418,7 @@ export const GLOSSARY = [
     },
   },
   {
+    chartId: 'volume',
     word: { en: 'Volume', es: 'Volumen', de: 'Volumen' },
     definition: {
       en: 'The number of shares or contracts traded in a given period. High volume confirms price moves; low volume suggests weak conviction.',

@@ -1525,6 +1525,110 @@ function DojiChart() {
   );
 }
 
+// ─── Volume Chart ───────────────────────────────────────────────────────────
+
+function VolumeChart() {
+  // Top panel: price candles  y 12–92  (price 120–160, 80 px)
+  const py = p => 12 + (160 - p) * 2;
+
+  // Bottom panel: volume bars  y 103–143  (40 px). Bar anchored at y 143.
+  const maxVol = 92;
+  const vH   = v => (v / maxVol) * 40;
+  const vTop = v => 143 - vH(v);
+
+  const candles = [
+    { x: 13,  O: 131, H: 133, L: 129, C: 132, vol: 22 }, // consolidation
+    { x: 27,  O: 132, H: 134, L: 130, C: 131, vol: 18 },
+    { x: 41,  O: 131, H: 134, L: 129, C: 133, vol: 25 },
+    { x: 55,  O: 133, H: 135, L: 131, C: 132, vol: 20 },
+    { x: 69,  O: 132, H: 135, L: 130, C: 134, vol: 28 },
+    { x: 83,  O: 134, H: 143, L: 133, C: 141, vol: 92, bw: 10 }, // breakout — 3× vol
+    { x: 97,  O: 141, H: 147, L: 139, C: 145, vol: 55 }, // continuation
+    { x: 111, O: 145, H: 150, L: 143, C: 148, vol: 48 },
+    { x: 125, O: 148, H: 153, L: 146, C: 152, vol: 52 },
+    { x: 139, O: 151, H: 153, L: 147, C: 149, vol: 22 }, // pullback — low vol
+    { x: 153, O: 149, H: 152, L: 146, C: 147, vol: 18 },
+    { x: 167, O: 147, H: 151, L: 145, C: 150, vol: 42 }, // recovery
+  ];
+
+  const avgVol = 36;
+  const avgY   = vTop(avgVol);
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="#060b10" rx="8" />
+
+      {/* ── PRICE PANEL ── */}
+      {[30, 50, 70, 90].map(y => (
+        <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
+      ))}
+
+      {/* Resistance level — splits before/after breakout */}
+      <line x1="4" y1={py(135)} x2="78" y2={py(135)}
+        stroke="#f5c842" strokeWidth="0.9" strokeDasharray="4 2" opacity="0.55" />
+      <line x1="88" y1={py(135)} x2="182" y2={py(135)}
+        stroke="#f5c842" strokeWidth="0.7" strokeDasharray="4 2" opacity="0.22" />
+      <text x="182" y={py(135) - 2} textAnchor="end"
+        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#f5c842" opacity="0.5">res</text>
+
+      {/* Candles */}
+      {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
+        const bull  = C >= O;
+        const col   = bull ? '#22d3a5' : '#e05555';
+        const bodyY = py(Math.max(O, C));
+        const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="1" opacity="0.75" />
+            <rect x={x - bw / 2} y={bodyY} width={bw} height={bodyH} fill={col} rx="0.5" opacity="0.95" />
+          </g>
+        );
+      })}
+
+      <text x="83" y="11" textAnchor="middle"
+        fontFamily="'Space Mono', monospace" fontSize="5" fill="#22d3a5" opacity="0.8">↑ breakout</text>
+
+      {/* ── SEPARATOR ── */}
+      <line x1="6" y1="97" x2="182" y2="97" stroke="#1e2d3d" strokeWidth="0.8" />
+      <text x="8" y="101" fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#2a3d52">VOLUME</text>
+
+      {/* ── VOLUME PANEL ── */}
+
+      {/* Average volume reference line */}
+      <line x1="6" y1={avgY} x2="182" y2={avgY}
+        stroke="#2a3d52" strokeWidth="0.7" strokeDasharray="3 2" opacity="0.7" />
+      <text x="182" y={avgY - 1.5} textAnchor="end"
+        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#2a3d52" opacity="0.75">avg</text>
+
+      {/* Volume bars */}
+      {candles.map(({ x, C, O, vol, bw = 8 }, i) => {
+        const bull = C >= O;
+        const col  = bull ? '#22d3a5' : '#e05555';
+        return (
+          <rect key={i}
+            x={x - bw / 2} y={vTop(vol)}
+            width={bw} height={vH(vol)}
+            fill={col} opacity="0.75" rx="0.5" />
+        );
+      })}
+
+      {/* "3×" spike label — above the breakout bar, inside the gap */}
+      <text x="83" y="100" textAnchor="middle"
+        fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold"
+        fill="#22d3a5" opacity="0.9">3×</text>
+
+      {/* "low vol" pullback label */}
+      <text x="146" y={vTop(20) - 3} textAnchor="middle"
+        fontFamily="'Space Mono', monospace" fontSize="4.5"
+        fill="#e05555" opacity="0.7">low vol</text>
+
+      {/* Watermark */}
+      <text x="6" y="154" fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#172030" letterSpacing="0.1em">VOLUME CONFIRMS MOVES</text>
+    </svg>
+  );
+}
+
 // ─── RSI Chart ──────────────────────────────────────────────────────────────
 
 function RSIChart() {
@@ -1660,4 +1764,5 @@ export const CHARTS = {
   trend:               TrendChart,
   doji:                DojiChart,
   rsi:                 RSIChart,
+  volume:              VolumeChart,
 };
