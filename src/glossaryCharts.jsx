@@ -1864,6 +1864,146 @@ function RSIChart() {
   );
 }
 
+// ─── Spread Chart ───────────────────────────────────────────────────────────
+
+function SpreadChart() {
+  // Top panel: price  y 12–88  (price 101–106, 15.2 px/unit)
+  const py = p => 12 + (106 - p) * 76 / 5;
+
+  // Bottom spread bars: anchor y=144, max sp=7 → max height 36
+  const bh = s => s * 36 / 7;
+
+  const data = [
+    { x: 13,  O: 103.9, H: 104.5, L: 103.5, C: 104.2, sp: 1.0 },
+    { x: 27,  O: 104.2, H: 104.7, L: 103.8, C: 104.0, sp: 0.9 },
+    { x: 41,  O: 104.0, H: 104.5, L: 103.7, C: 104.3, sp: 1.1 },
+    { x: 55,  O: 104.3, H: 104.8, L: 103.9, C: 104.0, sp: 1.0 },
+    { x: 69,  O: 104.0, H: 104.5, L: 103.7, C: 104.2, sp: 0.8 },
+    { x: 83,  O: 104.2, H: 104.7, L: 103.8, C: 104.4, sp: 1.0 },
+    // NEWS EVENT
+    { x: 97,  O: 104.0, H: 104.9, L: 101.8, C: 102.3, sp: 6.5 },
+    { x: 111, O: 102.3, H: 103.5, L: 101.6, C: 103.1, sp: 4.8 },
+    { x: 125, O: 103.1, H: 104.0, L: 102.6, C: 103.7, sp: 3.0 },
+    { x: 139, O: 103.7, H: 104.5, L: 103.3, C: 104.2, sp: 1.8 },
+    { x: 153, O: 104.2, H: 104.8, L: 103.8, C: 104.5, sp: 1.1 },
+    { x: 167, O: 104.5, H: 105.2, L: 104.1, C: 104.8, sp: 1.0 },
+  ];
+
+  // Normal spread zone: mid ~104.0, ±0.3
+  const nAskY = py(104.3);  // ≈ 37.8
+  const nBidY = py(103.7);  // ≈ 46.9
+
+  // News spread zone: mid ~103.5, ±2.0
+  const wAskY = py(105.5);  // ≈ 19.6
+  const wBidY = py(101.5);  // ≈ 80.4
+
+  const sp1Y = 144 - bh(1);  // ≈ 138.9
+  const sp5Y = 144 - bh(5);  // ≈ 118.3
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="#060b10" rx="8" />
+
+      {/* ─ PRICE PANEL grid ─ */}
+      {[30, 50, 70, 90].map(y => (
+        <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
+      ))}
+
+      {/* Normal (tight) bid/ask zone — left half */}
+      <rect x="6" y={nAskY} width="84" height={nBidY - nAskY} fill="#f5c84214" />
+      <line x1="6"  y1={nAskY} x2="90" y2={nAskY} stroke="#22d3a5" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.8" />
+      <line x1="6"  y1={nBidY} x2="90" y2={nBidY} stroke="#e05555" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.8" />
+
+      {/* News (wide) bid/ask zone — right half */}
+      <rect x="92" y={wAskY} width="90" height={wBidY - wAskY} fill="#f5c84212" />
+      <line x1="92" y1={wAskY} x2="182" y2={wAskY} stroke="#22d3a5" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.8" />
+      <line x1="92" y1={wBidY} x2="182" y2={wBidY} stroke="#e05555" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.8" />
+
+      {/* Labels — left zone */}
+      <text x="8" y={nAskY - 2}
+        fontFamily="'Space Mono', monospace" fontSize="5" fill="#22d3a5" opacity="0.9">ASK</text>
+      <text x="8" y={nBidY + 6}
+        fontFamily="'Space Mono', monospace" fontSize="5" fill="#e05555" opacity="0.9">BID</text>
+      <text x="88" y={(nAskY + nBidY) / 2 + 2}
+        textAnchor="end"
+        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#f5c842" opacity="0.7">1 pip</text>
+
+      {/* Labels — right zone */}
+      <text x="94" y={wAskY + 7}
+        fontFamily="'Space Mono', monospace" fontSize="5" fill="#22d3a5" opacity="0.9">ASK</text>
+      <text x="94" y={wBidY - 3}
+        fontFamily="'Space Mono', monospace" fontSize="5" fill="#e05555" opacity="0.9">BID</text>
+      <text x="182" y={(wAskY + wBidY) / 2 + 2}
+        textAnchor="end"
+        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#f5c842" opacity="0.7">5 pips</text>
+
+      {/* News divider */}
+      <line x1="91" y1="12" x2="91" y2="88"
+        stroke="#f5c842" strokeWidth="0.7" strokeDasharray="2 2" opacity="0.55" />
+      <text x="91" y="11"
+        textAnchor="middle"
+        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#f5c842" opacity="0.9">NEWS</text>
+
+      {/* Candles */}
+      {data.map(({ x, O, H, L, C }, i) => {
+        const bull  = C >= O;
+        const col   = bull ? '#22d3a5' : '#e05555';
+        const bodyY = py(Math.max(O, C));
+        const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="1" opacity="0.75" />
+            <rect x={x - 4} y={bodyY} width="8" height={bodyH} fill={col} rx="0.5" opacity="0.95" />
+          </g>
+        );
+      })}
+
+      {/* ─ SEPARATOR ─ */}
+      <line x1="6" y1="94" x2="182" y2="94" stroke="#1e2d3d" strokeWidth="0.8" />
+      <text x="8" y="101"
+        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#2a3d52">SPREAD</text>
+
+      {/* ─ SPREAD PANEL ─ */}
+
+      {/* Reference: 1 pip */}
+      <line x1="6" y1={sp1Y} x2="182" y2={sp1Y}
+        stroke="#2a3d52" strokeWidth="0.6" strokeDasharray="3 2" opacity="0.6" />
+      <text x="182" y={sp1Y - 1.5}
+        textAnchor="end"
+        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#2a3d52" opacity="0.7">1p</text>
+
+      {/* Reference: 5 pips */}
+      <line x1="6" y1={sp5Y} x2="182" y2={sp5Y}
+        stroke="#f5c842" strokeWidth="0.6" strokeDasharray="3 2" opacity="0.4" />
+      <text x="182" y={sp5Y - 1.5}
+        textAnchor="end"
+        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#f5c842" opacity="0.55">5p</text>
+
+      {/* Spread bars */}
+      {data.map(({ x, sp }, i) => {
+        const h   = bh(sp);
+        const col = sp > 2 ? '#f5c842' : '#22d3a5';
+        return (
+          <rect key={i}
+            x={x - 4} y={144 - h}
+            width={8} height={Math.max(h, 1.5)}
+            fill={col} opacity="0.75" rx="0.5" />
+        );
+      })}
+
+      {/* Spike annotation */}
+      <text x="97" y={144 - bh(6.5) - 4}
+        textAnchor="middle"
+        fontFamily="'Space Mono', monospace" fontSize="5" fontWeight="bold"
+        fill="#f5c842" opacity="0.9">wide!</text>
+
+      {/* Watermark */}
+      <text x="6" y="154"
+        fontFamily="'Space Mono', monospace" fontSize="5" fill="#172030" letterSpacing="0.1em">BID / ASK SPREAD</text>
+    </svg>
+  );
+}
+
 // ─── exports ────────────────────────────────────────────────────────────────
 
 export const CHARTS = {
@@ -1888,4 +2028,5 @@ export const CHARTS = {
   rsi:                 RSIChart,
   volume:              VolumeChart,
   macd:                MACDChart,
+  spread:              SpreadChart,
 };

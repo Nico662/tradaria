@@ -439,6 +439,7 @@ export const GLOSSARY = [
     },
   },
   {
+    chartId: 'spread',
     word: { en: 'Spread', es: 'Spread', de: 'Spread' },
     definition: {
       en: 'The difference between the bid (sell) and ask (buy) price. It represents the broker\'s fee and varies with market liquidity.',
