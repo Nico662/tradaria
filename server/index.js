@@ -100,7 +100,8 @@ const UserSchema = new mongoose.Schema({
   username:        { type: String, sparse: true },
   customAvatar:    { type: String, default: null },
   activeCosmetics: { type: mongoose.Schema.Types.Mixed, default: {} },
-  portfolioTutorialSeen: { type: Boolean, default: false },
+  portfolioTutorialSeen:  { type: Boolean, default: false },
+  academiasTutorialSeen:  { type: Boolean, default: false },
   isPro:                 { type: Boolean, default: false },
   stripeCustomerId:      { type: String,  default: null },
   stripeSubscriptionId:  { type: String,  default: null },
@@ -2272,6 +2273,30 @@ app.post('/portfolio/tutorial-seen', async (req, res) => {
   try {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
     await User.findByIdAndUpdate(decoded.id, { portfolioTutorialSeen: true });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/academias/intro', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.json({ seen: false });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const user = await User.findById(decoded.id).select('academiasTutorialSeen');
+    res.json({ seen: user?.academiasTutorialSeen ?? false });
+  } catch {
+    res.json({ seen: false });
+  }
+});
+
+app.post('/academias/tutorial-seen', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    await User.findByIdAndUpdate(decoded.id, { academiasTutorialSeen: true });
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
