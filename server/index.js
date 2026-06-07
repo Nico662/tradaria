@@ -2315,6 +2315,18 @@ app.post('/admin/reset-portfolio-tutorial/:username', async (req, res) => {
   }
 });
 
+app.post('/admin/reset-academias/:username', async (req, res) => {
+  const key = req.headers['x-admin-secret'];
+  if (!ADMIN_SECRET || key !== ADMIN_SECRET) return res.status(403).json({ error: 'Forbidden' });
+  try {
+    const user = await User.findOneAndUpdate({ username: req.params.username }, { academiasTutorialSeen: false });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json({ ok: true, username: req.params.username });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/admin/portfolio/:username', async (req, res) => {
   const key = req.headers['x-admin-secret'];
   if (!ADMIN_SECRET || key !== ADMIN_SECRET) return res.status(403).json({ error: 'Forbidden' });
