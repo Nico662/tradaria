@@ -2636,6 +2636,11 @@ app.post('/portfolio/refund-delisted', async (req, res) => {
   }
 });
 
+function isWeekday() {
+  const day = new Date().getUTCDay(); // 0 = domingo, 6 = sábado
+  return day !== 0 && day !== 6;
+}
+
 app.get('/portfolio/clear-crypto-cache', async (req, res) => {
   await redis.del('price:BTCUSDT');
   await redis.del('price:ETHUSDT');
@@ -2713,7 +2718,7 @@ app.post('/portfolio/snapshot', async (req, res) => {
       console.log(`[leaderboard-notif] user=${decoded.id} myRank=${myRank} prevRank=${prevRank} rankingSize=${ranking.length}`);
 
       // Notify the person who was just displaced below us (now at myRank+1)
-      if (myRank < prevRank && myRank + 1 < ranking.length) {
+      if (myRank < prevRank && myRank + 1 < ranking.length && isWeekday()) {
         const surpassedUser = ranking[myRank + 1];
         console.log(`[leaderboard-notif] surpassed user=${surpassedUser.userId} (${surpassedUser.name}) — checking sub`);
         if (surpassedUser.userId) {
