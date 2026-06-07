@@ -55,8 +55,6 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
     setShowLanding(false);
   }
 
-  if (showLanding) return <AcadiasLanding onEnter={dismissLanding} />;
-
   useEffect(() => {
     if (!tok || !academyId) { setLoading(false); return; }
 
@@ -82,6 +80,8 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
       .catch(e => setError(String(e)))
       .finally(() => setLoading(false));
   }, [String(academyId)]);
+
+  if (showLanding) return <AcadiasLanding onEnter={dismissLanding} />;
 
   const myId = String(user?._id || user?.id || '');
   const alreadyPlayedTournament = tournament
