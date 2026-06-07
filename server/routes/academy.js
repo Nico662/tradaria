@@ -237,6 +237,25 @@ router.get('/:id/name', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ── POST /academy/leave ───────────────────────────────────────────
+router.post('/leave', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    if (!req.user.academyId) return res.status(400).json({ error: 'No estás en ninguna academia' });
+
+    const academy = await Academy.findById(req.user.academyId);
+    if (academy) {
+      if (academy.ownerId.toString() === userId.toString())
+        return res.status(403).json({ error: 'El owner no puede abandonar la academia. Elimínala.' });
+      academy.students = academy.students.filter(s => s.toString() !== userId.toString());
+      await academy.save();
+    }
+
+    await mongoose.model('User').findByIdAndUpdate(userId, { academyId: null, isAcademyPro: false });
+    res.json({ ok: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // ── POST /academy/subscribe ───────────────────────────────────────
 router.post('/subscribe', requireAuth, async (req, res) => {
   try {

@@ -174,7 +174,7 @@ export default function AcadiasLanding({ onEnter }) {
           .aca-hero-title { font-size: 36px !important; }
           .aca-prob-grid { grid-template-columns: repeat(3,1fr) !important; }
           .aca-feat-grid { grid-template-columns: repeat(3,1fr) !important; }
-          .aca-plan-grid { grid-template-columns: repeat(3,1fr) !important; }
+          .aca-plan-grid { grid-template-columns: repeat(3, minmax(0,1fr)) !important; }
         }
       `}</style>
 
@@ -187,7 +187,7 @@ export default function AcadiasLanding({ onEnter }) {
               <rect x="25" y="40" width="50" height="110" rx="6" fill="#22d3a5"/>
               <line x1="50" y1="150" x2="50" y2="190" stroke="#22d3a5" strokeWidth="10" strokeLinecap="round"/>
             </svg>
-            <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: 'var(--t1)', letterSpacing: '-0.01em' }}>Tradara</span>
+            <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: 'var(--t1)', letterSpacing: '-0.01em' }}>Tradaria</span>
             <span style={{ fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Academias</span>
           </div>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -281,66 +281,66 @@ export default function AcadiasLanding({ onEnter }) {
           <div className="aca-plan-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}>
 
             {/* Starter */}
-            <div className="aca-plan-card" style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '14px', padding: '24px' }}>
+            <div className="aca-plan-card" style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '14px', padding: '24px', display: 'flex', flexDirection: 'column' }}>
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: 'var(--t1)', marginBottom: '3px' }}>{a.plan1Name}</div>
               <div style={{ fontSize: '9px', color: 'var(--t5)', marginBottom: '16px', letterSpacing: '0.04em' }}>{a.plan1Limit}</div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px', marginBottom: '18px' }}>
-                <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '30px', color: 'var(--t1)', letterSpacing: '-0.02em' }}>{a.plan1Price}</span>
+              <div style={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: '2px', marginBottom: '18px' }}>
+                <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '30px', color: 'var(--t1)', letterSpacing: '-0.02em', wordBreak: 'break-word' }}>{a.plan1Price}</span>
                 <span style={{ fontSize: '10px', color: 'var(--t5)' }}>{a.plan1Period}</span>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', flex: 1 }}>
                 {PLAN1_FEATS.map((f, i) => (
-                  <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '10px', color: 'var(--t3)' }}>
-                    <span style={{ color: '#22d3a5', fontSize: '11px' }}>✓</span>{f}
+                  <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '10px', color: 'var(--t3)' }}>
+                    <span style={{ color: '#22d3a5', fontSize: '11px', flexShrink: 0 }}>✓</span><span style={{ wordBreak: 'break-word' }}>{f}</span>
                   </div>
                 ))}
               </div>
               <button onClick={goApp}
-                style={{ width: '100%', padding: '11px', background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '8px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em' }}>
+                style={{ width: '100%', padding: '11px', background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '8px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em', marginTop: 'auto' }}>
                 {a.ctaPlan}
               </button>
             </div>
 
             {/* Pro — highlighted */}
-            <div className="aca-plan-card" style={{ background: 'var(--bg-card)', border: '1px solid rgba(34,211,165,0.4)', borderRadius: '14px', padding: '24px', position: 'relative', boxShadow: '0 0 32px rgba(34,211,165,0.07)' }}>
+            <div className="aca-plan-card" style={{ background: 'var(--bg-card)', border: '1px solid rgba(34,211,165,0.4)', borderRadius: '14px', padding: '24px', position: 'relative', boxShadow: '0 0 32px rgba(34,211,165,0.07)', display: 'flex', flexDirection: 'column' }}>
               <div style={{ position: 'absolute', top: '-1px', left: '50%', transform: 'translateX(-50%)', background: '#22d3a5', borderRadius: '0 0 6px 6px', padding: '3px 12px' }}>
                 <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', fontWeight: 700, color: 'var(--bg-page)', letterSpacing: '0.08em' }}>{a.plan2Badge}</span>
               </div>
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: '#22d3a5', marginBottom: '3px' }}>{a.plan2Name}</div>
               <div style={{ fontSize: '9px', color: 'var(--t5)', marginBottom: '16px', letterSpacing: '0.04em' }}>{a.plan2Limit}</div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px', marginBottom: '18px' }}>
-                <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '30px', color: 'var(--t1)', letterSpacing: '-0.02em' }}>{a.plan2Price}</span>
+              <div style={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: '2px', marginBottom: '18px' }}>
+                <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '30px', color: 'var(--t1)', letterSpacing: '-0.02em', wordBreak: 'break-word' }}>{a.plan2Price}</span>
                 <span style={{ fontSize: '10px', color: 'var(--t5)' }}>{a.plan2Period}</span>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', flex: 1 }}>
                 {PLAN2_FEATS.map((f, i) => (
-                  <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '10px', color: 'var(--t3)' }}>
-                    <span style={{ color: '#22d3a5', fontSize: '11px' }}>✓</span>{f}
+                  <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '10px', color: 'var(--t3)' }}>
+                    <span style={{ color: '#22d3a5', fontSize: '11px', flexShrink: 0 }}>✓</span><span style={{ wordBreak: 'break-word' }}>{f}</span>
                   </div>
                 ))}
               </div>
               <button onClick={goApp} className="aca-btn-primary"
-                style={{ width: '100%', padding: '12px', background: '#22d3a5', border: 'none', borderRadius: '8px', color: 'var(--bg-page)', fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '11px', cursor: 'pointer', letterSpacing: '0.02em' }}>
+                style={{ width: '100%', padding: '12px', background: '#22d3a5', border: 'none', borderRadius: '8px', color: 'var(--bg-page)', fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '11px', cursor: 'pointer', letterSpacing: '0.02em', marginTop: 'auto' }}>
                 {a.ctaPlan}
               </button>
             </div>
 
             {/* Enterprise */}
-            <div className="aca-plan-card" style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '14px', padding: '24px' }}>
+            <div className="aca-plan-card" style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '14px', padding: '24px', display: 'flex', flexDirection: 'column' }}>
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: 'var(--t1)', marginBottom: '3px' }}>{a.plan3Name}</div>
               <div style={{ fontSize: '9px', color: 'var(--t5)', marginBottom: '16px', letterSpacing: '0.04em' }}>{a.plan3Limit}</div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px', marginBottom: '18px' }}>
-                <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: '#f5c842' }}>{a.plan3Price}</span>
+              <div style={{ marginBottom: '18px' }}>
+                <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: '#f5c842', wordBreak: 'break-word' }}>{a.plan3Price}</span>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', flex: 1 }}>
                 {PLAN3_FEATS.map((f, i) => (
-                  <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '10px', color: 'var(--t3)' }}>
-                    <span style={{ color: '#f5c842', fontSize: '11px' }}>✓</span>{f}
+                  <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '10px', color: 'var(--t3)' }}>
+                    <span style={{ color: '#f5c842', fontSize: '11px', flexShrink: 0 }}>✓</span><span style={{ wordBreak: 'break-word' }}>{f}</span>
                   </div>
                 ))}
               </div>
               <button onClick={goApp}
-                style={{ width: '100%', padding: '11px', background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '8px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em' }}>
+                style={{ width: '100%', padding: '11px', background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '8px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em', marginTop: 'auto' }}>
                 {a.ctaContact}
               </button>
             </div>

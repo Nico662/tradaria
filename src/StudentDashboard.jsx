@@ -20,7 +20,7 @@ function Medal({ pos }) {
 }
 
 export default function StudentDashboard({ onBack, onPlayTournament }) {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const { t } = useLang();
   const tok        = localStorage.getItem('tradaria_token');
   const academyId  = user?.academyId;
@@ -32,6 +32,8 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
   const [academyStatus, setAcademyStatus] = useState(null);
   const [loading,       setLoading]       = useState(true);
   const [error,         setError]         = useState(null);
+  const [confirmLeave,  setConfirmLeave]  = useState(false);
+  const [leaving,       setLeaving]       = useState(false);
 
   // Same pattern as Portfolio.jsx loadAll(): check localStorage then MongoDB
   useEffect(() => {
@@ -53,6 +55,29 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
       }).catch(() => {});
     }
     setShowLanding(false);
+  }
+
+  async function leaveAcademy() {
+    setLeaving(true);
+    try {
+      const res = await fetch(`${SERVER}/academy/leave`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${tok}` },
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        setLeaving(false);
+        setConfirmLeave(false);
+        setError(d.error || 'Error');
+        return;
+      }
+      localStorage.removeItem('academy_name');
+      updateUser({ academyId: null, isAcademyPro: false });
+      onBack();
+    } catch {
+      setLeaving(false);
+      setConfirmLeave(false);
+    }
   }
 
   useEffect(() => {
@@ -272,7 +297,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
         </div>
 
         {/* ── Active tournament ── */}
-        <div>
+        <div style={{ marginBottom: '32px' }}>
           <Label>{t.academy.activeTournament}</Label>
 
           {tournament === undefined && (
@@ -432,7 +457,47 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
           )}
         </div>
 
+        {/* ── Leave academy ── */}
+        <div style={{ paddingTop: '16px', borderTop: '1px solid var(--bd)' }}>
+          <button
+            onClick={() => setConfirmLeave(true)}
+            style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer', padding: 0, letterSpacing: '0.04em' }}
+          >
+            {t.academy.leaveAcademy} →
+          </button>
+        </div>
+
       </div>
+
+      {/* ── Confirm leave modal ── */}
+      {confirmLeave && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '14px', padding: '28px 24px', maxWidth: '340px', width: '100%' }}>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--t1)', marginBottom: '12px' }}>
+              {t.academy.leaveConfirmTitle}
+            </div>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t4)', lineHeight: 1.7, marginBottom: '24px' }}>
+              {t.academy.leaveConfirmText}
+            </div>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                onClick={() => setConfirmLeave(false)}
+                disabled={leaving}
+                style={{ flex: 1, padding: '11px', background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '8px', color: 'var(--t4)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em' }}
+              >
+                {t.academy.leaveCancelBtn}
+              </button>
+              <button
+                onClick={leaveAcademy}
+                disabled={leaving}
+                style={{ flex: 1, padding: '11px', background: 'rgba(240,84,84,0.08)', border: '1px solid rgba(240,84,84,0.4)', borderRadius: '8px', color: '#f05454', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: leaving ? 'default' : 'pointer', letterSpacing: '0.04em', opacity: leaving ? 0.6 : 1 }}
+              >
+                {leaving ? t.academy.leaveLoading : t.academy.leaveConfirmBtn}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
