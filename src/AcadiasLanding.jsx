@@ -95,17 +95,6 @@ export default function AcadiasLanding({ onEnter }) {
   const a = t.academiasLanding;
   const [openFaq, setOpenFaq] = useState(null);
 
-  // Same pattern as Portfolio: check MongoDB on mount, skip if already seen
-  useEffect(() => {
-    if (localStorage.getItem('tradaria_academias_seen')) { onEnter(); return; }
-    const tok = localStorage.getItem('tradaria_token');
-    if (!tok) return;
-    fetch(`${SERVER}/academias/intro`, { headers: { Authorization: `Bearer ${tok}` } })
-      .then(r => r.json())
-      .then(data => { if (data.seen) onEnter(); })
-      .catch(() => {});
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
   useEffect(() => {
     const els = document.querySelectorAll('.aca-reveal');
     if (!els.length) return;
@@ -117,17 +106,8 @@ export default function AcadiasLanding({ onEnter }) {
     return () => io.disconnect();
   }, []);
 
-  // Same pattern as dismissWelcome() in Portfolio.jsx
+  // La lógica de marcar como visto vive en el padre (igual que dismissWelcome en Portfolio.jsx)
   function goApp() {
-    localStorage.setItem('tradaria_academias_seen', 'true');
-    const tok = localStorage.getItem('tradaria_token');
-    if (tok) {
-      fetch(`${SERVER}/academias/tutorial-seen`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${tok}` },
-      }).catch(() => {});
-    }
-    window.history.pushState({}, '', '/');
     onEnter();
   }
 

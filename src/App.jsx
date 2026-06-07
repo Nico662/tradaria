@@ -584,7 +584,13 @@ export default function App() {
 
   // ── Academias landing (standalone B2B page at /academias) ─────────
   if (screen === 'academias_landing') {
-    return <AcadiasLanding onEnter={() => { window.history.pushState({}, '', '/'); setScreen('home'); }} />;
+    return <AcadiasLanding onEnter={() => {
+      localStorage.setItem('tradaria_academias_seen', 'true');
+      const tok = localStorage.getItem('tradaria_token');
+      if (tok) fetch(`${SERVER}/academias/tutorial-seen`, { method: 'POST', headers: { Authorization: `Bearer ${tok}` } }).catch(() => {});
+      window.history.pushState({}, '', '/');
+      setScreen('home');
+    }} />;
   }
 
   // ── Landing ───────────────────────────────────────────────────────

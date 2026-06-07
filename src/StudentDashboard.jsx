@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { SERVER } from './config.js';
 import { useLang } from './LangContext.jsx';
+import AcadiasLanding from './AcadiasLanding.jsx';
 
 function Label({ children }) {
   return (
@@ -25,11 +26,36 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
   const academyId  = user?.academyId;
   const academyName = localStorage.getItem('academy_name') || 'Mi Academia';
 
+  const [showLanding,   setShowLanding]   = useState(false);
   const [students,      setStudents]      = useState([]);
   const [tournament,    setTournament]    = useState(undefined); // undefined=loading, false=none
   const [academyStatus, setAcademyStatus] = useState(null);
   const [loading,       setLoading]       = useState(true);
   const [error,         setError]         = useState(null);
+
+  // Same pattern as Portfolio.jsx loadAll(): check localStorage then MongoDB
+  useEffect(() => {
+    if (localStorage.getItem('tradaria_academias_seen')) return;
+    if (!tok) { setShowLanding(true); return; }
+    fetch(`${SERVER}/academias/intro`, { headers: { Authorization: `Bearer ${tok}` } })
+      .then(r => r.json())
+      .then(data => { if (!data.seen) setShowLanding(true); })
+      .catch(() => {});
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Same pattern as dismissWelcome() in Portfolio.jsx
+  function dismissLanding() {
+    localStorage.setItem('tradaria_academias_seen', 'true');
+    if (tok) {
+      fetch(`${SERVER}/academias/tutorial-seen`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${tok}` },
+      }).catch(() => {});
+    }
+    setShowLanding(false);
+  }
+
+  if (showLanding) return <AcadiasLanding onEnter={dismissLanding} />;
 
   useEffect(() => {
     if (!tok || !academyId) { setLoading(false); return; }

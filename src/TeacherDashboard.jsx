@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { SERVER } from './config.js';
 import { useLang } from './LangContext.jsx';
+import AcadiasLanding from './AcadiasLanding.jsx';
 
 // ── Helpers ───────────────────────────────────────────────────────
 function relativeDate(d, t) {
@@ -890,6 +891,33 @@ export default function TeacherDashboard({ academyId: academyIdProp, onBack }) {
   const resolvedId = academyIdProp && academyIdProp !== 'null' && academyIdProp !== 'undefined'
     ? academyIdProp : null;
   const [activeId, setActiveId] = useState(resolvedId);
+  const [showLanding, setShowLanding] = useState(false);
+
+  // Same pattern as Portfolio.jsx loadAll(): check localStorage then MongoDB
+  useEffect(() => {
+    if (localStorage.getItem('tradaria_academias_seen')) return;
+    const tok = localStorage.getItem('tradaria_token');
+    if (!tok) { setShowLanding(true); return; }
+    fetch(`${SERVER}/academias/intro`, { headers: { Authorization: `Bearer ${tok}` } })
+      .then(r => r.json())
+      .then(data => { if (!data.seen) setShowLanding(true); })
+      .catch(() => {});
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Same pattern as dismissWelcome() in Portfolio.jsx
+  function dismissLanding() {
+    localStorage.setItem('tradaria_academias_seen', 'true');
+    const tok = localStorage.getItem('tradaria_token');
+    if (tok) {
+      fetch(`${SERVER}/academias/tutorial-seen`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${tok}` },
+      }).catch(() => {});
+    }
+    setShowLanding(false);
+  }
+
+  if (showLanding) return <AcadiasLanding onEnter={dismissLanding} />;
 
   if (!activeId) {
     return (
