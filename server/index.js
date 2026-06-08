@@ -3176,6 +3176,7 @@ app.get('/u/:username', async (req, res) => {
       totalValue,
       joinedAt:        target.createdAt,
       friendshipStatus,
+      isPro:           target.isPro || false,
     });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });

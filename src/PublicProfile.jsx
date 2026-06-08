@@ -90,6 +90,11 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
           <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: 'var(--t1)', marginBottom: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
             @{profile.username}
             {isFounder(profile.username) && <FounderBadge size={18} />}
+            {profile.isPro && (
+              <span style={{ fontSize: '9px', color: '#22d3a5', background: 'rgba(34,211,165,0.1)', border: '1px solid #22d3a5', borderRadius: '20px', padding: '2px 7px', fontFamily: "'Space Mono', monospace", letterSpacing: '0.06em' }}>
+                ⚡ Pro
+              </span>
+            )}
           </div>
           <div style={{ fontSize: '11px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace" }}>{profile.name}</div>
         </div>
