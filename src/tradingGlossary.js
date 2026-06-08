@@ -459,6 +459,7 @@ export const GLOSSARY = [
     },
   },
   {
+    chartId: 'volatility',
     word: { en: 'Volatility', es: 'Volatilidad', de: 'Volatilität' },
     definition: {
       en: 'How much price fluctuates over a period. High volatility = large price swings; low volatility = small, steady moves.',

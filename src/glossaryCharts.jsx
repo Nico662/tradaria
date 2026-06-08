@@ -2004,6 +2004,89 @@ function SpreadChart() {
   );
 }
 
+// ─── Volatility Chart ───────────────────────────────────────────────────────
+
+function VolatilityChart() {
+  // price → SVG y  (price range 110–175, y range 14–144)
+  const py = p => 14 + (175 - p) * 130 / 65;
+
+  const candles = [
+    // Low volatility — tight range
+    { x: 18,  O: 139, H: 141, L: 137, C: 140, bw: 7 },
+    { x: 30,  O: 140, H: 142, L: 138, C: 139, bw: 7 },
+    { x: 42,  O: 139, H: 141, L: 137, C: 140, bw: 7 },
+    { x: 54,  O: 140, H: 142, L: 138, C: 139, bw: 7 },
+    { x: 66,  O: 139, H: 141, L: 137, C: 140, bw: 7 },
+    // Transition — growing
+    { x: 80,  O: 140, H: 147, L: 132, C: 145, bw: 9 },
+    { x: 93,  O: 145, H: 153, L: 128, C: 130, bw: 9 },
+    // High volatility — large swings
+    { x: 108, O: 130, H: 165, L: 116, C: 160, bw: 10 },
+    { x: 123, O: 160, H: 172, L: 124, C: 127, bw: 10 },
+    { x: 138, O: 127, H: 168, L: 112, C: 164, bw: 10 },
+    { x: 153, O: 164, H: 174, L: 118, C: 121, bw: 10 },
+    { x: 168, O: 121, H: 163, L: 111, C: 157, bw: 10 },
+  ];
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="#060b10" rx="8" />
+
+      {/* Grid */}
+      {[40, 65, 90, 115, 140].map(y => (
+        <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
+      ))}
+
+      {/* Expanding ATR envelope fill */}
+      <polygon points="6,80 182,16 182,142 6,88" fill="#22d3a508" />
+
+      {/* Envelope boundary lines — expanding from narrow to wide */}
+      <line x1="6" y1="80" x2="182" y2="16"
+        stroke="#22d3a5" strokeWidth="0.8" strokeDasharray="3 2" opacity="0.4" />
+      <line x1="6" y1="88" x2="182" y2="142"
+        stroke="#22d3a5" strokeWidth="0.8" strokeDasharray="3 2" opacity="0.4" />
+
+      {/* Subtle divider between low / high vol sections */}
+      <line x1="74" y1="14" x2="74" y2="144"
+        stroke="#f5c842" strokeWidth="0.5" strokeDasharray="2 3" opacity="0.2" />
+
+      {/* Candles */}
+      {candles.map(({ x, O, H, L, C, bw }, i) => {
+        const bull  = C >= O;
+        const col   = bull ? '#22d3a5' : '#e05555';
+        const bodyY = py(Math.max(O, C));
+        const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="1" opacity="0.75" />
+            <rect x={x - bw / 2} y={bodyY} width={bw} height={bodyH} fill={col} rx="0.5" opacity="0.9" />
+          </g>
+        );
+      })}
+
+      {/* Low vol label */}
+      <text x="42" y="10"
+        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#22d3a5" opacity="0.7" letterSpacing="0.05em">low vol</text>
+
+      {/* High vol label */}
+      <text x="140" y="10"
+        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#e05555" opacity="0.85" letterSpacing="0.05em">high vol</text>
+
+      {/* ATR label — right edge mid-chart */}
+      <text x="182" y="84"
+        textAnchor="end" fontFamily="'Space Mono', monospace"
+        fontSize="6" fontWeight="bold" fill="#22d3a5" opacity="0.5">ATR</text>
+
+      {/* Watermark */}
+      <text x="6" y="154"
+        fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#172030" letterSpacing="0.1em">VOLATILITY</text>
+    </svg>
+  );
+}
+
 // ─── exports ────────────────────────────────────────────────────────────────
 
 export const CHARTS = {
@@ -2029,4 +2112,5 @@ export const CHARTS = {
   volume:              VolumeChart,
   macd:                MACDChart,
   spread:              SpreadChart,
+  volatility:          VolatilityChart,
 };
