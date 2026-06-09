@@ -219,8 +219,22 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
       }));
   }
 
-  function makeChoice(choice) {
+  async function makeChoice(choice) {
     if (result || revealing) return;
+
+    const token = localStorage.getItem('tradaria_token');
+    if (!academyTournamentId && token) {
+      try {
+        const res  = await fetch(`${SERVER}/tournament/progress/round`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ roundIndex: round, choice }),
+        });
+        const data = await res.json();
+        if (data.alreadyPlayed) return;
+      } catch {}
+    }
+
     const cur        = rounds[round];
     const future     = cur.future;
     const lastClose  = cur.visible[cur.visible.length - 1].close;

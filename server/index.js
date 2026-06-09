@@ -1347,6 +1347,47 @@ app.post('/tournament/progress', async (req, res) => {
   }
 });
 
+app.post('/tournament/progress/round', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const weekId  = getWeekId();
+    const { roundIndex, choice } = req.body;
+
+    const session = await TournamentSession.findOne({ weekId, userId: decoded.id });
+    if (!session) return res.status(404).json({ error: 'Session not found' });
+
+    if (roundIndex < session.currentRound) return res.json({ alreadyPlayed: true });
+
+    const roundData = session.rounds[roundIndex];
+    if (!roundData) return res.status(400).json({ error: 'Invalid round' });
+
+    const visible    = roundData.visible;
+    const future     = roundData.future;
+    const lastClose  = visible[visible.length - 1].close;
+    const lastFuture = future[future.length - 1].close;
+    const pctMove    = (lastFuture - lastClose) / lastClose * 100;
+    const direction  = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
+    const win = (choice === 'long'  && direction === 'up')
+             || (choice === 'short' && direction === 'down')
+             || (choice === 'skip'  && direction === 'flat');
+    const pts = win && choice !== 'skip' ? 100 : win && choice === 'skip' ? 50 : 0;
+
+    const newHistory = [...session.history, { choice, win, pts }];
+    const newScore   = session.score + pts;
+
+    await TournamentSession.findOneAndUpdate(
+      { weekId, userId: decoded.id },
+      { currentRound: roundIndex + 1, score: newScore, history: newHistory },
+    );
+
+    res.json({ ok: true, win, pts, pctMove, direction });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── Async duel routes ─────────────────────────────────────────────
 app.post('/arena/async/create', async (req, res) => {
   const auth = req.headers.authorization;
