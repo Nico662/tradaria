@@ -2087,6 +2087,107 @@ function VolatilityChart() {
   );
 }
 
+// ─── Drawdown Chart ─────────────────────────────────────────────────────────
+
+function DrawdownChart() {
+  const py = p => 14 + (170 - p) * 130 / 80;
+
+  const peakPrice   = 158;
+  const troughPrice = 117;
+  const peakY   = py(peakPrice);    // ≈ 33.5
+  const troughY = py(troughPrice);  // ≈ 100.1
+  const midY    = (peakY + troughY) / 2;
+
+  const rising = [
+    { x: 12,  O: 100, H: 103, L:  98, C: 103 },
+    { x: 24,  O: 103, H: 108, L: 101, C: 107 },
+    { x: 36,  O: 107, H: 113, L: 105, C: 112 },
+    { x: 48,  O: 112, H: 118, L: 110, C: 117 },
+    { x: 60,  O: 117, H: 124, L: 115, C: 123 },
+    { x: 72,  O: 123, H: 130, L: 121, C: 129 },
+    { x: 84,  O: 129, H: 137, L: 127, C: 136 },
+  ];
+
+  const peakCandle  = { x: 97,  O: 136, H: 159, L: 134, C: peakPrice };
+
+  const falling = [
+    { x: 110, O: peakPrice, H: peakPrice + 1, L: 148, C: 149 },
+    { x: 122, O: 149, H: 151, L: 139, C: 140 },
+    { x: 134, O: 140, H: 142, L: 130, C: 131 },
+    { x: 146, O: 131, H: 133, L: 121, C: 122 },
+    { x: 158, O: 122, H: 124, L: troughPrice - 1, C: troughPrice },
+  ];
+
+  const recover = [{ x: 170, O: troughPrice, H: troughPrice + 6, L: troughPrice - 1, C: troughPrice + 5 }];
+
+  const allCandles = [...rising, peakCandle, ...falling, ...recover];
+
+  const bX = 181; // bracket x
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="#060b10" rx="8" />
+
+      {[40, 65, 90, 115, 140].map(y => (
+        <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
+      ))}
+
+      {/* Drawdown zone fill */}
+      <rect x="6" y={peakY} width="170" height={troughY - peakY} fill="#e0555510" />
+
+      {/* Peak dashed line */}
+      <line x1={97} y1={peakY} x2={bX} y2={peakY}
+        stroke="#f5c842" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.55" />
+
+      {/* Trough dashed line */}
+      <line x1={158} y1={troughY} x2={bX} y2={troughY}
+        stroke="#e05555" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.55" />
+
+      {/* Bracket */}
+      <line x1={bX} y1={peakY} x2={bX} y2={troughY} stroke="#e05555" strokeWidth="1.1" opacity="0.75" />
+      <line x1={bX - 2.5} y1={peakY}   x2={bX + 2.5} y2={peakY}   stroke="#e05555" strokeWidth="1.1" opacity="0.75" />
+      <line x1={bX - 2.5} y1={troughY} x2={bX + 2.5} y2={troughY} stroke="#e05555" strokeWidth="1.1" opacity="0.75" />
+
+      {/* Candles */}
+      {allCandles.map(({ x, O, H, L, C }, i) => {
+        const bull  = C >= O;
+        const col   = bull ? '#22d3a5' : '#e05555';
+        const bodyY = py(Math.max(O, C));
+        const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="1" opacity="0.75" />
+            <rect x={x - 4} y={bodyY} width="8" height={bodyH} fill={col} rx="0.5" opacity="0.9" />
+          </g>
+        );
+      })}
+
+      {/* PEAK label */}
+      <text x={97} y={py(159) - 4}
+        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        fontSize="5.5" fontWeight="bold" fill="#f5c842" opacity="0.9">PEAK</text>
+
+      {/* TROUGH label */}
+      <text x={158} y={troughY + 9}
+        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        fontSize="5.5" fill="#e05555" opacity="0.9">TROUGH</text>
+
+      {/* DD annotation — left of bracket, vertically centered */}
+      <text x={bX - 5} y={midY - 3}
+        textAnchor="end" fontFamily="'Space Mono', monospace"
+        fontSize="6.5" fontWeight="bold" fill="#e05555" opacity="0.9">-26%</text>
+      <text x={bX - 5} y={midY + 6}
+        textAnchor="end" fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#e05555" opacity="0.6" letterSpacing="0.05em">MAX DD</text>
+
+      {/* Watermark */}
+      <text x="6" y="154"
+        fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#172030" letterSpacing="0.1em">DRAWDOWN</text>
+    </svg>
+  );
+}
+
 // ─── exports ────────────────────────────────────────────────────────────────
 
 export const CHARTS = {
@@ -2113,4 +2214,5 @@ export const CHARTS = {
   macd:                MACDChart,
   spread:              SpreadChart,
   volatility:          VolatilityChart,
+  drawdown:            DrawdownChart,
 };

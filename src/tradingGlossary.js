@@ -479,6 +479,7 @@ export const GLOSSARY = [
     },
   },
   {
+    chartId: 'drawdown',
     word: { en: 'Drawdown', es: 'Drawdown', de: 'Drawdown' },
     definition: {
       en: 'The decline from a peak to a trough in account value. Measures how much a strategy loses before recovering.',
