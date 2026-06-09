@@ -1265,10 +1265,21 @@ app.post('/tournament/score', async (req, res) => {
     const weekId   = getWeekId();
     const existing = await Score.findOne({ weekId, userId: user._id });
     if (existing) return res.status(400).json({ error: 'Already played this week' });
-    const { score, rounds, cosmeticAvatar } = req.body;
-    const MAX_TOURNAMENT_SCORE = TOTAL_ROUNDS * 100;
-    const safeScore = Number.isFinite(Number(score)) ? Math.max(0, Math.min(Number(score), MAX_TOURNAMENT_SCORE)) : 0;
-    await Score.create({ weekId, userId: user._id, name: user.username || user.name, username: user.username || null, avatar: user.avatar, score: safeScore, rounds, cosmeticAvatar: cosmeticAvatar || null });
+
+    const { cosmeticAvatar } = req.body;
+
+    const session = await TournamentSession.findOne({ weekId, userId: user._id });
+    if (!session || !session.history || session.history.length === 0) return res.status(400).json({ error: 'No session found' });
+    if (session.history.length > TOTAL_ROUNDS) return res.status(400).json({ error: 'Invalid session' });
+    if (session.currentRound < TOTAL_ROUNDS) return res.status(400).json({ error: 'Tournament not completed' });
+
+    let calculatedScore = 0;
+    for (const round of session.history) {
+      if (round.win && round.choice === 'skip') calculatedScore += 50;
+      else if (round.win) calculatedScore += 100;
+    }
+
+    await Score.create({ weekId, userId: user._id, name: user.username || user.name, username: user.username || null, avatar: user.avatar, score: calculatedScore, rounds: session.history, cosmeticAvatar: cosmeticAvatar || null });
     await TournamentSession.findOneAndUpdate({ weekId, userId: user._id }, { completed: true });
     res.json({ ok: true });
   } catch (err) {
@@ -3402,4 +3413,11 @@ app.get('/api/portfolio/compare', async (req, res) => {
 app.get('/', (req, res) => res.json({ status: 'ok' }));
 
 // ── Start ─────────────────────────────────────────────────────────
-httpServer.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+httpServer.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  // Remove scores that exceed the maximum possible tournament score
+  const maxScore = TOTAL_ROUNDS * 100;
+  Score.deleteMany({ weekId: getWeekId(), score: { $gt: maxScore } })
+    .then(r => { if (r.deletedCount > 0) console.log(`Removed ${r.deletedCount} invalid tournament score(s)`); })
+    .catch(e => console.error('Score cleanup error:', e.message));
+});
