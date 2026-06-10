@@ -486,6 +486,7 @@ const tradeLimiter   = rateLimit({ windowMs: 60 * 1000, max: 20,  message: { err
 const authLimiter    = rateLimit({ windowMs: 60 * 1000, max: 10,  message: { error: 'Too many auth requests.' } });
 const shareLimiter   = rateLimit({ windowMs: 60 * 1000, max: 5,   message: { error: 'Too many share requests.' } });
 const syncLimiter    = rateLimit({ windowMs: 60 * 1000, max: 30,  message: { error: 'Too many sync requests.' } });
+const writeLimiter   = rateLimit({ windowMs: 60 * 1000, max: 10,  message: { error: 'Too many requests, slow down.' } });
 
 app.use(generalLimiter);
 app.use('/daily',              dailyLimiter);
@@ -496,6 +497,10 @@ app.use('/auth/google',        authLimiter);
 app.use('/auth/username/check', authLimiter);
 app.use('/stats/share',        shareLimiter);
 app.use('/auth/sync',          syncLimiter);
+app.use('/friends/request',           writeLimiter);
+app.use('/portfolio/duel/challenge',  writeLimiter);
+app.use('/arena/async/create',        writeLimiter);
+app.use('/api/alerts',                writeLimiter);
 
 // ── Passport ──────────────────────────────────────────────────────
 passport.use(new GoogleStrategy({
