@@ -3313,7 +3313,8 @@ app.post('/api/alerts', async (req, res) => {
   const user = await User.findById(decoded.id).select('isPro');
   if (!user?.isPro) return res.status(403).json({ error: 'Pro required' });
   const { ticker, targetPrice, condition } = req.body;
-  if (!ticker || !targetPrice || !['above', 'below'].includes(condition))
+  const validTickers = new Set(PORTFOLIO_ASSETS.map(a => a.symbol));
+  if (!ticker || !validTickers.has(ticker) || !targetPrice || !['above', 'below'].includes(condition))
     return res.status(400).json({ error: 'Invalid params' });
   await PriceAlert.deleteMany({ userId: decoded.id, ticker, triggered: false });
   const alert = await PriceAlert.create({ userId: decoded.id, ticker, targetPrice, condition });
