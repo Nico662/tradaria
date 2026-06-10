@@ -195,8 +195,9 @@ router.get('/:id/export', requireTeacher, async (req, res) => {
 // ── POST /academy/:id/tournament/:tournamentId/score ─────────────
 router.post('/:id/tournament/:tournamentId/score', requireAuth, async (req, res) => {
   try {
-    const { score } = req.body;
-    if (typeof score !== 'number') return res.status(400).json({ error: 'score requerido' });
+    const rawScore = Number(req.body.score);
+    if (!Number.isFinite(rawScore)) return res.status(400).json({ error: 'score requerido' });
+    const score = Math.max(0, Math.min(rawScore, 100000));
 
     const tournament = await AcademyTournament.findOne({
       _id:       req.params.tournamentId,
