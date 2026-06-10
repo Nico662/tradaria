@@ -664,7 +664,8 @@ app.post('/auth/avatar', async (req, res) => {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
     const { avatar } = req.body;
     if (!avatar) return res.status(400).json({ error: 'No avatar' });
-    if (typeof avatar !== 'string' || !avatar.startsWith('data:image/')) return res.status(400).json({ error: 'Invalid image format' });
+    const SAFE_AVATAR = /^data:image\/(jpeg|png|webp|gif);base64,/;
+    if (typeof avatar !== 'string' || !SAFE_AVATAR.test(avatar)) return res.status(400).json({ error: 'Invalid image format' });
     if (avatar.length > 700000) return res.status(400).json({ error: 'Image too large (max 500KB)' });
     await User.findByIdAndUpdate(decoded.id, { customAvatar: avatar });
     res.json({ ok: true });
