@@ -2188,6 +2188,100 @@ function DrawdownChart() {
   );
 }
 
+// ─── Rally Chart ─────────────────────────────────────────────────────────────
+
+function RallyChart() {
+  const py = p => 14 + (150 - p) * 130 / 62;
+
+  const rallyStartPrice = 120;
+  const rallyEndPrice   = 148;
+  const rallyStartY = py(rallyStartPrice);   // ≈ 76.9
+  const rallyEndY   = py(rallyEndPrice);     // ≈ 18.2
+  const midY        = (rallyStartY + rallyEndY) / 2;
+
+  const candles = [
+    // decline
+    { x: 12,  O: 138, H: 141, L: 134, C: 135 },
+    { x: 25,  O: 135, H: 137, L: 131, C: 132 },
+    { x: 38,  O: 132, H: 134, L: 128, C: 129 },
+    { x: 51,  O: 129, H: 131, L: 125, C: 126 },
+    // consolidation
+    { x: 64,  O: 126, H: 129, L: 123, C: 127 },
+    { x: 77,  O: 127, H: 129, L: 122, C: 120 },
+    // rally
+    { x: 90,  O: 120, H: 130, L: 119, C: 129 },
+    { x: 103, O: 129, H: 135, L: 128, C: 134 },
+    { x: 116, O: 134, H: 140, L: 133, C: 139 },
+    { x: 129, O: 139, H: 144, L: 138, C: 143 },
+    { x: 142, O: 143, H: 147, L: 142, C: 146 },
+    { x: 155, O: 146, H: 149, L: 145, C: 148 },
+    { x: 168, O: 148, H: 150, L: 147, C: 149 },
+  ];
+
+  const bX = 180;
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="#060b10" rx="8" />
+
+      {[40, 65, 90, 115, 140].map(y => (
+        <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
+      ))}
+
+      {/* Rally zone fill */}
+      <rect x="84" y={rallyEndY} width={bX - 84} height={rallyStartY - rallyEndY} fill="#22d3a510" />
+
+      {/* Rally baseline dashed line */}
+      <line x1="84" y1={rallyStartY} x2={bX} y2={rallyStartY}
+        stroke="#f5c842" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.55" />
+
+      {/* Rally peak dashed line */}
+      <line x1="162" y1={rallyEndY} x2={bX} y2={rallyEndY}
+        stroke="#22d3a5" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.55" />
+
+      {/* Bracket */}
+      <line x1={bX} y1={rallyStartY} x2={bX} y2={rallyEndY}
+        stroke="#22d3a5" strokeWidth="1.1" opacity="0.75" />
+      <line x1={bX - 2.5} y1={rallyStartY} x2={bX + 2.5} y2={rallyStartY}
+        stroke="#22d3a5" strokeWidth="1.1" opacity="0.75" />
+      <line x1={bX - 2.5} y1={rallyEndY} x2={bX + 2.5} y2={rallyEndY}
+        stroke="#22d3a5" strokeWidth="1.1" opacity="0.75" />
+
+      {/* Candles */}
+      {candles.map(({ x, O, H, L, C }, i) => {
+        const bull  = C >= O;
+        const col   = bull ? '#22d3a5' : '#e05555';
+        const bodyY = py(Math.max(O, C));
+        const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="1" opacity="0.75" />
+            <rect x={x - 4} y={bodyY} width="8" height={bodyH} fill={col} rx="0.5" opacity="0.9" />
+          </g>
+        );
+      })}
+
+      {/* Catalyst label below breakout candle */}
+      <text x={90} y={rallyStartY + 12}
+        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#f5c842" opacity="0.75">▲ catalyst</text>
+
+      {/* Gain annotation */}
+      <text x={bX - 5} y={midY - 3}
+        textAnchor="end" fontFamily="'Space Mono', monospace"
+        fontSize="6.5" fontWeight="bold" fill="#22d3a5" opacity="0.9">+12%</text>
+      <text x={bX - 5} y={midY + 6}
+        textAnchor="end" fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#22d3a5" opacity="0.6" letterSpacing="0.05em">RALLY</text>
+
+      {/* Watermark */}
+      <text x="6" y="154"
+        fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#172030" letterSpacing="0.1em">RALLY</text>
+    </svg>
+  );
+}
+
 // ─── exports ────────────────────────────────────────────────────────────────
 
 export const CHARTS = {
@@ -2215,4 +2309,5 @@ export const CHARTS = {
   spread:              SpreadChart,
   volatility:          VolatilityChart,
   drawdown:            DrawdownChart,
+  rally:               RallyChart,
 };

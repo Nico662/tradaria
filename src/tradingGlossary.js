@@ -516,6 +516,7 @@ export const GLOSSARY = [
       es: 'Los rallies en mercado bajista ("rebote del gato muerto") pueden ser bruscos y rápidos, atrapando a vendedores cortos. Los indicadores de volumen ayudan a distinguirlos.',
       de: 'Bären-Markt-Rallys ("Toter-Katze-Abpraller") können scharf sein und Short-Seller in die Falle locken.',
     },
+    chartId: 'rally',
   },
   {
     word: { en: 'Correction', es: 'Corrección', de: 'Korrektur' },
