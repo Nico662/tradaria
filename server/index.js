@@ -469,6 +469,7 @@ app.use(session({
   secret: JWT_SECRET,
   resave: false,
   saveUninitialized: false,
+  cookie: { secure: true, httpOnly: true, sameSite: 'strict' },
 }));
 
 app.use(passport.initialize());
