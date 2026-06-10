@@ -1609,17 +1609,18 @@ app.get('/arena/async/:code/status', async (req, res) => {
 
 // ── Push routes ───────────────────────────────────────────────────
 app.post('/push/subscribe', async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
   const { userId, ...sub } = req.body;
   if (!sub || !sub.endpoint) return res.status(400).json({ error: 'Invalid subscription' });
+  if (userId && String(userId) !== String(decoded.id)) return res.status(403).json({ error: 'Forbidden' });
   pushSubscriptions = await loadSubscriptions();
   const exists = pushSubscriptions.find(s => s.endpoint === sub.endpoint);
   if (!exists) {
     pushSubscriptions.push(sub);
     await saveSubscriptions(pushSubscriptions);
   }
-  if (userId) {
-    await redis.set(`push_user_sub:${userId}`, JSON.stringify(sub));
-  }
+  await redis.set(`push_user_sub:${decoded.id}`, JSON.stringify(sub));
   res.json({ ok: true });
 });
 
