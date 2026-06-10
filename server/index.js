@@ -639,7 +639,18 @@ app.post('/auth/sync', async (req, res) => {
     const update = { xp: safeXP, badges: safeBadges };
     if (dailyStreak !== undefined) update.dailyStreak = safeStreak;
     if (lastPlayed  !== undefined) update.lastPlayed  = safeLastPlayed;
-    if (dailyResult !== undefined) update.dailyResult = dailyResult;
+    if (dailyResult !== undefined) {
+      const dr = dailyResult && typeof dailyResult === 'object' ? dailyResult : {};
+      update.dailyResult = {
+        date:      typeof dr.date === 'string' && DATE_REGEX.test(dr.date) ? dr.date : null,
+        win:       typeof dr.win === 'boolean' ? dr.win : null,
+        choice:    ['long', 'short', 'skip'].includes(dr.choice) ? dr.choice : null,
+        direction: ['up', 'down', 'flat'].includes(dr.direction) ? dr.direction : null,
+        pctMove:   Number.isFinite(Number(dr.pctMove)) ? Number(dr.pctMove) : null,
+        asset:     typeof dr.asset === 'string' ? dr.asset.slice(0, 50) : null,
+        interval:  ['15m', '1h', '1d'].includes(dr.interval) ? dr.interval : null,
+      };
+    }
     await User.findByIdAndUpdate(decoded.id, update);
     res.json({ ok: true });
   } catch (err) {
@@ -2734,8 +2745,8 @@ app.post('/portfolio/snapshot', async (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'No token' });
   try {
-    const decoded   = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const { totalValue } = req.body;
+    const decoded    = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const totalValue = await getPortfolioValue(decoded.id);
     const date = new Date().toISOString().split('T')[0];
     await PortfolioHistory.findOneAndUpdate(
       { userId: decoded.id, date },
