@@ -108,7 +108,7 @@ export default function App() {
     const socket = io(SERVER, { reconnection: true });
     challengeSocketRef.current = socket;
     setChallengeSocket(socket);
-    socket.on('connect', () => socket.emit('user:register', { username: user.username }));
+    socket.on('connect', () => socket.emit('user:register', { username: user.username, token: localStorage.getItem('tradaria_token') }));
     socket.on('friend:challenged', ({ challengerUsername, roomCode }) => {
       setPendingChallenge({ challengerUsername, roomCode });
     });

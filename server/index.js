@@ -1902,10 +1902,16 @@ io.on('connection', (socket) => {
   });
 
   // ── Challenge system ────────────────────────────────────────────────
-  socket.on('user:register', ({ username }) => {
-    if (!username) return;
-    socket.username = username;
-    userSockets[username] = socket;
+  socket.on('user:register', async ({ username, token }) => {
+    if (!username || !token) return;
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      const user = await User.findById(decoded.id).select('username');
+      if (!user || user.username !== username) return;
+      socket.username = username;
+      socket.userId   = decoded.id;
+      userSockets[username] = socket;
+    } catch {}
   });
 
   socket.on('friend:challenge', ({ targetUsername }) => {
