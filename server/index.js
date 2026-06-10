@@ -684,7 +684,21 @@ app.post('/auth/cosmetics', async (req, res) => {
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const { activeCosmetics } = req.body;
-    await User.findByIdAndUpdate(decoded.id, { activeCosmetics: activeCosmetics || {} });
+    const user = await User.findById(decoded.id).select('purchases');
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const VALID_TYPES = new Set(['theme', 'frame', 'avatar', 'effect']);
+    const owned = new Set(user.purchases);
+    const safe = {};
+    if (activeCosmetics && typeof activeCosmetics === 'object' && !Array.isArray(activeCosmetics)) {
+      for (const [type, itemId] of Object.entries(activeCosmetics)) {
+        if (!VALID_TYPES.has(type)) continue;
+        if (typeof itemId !== 'string' || !SHOP_ITEMS[itemId] || !owned.has(itemId)) continue;
+        safe[type] = itemId;
+      }
+    }
+
+    await User.findByIdAndUpdate(decoded.id, { activeCosmetics: safe });
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
