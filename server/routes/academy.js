@@ -121,7 +121,7 @@ router.get('/:id/dashboard', requireAuth, async (req, res) => {
       return {
         id:            student._id,
         name:          student.name,
-        email:         student.email,
+        email:         isOwner ? student.email : undefined,
         gamesPlayed,
         avgAccuracy,
         currentStreak: student.dailyStreak || 0,
