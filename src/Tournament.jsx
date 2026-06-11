@@ -518,7 +518,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
               {paidTournaments.map(pt => {
                 const spots    = pt.maxPlayers - pt.players.length;
                 const isFull   = pt.status === 'active' || spots <= 0;
-                const alreadyIn = pt.players.some(p => (p.userId ? String(p.userId) : String(p)) === String(user?._id || user?.id));
+                const alreadyIn = pt.players.some(p => p.userId.toString() === String(user?._id || user?.id));
                 return (
                   <div key={pt._id} style={{ padding: '14px 16px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '10px', marginBottom: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>

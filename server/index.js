@@ -123,7 +123,8 @@ const PaidTournamentSchema = new mongoose.Schema({
   totalPot:   { type: Number, default: 20 },
   createdBy:  { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   players:    [{
-    userId:         { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    _id:            false,
+    userId:         { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     paymentIntentId:{ type: String, default: null },
   }],
   status:     { type: String, enum: ['waiting', 'active', 'finished'], default: 'waiting' },
@@ -1002,7 +1003,7 @@ app.post('/tournament/paid/join', async (req, res) => {
     const pt = await PaidTournament.findById(tournamentId);
     if (!pt) return res.status(404).json({ error: 'Tournament not found' });
     if (pt.status !== 'waiting') return res.status(400).json({ error: 'Tournament not open' });
-    if (pt.players.some(p => (p.userId ? String(p.userId) : String(p)) === String(decoded.id)))
+    if (pt.players.some(p => p.userId.toString() === String(decoded.id)))
       return res.status(400).json({ error: 'Already joined' });
 
     const session = await stripe.checkout.sessions.create({
@@ -1036,21 +1037,13 @@ app.post('/tournament/paid/:tournamentId/leave', async (req, res) => {
     const pt = await PaidTournament.findById(tournamentId);
     if (!pt) return res.status(404).json({ error: 'Torneo no encontrado' });
     if (pt.status !== 'waiting') return res.status(400).json({ error: 'El torneo ya ha comenzado, no puedes salir' });
-    const matchPlayer = p => {
-      if (p.buffer && p.buffer.data) {
-        const hex = Buffer.from(p.buffer.data).toString('hex');
-        return hex === decoded.id.toString();
-      }
-      if (p.userId) return p.userId.toString() === decoded.id.toString();
-      return p.toString() === decoded.id.toString();
-    };
-    const playerEntry = pt.players.find(matchPlayer);
+    const playerEntry = pt.players.find(p => p.userId.toString() === decoded.id.toString());
     if (!playerEntry) return res.status(404).json({ error: 'No estás en este torneo' });
     await PaidTournament.updateOne(
       { _id: tournamentId },
-      { $pull: { players: { _id: playerEntry._id } } }
+      { $pull: { players: { userId: decoded.id } } }
     );
-    res.json({ success: true, message: 'El reembolso se procesará manualmente en 24-48h.' });
+    res.json({ success: true });
   } catch (err) {
     console.error('Tournament leave error:', err.message);
     res.status(500).json({ error: 'Error al salir del torneo' });
