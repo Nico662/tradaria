@@ -519,6 +519,7 @@ export const GLOSSARY = [
     chartId: 'rally',
   },
   {
+    chartId: 'correction',
     word: { en: 'Correction', es: 'Corrección', de: 'Korrektur' },
     definition: {
       en: 'A short-term decline of 10% or more from recent highs. Normal and healthy part of any uptrend before continuation.',

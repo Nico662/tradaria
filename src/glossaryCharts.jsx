@@ -2282,6 +2282,109 @@ function RallyChart() {
   );
 }
 
+// ─── Correction Chart ───────────────────────────────────────────────────────
+
+function CorrectionChart() {
+  // price 115–155 → y 14–148
+  const py = p => 14 + (155 - p) * 134 / 40;
+
+  const peakPrice   = 150;
+  const troughPrice = 130;
+  const peakY       = py(peakPrice);    // ≈ 30.75
+  const troughY     = py(troughPrice);  // ≈ 97.75
+  const midY        = (peakY + troughY) / 2;
+
+  const candles = [
+    // uptrend
+    { x: 13,  O: 120, H: 124, L: 118, C: 123 },
+    { x: 26,  O: 123, H: 127, L: 121, C: 126 },
+    { x: 39,  O: 126, H: 131, L: 124, C: 130 },
+    { x: 52,  O: 130, H: 134, L: 128, C: 133 },
+    { x: 65,  O: 133, H: 138, L: 131, C: 137 },
+    { x: 78,  O: 137, H: 142, L: 136, C: 141 },
+    { x: 91,  O: 141, H: 146, L: 140, C: 145 },
+    { x: 104, O: 145, H: 151, L: 144, C: 150 }, // PEAK
+    // correction
+    { x: 117, O: 150, H: 151, L: 143, C: 144 },
+    { x: 130, O: 144, H: 145, L: 137, C: 138 },
+    { x: 143, O: 138, H: 139, L: 132, C: 133 },
+    { x: 156, O: 133, H: 134, L: 129, C: 130 }, // TROUGH
+    // resume
+    { x: 169, O: 130, H: 138, L: 129, C: 137 },
+  ];
+
+  const bX = 181;
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="#060b10" rx="8" />
+
+      {/* Grid */}
+      {[40, 65, 90, 115, 140].map(y => (
+        <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
+      ))}
+
+      {/* Correction zone fill */}
+      <rect x="108" y={peakY} width="60" height={troughY - peakY} fill="#e0555510" />
+
+      {/* Peak dashed line */}
+      <line x1={100} y1={peakY} x2={bX} y2={peakY}
+        stroke="#f5c842" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.55" />
+
+      {/* Trough dashed line */}
+      <line x1={152} y1={troughY} x2={bX} y2={troughY}
+        stroke="#e05555" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.55" />
+
+      {/* Right bracket */}
+      <line x1={bX} y1={peakY}   x2={bX} y2={troughY}   stroke="#e05555" strokeWidth="1.1" opacity="0.75" />
+      <line x1={bX - 2.5} y1={peakY}   x2={bX + 2.5} y2={peakY}   stroke="#e05555" strokeWidth="1.1" opacity="0.75" />
+      <line x1={bX - 2.5} y1={troughY} x2={bX + 2.5} y2={troughY} stroke="#e05555" strokeWidth="1.1" opacity="0.75" />
+
+      {/* Candles */}
+      {candles.map(({ x, O, H, L, C }, i) => {
+        const bull  = C >= O;
+        const col   = bull ? '#22d3a5' : '#e05555';
+        const bodyY = py(Math.max(O, C));
+        const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="1" opacity="0.75" />
+            <rect x={x - 4} y={bodyY} width="8" height={bodyH} fill={col} rx="0.5" opacity="0.9" />
+          </g>
+        );
+      })}
+
+      {/* Uptrend phase label */}
+      <text x="55" y="12"
+        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#22d3a5" opacity="0.5" letterSpacing="0.04em">↑ uptrend</text>
+
+      {/* PEAK label */}
+      <text x={104} y={py(151) - 4}
+        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        fontSize="5.5" fontWeight="bold" fill="#f5c842" opacity="0.9">PEAK</text>
+
+      {/* TROUGH label */}
+      <text x={156} y={troughY + 9}
+        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        fontSize="5.5" fill="#e05555" opacity="0.9">TROUGH</text>
+
+      {/* Bracket annotation */}
+      <text x={bX - 5} y={midY - 3}
+        textAnchor="end" fontFamily="'Space Mono', monospace"
+        fontSize="6.5" fontWeight="bold" fill="#e05555" opacity="0.9">-13%</text>
+      <text x={bX - 5} y={midY + 6}
+        textAnchor="end" fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#e05555" opacity="0.6" letterSpacing="0.05em">CORRECTION</text>
+
+      {/* Watermark */}
+      <text x="6" y="154"
+        fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#172030" letterSpacing="0.1em">CORRECTION · 10–20% FROM PEAK</text>
+    </svg>
+  );
+}
+
 // ─── exports ────────────────────────────────────────────────────────────────
 
 export const CHARTS = {
@@ -2310,4 +2413,5 @@ export const CHARTS = {
   volatility:          VolatilityChart,
   drawdown:            DrawdownChart,
   rally:               RallyChart,
+  correction:          CorrectionChart,
 };
