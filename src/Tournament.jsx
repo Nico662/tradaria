@@ -43,6 +43,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
   const [confirmLeaveId, setConfirmLeaveId] = useState(null);
   const [leavingId, setLeavingId] = useState(null);
   const [leaveError, setLeaveError] = useState('');
+  const [leaveMessage, setLeaveMessage] = useState('');
   const [academyTournamentData, setAcademyTournamentData] = useState(null);
   const chartRef = useRef(null);
 
@@ -149,6 +150,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
   async function leavePaidTournament(tournamentId) {
     setLeavingId(tournamentId);
     setLeaveError('');
+    setLeaveMessage('');
     try {
       const token = localStorage.getItem('tradaria_token');
       const res = await fetch(`${SERVER}/tournament/paid/${tournamentId}/leave`, {
@@ -157,12 +159,17 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
       });
       const data = await res.json();
       if (data.success) {
+        const myId = String(user?._id || user?.id);
         setPaidTournaments(prev => prev.map(t =>
           String(t._id) === tournamentId
-            ? { ...t, players: t.players.filter(p => String(p.userId) !== String(user?._id || user?.id)) }
+            ? { ...t, players: t.players.filter(p => (p.userId ? String(p.userId) : String(p)) !== myId) }
             : t
         ));
-        setConfirmLeaveId(null);
+        if (data.manualRefund) {
+          setLeaveMessage(data.message);
+        } else {
+          setConfirmLeaveId(null);
+        }
       } else {
         setLeaveError(data.error || 'Error al salir del torneo');
       }
@@ -579,9 +586,16 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                 <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: 'var(--t1)', marginBottom: '12px' }}>
                   ¿Salir del torneo?
                 </div>
-                <div style={{ fontSize: '11px', color: 'var(--t4)', marginBottom: '20px', lineHeight: 1.6 }}>
-                  Se te devolverán los €2 automáticamente a tu método de pago.
-                </div>
+                {!leaveMessage && (
+                  <div style={{ fontSize: '11px', color: 'var(--t4)', marginBottom: '20px', lineHeight: 1.6 }}>
+                    Se te devolverán los €2 automáticamente a tu método de pago.
+                  </div>
+                )}
+                {leaveMessage && (
+                  <div style={{ fontSize: '11px', color: '#f5c842', fontFamily: "'Space Mono', monospace", marginBottom: '20px', padding: '10px 12px', background: 'rgba(245,200,66,0.08)', border: '1px solid rgba(245,200,66,0.3)', borderRadius: '6px', lineHeight: 1.6 }}>
+                    {leaveMessage}
+                  </div>
+                )}
                 {leaveError && (
                   <div style={{ fontSize: '10px', color: '#f05454', fontFamily: "'Space Mono', monospace", marginBottom: '16px', padding: '8px 10px', background: 'rgba(240,84,84,0.08)', border: '1px solid rgba(240,84,84,0.25)', borderRadius: '6px' }}>
                     {leaveError}
@@ -589,18 +603,20 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                 )}
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button
-                    onClick={() => { setConfirmLeaveId(null); setLeaveError(''); }}
+                    onClick={() => { setConfirmLeaveId(null); setLeaveError(''); setLeaveMessage(''); }}
                     style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid var(--bd)', borderRadius: '6px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer' }}
                   >
-                    {t.tournament.cancel}
+                    {leaveMessage ? 'Cerrar' : t.tournament.cancel}
                   </button>
-                  <button
-                    onClick={() => leavePaidTournament(confirmLeaveId)}
-                    disabled={!!leavingId}
-                    style={{ flex: 1, padding: '10px', background: 'rgba(240,84,84,0.1)', border: '1px solid #f05454', borderRadius: '6px', color: '#f05454', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', cursor: leavingId ? 'default' : 'pointer', opacity: leavingId ? 0.5 : 1 }}
-                  >
-                    {leavingId ? '...' : 'Sí, salir'}
-                  </button>
+                  {!leaveMessage && (
+                    <button
+                      onClick={() => leavePaidTournament(confirmLeaveId)}
+                      disabled={!!leavingId}
+                      style={{ flex: 1, padding: '10px', background: 'rgba(240,84,84,0.1)', border: '1px solid #f05454', borderRadius: '6px', color: '#f05454', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', cursor: leavingId ? 'default' : 'pointer', opacity: leavingId ? 0.5 : 1 }}
+                    >
+                      {leavingId ? '...' : 'Sí, salir'}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

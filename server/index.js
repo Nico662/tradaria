@@ -1035,14 +1035,23 @@ app.post('/tournament/paid/:tournamentId/leave', async (req, res) => {
     const pt = await PaidTournament.findById(req.params.tournamentId);
     if (!pt) return res.status(404).json({ error: 'Torneo no encontrado' });
     if (pt.status !== 'waiting') return res.status(400).json({ error: 'El torneo ya ha comenzado, no puedes salir' });
-    const player = pt.players.find(p => (p.userId ? String(p.userId) : String(p)) === String(decoded.id));
-    if (!player) return res.status(404).json({ error: 'No estás en este torneo' });
-    if (!player.paymentIntentId) return res.status(400).json({ error: 'No se puede procesar el reembolso automático para este pago, contacta con soporte' });
-    await stripe.refunds.create({ payment_intent: player.paymentIntentId });
-    await PaidTournament.findByIdAndUpdate(req.params.tournamentId, {
-      $pull: { players: { userId: decoded.id } },
+    const playerEntry = pt.players.find(p => {
+      const id = p.userId ? p.userId.toString() : p.toString();
+      return id === decoded.id.toString();
     });
-    res.json({ success: true });
+    if (!playerEntry) return res.status(404).json({ error: 'No estás en este torneo' });
+    if (playerEntry.paymentIntentId) {
+      await stripe.refunds.create({ payment_intent: playerEntry.paymentIntentId });
+      await PaidTournament.findByIdAndUpdate(req.params.tournamentId, {
+        $pull: { players: { userId: decoded.id } },
+      });
+      return res.json({ success: true });
+    } else {
+      await PaidTournament.findByIdAndUpdate(req.params.tournamentId, {
+        $pull: { players: new mongoose.Types.ObjectId(decoded.id) },
+      });
+      return res.json({ success: true, manualRefund: true, message: 'Saliste del torneo. El reembolso se procesará manualmente en 24-48h.' });
+    }
   } catch (err) {
     console.error('Tournament leave error:', err.message);
     res.status(500).json({ error: 'Error al salir del torneo' });
