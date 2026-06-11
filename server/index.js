@@ -1034,17 +1034,21 @@ app.post('/tournament/paid/:tournamentId/leave', async (req, res) => {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
     const { tournamentId } = req.params;
     const pt = await PaidTournament.findById(tournamentId);
-    console.log('decoded:', JSON.stringify(decoded));
-    console.log('tournament.players:', JSON.stringify(pt?.players));
-    console.log('decoded.id:', decoded.id);
-    console.log('decoded._id:', decoded._id);
     if (!pt) return res.status(404).json({ error: 'Torneo no encontrado' });
     if (pt.status !== 'waiting') return res.status(400).json({ error: 'El torneo ya ha comenzado, no puedes salir' });
-    const isInTournament = pt.players.some(p => p.toString() === decoded.id.toString());
-    if (!isInTournament) return res.status(404).json({ error: 'No estás en este torneo' });
+    const matchPlayer = p => {
+      if (p.buffer && p.buffer.data) {
+        const hex = Buffer.from(p.buffer.data).toString('hex');
+        return hex === decoded.id.toString();
+      }
+      if (p.userId) return p.userId.toString() === decoded.id.toString();
+      return p.toString() === decoded.id.toString();
+    };
+    const playerEntry = pt.players.find(matchPlayer);
+    if (!playerEntry) return res.status(404).json({ error: 'No estás en este torneo' });
     await PaidTournament.updateOne(
       { _id: tournamentId },
-      { $pull: { players: new mongoose.Types.ObjectId(decoded.id) } }
+      { $pull: { players: { _id: playerEntry._id } } }
     );
     res.json({ success: true, message: 'El reembolso se procesará manualmente en 24-48h.' });
   } catch (err) {
