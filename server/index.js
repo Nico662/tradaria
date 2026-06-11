@@ -1002,7 +1002,7 @@ app.post('/tournament/paid/join', async (req, res) => {
     const pt = await PaidTournament.findById(tournamentId);
     if (!pt) return res.status(404).json({ error: 'Tournament not found' });
     if (pt.status !== 'waiting') return res.status(400).json({ error: 'Tournament not open' });
-    if (pt.players.some(p => String(p.userId) === String(decoded.id)))
+    if (pt.players.some(p => (p.userId ? String(p.userId) : String(p)) === String(decoded.id)))
       return res.status(400).json({ error: 'Already joined' });
 
     const session = await stripe.checkout.sessions.create({
@@ -1035,8 +1035,9 @@ app.post('/tournament/paid/:tournamentId/leave', async (req, res) => {
     const pt = await PaidTournament.findById(req.params.tournamentId);
     if (!pt) return res.status(404).json({ error: 'Torneo no encontrado' });
     if (pt.status !== 'waiting') return res.status(400).json({ error: 'El torneo ya ha comenzado, no puedes salir' });
-    const player = pt.players.find(p => String(p.userId) === String(decoded.id));
+    const player = pt.players.find(p => (p.userId ? String(p.userId) : String(p)) === String(decoded.id));
     if (!player) return res.status(404).json({ error: 'No estás en este torneo' });
+    if (!player.paymentIntentId) return res.status(400).json({ error: 'No se puede procesar el reembolso automático para este pago, contacta con soporte' });
     await stripe.refunds.create({ payment_intent: player.paymentIntentId });
     await PaidTournament.findByIdAndUpdate(req.params.tournamentId, {
       $pull: { players: { userId: decoded.id } },
