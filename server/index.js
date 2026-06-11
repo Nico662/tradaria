@@ -1034,6 +1034,10 @@ app.post('/tournament/paid/:tournamentId/leave', async (req, res) => {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
     const { tournamentId } = req.params;
     const pt = await PaidTournament.findById(tournamentId);
+    console.log('decoded:', JSON.stringify(decoded));
+    console.log('tournament.players:', JSON.stringify(pt?.players));
+    console.log('decoded.id:', decoded.id);
+    console.log('decoded._id:', decoded._id);
     if (!pt) return res.status(404).json({ error: 'Torneo no encontrado' });
     if (pt.status !== 'waiting') return res.status(400).json({ error: 'El torneo ya ha comenzado, no puedes salir' });
     const isInTournament = pt.players.some(p => p.toString() === decoded.id.toString());
