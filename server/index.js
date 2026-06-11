@@ -1032,26 +1032,17 @@ app.post('/tournament/paid/:tournamentId/leave', async (req, res) => {
   if (!auth) return res.status(401).json({ error: 'No token' });
   try {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const pt = await PaidTournament.findById(req.params.tournamentId);
+    const { tournamentId } = req.params;
+    const pt = await PaidTournament.findById(tournamentId);
     if (!pt) return res.status(404).json({ error: 'Torneo no encontrado' });
     if (pt.status !== 'waiting') return res.status(400).json({ error: 'El torneo ya ha comenzado, no puedes salir' });
-    const playerEntry = pt.players.find(p => {
-      const id = p.userId ? p.userId.toString() : p.toString();
-      return id === decoded.id.toString();
-    });
-    if (!playerEntry) return res.status(404).json({ error: 'No estás en este torneo' });
-    if (playerEntry.paymentIntentId) {
-      await stripe.refunds.create({ payment_intent: playerEntry.paymentIntentId });
-      await PaidTournament.findByIdAndUpdate(req.params.tournamentId, {
-        $pull: { players: { userId: decoded.id } },
-      });
-      return res.json({ success: true });
-    } else {
-      await PaidTournament.findByIdAndUpdate(req.params.tournamentId, {
-        $pull: { players: new mongoose.Types.ObjectId(decoded.id) },
-      });
-      return res.json({ success: true, manualRefund: true, message: 'Saliste del torneo. El reembolso se procesará manualmente en 24-48h.' });
-    }
+    const isInTournament = pt.players.some(p => p.toString() === decoded.id.toString());
+    if (!isInTournament) return res.status(404).json({ error: 'No estás en este torneo' });
+    await PaidTournament.updateOne(
+      { _id: tournamentId },
+      { $pull: { players: new mongoose.Types.ObjectId(decoded.id) } }
+    );
+    res.json({ success: true, message: 'El reembolso se procesará manualmente en 24-48h.' });
   } catch (err) {
     console.error('Tournament leave error:', err.message);
     res.status(500).json({ error: 'Error al salir del torneo' });
