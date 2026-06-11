@@ -122,7 +122,10 @@ const PaidTournamentSchema = new mongoose.Schema({
   maxPlayers: { type: Number, default: 10 },
   totalPot:   { type: Number, default: 20 },
   createdBy:  { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
-  players:    [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  players:    [{
+    userId:         { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    paymentIntentId:{ type: String, default: null },
+  }],
   status:     { type: String, enum: ['waiting', 'active', 'finished'], default: 'waiting' },
   winner:     { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   payoutStatus: { type: String, enum: ['pending', 'paid', 'none'], default: 'none' },
@@ -841,8 +844,8 @@ app.post('/shop/webhook', express.raw({ type: 'application/json' }), async (req,
     if (metaType === 'tournament_entry' && userId && tournamentId) {
       try {
         const pt = await PaidTournament.findById(tournamentId);
-        if (pt && pt.status === 'waiting' && !pt.players.map(String).includes(userId)) {
-          pt.players.push(userId);
+        if (pt && pt.status === 'waiting' && !pt.players.some(p => String(p.userId) === userId)) {
+          pt.players.push({ userId, paymentIntentId: session.payment_intent });
           if (pt.players.length >= pt.maxPlayers) {
             pt.status = 'active';
             // Notify all subscribers that a paid tournament is starting
@@ -999,7 +1002,7 @@ app.post('/tournament/paid/join', async (req, res) => {
     const pt = await PaidTournament.findById(tournamentId);
     if (!pt) return res.status(404).json({ error: 'Tournament not found' });
     if (pt.status !== 'waiting') return res.status(400).json({ error: 'Tournament not open' });
-    if (pt.players.map(String).includes(String(decoded.id)))
+    if (pt.players.some(p => String(p.userId) === String(decoded.id)))
       return res.status(400).json({ error: 'Already joined' });
 
     const session = await stripe.checkout.sessions.create({
@@ -1021,6 +1024,27 @@ app.post('/tournament/paid/join', async (req, res) => {
   } catch (err) {
     console.error('Tournament join error:', err.message);
     res.status(500).json({ error: 'Join failed' });
+  }
+});
+
+app.post('/tournament/paid/:tournamentId/leave', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const pt = await PaidTournament.findById(req.params.tournamentId);
+    if (!pt) return res.status(404).json({ error: 'Torneo no encontrado' });
+    if (pt.status !== 'waiting') return res.status(400).json({ error: 'El torneo ya ha comenzado, no puedes salir' });
+    const player = pt.players.find(p => String(p.userId) === String(decoded.id));
+    if (!player) return res.status(404).json({ error: 'No estás en este torneo' });
+    await stripe.refunds.create({ payment_intent: player.paymentIntentId });
+    await PaidTournament.findByIdAndUpdate(req.params.tournamentId, {
+      $pull: { players: { userId: decoded.id } },
+    });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Tournament leave error:', err.message);
+    res.status(500).json({ error: 'Error al salir del torneo' });
   }
 });
 

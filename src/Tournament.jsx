@@ -40,6 +40,9 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [deleteError, setDeleteError] = useState('');
+  const [confirmLeaveId, setConfirmLeaveId] = useState(null);
+  const [leavingId, setLeavingId] = useState(null);
+  const [leaveError, setLeaveError] = useState('');
   const [academyTournamentData, setAcademyTournamentData] = useState(null);
   const chartRef = useRef(null);
 
@@ -141,6 +144,32 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
       if (data.url) window.location.href = data.url;
     } catch {}
     setJoiningId(null);
+  }
+
+  async function leavePaidTournament(tournamentId) {
+    setLeavingId(tournamentId);
+    setLeaveError('');
+    try {
+      const token = localStorage.getItem('tradaria_token');
+      const res = await fetch(`${SERVER}/tournament/paid/${tournamentId}/leave`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setPaidTournaments(prev => prev.map(t =>
+          String(t._id) === tournamentId
+            ? { ...t, players: t.players.filter(p => String(p.userId) !== String(user?._id || user?.id)) }
+            : t
+        ));
+        setConfirmLeaveId(null);
+      } else {
+        setLeaveError(data.error || 'Error al salir del torneo');
+      }
+    } catch {
+      setLeaveError('Error de red');
+    }
+    setLeavingId(null);
   }
 
   async function init() {
@@ -482,7 +511,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
               {paidTournaments.map(pt => {
                 const spots    = pt.maxPlayers - pt.players.length;
                 const isFull   = pt.status === 'active' || spots <= 0;
-                const alreadyIn = pt.players.map(String).includes(String(user?._id || user?.id));
+                const alreadyIn = pt.players.some(p => String(p.userId) === String(user?._id || user?.id));
                 return (
                   <div key={pt._id} style={{ padding: '14px 16px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '10px', marginBottom: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -507,7 +536,15 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                         {joiningId === String(pt._id) ? t.tournament.loadingJoin : t.tournament.joinFor.replace('{fee}', pt.entryFee)}
                       </button>
                     )}
-                    {alreadyIn && (
+                    {alreadyIn && pt.status === 'waiting' && (
+                      <button
+                        onClick={() => { setConfirmLeaveId(String(pt._id)); setLeaveError(''); }}
+                        style={{ width: '100%', padding: '10px', background: 'transparent', border: '1px solid rgba(240,84,84,0.4)', borderRadius: '6px', color: 'rgba(240,84,84,0.85)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
+                      >
+                        {t.tournament.leaveBtn || 'Salir del torneo'}
+                      </button>
+                    )}
+                    {alreadyIn && pt.status !== 'waiting' && (
                       <div style={{ fontSize: '10px', color: '#22d3a5', textAlign: 'center', fontFamily: "'Space Mono', monospace" }}>{t.tournament.alreadyIn}</div>
                     )}
                     {!user && (
@@ -533,6 +570,39 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                   {t.tournament.createBtn}
                 </button>
               )}
+            </div>
+          )}
+
+          {confirmLeaveId && (
+            <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,12,15,0.88)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: '20px' }}>
+              <div style={{ width: '100%', maxWidth: '320px', background: 'var(--bg-card)', border: '1px solid rgba(240,84,84,0.4)', borderRadius: '12px', padding: '24px' }}>
+                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: 'var(--t1)', marginBottom: '12px' }}>
+                  ¿Salir del torneo?
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--t4)', marginBottom: '20px', lineHeight: 1.6 }}>
+                  Se te devolverán los €2 automáticamente a tu método de pago.
+                </div>
+                {leaveError && (
+                  <div style={{ fontSize: '10px', color: '#f05454', fontFamily: "'Space Mono', monospace", marginBottom: '16px', padding: '8px 10px', background: 'rgba(240,84,84,0.08)', border: '1px solid rgba(240,84,84,0.25)', borderRadius: '6px' }}>
+                    {leaveError}
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    onClick={() => { setConfirmLeaveId(null); setLeaveError(''); }}
+                    style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid var(--bd)', borderRadius: '6px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer' }}
+                  >
+                    {t.tournament.cancel}
+                  </button>
+                  <button
+                    onClick={() => leavePaidTournament(confirmLeaveId)}
+                    disabled={!!leavingId}
+                    style={{ flex: 1, padding: '10px', background: 'rgba(240,84,84,0.1)', border: '1px solid #f05454', borderRadius: '6px', color: '#f05454', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', cursor: leavingId ? 'default' : 'pointer', opacity: leavingId ? 0.5 : 1 }}
+                  >
+                    {leavingId ? '...' : 'Sí, salir'}
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
