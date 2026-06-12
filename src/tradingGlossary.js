@@ -539,6 +539,7 @@ export const GLOSSARY = [
     },
   },
   {
+    chartId: 'bull_market',
     word: { en: 'Bull Market', es: 'Mercado Alcista', de: 'Bullenmarkt' },
     definition: {
       en: 'A prolonged period of rising prices, typically 20%+ from recent lows. Characterized by investor confidence and economic optimism.',

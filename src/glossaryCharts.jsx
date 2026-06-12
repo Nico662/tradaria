@@ -2385,6 +2385,104 @@ function CorrectionChart() {
   );
 }
 
+// ─── Bull Market Chart ──────────────────────────────────────────────────────
+
+function BullMarketChart() {
+  const py = p => 14 + (155 - p) * 134 / 68;
+
+  const confY = py(113); // +20% above trough (94 → 113)
+
+  const candles = [
+    // bear market base
+    { x: 14,  O: 108, H: 112, L:  97, C:  98, bw: 10 },
+    { x: 27,  O:  98, H: 102, L:  93, C: 101, bw: 10 },
+    { x: 40,  O: 101, H: 106, L:  94, C: 105, bw: 10 },
+    { x: 53,  O: 105, H: 111, L: 103, C: 110, bw: 10 },
+    { x: 66,  O: 110, H: 115, L: 108, C: 113, bw: 10 },
+    // bull market confirmed — HH/HL structure
+    { x: 79,  O: 113, H: 121, L: 111, C: 120, bw: 10 }, // HH1
+    { x: 92,  O: 120, H: 123, L: 115, C: 116, bw: 10 }, // HL1
+    { x: 105, O: 116, H: 128, L: 114, C: 127, bw: 10 }, // HH2
+    { x: 118, O: 127, H: 130, L: 122, C: 123, bw: 10 }, // HL2
+    { x: 131, O: 123, H: 137, L: 121, C: 136, bw: 10 }, // HH3
+    { x: 144, O: 136, H: 139, L: 131, C: 132, bw: 10 }, // HL3
+    { x: 157, O: 132, H: 144, L: 130, C: 143, bw: 10 }, // HH4
+    { x: 170, O: 143, H: 149, L: 141, C: 147, bw: 10 }, // continuation
+  ];
+
+  const tlX1 = 40, tlY1 = py(94);
+  const tlX2 = 170, tlY2 = py(141);
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="#060b10" rx="8" />
+
+      {/* Grid */}
+      {[40, 65, 90, 115, 140].map(y => (
+        <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
+      ))}
+
+      {/* Bear base background */}
+      <rect x="6" y="14" width="66" height="134" fill="#e055550a" />
+
+      {/* +20% confirmation line */}
+      <line x1="6" y1={confY} x2="182" y2={confY}
+        stroke="#f5c842" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.6" />
+      <text x="8" y={confY - 2.5}
+        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#f5c842" opacity="0.8">+20% from low</text>
+
+      {/* Rising trendline */}
+      <line x1={tlX1} y1={tlY1} x2={tlX2} y2={tlY2}
+        stroke="#22d3a5" strokeWidth="1.2" strokeDasharray="4 2" opacity="0.45" />
+
+      {/* Bear → bull separator */}
+      <line x1="72" y1="14" x2="72" y2="148"
+        stroke="#f5c842" strokeWidth="0.6" strokeDasharray="2 3" opacity="0.35" />
+
+      {/* Candles */}
+      {candles.map(({ x, O, H, L, C, bw }, i) => {
+        const bull  = C >= O;
+        const col   = bull ? '#22d3a5' : '#e05555';
+        const bodyY = py(Math.max(O, C));
+        const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="1" opacity="0.75" />
+            <rect x={x - bw / 2} y={bodyY} width={bw} height={bodyH} fill={col} rx="0.5" opacity="0.95" />
+          </g>
+        );
+      })}
+
+      {/* Trough marker */}
+      <circle cx={40} cy={py(94)} r="2.5" fill="none" stroke="#e05555" strokeWidth="1" opacity="0.7" />
+
+      {/* HH labels */}
+      <text x={79}  y={py(121) - 5} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="#22d3a5" opacity="0.9">HH</text>
+      <text x={105} y={py(128) - 5} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="#22d3a5" opacity="0.9">HH</text>
+      <text x={131} y={py(137) - 5} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="#22d3a5" opacity="0.9">HH</text>
+      <text x={157} y={py(144) - 5} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="#22d3a5" opacity="0.9">HH</text>
+
+      {/* HL labels */}
+      <text x={92}  y={py(115) + 10} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#22d3a5" opacity="0.7">HL</text>
+      <text x={118} y={py(122) + 10} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#22d3a5" opacity="0.7">HL</text>
+      <text x={144} y={py(131) + 10} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#22d3a5" opacity="0.7">HL</text>
+
+      {/* Section labels */}
+      <text x="38" y="11"
+        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#e05555" opacity="0.55" letterSpacing="0.04em">BEAR BASE</text>
+      <text x="128" y="11"
+        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#22d3a5" opacity="0.55" letterSpacing="0.04em">BULL MARKET ↑</text>
+
+      {/* Watermark */}
+      <text x="6" y="154"
+        fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#172030" letterSpacing="0.1em">BULL MARKET · +20% FROM LOWS</text>
+    </svg>
+  );
+}
+
 // ─── exports ────────────────────────────────────────────────────────────────
 
 export const CHARTS = {
@@ -2414,4 +2512,5 @@ export const CHARTS = {
   drawdown:            DrawdownChart,
   rally:               RallyChart,
   correction:          CorrectionChart,
+  bull_market:         BullMarketChart,
 };
