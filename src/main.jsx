@@ -3,6 +3,7 @@ import './index.css'
 import App from './App.jsx'
 import { LangProvider } from './LangContext.jsx';
 import { AuthProvider } from './AuthContext.jsx';
+import MaintenanceBanner from './MaintenanceBanner.jsx';
 import { SERVER } from './config.js';
 import { inject } from '@vercel/analytics';
 inject();
@@ -40,6 +41,7 @@ if ('serviceWorker' in navigator) {
 createRoot(document.getElementById('root')).render(
   <AuthProvider>
     <LangProvider>
+      <MaintenanceBanner />
       <App />
     </LangProvider>
   </AuthProvider>

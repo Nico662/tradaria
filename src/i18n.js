@@ -574,6 +574,9 @@ export const LANGS = {
       finalSub1: '30 days free', finalSub2: 'No credit card', finalSub3: 'Cancel anytime',
       skip: 'Skip', prev: '← Back', next: 'Next →', start: 'Activate free →',
     },
+    maintenance: {
+      banner: "🔧 We're making changes to the site. Things might look a bit off for a while.",
+    },
   },
 
   es: {
@@ -1151,6 +1154,9 @@ export const LANGS = {
       finalSub1: '30 días gratis', finalSub2: 'Sin tarjeta', finalSub3: 'Cancela cuando quieras',
       skip: 'Saltar', prev: '← Atrás', next: 'Siguiente →', start: 'Activar gratis →',
     },
+    maintenance: {
+      banner: '🔧 Estamos haciendo cambios en la web. Puede que veas cosas raras durante un rato.',
+    },
   },
 
   de: {
@@ -1727,6 +1733,9 @@ export const LANGS = {
       finalCta: 'Meine Akademie kostenlos aktivieren',
       finalSub1: '30 Tage kostenlos', finalSub2: 'Keine Kreditkarte', finalSub3: 'Jederzeit kündbar',
       skip: 'Überspringen', prev: '← Zurück', next: 'Weiter →', start: 'Kostenlos aktivieren →',
+    },
+    maintenance: {
+      banner: '🔧 Wir nehmen gerade Änderungen vor. Es kann kurzzeitig zu Darstellungsfehlern kommen.',
     },
   },
 };
