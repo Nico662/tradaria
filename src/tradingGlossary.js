@@ -559,6 +559,7 @@ export const GLOSSARY = [
     },
   },
   {
+    chartId: 'bear_market',
     word: { en: 'Bear Market', es: 'Mercado Bajista', de: 'Bärenmarkt' },
     definition: {
       en: 'A prolonged decline of 20%+ from recent highs. Marked by pessimism, fear, and declining economic activity.',

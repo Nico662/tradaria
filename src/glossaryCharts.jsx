@@ -2483,6 +2483,107 @@ function BullMarketChart() {
   );
 }
 
+// ─── Bear Market Chart ──────────────────────────────────────────────────────
+
+function BearMarketChart() {
+  const py = p => 14 + (155 - p) * 134 / 68;
+
+  const confY = py(120); // -20% from peak (150 * 0.8 = 120)
+
+  const candles = [
+    // brief bull run to peak
+    { x: 14,  O: 133, H: 138, L: 130, C: 136, bw: 10 },
+    { x: 27,  O: 136, H: 143, L: 134, C: 142, bw: 10 },
+    { x: 40,  O: 142, H: 150, L: 140, C: 148, bw: 10 }, // peak
+    // bear market — LH/LL structure
+    { x: 53,  O: 148, H: 150, L: 136, C: 137, bw: 10 }, // initial drop
+    { x: 66,  O: 137, H: 144, L: 132, C: 142, bw: 10 }, // LH1 bounce
+    { x: 79,  O: 142, H: 143, L: 128, C: 129, bw: 10 }, // LL1 drop
+    { x: 92,  O: 129, H: 136, L: 121, C: 134, bw: 10 }, // LH2 bounce
+    { x: 105, O: 134, H: 135, L: 116, C: 117, bw: 10 }, // LL2 drop
+    { x: 118, O: 117, H: 124, L: 108, C: 122, bw: 10 }, // LH3 bounce
+    { x: 131, O: 122, H: 123, L: 103, C: 104, bw: 10 }, // LL3 drop
+    { x: 144, O: 104, H: 108, L:  97, C:  99, bw: 10 }, // continuation
+    { x: 157, O:  99, H: 102, L:  91, C:  92, bw: 10 }, // decline
+    { x: 170, O:  92, H:  96, L:  87, C:  89, bw: 10 }, // bottom area
+  ];
+
+  // falling trendline through LH peaks
+  const tlX1 = 66, tlY1 = py(144);
+  const tlX2 = 118, tlY2 = py(124);
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="#060b10" rx="8" />
+
+      {/* Grid */}
+      {[40, 65, 90, 115, 140].map(y => (
+        <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
+      ))}
+
+      {/* Bear zone background */}
+      <rect x="47" y="14" width="135" height="134" fill="#e055550a" />
+
+      {/* -20% confirmation line */}
+      <line x1="6" y1={confY} x2="182" y2={confY}
+        stroke="#f5c842" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.6" />
+      <text x="8" y={confY - 2.5}
+        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#f5c842" opacity="0.8">-20% from peak</text>
+
+      {/* Falling trendline */}
+      <line x1={tlX1} y1={tlY1} x2={tlX2} y2={tlY2}
+        stroke="#e05555" strokeWidth="1.2" strokeDasharray="4 2" opacity="0.45" />
+
+      {/* Bull → bear separator */}
+      <line x1="47" y1="14" x2="47" y2="148"
+        stroke="#f5c842" strokeWidth="0.6" strokeDasharray="2 3" opacity="0.35" />
+
+      {/* Candles */}
+      {candles.map(({ x, O, H, L, C, bw }, i) => {
+        const bull  = C >= O;
+        const col   = bull ? '#22d3a5' : '#e05555';
+        const bodyY = py(Math.max(O, C));
+        const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="1" opacity="0.75" />
+            <rect x={x - bw / 2} y={bodyY} width={bw} height={bodyH} fill={col} rx="0.5" opacity="0.95" />
+          </g>
+        );
+      })}
+
+      {/* Peak marker */}
+      <circle cx={40} cy={py(150)} r="2.5" fill="none" stroke="#f5c842" strokeWidth="1" opacity="0.7" />
+      <text x={40} y={py(150) - 4}
+        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        fontSize="5.5" fontWeight="bold" fill="#f5c842" opacity="0.9">PEAK</text>
+
+      {/* LH labels */}
+      <text x={66}  y={py(144) - 5} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="#e05555" opacity="0.9">LH</text>
+      <text x={92}  y={py(136) - 5} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="#e05555" opacity="0.9">LH</text>
+      <text x={118} y={py(124) - 5} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="#e05555" opacity="0.9">LH</text>
+
+      {/* LL labels */}
+      <text x={79}  y={py(128) + 10} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#e05555" opacity="0.7">LL</text>
+      <text x={105} y={py(116) + 10} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#e05555" opacity="0.7">LL</text>
+      <text x={131} y={py(103) + 10} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#e05555" opacity="0.7">LL</text>
+
+      {/* Section labels */}
+      <text x="27" y="11"
+        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#22d3a5" opacity="0.55" letterSpacing="0.04em">BULL RUN</text>
+      <text x="122" y="11"
+        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#e05555" opacity="0.55" letterSpacing="0.04em">BEAR MARKET ↓</text>
+
+      {/* Watermark */}
+      <text x="6" y="154"
+        fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#172030" letterSpacing="0.1em">BEAR MARKET · -20% FROM PEAK</text>
+    </svg>
+  );
+}
+
 // ─── exports ────────────────────────────────────────────────────────────────
 
 export const CHARTS = {
@@ -2513,4 +2614,5 @@ export const CHARTS = {
   rally:               RallyChart,
   correction:          CorrectionChart,
   bull_market:         BullMarketChart,
+  bear_market:         BearMarketChart,
 };
