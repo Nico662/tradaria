@@ -2584,6 +2584,109 @@ function BearMarketChart() {
   );
 }
 
+// ─── Fibonacci Chart ────────────────────────────────────────────────────────
+
+function FibonacciChart() {
+  const py = p => 14 + (155 - p) * 134 / 62;
+
+  const swingLow  = 100;
+  const swingHigh = 150;
+  const r = swingHigh - swingLow; // 50
+
+  const fib = [
+    { pct: '0%',    p: swingHigh,           col: '#22d3a5', op: 0.55 },
+    { pct: '23.6%', p: swingHigh - 0.236*r, col: '#4a6680', op: 0.75 },
+    { pct: '38.2%', p: swingHigh - 0.382*r, col: '#4a6680', op: 0.75 },
+    { pct: '50%',   p: swingHigh - 0.5  *r, col: '#f5c842', op: 0.65 },
+    { pct: '61.8%', p: swingHigh - 0.618*r, col: '#f5c842', op: 1.0  },
+    { pct: '100%',  p: swingLow,            col: '#e05555', op: 0.55 },
+  ];
+
+  const p618 = swingHigh - 0.618 * r; // 119.1
+
+  const candles = [
+    // uptrend to swing high
+    { x: 13,  O: 100, H: 105, L:  99, C: 104, bw: 7 },
+    { x: 23,  O: 104, H: 110, L: 102, C: 109, bw: 7 },
+    { x: 33,  O: 109, H: 116, L: 107, C: 115, bw: 7 },
+    { x: 43,  O: 115, H: 122, L: 113, C: 121, bw: 7 },
+    { x: 53,  O: 121, H: 128, L: 119, C: 127, bw: 7 },
+    { x: 63,  O: 127, H: 135, L: 125, C: 133, bw: 7 },
+    { x: 73,  O: 133, H: 141, L: 131, C: 140, bw: 7 },
+    { x: 83,  O: 140, H: 151, L: 138, C: 150, bw: 7 }, // swing high
+    // retracement toward 61.8%
+    { x: 95,  O: 150, H: 151, L: 140, C: 141, bw: 7 },
+    { x: 105, O: 141, H: 143, L: 131, C: 133, bw: 7 },
+    { x: 115, O: 133, H: 135, L: 124, C: 126, bw: 7 },
+    { x: 125, O: 126, H: 128, L: 119, C: 122, bw: 7 }, // touch 61.8%
+    // bounce and continuation
+    { x: 135, O: 122, H: 130, L: 120, C: 129, bw: 7 },
+    { x: 145, O: 129, H: 137, L: 127, C: 135, bw: 7 },
+    { x: 155, O: 135, H: 143, L: 133, C: 141, bw: 7 },
+    { x: 165, O: 141, H: 149, L: 139, C: 147, bw: 7 },
+  ];
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="#060b10" rx="8" />
+
+      {/* Grid */}
+      {[40, 65, 90, 115, 140].map(y => (
+        <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
+      ))}
+
+      {/* 61.8% golden zone fill */}
+      <rect x="6" y={py(p618 + 2.5)} width="176" height={py(p618 - 2.5) - py(p618 + 2.5)}
+        fill="#f5c84212" />
+
+      {/* Fibonacci level lines + labels */}
+      {fib.map(({ pct, p, col, op }) => {
+        const y = py(p);
+        return (
+          <g key={pct}>
+            <line x1="6" y1={y} x2="170" y2={y}
+              stroke={col} strokeWidth={pct === '61.8%' ? 1.2 : 0.8}
+              strokeDasharray="4 2.5" opacity={op} />
+            <text x="182" y={y + 2.5}
+              textAnchor="end" fontFamily="'Space Mono', monospace"
+              fontSize="5" fill={col} opacity={op}>{pct}</text>
+          </g>
+        );
+      })}
+
+      {/* Candles */}
+      {candles.map(({ x, O, H, L, C, bw }, i) => {
+        const bull  = C >= O;
+        const col   = bull ? '#22d3a5' : '#e05555';
+        const bodyY = py(Math.max(O, C));
+        const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="1" opacity="0.75" />
+            <rect x={x - bw / 2} y={bodyY} width={bw} height={bodyH} fill={col} rx="0.5" opacity="0.95" />
+          </g>
+        );
+      })}
+
+      {/* Swing high marker */}
+      <circle cx={83} cy={py(150)} r="2.5" fill="none" stroke="#22d3a5" strokeWidth="1" opacity="0.7" />
+
+      {/* Bounce at 61.8% marker */}
+      <circle cx={125} cy={py(119)} r="3" fill="none" stroke="#f5c842" strokeWidth="1.3" opacity="0.95" />
+
+      {/* Golden ratio label */}
+      <text x="8" y={py(p618) - 4}
+        fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold"
+        fill="#f5c842" opacity="0.85">golden ratio</text>
+
+      {/* Watermark */}
+      <text x="6" y="154"
+        fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#172030" letterSpacing="0.1em">FIBONACCI RETRACEMENT</text>
+    </svg>
+  );
+}
+
 // ─── exports ────────────────────────────────────────────────────────────────
 
 export const CHARTS = {
@@ -2615,4 +2718,5 @@ export const CHARTS = {
   correction:          CorrectionChart,
   bull_market:         BullMarketChart,
   bear_market:         BearMarketChart,
+  fibonacci:           FibonacciChart,
 };

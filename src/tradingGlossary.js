@@ -579,6 +579,7 @@ export const GLOSSARY = [
     },
   },
   {
+    chartId: 'fibonacci',
     word: { en: 'Fibonacci', es: 'Fibonacci', de: 'Fibonacci' },
     definition: {
       en: 'A sequence where each number is the sum of the two before it. Key trading levels (38.2%, 50%, 61.8%) predict where price might reverse.',
