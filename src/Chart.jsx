@@ -197,9 +197,9 @@ const Chart = forwardRef(function Chart({ asset, externalCandles, onReady }, ref
       chart = createChart(containerRef.current, {
         width:  containerRef.current.clientWidth,
         height: getChartHeight(),
-        layout: { background: { color: 'transparent' }, textColor: '#3a4455' },
+        layout: { background: { type: 'solid', color: '#111111' }, textColor: '#555555' },
         grid: {
-          vertLines: { color: 'rgba(255,255,255,0.03)' },
+          vertLines: { color: 'rgba(255,255,255,0.04)' },
           horzLines: { color: 'rgba(255,255,255,0.04)' },
         },
         rightPriceScale: { borderColor: 'transparent' },
@@ -218,18 +218,22 @@ const Chart = forwardRef(function Chart({ asset, externalCandles, onReady }, ref
             return price.toFixed(2);
           },
         },
-        crosshair:    { mode: 0 },
+        crosshair: {
+          mode: 0,
+          vertLine: { color: 'rgba(255,126,179,0.4)', labelBackgroundColor: '#ff7eb3' },
+          horzLine: { color: 'rgba(0,229,160,0.4)',   labelBackgroundColor: '#00e5a0' },
+        },
         handleScroll: true,
         handleScale:  true,
       });
 
       const series = chart.addSeries(CandlestickSeries, {
-        upColor:         'var(--green)',
-        downColor:       'var(--color-down)',
-        borderUpColor:   'var(--green)',
-        borderDownColor: 'var(--color-down)',
-        wickUpColor:     'var(--green)',
-        wickDownColor:   'var(--color-down)',
+        upColor:         '#00e5a0',
+        downColor:       '#ff7eb3',
+        borderUpColor:   '#00e5a0',
+        borderDownColor: '#ff7eb3',
+        wickUpColor:     '#00e5a0',
+        wickDownColor:   '#ff7eb3',
         priceFormat: forex
           ? { type: 'price', precision: 4, minMove: 0.0001 }
           : { type: 'price', precision: 2, minMove: 0.01 },
