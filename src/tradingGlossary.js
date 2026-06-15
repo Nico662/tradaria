@@ -599,6 +599,7 @@ export const GLOSSARY = [
     },
   },
   {
+    chartId: 'moving_average',
     word: { en: 'Moving Average', es: 'Media Móvil', de: 'Gleitender Durchschnitt' },
     definition: {
       en: 'Smooths price action by calculating the average price over a set period. Helps identify trend direction and dynamic support/resistance.',

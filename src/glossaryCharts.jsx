@@ -2687,6 +2687,104 @@ function FibonacciChart() {
   );
 }
 
+// ─── Moving Average Chart ───────────────────────────────────────────────────
+
+function MovingAverageChart() {
+  const py = p => 12 + (160 - p) * 4.25;
+
+  const candles = [
+    { x: 14,  O: 137, H: 140, L: 134, C: 136 },
+    { x: 29,  O: 136, H: 138, L: 132, C: 134 },
+    { x: 44,  O: 134, H: 136, L: 131, C: 133 },
+    { x: 59,  O: 133, H: 138, L: 131, C: 137 },
+    { x: 74,  O: 137, H: 142, L: 135, C: 141 },
+    { x: 89,  O: 141, H: 147, L: 139, C: 146 },
+    { x: 104, O: 146, H: 152, L: 144, C: 151 },
+    { x: 119, O: 151, H: 153, L: 145, C: 147 },
+    { x: 134, O: 147, H: 151, L: 144, C: 150 },
+    { x: 149, O: 150, H: 156, L: 148, C: 155 },
+    { x: 164, O: 155, H: 160, L: 153, C: 158 },
+  ];
+
+  // 50 MA (fast, yellow) — starts below 200 MA, crosses above at candle 5→6
+  const ma50  = [135, 136, 135, 136, 138, 141, 143, 145, 145, 146, 147];
+  // 200 MA (slow, teal) — flat dynamic support line
+  const ma200 = [143, 143, 142, 141, 141, 140, 140, 141, 141, 142, 143];
+
+  const ma50Path  = candles.map((c, i) => `${i === 0 ? 'M' : 'L'}${c.x},${py(ma50[i]).toFixed(1)}`).join(' ');
+  const ma200Path = candles.map((c, i) => `${i === 0 ? 'M' : 'L'}${c.x},${py(ma200[i]).toFixed(1)}`).join(' ');
+
+  // golden cross: 50 MA crosses above 200 MA between candle 4 (x=74) and 5 (x=89)
+  const crossX = 85;
+  const crossY = 96;
+
+  // bounce: candle 7 (x=119) low touches the 50 MA at price 145
+  const bounceY = py(145); // 75.75
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="#060b10" rx="8" />
+
+      {/* Grid */}
+      {[40, 65, 90, 115, 140].map(y => (
+        <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
+      ))}
+
+      {/* 200 MA — teal, flat dynamic support */}
+      <path d={ma200Path} fill="none" stroke="#22d3a5" strokeWidth="1.8"
+        strokeLinejoin="round" opacity="0.85" />
+
+      {/* 50 MA — yellow, tracks price closely */}
+      <path d={ma50Path} fill="none" stroke="#f5c842" strokeWidth="1.8"
+        strokeLinejoin="round" opacity="0.85" />
+
+      {/* Candles */}
+      {candles.map(({ x, O, H, L, C }, i) => {
+        const bull  = C >= O;
+        const col   = bull ? '#22d3a5' : '#e05555';
+        const bodyY = py(Math.max(O, C));
+        const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="1" opacity="0.7" />
+            <rect x={x - 4} y={bodyY} width={8} height={bodyH} fill={col} rx="0.5" opacity="0.9" />
+          </g>
+        );
+      })}
+
+      {/* Golden cross annotation */}
+      <line x1="55" y1="55" x2={crossX - 3} y2={crossY - 3}
+        stroke="#f5c842" strokeWidth="0.8" strokeDasharray="3 2" opacity="0.55" />
+      <circle cx={crossX} cy={crossY} r="3.5" fill="none"
+        stroke="#f5c842" strokeWidth="1.2" opacity="0.9" />
+      <text x="10" y="48"
+        fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold"
+        fill="#f5c842" opacity="0.9">golden</text>
+      <text x="10" y="56"
+        fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold"
+        fill="#f5c842" opacity="0.9">cross</text>
+
+      {/* Bounce off 50 MA — label between the two MAs at the pullback */}
+      <text x="124" y={bounceY + 11}
+        textAnchor="start" fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#f5c842" opacity="0.7">↑ bounce</text>
+
+      {/* MA labels on the right */}
+      <text x="181" y={py(147) - 3}
+        textAnchor="end" fontFamily="'Space Mono', monospace"
+        fontSize="6" fontWeight="bold" fill="#f5c842" opacity="0.9">50 MA</text>
+      <text x="181" y={py(143) + 8}
+        textAnchor="end" fontFamily="'Space Mono', monospace"
+        fontSize="6" fontWeight="bold" fill="#22d3a5" opacity="0.9">200 MA</text>
+
+      {/* Watermark */}
+      <text x="6" y="154"
+        fontFamily="'Space Mono', monospace"
+        fontSize="5" fill="#172030" letterSpacing="0.1em">MOVING AVERAGE</text>
+    </svg>
+  );
+}
+
 // ─── exports ────────────────────────────────────────────────────────────────
 
 export const CHARTS = {
@@ -2719,4 +2817,5 @@ export const CHARTS = {
   bull_market:         BullMarketChart,
   bear_market:         BearMarketChart,
   fibonacci:           FibonacciChart,
+  moving_average:      MovingAverageChart,
 };
