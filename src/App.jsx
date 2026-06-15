@@ -38,6 +38,7 @@ import TeacherDashboard from './TeacherDashboard.jsx';
 import StudentDashboard from './StudentDashboard.jsx';
 import AcadiasLanding from './AcadiasLanding.jsx';
 import AppLayout from './components/layout/AppLayout.jsx';
+import ModesPage from './components/ModesPage.jsx';
 
 
 const CATEGORIES = [
@@ -602,10 +603,7 @@ export default function App() {
   // ── Modes ─────────────────────────────────────────────────────────
   if (screen === 'modes') return (
     <AppLayout currentScreen={screen} onSelect={setScreen}>
-      <div style={{ padding: '24px 16px', fontFamily: 'var(--font-body)', color: 'var(--text-primary)' }}>
-        <h2 style={{ fontWeight: 900, fontSize: 22, marginBottom: 8 }}>Modos de juego</h2>
-        <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Aquí irán los modos. Próximo paso.</p>
-      </div>
+      <ModesPage onSelect={setScreen} />
     </AppLayout>
   );
 
