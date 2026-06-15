@@ -702,59 +702,54 @@ export default function App() {
 
   return (
     <div id="gtm-root" className={activeCosmetics?.theme || ''} style={{ position: 'relative' }}>
-      <div className="scanlines" />
 
-      <div className="header" style={{ flexDirection: 'column', gap: '4px', alignItems: 'stretch' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      {/* Header */}
+      <div style={{ padding: '10px 16px 8px', background: 'var(--bg-surface)', borderBottom: '0.5px solid var(--border-default)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
           <button onClick={goHome}
-            style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', padding: '4px 0', transition: 'color 0.15s' }}
-            onMouseEnter={e => e.target.style.color = 'var(--t2)'}
-            onMouseLeave={e => e.target.style.color = 'var(--t6)'}
-          >{t.game.menu}</button>
-          <div className="lang-selector">
+            style={{ background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 10px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em' }}>
+            ← menú
+          </button>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '11px', color: 'var(--text-muted)', letterSpacing: '0.16em', textTransform: 'uppercase' }}>
+            Classic Mode
+          </div>
+          <div style={{ display: 'flex', gap: '4px' }}>
             {['en', 'es', 'de'].map(l => (
-              <button key={l} className={`lang-btn${lang === l ? ' active' : ''}`} onClick={() => setLang(l)}>
+              <button key={l} onClick={() => setLang(l)}
+                style={{ background: lang === l ? 'var(--green-dim)' : 'transparent', color: lang === l ? 'var(--green)' : 'var(--text-muted)', border: `1px solid ${lang === l ? 'var(--border-green)' : 'var(--border-default)'}`, borderRadius: 'var(--radius-sm)', padding: '3px 7px', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 800, cursor: 'pointer' }}>
                 {l.toUpperCase()}
               </button>
             ))}
           </div>
         </div>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--green)', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(0,229,160,0.2)' }}>
-            GUESS <span style={{ color: 'var(--t1)' }}>THE</span> MARKET
-          </div>
-          <div style={{ fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: 'var(--font-body)' }}>
-            CLASSIC MODE
-          </div>
-        </div>
-        <div className="stats-row" style={{ justifyContent: 'space-around', width: '100%' }}>
-          <div className="stat-item">
-            <span className="stat-label">{t.game.round}</span>
-            <span className="stat-val">{round}/25</span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-label">{t.game.score}</span>
-            <span className="stat-val yellow">{score}</span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-label">{t.game.streak}</span>
-            <span className="stat-val green">{streak}</span>
-          </div>
+        <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+          {[
+            { label: 'RONDA',  value: `${round}/25`, color: 'var(--text-primary)' },
+            { label: 'PUNTOS', value: score,          color: 'var(--green)'        },
+            { label: 'RACHA',  value: streak,         color: streak > 0 ? 'var(--pink)' : 'var(--text-muted)' },
+          ].map(({ label, value, color }) => (
+            <div key={label} style={{ flex: 1, background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', padding: '6px 8px', textAlign: 'center', border: '0.5px solid var(--border-default)' }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: '8px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', marginBottom: '2px' }}>{label}</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: '16px', fontWeight: 900, color, letterSpacing: '-0.5px', lineHeight: 1 }}>{value}</div>
+            </div>
+          ))}
         </div>
       </div>
 
-      <div className="cat-bar">
+      {/* Cat bar */}
+      <div style={{ display: 'flex', gap: '6px', padding: '10px 16px', overflowX: 'auto', scrollbarWidth: 'none' }}>
         {CATEGORIES.map(c => (
-          <button key={c.id} className={`cat-btn${category === c.id ? ' active' : ''}`} onClick={() => changeCategory(c.id)}>
+          <button key={c.id} onClick={() => changeCategory(c.id)}
+            style={{ flexShrink: 0, background: category === c.id ? 'var(--green-dim)' : 'var(--bg-elevated)', border: `1.5px solid ${category === c.id ? 'var(--border-green)' : 'var(--border-default)'}`, borderRadius: 'var(--radius-full)', padding: '5px 12px', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 800, color: category === c.id ? 'var(--green)' : 'var(--text-muted)', cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap', transition: 'all 0.15s' }}>
             {t.cats[c.labelKey]}
           </button>
         ))}
       </div>
 
-      <div className="asset-bar">
-        <div className="asset-name">{asset.name}</div>
-        <div className="asset-price"></div>
-        <div className="timeframe-badge">{asset.tf}</div>
+      {/* Asset bar */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 16px 8px', background: 'var(--bg-surface)' }}>
+        <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '16px', color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>{asset.name}</div>
+        <span style={{ background: 'var(--pink-dim)', color: 'var(--pink)', border: '1px solid var(--border-pink)', borderRadius: 'var(--radius-full)', padding: '3px 10px', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em' }}>{asset.tf}</span>
       </div>
 
       <div className="chart-area">
@@ -768,100 +763,111 @@ export default function App() {
         </div>
       </div>
 
-      <div className="streak-bar">
-        {Array.from({ length: 12 }, (_, i) => (
-          <div key={i} className={`streak-dot${recent[i] ? ' ' + recent[i] : ''}`} />
-        ))}
-        {streak > 1 && <span className="streak-label">{streak}x streak</span>}
+      {/* Streak bar */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 16px' }}>
+        {Array.from({ length: 12 }, (_, i) => {
+          const h = recent[i];
+          const bg = !h ? 'var(--border-default)' : h === 'win' ? 'var(--green)' : h === 'lose' ? 'var(--pink)' : 'var(--color-neutral)';
+          return <div key={i} style={{ width: '8px', height: '8px', borderRadius: '50%', background: bg, flexShrink: 0 }} />;
+        })}
+        {streak > 1 && <span style={{ fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 800, color: 'var(--pink)', marginLeft: '6px' }}>{streak}× racha</span>}
       </div>
-         {phase === 'choose' && chartReady && (() => {
-          const candles  = chartRef.current?.getCandles?.();
-          const analysis = analyzeCandles(candles);
-           if (!analysis) return null;
-            const trendColor = analysis.trend === 'bullish' ? 'var(--green)' : analysis.trend === 'bearish' ? 'var(--color-down)' : 'var(--color-neutral)';
-            const trendLabel = analysis.trend === 'bullish' ? t.game.bullish : analysis.trend === 'bearish' ? t.game.bearish : t.game.ranging;
-            const volColor   = analysis.vol === 'low' ? 'var(--green)' : analysis.vol === 'medium' ? 'var(--color-neutral)' : 'var(--color-down)';
-            const volLabel   = analysis.vol === 'low' ? 'low' : analysis.vol === 'medium' ? 'medium' : 'high';
-         return (
-          <div style={{ padding: '6px 20px 0', position: 'relative', zIndex: 2 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-        {[
-          { label: 'trend',      value: trendLabel,                                                          color: trendColor },
-          { label: 'last 5',     value: `${analysis.green}▲ ${analysis.red}▼`,                              color: analysis.green > analysis.red ? 'var(--green)' : 'var(--color-down)' },
-          { label: 'change',     value: `${analysis.change >= 0 ? '+' : ''}${analysis.change.toFixed(1)}%`, color: analysis.change >= 0 ? 'var(--green)' : 'var(--color-down)' },
-          { label: 'volatility', value: volLabel,                                                            color: volColor },
-        ].map(s => (
-          <div key={s.label} style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '6px', padding: '7px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '8px', color: 'var(--t5)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{s.label}</span>
-            <span style={{ fontSize: '11px', color: s.color, fontWeight: 700 }}>{s.value}</span>
+      {/* Analysis cards */}
+      {phase === 'choose' && chartReady && (() => {
+        const candles  = chartRef.current?.getCandles?.();
+        const analysis = analyzeCandles(candles);
+        if (!analysis) return null;
+        const trendColor = analysis.trend === 'bullish' ? 'var(--green)' : analysis.trend === 'bearish' ? 'var(--pink)' : 'var(--color-neutral)';
+        const trendLabel = analysis.trend === 'bullish' ? t.game.bullish : analysis.trend === 'bearish' ? t.game.bearish : t.game.ranging;
+        const volColor   = analysis.vol === 'low' ? 'var(--green)' : analysis.vol === 'medium' ? 'var(--color-neutral)' : 'var(--pink)';
+        const volLabel   = analysis.vol === 'low' ? 'low' : analysis.vol === 'medium' ? 'medium' : 'high';
+        return (
+          <div style={{ padding: '6px 16px 0' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+              {[
+                { label: 'trend',      value: trendLabel,                                                          color: trendColor },
+                { label: 'last 5',     value: `${analysis.green}▲ ${analysis.red}▼`,                              color: analysis.green > analysis.red ? 'var(--green)' : 'var(--pink)' },
+                { label: 'change',     value: `${analysis.change >= 0 ? '+' : ''}${analysis.change.toFixed(1)}%`, color: analysis.change >= 0 ? 'var(--green)' : 'var(--pink)' },
+                { label: 'volatility', value: volLabel,                                                            color: volColor },
+              ].map(s => (
+                <div key={s.label} style={{ background: 'var(--bg-elevated)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', padding: '7px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '8px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.10em' }}>{s.label}</span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 900, color: s.color }}>{s.value}</span>
+                </div>
+              ))}
+            </div>
           </div>
-        ))}
-      </div>
-    </div>
-  );
-})()}
+        );
+      })()}
+      {/* Action zone */}
       {phase === 'choose' && (
-        <div className="action-zone">
-          <div className="prompt-text">{t.game.whatNext}</div>
-          <div className="buttons-row">
+        <div style={{ padding: '10px 16px 0' }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', textAlign: 'center', marginBottom: '8px' }}>{t.game.whatNext}</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
             <button className={`btn-long${selected === 'long' ? ' selected' : ''}`} onClick={() => makeChoice('long')}>
-              <span className="btn-icon">▲</span>
+              <span style={{ fontSize: '18px', lineHeight: 1 }}>↑</span>
               <span>Long</span>
-              <span className="btn-sublabel">{t.game.longSub}</span>
+              <span style={{ fontSize: '9px', opacity: 0.7, fontWeight: 700 }}>{t.game.longSub}</span>
             </button>
             <button className={`btn-neutral${selected === 'skip' ? ' selected' : ''}`} onClick={() => makeChoice('skip')}>
-              <span className="btn-icon">—</span>
+              <span style={{ fontSize: '18px', lineHeight: 1 }}>—</span>
               <span>{t.game.noTrade}</span>
-              <span className="btn-sublabel">{t.game.noTradeSub}</span>
+              <span style={{ fontSize: '9px', opacity: 0.7, fontWeight: 700 }}>{t.game.noTradeSub}</span>
             </button>
             <button className={`btn-short${selected === 'short' ? ' selected' : ''}`} onClick={() => makeChoice('short')}>
-              <span className="btn-icon">▼</span>
+              <span style={{ fontSize: '18px', lineHeight: 1 }}>↓</span>
               <span>Short</span>
-              <span className="btn-sublabel">{t.game.shortSub}</span>
+              <span style={{ fontSize: '9px', opacity: 0.7, fontWeight: 700 }}>{t.game.shortSub}</span>
             </button>
           </div>
         </div>
       )}
 
+      {/* Result overlay */}
       {result && (
-        <div className="result-overlay">
-          <div className={`result-card ${cls}`}>
-            <div className="result-left">
-              <div className={`result-verdict ${cls}`}>
+        <div style={{ padding: '10px 16px 0' }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '10px',
+            background: cls === 'win' ? 'rgba(0,229,160,0.06)' : cls === 'lose' ? 'rgba(255,126,179,0.06)' : 'rgba(232,184,75,0.06)',
+            border: `1px solid ${cls === 'win' ? 'var(--border-green)' : cls === 'lose' ? 'var(--border-pink)' : 'var(--border-default)'}`,
+            borderRadius: 'var(--radius-md)', padding: '12px 14px',
+          }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '14px', marginBottom: '2px', color: cls === 'win' ? 'var(--green)' : cls === 'lose' ? 'var(--pink)' : 'var(--color-neutral)' }}>
                 {result.win && !result.neutral ? t.game.correct : !result.win && !result.neutral ? t.game.wrong : t.game.flat}
               </div>
-              <div className="result-detail">
-                price {dirLabel} &nbsp;{result.pctMove > 0 ? '+' : ''}{result.pctMove.toFixed(2)}% · you: {result.choice.toUpperCase()}
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)' }}>
+                precio {dirLabel} {result.pctMove > 0 ? '+' : ''}{result.pctMove.toFixed(2)}% · {result.choice.toUpperCase()}
               </div>
             </div>
-            <div className={`result-pnl ${result.pts > 0 ? 'pos' : result.pts < 0 ? 'neg' : 'zero'}`}>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '18px', color: result.pts > 0 ? 'var(--green)' : result.pts < 0 ? 'var(--pink)' : 'var(--color-neutral)', flexShrink: 0 }}>
               {result.pts > 0 ? '+' + result.pts : result.pts === 0 ? '±0' : result.pts}
             </div>
-            <button className="next-btn" onClick={nextRound} disabled={revealing}
-              style={{ opacity: revealing ? 0.3 : 1, cursor: revealing ? 'not-allowed' : 'pointer', flexShrink: 0, minWidth: '80px' }}>
+            <button onClick={nextRound} disabled={revealing}
+              style={{ background: 'var(--gradient-brand)', border: 'none', borderRadius: 'var(--radius-full)', padding: '10px 18px', fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '12px', color: '#0d0d0d', cursor: revealing ? 'not-allowed' : 'pointer', opacity: revealing ? 0.4 : 1, flexShrink: 0, transition: 'transform 0.1s' }}
+              onMouseDown={e => e.currentTarget.style.transform = 'scale(0.97)'}
+              onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+            >
               {revealing ? '...' : t.game.next}
             </button>
           </div>
         </div>
       )}
 
-      <div style={{ padding: '12px 20px', borderTop: '1px solid var(--bd)', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', position: 'relative', zIndex: 2 }}>
+      {/* Stat cards */}
+      <div style={{ padding: '10px 16px 16px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
         {[
           { label: 'CORRECT',  value: history.filter(h => h === 'win').length,  color: 'var(--green)' },
-          { label: 'WRONG',    value: history.filter(h => h === 'lose').length, color: 'var(--color-down)' },
+          { label: 'WRONG',    value: history.filter(h => h === 'lose').length, color: 'var(--pink)' },
           { label: 'ACCURACY', value: history.filter(h => h !== 'skip').length > 0
               ? Math.round(history.filter(h => h === 'win').length / history.filter(h => h !== 'skip').length * 100) + '%'
               : '—', color: 'var(--color-neutral)' },
         ].map(s => (
-          <div key={s.label} className="game-stat-card">
-            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: s.color }}>{s.value}</div>
-            <div style={{ fontSize: '8px', color: 'var(--t5)', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: '2px' }}>{s.label}</div>
+          <div key={s.label} style={{ background: 'var(--bg-elevated)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', padding: '8px 10px', textAlign: 'center' }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '20px', color: s.color, letterSpacing: '-0.5px', lineHeight: 1 }}>{s.value}</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '8px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.10em', textTransform: 'uppercase', marginTop: '3px' }}>{s.label}</div>
           </div>
         ))}
-      </div>
-
-      <div className="ticker-tape">
-        BTC +3.2% · ETH -1.8% · SPX +0.4% · GOLD +0.9% · EUR/USD -0.2% · OIL -2.1% · TSLA +5.7%
       </div>
 
       {floatingXP && (
