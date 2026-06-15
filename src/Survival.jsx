@@ -420,17 +420,17 @@ export default function Survival({ onBack }) {
         <div className="action-zone">
           <div className="prompt-text">{t.game.whatNext}</div>
           <div className="buttons-row">
-            <button className={`trade-btn long${selected === 'long' ? ' selected' : ''}`} onClick={() => makeChoice('long')}>
+            <button className={`btn-long${selected === 'long' ? ' selected' : ''}`} onClick={() => makeChoice('long')}>
               <span className="btn-icon">▲</span>
               <span>Long</span>
               <span className="btn-sublabel">{t.game.longSub}</span>
             </button>
-            <button className={`trade-btn notrade${selected === 'skip' ? ' selected' : ''}`} onClick={() => makeChoice('skip')}>
+            <button className={`btn-neutral${selected === 'skip' ? ' selected' : ''}`} onClick={() => makeChoice('skip')}>
               <span className="btn-icon">—</span>
               <span>{t.game.noTrade}</span>
               <span className="btn-sublabel">{t.game.noTradeSub}</span>
             </button>
-            <button className={`trade-btn short${selected === 'short' ? ' selected' : ''}`} onClick={() => makeChoice('short')}>
+            <button className={`btn-short${selected === 'short' ? ' selected' : ''}`} onClick={() => makeChoice('short')}>
               <span className="btn-icon">▼</span>
               <span>Short</span>
               <span className="btn-sublabel">{t.game.shortSub}</span>

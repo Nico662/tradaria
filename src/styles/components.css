@@ -1,0 +1,194 @@
+/* ── Buttons ── */
+
+.btn {
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  border-radius: var(--radius-full);
+  padding: 12px 28px;
+  transition: transform 0.1s, opacity 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 48px;
+}
+.btn:active { transform: scale(0.96); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-primary {
+  background: var(--gradient-brand);
+  color: #0d0d0d;
+}
+
+.btn-secondary {
+  background: var(--green-dim);
+  color: var(--green);
+  border: 1.5px solid var(--green);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1.5px solid var(--border-default);
+}
+
+/* Game trade buttons */
+.btn-long {
+  background: var(--green-dim);
+  color: var(--green);
+  border: 1.5px solid var(--green);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-weight: 900;
+  font-size: 14px;
+  min-height: 64px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: transform 0.1s, background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-long:active { transform: scale(0.97); background: rgba(0,229,160,0.22); }
+.btn-long.selected { background: rgba(0,229,160,0.22); }
+
+.btn-short {
+  background: var(--pink-dim);
+  color: var(--pink);
+  border: 1.5px solid var(--pink);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-weight: 900;
+  font-size: 14px;
+  min-height: 64px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: transform 0.1s, background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-short:active { transform: scale(0.97); background: rgba(255,126,179,0.22); }
+.btn-short.selected { background: rgba(255,126,179,0.22); }
+
+.btn-neutral {
+  background: rgba(232,184,75,0.12);
+  color: var(--color-neutral);
+  border: 1.5px solid var(--color-neutral-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-weight: 900;
+  font-size: 14px;
+  min-height: 64px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: transform 0.1s, background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-neutral:active { transform: scale(0.97); }
+.btn-neutral.selected { background: rgba(232,184,75,0.22); }
+
+
+/* ── Cards ── */
+
+.card {
+  background: var(--bg-surface);
+  border: 0.5px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+}
+
+.card-gradient {
+  background: var(--gradient-surface);
+  border: 0.5px solid var(--border-pink);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card {
+  background: var(--bg-surface);
+  border: 0.5px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+}
+.stat-card .stat-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.stat-card .stat-value {
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+.stat-card .stat-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+
+/* ── Badges ── */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.badge-green   { background: var(--green-dim);         color: var(--green); }
+.badge-pink    { background: var(--pink-dim);          color: var(--pink);  }
+.badge-neutral { background: var(--color-neutral-dim); color: var(--color-neutral); }
+.badge-live {
+  background: var(--pink-dim);
+  color: var(--pink);
+  animation: pulse-badge 2s ease-in-out infinite;
+}
+
+@keyframes pulse-badge {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.55; }
+}
+
+
+/* ── Progress bar ── */
+
+.progress-bar {
+  height: 5px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: linear-gradient(90deg, var(--pink), var(--green));
+  transition: width 0.4s ease;
+}

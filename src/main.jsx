@@ -1,5 +1,6 @@
 import { createRoot } from 'react-dom/client'
 import './styles/tokens.css'
+import './styles/components.css'
 import './index.css'
 import App from './App.jsx'
 import { LangProvider } from './LangContext.jsx';

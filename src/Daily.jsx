@@ -272,15 +272,15 @@ export default function Daily({ onBack }) {
                   {t.daily.oneShot}
                 </div>
                 <div className="buttons-row" style={{ padding: '0 20px' }}>
-                  <button className="trade-btn long" onClick={() => makeChoice('long')}>
+                  <button className="btn-long" onClick={() => makeChoice('long')}>
                     <span className="btn-icon">▲</span><span>Long</span>
                     <span className="btn-sublabel">{t.game.longSub}</span>
                   </button>
-                  <button className="trade-btn notrade" onClick={() => makeChoice('skip')}>
+                  <button className="btn-neutral" onClick={() => makeChoice('skip')}>
                     <span className="btn-icon">—</span><span>{t.game.noTrade}</span>
                     <span className="btn-sublabel">{t.game.noTradeSub}</span>
                   </button>
-                  <button className="trade-btn short" onClick={() => makeChoice('short')}>
+                  <button className="btn-short" onClick={() => makeChoice('short')}>
                     <span className="btn-icon">▼</span><span>Short</span>
                     <span className="btn-sublabel">{t.game.shortSub}</span>
                   </button>
