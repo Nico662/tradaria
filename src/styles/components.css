@@ -264,3 +264,43 @@
 .nav-item:not(.active) svg {
   stroke: var(--text-muted);
 }
+
+/* ── Nav play button (center CTA) ── */
+
+.nav-item.nav-play {
+  position: relative;
+}
+
+.nav-item.nav-play .nav-play-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff7eb3, #00e5a0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2px;
+  margin-top: -18px;
+  box-shadow: 0 0 0 4px var(--bg-base);
+  transition: transform 0.1s;
+}
+
+.nav-item.nav-play:active .nav-play-icon {
+  transform: scale(0.93);
+}
+
+.nav-item.nav-play svg {
+  stroke: #0d0d0d;
+}
+
+.nav-item.nav-play.active svg {
+  stroke: #0d0d0d;
+}
+
+.nav-item.nav-play {
+  color: var(--text-muted);
+}
+
+.nav-item.nav-play.active {
+  color: var(--text-primary);
+}

@@ -22,6 +22,23 @@ export default function BottomNav({ currentScreen, onSelect }) {
     <nav className="bottom-nav" aria-label="Navegación principal">
       {NAV_ITEMS.map(({ id, label, Icon, screen }) => {
         const active = isActive(screen);
+
+        if (id === 'play') {
+          return (
+            <button
+              key={id}
+              className={`nav-item nav-play${active ? ' active' : ''}`}
+              onClick={() => onSelect(screen)}
+              aria-label={label}
+            >
+              <div className="nav-play-icon">
+                <Icon size={22} strokeWidth={2.5} aria-hidden="true" />
+              </div>
+              <span>{label}</span>
+            </button>
+          );
+        }
+
         return (
           <button
             key={id}
