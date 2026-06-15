@@ -40,7 +40,7 @@ function Toggle({ on, onChange }) {
       onClick={onChange}
       style={{
         width: '44px', height: '24px', borderRadius: '12px',
-        background: on ? '#22d3a5' : 'var(--bd2)',
+        background: on ? 'var(--green)' : 'var(--bd2)',
         cursor: 'pointer', position: 'relative',
         transition: 'background 0.2s', flexShrink: 0,
       }}
@@ -164,9 +164,9 @@ export default function Settings({ onBack }) {
               {['en', 'es', 'de'].map(l => (
                 <button key={l} onClick={() => setLang(l)} style={{
                   padding: '6px 14px', borderRadius: '6px',
-                  background: lang === l ? 'rgba(34,211,165,0.12)' : 'transparent',
-                  border: `1px solid ${lang === l ? '#22d3a5' : 'var(--bd2)'}`,
-                  color: lang === l ? '#22d3a5' : 'var(--t5)',
+                  background: lang === l ? 'rgba(0,229,160,0.12)' : 'transparent',
+                  border: `1px solid ${lang === l ? 'var(--green)' : 'var(--bd2)'}`,
+                  color: lang === l ? 'var(--green)' : 'var(--t5)',
                   fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700,
                   letterSpacing: '0.08em', cursor: 'pointer',
                 }}>
@@ -182,14 +182,14 @@ export default function Settings({ onBack }) {
         <Card>
           <div style={{ padding: '14px 16px' }}>
             {notifEnabled ? (
-              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#22d3a5' }}>
+              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: 'var(--green)' }}>
                 {s.notifOn}
               </div>
             ) : (
               <button onClick={enableNotifications} style={{
                 width: '100%', padding: '11px',
-                background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5',
-                borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace",
+                background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)',
+                borderRadius: '6px', color: 'var(--green)', fontFamily: "'Space Mono', monospace",
                 fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em',
                 textTransform: 'uppercase', cursor: 'pointer',
               }}>
@@ -205,7 +205,7 @@ export default function Settings({ onBack }) {
             <SectionLabel text="Suscripción" />
             <Card>
               <Row label="Plan Pro · €3.99/mes" last={!cancelConfirm && !cancelDone}>
-                <span style={{ fontSize: '9px', color: '#22d3a5', background: 'rgba(34,211,165,0.1)', padding: '2px 8px', borderRadius: '4px', fontFamily: "'Space Mono', monospace", letterSpacing: '0.06em' }}>
+                <span style={{ fontSize: '9px', color: 'var(--green)', background: 'rgba(0,229,160,0.1)', padding: '2px 8px', borderRadius: '4px', fontFamily: "'Space Mono', monospace", letterSpacing: '0.06em' }}>
                   ⚡ ACTIVO
                 </span>
               </Row>
@@ -224,9 +224,9 @@ export default function Settings({ onBack }) {
                       disabled={cancelLoading}
                       style={{
                         flex: 1, padding: '10px',
-                        background: cancelLoading ? 'rgba(240,84,84,0.04)' : 'rgba(240,84,84,0.08)',
-                        border: '1px solid rgba(240,84,84,0.4)',
-                        borderRadius: '6px', color: '#f05454',
+                        background: cancelLoading ? 'rgba(255,126,179,0.04)' : 'rgba(255,126,179,0.08)',
+                        border: '1px solid rgba(255,126,179,0.4)',
+                        borderRadius: '6px', color: 'var(--color-down)',
                         fontFamily: "'Space Mono', monospace", fontSize: '9px',
                         fontWeight: 700, letterSpacing: '0.06em',
                         textTransform: 'uppercase', cursor: cancelLoading ? 'default' : 'pointer',
@@ -278,7 +278,7 @@ export default function Settings({ onBack }) {
             <Card>
               <Row label={s.username}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#22d3a5' }}>
+                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: 'var(--green)' }}>
                     {user.username ? `@${user.username}` : '—'}
                   </span>
                   <button onClick={() => setShowUsernameModal(true)} style={{
@@ -293,8 +293,8 @@ export default function Settings({ onBack }) {
               <div style={{ padding: '12px 16px' }}>
                 <button onClick={logout} style={{
                   width: '100%', padding: '11px',
-                  background: 'rgba(240,84,84,0.06)', border: '1px solid rgba(240,84,84,0.3)',
-                  borderRadius: '6px', color: '#f05454', fontFamily: "'Space Mono', monospace",
+                  background: 'rgba(255,126,179,0.06)', border: '1px solid rgba(255,126,179,0.3)',
+                  borderRadius: '6px', color: 'var(--color-down)', fontFamily: "'Space Mono', monospace",
                   fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em',
                   textTransform: 'uppercase', cursor: 'pointer',
                 }}>
@@ -313,7 +313,7 @@ export default function Settings({ onBack }) {
           </Row>
           <Row label="tradaria.dev" last>
             <a href="https://tradaria.dev" target="_blank" rel="noopener noreferrer"
-              style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: '#22d3a5', textDecoration: 'none' }}>
+              style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--green)', textDecoration: 'none' }}>
               ↗
             </a>
           </Row>

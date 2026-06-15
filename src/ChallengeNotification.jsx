@@ -37,16 +37,16 @@ export default function ChallengeNotification({ challenge, onAccept, onReject })
       left: '50%',
       zIndex: 99999,
       background: 'var(--bg-card)',
-      border: '1px solid #22d3a5',
+      border: '1px solid var(--green)',
       borderRadius: '12px',
       padding: '16px 20px',
       minWidth: '280px',
       maxWidth: '320px',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.7), 0 0 0 1px rgba(34,211,165,0.15)',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,229,160,0.15)',
       animation: 'challenge-slide-down 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
-        <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>
+        <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>
           ⚔️
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -57,29 +57,29 @@ export default function ChallengeNotification({ challenge, onAccept, onReject })
             {t.challenge.challenges}
           </div>
         </div>
-        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: timeLeft <= 10 ? '#f05454' : '#f5c842', minWidth: '34px', textAlign: 'right' }}>
+        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: timeLeft <= 10 ? 'var(--color-down)' : 'var(--color-neutral)', minWidth: '34px', textAlign: 'right' }}>
           {timeLeft}
         </div>
       </div>
 
       <div style={{ height: '2px', background: 'var(--bd)', borderRadius: '1px', marginBottom: '14px', overflow: 'hidden' }}>
-        <div style={{ height: '100%', background: timeLeft <= 10 ? '#f05454' : '#22d3a5', borderRadius: '1px', width: `${(timeLeft / 30) * 100}%`, transition: 'width 1s linear, background 0.3s' }} />
+        <div style={{ height: '100%', background: timeLeft <= 10 ? 'var(--color-down)' : 'var(--green)', borderRadius: '1px', width: `${(timeLeft / 30) * 100}%`, transition: 'width 1s linear, background 0.3s' }} />
       </div>
 
       <div style={{ display: 'flex', gap: '8px' }}>
         <button
           onClick={onAccept}
-          style={{ flex: 1, padding: '10px', background: 'rgba(34,211,165,0.1)', border: '1px solid #22d3a5', borderRadius: '8px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase' }}
-          onMouseEnter={e => e.currentTarget.style.background = 'rgba(34,211,165,0.2)'}
-          onMouseLeave={e => e.currentTarget.style.background = 'rgba(34,211,165,0.1)'}
+          style={{ flex: 1, padding: '10px', background: 'rgba(0,229,160,0.1)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase' }}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,229,160,0.2)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,229,160,0.1)'}
         >
           {t.challenge.accept}
         </button>
         <button
           onClick={onReject}
-          style={{ flex: 1, padding: '10px', background: 'rgba(240,84,84,0.08)', border: '1px solid #f05454', borderRadius: '8px', color: '#f05454', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase' }}
-          onMouseEnter={e => e.currentTarget.style.background = 'rgba(240,84,84,0.15)'}
-          onMouseLeave={e => e.currentTarget.style.background = 'rgba(240,84,84,0.08)'}
+          style={{ flex: 1, padding: '10px', background: 'rgba(255,126,179,0.08)', border: '1px solid var(--color-down)', borderRadius: '8px', color: 'var(--color-down)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase' }}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,126,179,0.15)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,126,179,0.08)'}
         >
           {t.challenge.reject}
         </button>

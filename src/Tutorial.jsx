@@ -11,8 +11,8 @@ function CandlesSVG() {
     <svg width="120" height="100" style={{ display: 'block', margin: '0 auto' }}>
       {candles.map((c, i) => (
         <g key={i}>
-          <line x1={c.x} y1={c.high} x2={c.x} y2={c.low} stroke={c.green ? '#22d3a5' : '#f05454'} strokeWidth="1.5" />
-          <rect x={c.x - 8} y={Math.min(c.open, c.close)} width="16" height={Math.abs(c.open - c.close)} fill={c.green ? '#22d3a5' : '#f05454'} rx="1" />
+          <line x1={c.x} y1={c.high} x2={c.x} y2={c.low} stroke={c.green ? 'var(--green)' : 'var(--color-down)'} strokeWidth="1.5" />
+          <rect x={c.x - 8} y={Math.min(c.open, c.close)} width="16" height={Math.abs(c.open - c.close)} fill={c.green ? 'var(--green)' : 'var(--color-down)'} rx="1" />
         </g>
       ))}
       <text x="30"  y="92" fill="var(--t5)" fontSize="8" textAnchor="middle" fontFamily="Space Mono, monospace">+4%</text>
@@ -27,9 +27,9 @@ function ButtonPreview() {
   return (
     <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
       {[
-        { label: 'Long',     sub: t.tutorial.longSub,     color: '#22d3a5', bg: 'rgba(34,211,165,0.08)', icon: '▲' },
-        { label: 'No Trade', sub: t.tutorial.noTradeSub,  color: '#f5c842', bg: 'rgba(245,200,66,0.08)',  icon: '—' },
-        { label: 'Short',    sub: t.tutorial.shortSub,    color: '#f05454', bg: 'rgba(240,84,84,0.08)',   icon: '▼' },
+        { label: 'Long',     sub: t.tutorial.longSub,     color: 'var(--green)', bg: 'rgba(0,229,160,0.08)', icon: '▲' },
+        { label: 'No Trade', sub: t.tutorial.noTradeSub,  color: 'var(--color-neutral)', bg: 'rgba(232,184,75,0.08)',  icon: '—' },
+        { label: 'Short',    sub: t.tutorial.shortSub,    color: 'var(--color-down)', bg: 'rgba(255,126,179,0.08)',   icon: '▼' },
       ].map(b => (
         <div key={b.label} style={{ flex: 1, padding: '10px 6px', background: b.bg, border: `1px solid ${b.color}`, borderRadius: '8px', textAlign: 'center', opacity: 0.9 }}>
           <div style={{ fontSize: '14px', color: b.color, marginBottom: '3px' }}>{b.icon}</div>
@@ -78,7 +78,7 @@ export default function Tutorial({ onDone }) {
       <div style={{
         background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '16px',
         padding: '28px 24px', maxWidth: '360px', width: '100%',
-        position: 'relative', boxShadow: '0 0 40px rgba(34,211,165,0.1)',
+        position: 'relative', boxShadow: '0 0 40px rgba(0,229,160,0.1)',
       }}>
         {/* Skip button */}
         {!current.final && (
@@ -110,7 +110,7 @@ export default function Tutorial({ onDone }) {
         {/* Dots */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginBottom: '20px' }}>
           {STEPS.map((_, i) => (
-            <div key={i} style={{ width: '6px', height: '6px', borderRadius: '50%', background: i === step ? '#22d3a5' : 'var(--bd2)', transition: 'background 0.2s' }} />
+            <div key={i} style={{ width: '6px', height: '6px', borderRadius: '50%', background: i === step ? 'var(--green)' : 'var(--bd2)', transition: 'background 0.2s' }} />
           ))}
         </div>
 
@@ -123,7 +123,7 @@ export default function Tutorial({ onDone }) {
             </button>
           )}
           <button onClick={next}
-            style={{ flex: 1, padding: '12px', background: current.final ? 'rgba(34,211,165,0.12)' : 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '8px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em' }}>
+            style={{ flex: 1, padding: '12px', background: current.final ? 'rgba(0,229,160,0.12)' : 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em' }}>
             {current.final ? t.tutorial.start : t.tutorial.next}
           </button>
         </div>

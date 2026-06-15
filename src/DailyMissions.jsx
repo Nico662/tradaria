@@ -13,10 +13,10 @@ export default function DailyMissions() {
 
   if (allDone) {
     return (
-      <div style={{ margin: '0 20px 12px', background: 'rgba(34,211,165,0.06)', border: '1px solid rgba(34,211,165,0.22)', borderRadius: '8px', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <div style={{ margin: '0 20px 12px', background: 'rgba(0,229,160,0.06)', border: '1px solid rgba(0,229,160,0.22)', borderRadius: '8px', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
         <span style={{ fontSize: '16px' }}>🎯</span>
         <div>
-          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, color: '#22d3a5', letterSpacing: '0.06em' }}>{doneLine1}</div>
+          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, color: 'var(--green)', letterSpacing: '0.06em' }}>{doneLine1}</div>
           <div style={{ fontSize: '8px', color: 'var(--t5)', marginTop: '2px' }}>{doneLine2}</div>
         </div>
       </div>
@@ -41,14 +41,14 @@ export default function DailyMissions() {
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '6px', marginBottom: '3px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flex: 1 }}>
                   {done
-                    ? <span style={{ fontSize: '9px', color: '#22d3a5', flexShrink: 0 }}>✓</span>
+                    ? <span style={{ fontSize: '9px', color: 'var(--green)', flexShrink: 0 }}>✓</span>
                     : <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--bd2)', display: 'inline-block', flexShrink: 0, marginTop: '2px' }} />
                   }
-                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, color: done ? '#22d3a5' : '#c8d4e0', letterSpacing: '0.02em', lineHeight: 1.3 }}>
+                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, color: done ? 'var(--green)' : '#c8d4e0', letterSpacing: '0.02em', lineHeight: 1.3 }}>
                     {title}
                   </span>
                 </div>
-                <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', fontWeight: 700, color: '#22d3a5', flexShrink: 0 }}>
+                <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', fontWeight: 700, color: 'var(--green)', flexShrink: 0 }}>
                   +{m.xp} XP
                 </span>
               </div>
@@ -57,7 +57,7 @@ export default function DailyMissions() {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <div style={{ flex: 1, height: '3px', background: 'var(--bg-card2)', borderRadius: '2px', overflow: 'hidden' }}>
-                  <div style={{ width: `${pct}%`, height: '100%', background: done ? '#22d3a5' : 'rgba(34,211,165,0.45)', borderRadius: '2px', transition: 'width 0.3s ease' }} />
+                  <div style={{ width: `${pct}%`, height: '100%', background: done ? 'var(--green)' : 'rgba(0,229,160,0.45)', borderRadius: '2px', transition: 'width 0.3s ease' }} />
                 </div>
                 <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '7px', color: 'var(--bd2)', flexShrink: 0 }}>
                   {progress}/{m.target}

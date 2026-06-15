@@ -4,9 +4,9 @@ import { useLang } from './LangContext.jsx';
 function AssetTypesPill() {
   const types = [
     { label: 'Stocks',      color: '#378ADD', bg: 'rgba(55,138,221,0.12)' },
-    { label: 'Crypto',      color: '#f5c842', bg: 'rgba(245,200,66,0.12)' },
-    { label: 'Indices',     color: '#22d3a5', bg: 'rgba(34,211,165,0.12)' },
-    { label: 'Commodities', color: '#f05454', bg: 'rgba(240,84,84,0.12)'  },
+    { label: 'Crypto',      color: 'var(--color-neutral)', bg: 'var(--color-neutral-dim)' },
+    { label: 'Indices',     color: 'var(--green)', bg: 'rgba(0,229,160,0.12)' },
+    { label: 'Commodities', color: 'var(--color-down)', bg: 'rgba(255,126,179,0.12)'  },
   ];
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
@@ -22,14 +22,14 @@ function AssetTypesPill() {
 function BuySellVisual() {
   return (
     <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-      <div style={{ flex: 1, padding: '14px 10px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '10px', textAlign: 'center' }}>
+      <div style={{ flex: 1, padding: '14px 10px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '10px', textAlign: 'center' }}>
         <div style={{ fontSize: '18px', marginBottom: '4px' }}>▲</div>
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: '#22d3a5', fontWeight: 700 }}>BUY</div>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--green)', fontWeight: 700 }}>BUY</div>
         <div style={{ fontSize: '8px', color: 'var(--t5)', marginTop: '3px' }}>Open long</div>
       </div>
-      <div style={{ flex: 1, padding: '14px 10px', background: 'rgba(240,84,84,0.08)', border: '1px solid #f05454', borderRadius: '10px', textAlign: 'center' }}>
+      <div style={{ flex: 1, padding: '14px 10px', background: 'rgba(255,126,179,0.08)', border: '1px solid var(--color-down)', borderRadius: '10px', textAlign: 'center' }}>
         <div style={{ fontSize: '18px', marginBottom: '4px' }}>▼</div>
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: '#f05454', fontWeight: 700 }}>SELL</div>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--color-down)', fontWeight: 700 }}>SELL</div>
         <div style={{ fontSize: '8px', color: 'var(--t5)', marginTop: '3px' }}>Close / short</div>
       </div>
     </div>
@@ -46,21 +46,21 @@ function PnLChartVisual() {
     <svg width={w} height={h} style={{ display: 'block', margin: '0 auto', overflow: 'visible' }}>
       <defs>
         <linearGradient id="ptGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#22d3a5" stopOpacity="0.25" />
-          <stop offset="100%" stopColor="#22d3a5" stopOpacity="0" />
+          <stop offset="0%" stopColor="var(--green)" stopOpacity="0.25" />
+          <stop offset="100%" stopColor="var(--green)" stopOpacity="0" />
         </linearGradient>
       </defs>
       <path d={area} fill="url(#ptGrad)" />
-      <path d={d} fill="none" stroke="#22d3a5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx={xs[pts.length - 1]} cy={pts[pts.length - 1]} r="4" fill="#22d3a5" />
-      <text x={w - 2} y={pts[pts.length - 1] - 8} fill="#22d3a5" fontSize="9" textAnchor="end" fontFamily="Space Mono, monospace">+24.3%</text>
+      <path d={d} fill="none" stroke="var(--green)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={xs[pts.length - 1]} cy={pts[pts.length - 1]} r="4" fill="var(--green)" />
+      <text x={w - 2} y={pts[pts.length - 1] - 8} fill="var(--green)" fontSize="9" textAnchor="end" fontFamily="Space Mono, monospace">+24.3%</text>
     </svg>
   );
 }
 
 function RankingVisual() {
   const rows = [
-    { pos: '🥇', name: '@alex_t', val: '+31.2%', color: '#f5c842' },
+    { pos: '🥇', name: '@alex_t', val: '+31.2%', color: 'var(--color-neutral)' },
     { pos: '🥈', name: '@sara_m', val: '+24.3%', color: 'var(--t3)' },
     { pos: '🥉', name: '@jcook',  val: '+19.8%', color: '#cd7f32' },
   ];
@@ -70,7 +70,7 @@ function RankingVisual() {
         <div key={r.pos} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', background: 'var(--bg-page)', border: `1px solid ${r.color}30`, borderRadius: '8px' }}>
           <span style={{ fontSize: '14px' }}>{r.pos}</span>
           <span style={{ flex: 1, fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '11px', color: 'var(--t1)' }}>{r.name}</span>
-          <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#22d3a5', fontWeight: 700 }}>{r.val}</span>
+          <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: 'var(--green)', fontWeight: 700 }}>{r.val}</span>
         </div>
       ))}
     </div>
@@ -79,7 +79,7 @@ function RankingVisual() {
 
 function LeagueVisual() {
   const rows = [
-    { name: '@you',    val: '+18.4%', color: '#22d3a5', you: true  },
+    { name: '@you',    val: '+18.4%', color: 'var(--green)', you: true  },
     { name: '@sara_m', val: '+12.1%', color: 'var(--t1)', you: false },
     { name: '@jcook',  val: '+7.3%',  color: 'var(--t1)', you: false },
   ];
@@ -87,14 +87,14 @@ function LeagueVisual() {
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
         <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>Liga de Amigos</span>
-        <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#22d3a5', fontWeight: 700, letterSpacing: '0.16em', padding: '3px 8px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a530', borderRadius: '4px' }}>AB3KX2</span>
+        <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: 'var(--green)', fontWeight: 700, letterSpacing: '0.16em', padding: '3px 8px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)30', borderRadius: '4px' }}>AB3KX2</span>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         {rows.map((r, i) => (
-          <div key={r.name} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 10px', background: 'var(--bg-page)', border: `1px solid ${r.you ? '#22d3a540' : 'var(--bd)'}`, borderRadius: '6px' }}>
-            <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '12px', color: i === 0 ? '#f5c842' : 'var(--t6)', width: '16px' }}>{i === 0 ? '🥇' : `#${i + 1}`}</span>
-            <span style={{ flex: 1, fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '11px', color: r.you ? '#22d3a5' : 'var(--t1)' }}>{r.name}</span>
-            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#22d3a5', fontWeight: 700 }}>{r.val}</span>
+          <div key={r.name} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 10px', background: 'var(--bg-page)', border: `1px solid ${r.you ? 'var(--green)40' : 'var(--bd)'}`, borderRadius: '6px' }}>
+            <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '12px', color: i === 0 ? 'var(--color-neutral)' : 'var(--t6)', width: '16px' }}>{i === 0 ? '🥇' : `#${i + 1}`}</span>
+            <span style={{ flex: 1, fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '11px', color: r.you ? 'var(--green)' : 'var(--t1)' }}>{r.name}</span>
+            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: 'var(--green)', fontWeight: 700 }}>{r.val}</span>
           </div>
         ))}
       </div>

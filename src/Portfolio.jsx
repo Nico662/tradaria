@@ -16,9 +16,9 @@ import Leagues from './Leagues.jsx';
 
 const TYPE_COLORS = {
   stock:     '#378ADD',
-  crypto:    '#f5c842',
-  index:     '#22d3a5',
-  commodity: '#f05454',
+  crypto:    'var(--color-neutral)',
+  index:     'var(--green)',
+  commodity: 'var(--color-down)',
 };
 
 const TYPE_EMOJIS = {
@@ -29,10 +29,10 @@ const TYPE_EMOJIS = {
 };
 
 const RISK_DOT = {
-  crypto:    { color: '#f05454', label: '●' },
-  stock:     { color: '#f5c842', label: '●' },
-  index:     { color: '#22d3a5', label: '●' },
-  commodity: { color: '#f5c842', label: '●' },
+  crypto:    { color: 'var(--color-down)', label: '●' },
+  stock:     { color: 'var(--color-neutral)', label: '●' },
+  index:     { color: 'var(--green)', label: '●' },
+  commodity: { color: 'var(--color-neutral)', label: '●' },
 };
 
 function formatPrice(price, type) {
@@ -88,21 +88,21 @@ function LeaderboardList({ entries, userPosition, user, onViewProfile, t }) {
         const isMe = myId && String(entry.userId) === myId;
         return (
           <div key={i} onClick={() => !isMe && entry.username && onViewProfile && onViewProfile(entry.username)}
-            style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: isMe ? 'rgba(34,211,165,0.07)' : 'var(--bg-card)', border: `1px solid ${i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : isMe ? 'rgba(34,211,165,0.6)' : 'transparent'}`, borderLeft: `2px solid ${i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : isMe ? 'rgba(34,211,165,0.6)' : 'transparent'}`, borderRadius: '8px', marginBottom: '8px', cursor: !isMe && entry.username && onViewProfile ? 'pointer' : 'default', overflow: 'hidden', width: '100%' }}>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : 'var(--t6)', width: '40px', flexShrink: 0, textAlign: 'center' }}>
+            style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: isMe ? 'rgba(0,229,160,0.07)' : 'var(--bg-card)', border: `1px solid ${i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : isMe ? 'rgba(0,229,160,0.6)' : 'transparent'}`, borderLeft: `2px solid ${i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : isMe ? 'rgba(0,229,160,0.6)' : 'transparent'}`, borderRadius: '8px', marginBottom: '8px', cursor: !isMe && entry.username && onViewProfile ? 'pointer' : 'default', overflow: 'hidden', width: '100%' }}>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? 'var(--color-neutral)' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : 'var(--t6)', width: '40px', flexShrink: 0, textAlign: 'center' }}>
               {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
             </div>
             <UserAvatar user={entry} size={24} showBadge style={{ marginLeft: '8px' }} />
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: isMe ? '#22d3a5' : 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
+              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: isMe ? 'var(--green)' : 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
                 {entry.username ? `@${entry.username}` : entry.name}
                 {isFounder(entry.username) && <FounderBadge size={11} />}
-                {isMe && <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(34,211,165,0.6)', marginLeft: '6px', flexShrink: 0 }}>YOU</span>}
+                {isMe && <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(0,229,160,0.6)', marginLeft: '6px', flexShrink: 0 }}>YOU</span>}
               </div>
               <div style={{ fontSize: '9px', color: 'var(--t5)' }}>{formatCash(entry.totalValue)}</div>
             </div>
             <div style={{ textAlign: 'right', flexShrink: 0 }}>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: entry.returnPct >= 0 ? '#22d3a5' : '#f05454' }}>
+              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: entry.returnPct >= 0 ? 'var(--green)' : 'var(--color-down)' }}>
                 {entry.returnPct >= 0 ? '+' : ''}{entry.returnPct.toFixed(2)}%
               </div>
             </div>
@@ -116,18 +116,18 @@ function LeaderboardList({ entries, userPosition, user, onViewProfile, t }) {
             <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t6)' }}>···</span>
             <div style={{ flex: 1, height: '1px', background: 'var(--bd)' }} />
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: 'rgba(34,211,165,0.07)', border: '1px solid rgba(34,211,165,0.6)', borderLeft: '2px solid rgba(34,211,165,0.6)', borderRadius: '8px', marginBottom: '8px', overflow: 'hidden', width: '100%' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: 'rgba(0,229,160,0.07)', border: '1px solid rgba(0,229,160,0.6)', borderLeft: '2px solid rgba(0,229,160,0.6)', borderRadius: '8px', marginBottom: '8px', overflow: 'hidden', width: '100%' }}>
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--t6)', width: '40px', flexShrink: 0, textAlign: 'center' }}>#{userPosition.rank}</div>
             <UserAvatar user={userPosition} size={24} showBadge style={{ marginLeft: '8px' }} />
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#22d3a5', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
+              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: 'var(--green)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
                 {userPosition.username ? `@${userPosition.username}` : userPosition.name}
-                <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(34,211,165,0.6)', marginLeft: '6px', flexShrink: 0 }}>YOU</span>
+                <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(0,229,160,0.6)', marginLeft: '6px', flexShrink: 0 }}>YOU</span>
               </div>
               <div style={{ fontSize: '9px', color: 'var(--t5)' }}>{formatCash(userPosition.totalValue)}</div>
             </div>
             <div style={{ textAlign: 'right', flexShrink: 0 }}>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: userPosition.returnPct >= 0 ? '#22d3a5' : '#f05454' }}>
+              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: userPosition.returnPct >= 0 ? 'var(--green)' : 'var(--color-down)' }}>
                 {userPosition.returnPct >= 0 ? '+' : ''}{userPosition.returnPct.toFixed(2)}%
               </div>
             </div>
@@ -548,7 +548,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>💼</div>
         <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '24px', color: 'var(--t1)', marginBottom: '8px' }}>{t.portfolio.title}</div>
         <div style={{ fontSize: '11px', color: 'var(--t5)', marginBottom: '32px' }}>{t.portfolio.signIn}</div>
-        <a href={`${SERVER}/auth/google`} style={{ display: 'inline-block', padding: '12px 24px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '8px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', textDecoration: 'none', fontWeight: 700 }}>
+        <a href={`${SERVER}/auth/google`} style={{ display: 'inline-block', padding: '12px 24px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '11px', textDecoration: 'none', fontWeight: 700 }}>
           {t.portfolio.signInGoogle}
         </a>
       </div>
@@ -569,7 +569,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
       <div className="scanlines" />
       <div style={{ padding: '48px 28px', textAlign: 'center', position: 'relative', zIndex: 2 }}>
         <button onClick={onBack} style={{ position: 'absolute', top: '20px', left: '16px', background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}>{t.game.menu}</button>
-        <div style={{ fontSize: '11px', color: '#f05454', fontFamily: "'Space Mono', monospace" }}>{t.portfolio.errorLoading}</div>
+        <div style={{ fontSize: '11px', color: 'var(--color-down)', fontFamily: "'Space Mono', monospace" }}>{t.portfolio.errorLoading}</div>
       </div>
     </div>
   );
@@ -647,14 +647,14 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--t1)' }}>{selected.name}</div>
             <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: '6px' }}>
               {selected.symbol} · {t.portfolio.types[selected.type]}
-              <span style={{ fontSize: '8px', color: marketStatus.open ? '#22d3a5' : '#f05454', background: marketStatus.open ? 'rgba(34,211,165,0.1)' : 'rgba(240,84,84,0.1)', padding: '1px 5px', borderRadius: '4px', letterSpacing: '0.04em' }}>
+              <span style={{ fontSize: '8px', color: marketStatus.open ? 'var(--green)' : 'var(--color-down)', background: marketStatus.open ? 'rgba(0,229,160,0.1)' : 'rgba(255,126,179,0.1)', padding: '1px 5px', borderRadius: '4px', letterSpacing: '0.04em' }}>
                 {marketStatus.label}
               </span>
             </div>
           </div>
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: 'var(--t1)' }}>{formatPrice(selectedPrice?.price, selected.type)}</div>
-            <div style={{ fontSize: '11px', color: selectedPrice?.change >= 0 ? '#22d3a5' : '#f05454', fontWeight: 700 }}>{formatChange(selectedPrice?.change)}</div>
+            <div style={{ fontSize: '11px', color: selectedPrice?.change >= 0 ? 'var(--green)' : 'var(--color-down)', fontWeight: 700 }}>{formatChange(selectedPrice?.change)}</div>
           </div>
         </div>
 
@@ -681,7 +681,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
             <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '9px', color: '#378ADD', background: 'rgba(55,138,221,0.1)', padding: '3px 10px', borderRadius: '4px', letterSpacing: '0.04em' }}>📊 {info.sector}</span>
               <span style={{ fontSize: '9px', color: 'var(--t5)', background: 'var(--bg-page)', padding: '3px 10px', borderRadius: '4px', letterSpacing: '0.04em' }}>🌍 {info.country}</span>
-              <span style={{ fontSize: '9px', color: '#f5c842', background: 'rgba(245,200,66,0.08)', padding: '3px 10px', borderRadius: '4px', letterSpacing: '0.04em' }}>💰 {info.cap}</span>
+              <span style={{ fontSize: '9px', color: 'var(--color-neutral)', background: 'rgba(232,184,75,0.08)', padding: '3px 10px', borderRadius: '4px', letterSpacing: '0.04em' }}>💰 {info.cap}</span>
             </div>
             <div style={{ fontSize: '11px', color: 'var(--t4)', lineHeight: 1.7 }}>{info[lang]}</div>
           </div>
@@ -689,7 +689,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
 
         {/* Posición actual */}
         {selectedPos && (
-          <div style={{ margin: '12px 20px 0', padding: '16px', background: 'var(--bg-card)', border: `1px solid ${selectedPos.pnl >= 0 ? 'rgba(34,211,165,0.3)' : 'rgba(240,84,84,0.3)'}`, borderRadius: '10px', position: 'relative', zIndex: 2 }}>
+          <div style={{ margin: '12px 20px 0', padding: '16px', background: 'var(--bg-card)', border: `1px solid ${selectedPos.pnl >= 0 ? 'rgba(0,229,160,0.3)' : 'rgba(255,126,179,0.3)'}`, borderRadius: '10px', position: 'relative', zIndex: 2 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '6px' }}>{t.portfolio.yourPosition}</div>
@@ -698,7 +698,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: '20px', fontFamily: "'Syne', sans-serif", fontWeight: 800, color: 'var(--t1)' }}>{formatCash(selectedPos.value)}</div>
-                <div style={{ fontSize: '13px', color: selectedPos.pnl >= 0 ? '#22d3a5' : '#f05454', fontWeight: 700, marginTop: '4px' }}>
+                <div style={{ fontSize: '13px', color: selectedPos.pnl >= 0 ? 'var(--green)' : 'var(--color-down)', fontWeight: 700, marginTop: '4px' }}>
                   {selectedPos.pnl >= 0 ? '+' : ''}{formatCash(selectedPos.pnl)} ({formatChange(selectedPos.pnlPct)})
                 </div>
               </div>
@@ -709,8 +709,8 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
         {/* Panel compra/venta */}
         <div style={{ margin: '12px 20px 20px', padding: '16px', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', position: 'relative', zIndex: 20 }}>
           <div style={{ display: 'flex', gap: '6px', marginBottom: '14px' }}>
-            <button onClick={() => setAction('buy')} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: `1px solid ${action === 'buy' ? '#22d3a5' : 'var(--bd2)'}`, background: action === 'buy' ? 'rgba(34,211,165,0.08)' : 'transparent', color: action === 'buy' ? '#22d3a5' : 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>{t.portfolio.buy}</button>
-            <button onClick={() => setAction('sell')} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: `1px solid ${action === 'sell' ? '#f05454' : 'var(--bd2)'}`, background: action === 'sell' ? 'rgba(240,84,84,0.08)' : 'transparent', color: action === 'sell' ? '#f05454' : 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>{t.portfolio.sell}</button>
+            <button onClick={() => setAction('buy')} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: `1px solid ${action === 'buy' ? 'var(--green)' : 'var(--bd2)'}`, background: action === 'buy' ? 'rgba(0,229,160,0.08)' : 'transparent', color: action === 'buy' ? 'var(--green)' : 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>{t.portfolio.buy}</button>
+            <button onClick={() => setAction('sell')} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: `1px solid ${action === 'sell' ? 'var(--color-down)' : 'var(--bd2)'}`, background: action === 'sell' ? 'rgba(255,126,179,0.08)' : 'transparent', color: action === 'sell' ? 'var(--color-down)' : 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>{t.portfolio.sell}</button>
           </div>
 
           {/* Input mode toggle */}
@@ -782,12 +782,12 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
             {t.portfolio.cashAvailable}: <span style={{ color: 'var(--t1)' }}>{formatCash(portfolio?.cash || 0)}</span>
           </div>
 
-          {error    && <div style={{ fontSize: '10px', color: '#f05454', marginBottom: '10px' }}>{error}</div>}
-          {tradeMsg && <div style={{ fontSize: '10px', color: '#22d3a5', marginBottom: '10px' }}>{tradeMsg}</div>}
+          {error    && <div style={{ fontSize: '10px', color: 'var(--color-down)', marginBottom: '10px' }}>{error}</div>}
+          {tradeMsg && <div style={{ fontSize: '10px', color: 'var(--green)', marginBottom: '10px' }}>{tradeMsg}</div>}
           {factMsg  && <div style={{ fontSize: '9px', color: 'var(--t4)', marginBottom: '10px', padding: '6px 10px', background: 'rgba(55,138,221,0.05)', border: '1px solid rgba(55,138,221,0.12)', borderRadius: '6px', letterSpacing: '0.02em' }}>💡 {factMsg}</div>}
 
           <button onClick={handleTrade} disabled={loading || !qty || parseFloat(qty) <= 0}
-            style={{ width: '100%', padding: '14px', background: loading ? 'var(--bg-card)' : action === 'buy' ? 'rgba(34,211,165,0.08)' : 'rgba(240,84,84,0.08)', border: `1px solid ${action === 'buy' ? '#22d3a5' : '#f05454'}`, borderRadius: '6px', color: action === 'buy' ? '#22d3a5' : '#f05454', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading || !qty || parseFloat(qty) <= 0 ? 0.4 : 1 }}>
+            style={{ width: '100%', padding: '14px', background: loading ? 'var(--bg-card)' : action === 'buy' ? 'rgba(0,229,160,0.08)' : 'rgba(255,126,179,0.08)', border: `1px solid ${action === 'buy' ? 'var(--green)' : 'var(--color-down)'}`, borderRadius: '6px', color: action === 'buy' ? 'var(--green)' : 'var(--color-down)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading || !qty || parseFloat(qty) <= 0 ? 0.4 : 1 }}>
             {loading ? '...' : `${action === 'buy' ? t.portfolio.buy : t.portfolio.sell} ${selected.name}`}
           </button>
         </div>
@@ -808,7 +808,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
         >{t.game.menu}</button>
 
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: '#22d3a5', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(34,211,165,0.2)' }}>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: 'var(--green)', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(0,229,160,0.2)' }}>
             💼 {t.portfolio.title}
           </div>
           <div style={{ fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: "'Space Mono', monospace" }}>
@@ -820,7 +820,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
           <span style={{ fontSize: '8px', color: 'var(--t5)', letterSpacing: '0.06em', fontFamily: "'Space Mono', monospace" }}>TOTAL</span>
           {portfolio === null
             ? <div className="skeleton-bar" style={{ height: '16px', width: '80px' }} />
-            : <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: '#22d3a5', textShadow: '0 0 14px rgba(34,211,165,0.35)' }}>{formatCash(totalValue)}</span>}
+            : <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: 'var(--green)', textShadow: '0 0 14px rgba(0,229,160,0.35)' }}>{formatCash(totalValue)}</span>}
         </div>
       </div>
 
@@ -852,9 +852,9 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
           );
           const pnl    = totalValue - 50000;
           const pnlPct = (pnl / 50000) * 100;
-          const color  = pnl >= 0 ? '#22d3a5' : '#f05454';
+          const color  = pnl >= 0 ? 'var(--green)' : 'var(--color-down)';
           return (
-            <div style={{ background: 'var(--bg-card)', border: `1px solid ${pnl >= 0 ? 'rgba(34,211,165,0.3)' : 'rgba(240,84,84,0.3)'}`, borderRadius: '8px', padding: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ background: 'var(--bg-card)', border: `1px solid ${pnl >= 0 ? 'rgba(0,229,160,0.3)' : 'rgba(255,126,179,0.3)'}`, borderRadius: '8px', padding: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ fontSize: '8px', color: 'var(--t5)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>P&L total</div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '15px', color }}>{pnl >= 0 ? '+' : ''}{formatCash(pnl)}</div>
@@ -871,7 +871,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
               <div style={{ fontSize: '9px', color: 'var(--t4)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{t.portfolio.totalValue}</div>
-              <div style={{ fontSize: '9px', color: portfolioHistory[portfolioHistory.length - 1].totalValue >= 50000 ? '#22d3a5' : '#f05454', fontWeight: 700 }}>
+              <div style={{ fontSize: '9px', color: portfolioHistory[portfolioHistory.length - 1].totalValue >= 50000 ? 'var(--green)' : 'var(--color-down)', fontWeight: 700 }}>
                 {portfolioHistory[portfolioHistory.length - 1].totalValue >= 50000 ? '+' : ''}
                 {((portfolioHistory[portfolioHistory.length - 1].totalValue - 50000) / 50000 * 100).toFixed(2)}% {t.portfolio.vsInitial}
               </div>
@@ -885,11 +885,11 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                 const w          = portfolioHistory.length * 20;
                 const points     = values.map((v, i) => `${i * 20},${80 - ((v - min) / range) * 72}`).join(' ');
                 const isUp       = values[values.length - 1] >= values[0];
-                const color      = isUp ? '#22d3a5' : '#f05454';
+                const color      = isUp ? 'var(--green)' : 'var(--color-down)';
                 const fillPoints = `0,80 ${points} ${w},80`;
                 return (
                   <>
-                    <polygon points={fillPoints} fill={isUp ? 'rgba(34,211,165,0.08)' : 'rgba(240,84,84,0.08)'} />
+                    <polygon points={fillPoints} fill={isUp ? 'rgba(0,229,160,0.08)' : 'rgba(255,126,179,0.08)'} />
                     <polyline points={points} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </>
                 );
@@ -914,7 +914,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
           ['leagues',     t.portfolio.leagues],
         ].map(([id, label]) => (
           <button key={id} onClick={() => setTab(id)}
-            style={{ flex: 1, padding: '12px 4px', background: 'transparent', border: 'none', borderBottom: `2px solid ${tab === id ? '#22d3a5' : 'transparent'}`, color: tab === id ? '#22d3a5' : 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '8px', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.15s' }}>
+            style={{ flex: 1, padding: '12px 4px', background: 'transparent', border: 'none', borderBottom: `2px solid ${tab === id ? 'var(--green)' : 'transparent'}`, color: tab === id ? 'var(--green)' : 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '8px', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.15s' }}>
             {label}
           </button>
         ))}
@@ -932,7 +932,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
               ['commodities', t.portfolio.commodities],
             ].map(([id, label]) => (
               <button key={id} onClick={() => setFilter(id)}
-                style={{ padding: '5px 12px', borderRadius: '20px', whiteSpace: 'nowrap', border: `1px solid ${filter === id ? '#22d3a5' : 'var(--bd2)'}`, background: filter === id ? 'rgba(34,211,165,0.08)' : 'transparent', color: filter === id ? '#22d3a5' : 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, cursor: 'pointer' }}>
+                style={{ padding: '5px 12px', borderRadius: '20px', whiteSpace: 'nowrap', border: `1px solid ${filter === id ? 'var(--green)' : 'var(--bd2)'}`, background: filter === id ? 'rgba(0,229,160,0.08)' : 'transparent', color: filter === id ? 'var(--green)' : 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, cursor: 'pointer' }}>
                 {label}
               </button>
             ))}
@@ -960,7 +960,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                       <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '12px', color: 'var(--t1)' }}>{asset.name}</div>
                       <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         {asset.symbol} · {t.portfolio.types[asset.type]}
-                        <span style={{ fontSize: '8px', color: status.open ? '#22d3a5' : '#f05454', background: status.open ? 'rgba(34,211,165,0.1)' : 'rgba(240,84,84,0.1)', padding: '1px 5px', borderRadius: '4px', letterSpacing: '0.04em' }}>
+                        <span style={{ fontSize: '8px', color: status.open ? 'var(--green)' : 'var(--color-down)', background: status.open ? 'rgba(0,229,160,0.1)' : 'rgba(255,126,179,0.1)', padding: '1px 5px', borderRadius: '4px', letterSpacing: '0.04em' }}>
                           {status.label}
                         </span>
                         {riskDot && <span style={{ fontSize: '8px', color: riskDot.color, lineHeight: 1 }} title="Risk">{riskDot.label}</span>}
@@ -968,7 +968,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                     </div>
                     <div style={{ textAlign: 'right', flexShrink: 0 }}>
                       <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>{formatPrice(asset.price, asset.type)}</div>
-                      <div style={{ fontSize: '10px', color: asset.change >= 0 ? '#22d3a5' : '#f05454', fontWeight: 700 }}>{formatChange(asset.change)}</div>
+                      <div style={{ fontSize: '10px', color: asset.change >= 0 ? 'var(--green)' : 'var(--color-down)', fontWeight: 700 }}>{formatChange(asset.change)}</div>
                     </div>
                   </div>
                   {isHovered && tooltip && (
@@ -990,7 +990,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
             <div style={{ textAlign: 'center', padding: '60px 20px' }}>
               <div style={{ fontSize: '32px', marginBottom: '12px' }}>📭</div>
               <div style={{ fontSize: '11px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace" }}>{t.portfolio.noPositions}</div>
-              <button onClick={() => setTab('market')} style={{ marginTop: '16px', padding: '10px 20px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer' }}>
+              <button onClick={() => setTab('market')} style={{ marginTop: '16px', padding: '10px 20px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer' }}>
                 {t.portfolio.goToMarket}
               </button>
             </div>
@@ -999,7 +999,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
               const existingAlert = alerts.find(a => a.ticker === pos.symbol);
               return (
                 <div key={pos.symbol}
-                  style={{ background: 'var(--bg-card)', border: `1px solid ${pos.pnl >= 0 ? 'rgba(34,211,165,0.3)' : 'rgba(240,84,84,0.3)'}`, borderRadius: '8px', marginBottom: '8px', overflow: 'hidden' }}>
+                  style={{ background: 'var(--bg-card)', border: `1px solid ${pos.pnl >= 0 ? 'rgba(0,229,160,0.3)' : 'rgba(255,126,179,0.3)'}`, borderRadius: '8px', marginBottom: '8px', overflow: 'hidden' }}>
                   {/* Clickable main area */}
                   <div onClick={() => openAsset(prices.find(p => p.symbol === pos.symbol))} style={{ padding: '14px', cursor: 'pointer' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -1009,13 +1009,13 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                       </div>
                       <div style={{ textAlign: 'right' }}>
                         <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: 'var(--t1)' }}>{formatCash(pos.value)}</div>
-                        <div style={{ fontSize: '10px', color: pos.pnl >= 0 ? '#22d3a5' : '#f05454', fontWeight: 700 }}>
+                        <div style={{ fontSize: '10px', color: pos.pnl >= 0 ? 'var(--green)' : 'var(--color-down)', fontWeight: 700 }}>
                           {pos.pnl >= 0 ? '+' : ''}{formatCash(pos.pnl)} ({formatChange(pos.pnlPct)})
                         </div>
                       </div>
                     </div>
                     <div style={{ height: '3px', background: 'var(--bd)', borderRadius: '2px', overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${Math.min(100, Math.abs(pos.pnlPct) * 5)}%`, background: pos.pnl >= 0 ? '#22d3a5' : '#f05454', borderRadius: '2px' }} />
+                      <div style={{ height: '100%', width: `${Math.min(100, Math.abs(pos.pnlPct) * 5)}%`, background: pos.pnl >= 0 ? 'var(--green)' : 'var(--color-down)', borderRadius: '2px' }} />
                     </div>
                   </div>
                   {/* Alert + Note row */}
@@ -1025,7 +1025,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                       {user?.isPro ? (
                         existingAlert ? (
                           <>
-                            <span style={{ fontSize: '9px', color: '#f5c842', fontFamily: "'Space Mono', monospace", flex: 1 }}>
+                            <span style={{ fontSize: '9px', color: 'var(--color-neutral)', fontFamily: "'Space Mono', monospace", flex: 1 }}>
                               🔔 {existingAlert.condition === 'above' ? '↑' : '↓'} {formatPrice(existingAlert.targetPrice, pos.type)}
                             </span>
                             <button
@@ -1036,7 +1036,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                         ) : (
                           <button
                             onClick={() => openAlertModal(pos)}
-                            style={{ background: 'transparent', border: '1px solid rgba(245,200,66,0.3)', borderRadius: '6px', color: '#f5c842', fontSize: '9px', padding: '3px 10px', cursor: 'pointer', fontFamily: "'Space Mono', monospace", letterSpacing: '0.04em' }}
+                            style={{ background: 'transparent', border: '1px solid rgba(232,184,75,0.3)', borderRadius: '6px', color: 'var(--color-neutral)', fontSize: '9px', padding: '3px 10px', cursor: 'pointer', fontFamily: "'Space Mono', monospace", letterSpacing: '0.04em' }}
                           >🔔 Alerta</button>
                         )
                       ) : (
@@ -1050,7 +1050,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                     {user?.isPro ? (
                       <button
                         onClick={e => { e.stopPropagation(); setNoteText(notes[pos.symbol] || ''); setNoteModal({ symbol: pos.symbol, name: pos.name }); }}
-                        style={{ flexShrink: 0, background: notes[pos.symbol] ? 'rgba(245,200,66,0.08)' : 'transparent', border: `1px solid ${notes[pos.symbol] ? 'rgba(245,200,66,0.4)' : 'var(--bd2)'}`, borderRadius: '6px', color: notes[pos.symbol] ? '#f5c842' : 'var(--t6)', fontSize: '9px', padding: '3px 10px', cursor: 'pointer', fontFamily: "'Space Mono', monospace", letterSpacing: '0.04em' }}
+                        style={{ flexShrink: 0, background: notes[pos.symbol] ? 'rgba(232,184,75,0.08)' : 'transparent', border: `1px solid ${notes[pos.symbol] ? 'rgba(232,184,75,0.4)' : 'var(--bd2)'}`, borderRadius: '6px', color: notes[pos.symbol] ? 'var(--color-neutral)' : 'var(--t6)', fontSize: '9px', padding: '3px 10px', cursor: 'pointer', fontFamily: "'Space Mono', monospace", letterSpacing: '0.04em' }}
                       >📝 {notes[pos.symbol] ? 'nota' : 'anotar'}</button>
                     ) : (
                       <button
@@ -1076,9 +1076,9 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
               style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', cursor: 'pointer' }}
             >
               <div>
-                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: user?.isPro ? '#22d3a5' : 'var(--t4)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: user?.isPro ? 'var(--green)' : 'var(--t4)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   {user?.isPro ? '📊' : '🔒'} vs #1 del ranking
-                  {!user?.isPro && <span style={{ fontSize: '8px', color: '#f5c842', background: 'rgba(245,200,66,0.1)', padding: '1px 6px', borderRadius: '4px', fontFamily: "'Space Mono', monospace", letterSpacing: '0.04em' }}>PRO</span>}
+                  {!user?.isPro && <span style={{ fontSize: '8px', color: 'var(--color-neutral)', background: 'rgba(232,184,75,0.1)', padding: '1px 6px', borderRadius: '4px', fontFamily: "'Space Mono', monospace", letterSpacing: '0.04em' }}>PRO</span>}
                 </div>
                 {compareData?.top1 && user?.isPro && (
                   <div style={{ fontSize: '8px', color: 'var(--t5)', marginTop: '2px', fontFamily: "'Space Mono', monospace" }}>
@@ -1095,14 +1095,14 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                   {[['AAPL', 'Apple', '+12.4%', '+18.2%'], ['BTC', 'Bitcoin', '—', '+34.1%'], ['MSFT', 'Microsoft', '+5.1%', '+5.1%']].map(([sym, name, myR, top1R]) => (
                     <div key={sym} style={{ display: 'flex', alignItems: 'center', padding: '7px 0', borderBottom: '1px solid var(--bd)', gap: '8px' }}>
                       <div style={{ flex: 1, fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '11px', color: 'var(--t2)' }}>{name}</div>
-                      <div style={{ fontSize: '9px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", width: '44px', textAlign: 'right' }}>{myR}</div>
-                      <div style={{ fontSize: '9px', color: '#f5c842', fontFamily: "'Space Mono', monospace", width: '44px', textAlign: 'right' }}>{top1R}</div>
+                      <div style={{ fontSize: '9px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", width: '44px', textAlign: 'right' }}>{myR}</div>
+                      <div style={{ fontSize: '9px', color: 'var(--color-neutral)', fontFamily: "'Space Mono', monospace", width: '44px', textAlign: 'right' }}>{top1R}</div>
                     </div>
                   ))}
                 </div>
                 <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
                   <span style={{ fontSize: '20px' }}>🔒</span>
-                  <button onClick={() => onGoPricing?.()} style={{ padding: '8px 20px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '8px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>Desbloquear Pro</button>
+                  <button onClick={() => onGoPricing?.()} style={{ padding: '8px 20px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>Desbloquear Pro</button>
                 </div>
               </div>
             ) : compareExpanded && (
@@ -1117,14 +1117,14 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                     <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', padding: '10px', background: 'var(--bg-page)', borderRadius: '8px' }}>
                       <div style={{ flex: 1, textAlign: 'center' }}>
                         <div style={{ fontSize: '8px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", marginBottom: '3px' }}>TÚ</div>
-                        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: compareData.myReturnPct >= 0 ? '#22d3a5' : '#f05454' }}>
+                        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: compareData.myReturnPct >= 0 ? 'var(--green)' : 'var(--color-down)' }}>
                           {compareData.myReturnPct >= 0 ? '+' : ''}{compareData.myReturnPct?.toFixed(2)}%
                         </div>
                       </div>
                       <div style={{ width: '1px', background: 'var(--bd)' }} />
                       <div style={{ flex: 1, textAlign: 'center' }}>
-                        <div style={{ fontSize: '8px', color: '#f5c842', fontFamily: "'Space Mono', monospace", marginBottom: '3px' }}>🥇 @{compareData.top1.username}</div>
-                        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: '#f5c842' }}>
+                        <div style={{ fontSize: '8px', color: 'var(--color-neutral)', fontFamily: "'Space Mono', monospace", marginBottom: '3px' }}>🥇 @{compareData.top1.username}</div>
+                        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: 'var(--color-neutral)' }}>
                           {compareData.top1.returnPct >= 0 ? '+' : ''}{compareData.top1.returnPct?.toFixed(2)}%
                         </div>
                       </div>
@@ -1133,14 +1133,14 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                     {/* Only in #1 */}
                     {compareData.onlyInTop1.length > 0 && (
                       <>
-                        <div style={{ fontSize: '8px', color: '#f5c842', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: "'Space Mono', monospace", marginBottom: '6px' }}>Solo en #1</div>
+                        <div style={{ fontSize: '8px', color: 'var(--color-neutral)', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: "'Space Mono', monospace", marginBottom: '6px' }}>Solo en #1</div>
                         {compareData.onlyInTop1.map(item => (
-                          <div key={item.symbol} style={{ display: 'flex', alignItems: 'center', padding: '6px 8px', background: 'rgba(245,200,66,0.04)', border: '1px solid rgba(245,200,66,0.12)', borderRadius: '6px', marginBottom: '4px' }}>
+                          <div key={item.symbol} style={{ display: 'flex', alignItems: 'center', padding: '6px 8px', background: 'rgba(232,184,75,0.04)', border: '1px solid var(--color-neutral-dim)', borderRadius: '6px', marginBottom: '4px' }}>
                             <div style={{ flex: 1 }}>
                               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '11px', color: 'var(--t1)' }}>{item.name}</div>
                               <div style={{ fontSize: '8px', color: 'var(--t5)' }}>{item.symbol}</div>
                             </div>
-                            <div style={{ fontSize: '10px', fontWeight: 700, fontFamily: "'Syne', sans-serif", color: item.top1Return >= 0 ? '#22d3a5' : '#f05454' }}>
+                            <div style={{ fontSize: '10px', fontWeight: 700, fontFamily: "'Syne', sans-serif", color: item.top1Return >= 0 ? 'var(--green)' : 'var(--color-down)' }}>
                               {item.top1Return >= 0 ? '+' : ''}{item.top1Return?.toFixed(2)}%
                             </div>
                           </div>
@@ -1151,9 +1151,9 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                     {/* In common */}
                     {compareData.inCommon.length > 0 && (
                       <>
-                        <div style={{ fontSize: '8px', color: '#22d3a5', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: "'Space Mono', monospace", marginTop: '10px', marginBottom: '6px' }}>En común</div>
+                        <div style={{ fontSize: '8px', color: 'var(--green)', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: "'Space Mono', monospace", marginTop: '10px', marginBottom: '6px' }}>En común</div>
                         {compareData.inCommon.map(item => (
-                          <div key={item.symbol} style={{ display: 'flex', alignItems: 'center', padding: '6px 8px', background: 'rgba(34,211,165,0.04)', border: '1px solid rgba(34,211,165,0.12)', borderRadius: '6px', marginBottom: '4px' }}>
+                          <div key={item.symbol} style={{ display: 'flex', alignItems: 'center', padding: '6px 8px', background: 'rgba(0,229,160,0.04)', border: '1px solid rgba(0,229,160,0.12)', borderRadius: '6px', marginBottom: '4px' }}>
                             <div style={{ flex: 1 }}>
                               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '11px', color: 'var(--t1)' }}>{item.name}</div>
                               <div style={{ fontSize: '8px', color: 'var(--t5)' }}>{item.symbol}</div>
@@ -1161,11 +1161,11 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                             <div style={{ display: 'flex', gap: '12px' }}>
                               <div style={{ textAlign: 'right' }}>
                                 <div style={{ fontSize: '8px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace" }}>tú</div>
-                                <div style={{ fontSize: '10px', fontWeight: 700, color: item.myReturn >= 0 ? '#22d3a5' : '#f05454' }}>{item.myReturn >= 0 ? '+' : ''}{item.myReturn?.toFixed(2)}%</div>
+                                <div style={{ fontSize: '10px', fontWeight: 700, color: item.myReturn >= 0 ? 'var(--green)' : 'var(--color-down)' }}>{item.myReturn >= 0 ? '+' : ''}{item.myReturn?.toFixed(2)}%</div>
                               </div>
                               <div style={{ textAlign: 'right' }}>
-                                <div style={{ fontSize: '8px', color: '#f5c842', fontFamily: "'Space Mono', monospace" }}>#1</div>
-                                <div style={{ fontSize: '10px', fontWeight: 700, color: item.top1Return >= 0 ? '#22d3a5' : '#f05454' }}>{item.top1Return >= 0 ? '+' : ''}{item.top1Return?.toFixed(2)}%</div>
+                                <div style={{ fontSize: '8px', color: 'var(--color-neutral)', fontFamily: "'Space Mono', monospace" }}>#1</div>
+                                <div style={{ fontSize: '10px', fontWeight: 700, color: item.top1Return >= 0 ? 'var(--green)' : 'var(--color-down)' }}>{item.top1Return >= 0 ? '+' : ''}{item.top1Return?.toFixed(2)}%</div>
                               </div>
                             </div>
                           </div>
@@ -1183,7 +1183,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '11px', color: 'var(--t1)' }}>{item.name}</div>
                               <div style={{ fontSize: '8px', color: 'var(--t5)' }}>{item.symbol}</div>
                             </div>
-                            <div style={{ fontSize: '10px', fontWeight: 700, fontFamily: "'Syne', sans-serif", color: item.myReturn >= 0 ? '#22d3a5' : '#f05454' }}>
+                            <div style={{ fontSize: '10px', fontWeight: 700, fontFamily: "'Syne', sans-serif", color: item.myReturn >= 0 ? 'var(--green)' : 'var(--color-down)' }}>
                               {item.myReturn >= 0 ? '+' : ''}{item.myReturn?.toFixed(2)}%
                             </div>
                           </div>
@@ -1212,7 +1212,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                 setLeaderboardTab(id);
                 if (id === 'weekly' && weeklyLeaderboard.length === 0 && !weeklyLoading) loadWeeklyLeaderboard();
               }}
-                style={{ padding: '5px 14px', borderRadius: '20px', border: `1px solid ${leaderboardTab === id ? '#22d3a5' : 'var(--bd2)'}`, background: leaderboardTab === id ? 'rgba(34,211,165,0.08)' : 'transparent', color: leaderboardTab === id ? '#22d3a5' : 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, cursor: 'pointer' }}>
+                style={{ padding: '5px 14px', borderRadius: '20px', border: `1px solid ${leaderboardTab === id ? 'var(--green)' : 'var(--bd2)'}`, background: leaderboardTab === id ? 'rgba(0,229,160,0.08)' : 'transparent', color: leaderboardTab === id ? 'var(--green)' : 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, cursor: 'pointer' }}>
                 {label}
               </button>
             ))}
@@ -1257,13 +1257,13 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
 
           {/* Duel activo */}
           {activeDuel && (
-            <div style={{ background: 'var(--bg-card)', border: '1px solid rgba(34,211,165,0.3)', borderRadius: '10px', padding: '16px', marginBottom: '16px' }}>
-              <div style={{ fontSize: '9px', color: '#22d3a5', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '12px' }}>{t.portfolio.activeDuel} · {activeDuel.daysLeft}{t.portfolio.daysLeft}</div>
+            <div style={{ background: 'var(--bg-card)', border: '1px solid rgba(0,229,160,0.3)', borderRadius: '10px', padding: '16px', marginBottom: '16px' }}>
+              <div style={{ fontSize: '9px', color: 'var(--green)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '12px' }}>{t.portfolio.activeDuel} · {activeDuel.daysLeft}{t.portfolio.daysLeft}</div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 {[activeDuel.challenger, activeDuel.opponent].map((p, i) => (
-                  <div key={i} style={{ flex: 1, background: 'var(--bg-page)', border: `1px solid ${p.returnPct >= 0 ? 'rgba(34,211,165,0.2)' : 'rgba(240,84,84,0.2)'}`, borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
+                  <div key={i} style={{ flex: 1, background: 'var(--bg-page)', border: `1px solid ${p.returnPct >= 0 ? 'rgba(0,229,160,0.2)' : 'rgba(255,126,179,0.2)'}`, borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
                     <div style={{ fontSize: '9px', color: 'var(--t5)', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{p.username || p.name}{isFounder(p.username) && <FounderBadge size={9} />}</div>
-                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: p.returnPct >= 0 ? '#22d3a5' : '#f05454' }}>
+                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: p.returnPct >= 0 ? 'var(--green)' : 'var(--color-down)' }}>
                       {p.returnPct >= 0 ? '+' : ''}{p.returnPct.toFixed(2)}%
                     </div>
                     <div style={{ fontSize: '8px', color: 'var(--t5)', marginTop: '2px' }}>{formatCash(p.currentValue)}</div>
@@ -1280,15 +1280,15 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
           {/* Retos pendientes */}
           {pendingDuels.length > 0 && (
             <div style={{ marginBottom: '16px' }}>
-              <div style={{ fontSize: '9px', color: '#f5c842', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px' }}>{t.portfolio.pendingDuels}</div>
+              <div style={{ fontSize: '9px', color: 'var(--color-neutral)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px' }}>{t.portfolio.pendingDuels}</div>
               {pendingDuels.map(d => (
-                <div key={d.id} style={{ background: 'var(--bg-card)', border: '1px solid rgba(245,200,66,0.2)', borderRadius: '8px', padding: '12px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div key={d.id} style={{ background: 'var(--bg-card)', border: '1px solid rgba(232,184,75,0.2)', borderRadius: '8px', padding: '12px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: 'var(--t1)' }}>{d.challengerName}</div>
                     <div style={{ fontSize: '9px', color: 'var(--t5)' }}>{t.portfolio.duelChallenge}</div>
                   </div>
                   <button onClick={() => acceptDuel(d.id)} disabled={duelLoading}
-                    style={{ padding: '7px 12px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, cursor: 'pointer', opacity: duelLoading ? 0.5 : 1 }}>
+                    style={{ padding: '7px 12px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, cursor: 'pointer', opacity: duelLoading ? 0.5 : 1 }}>
                     {t.challenge.accept}
                   </button>
                   <button onClick={() => rejectDuel(d.id)} disabled={duelLoading}
@@ -1307,14 +1307,14 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--t1)', marginBottom: '6px' }}>{t.portfolio.duelTitle}</div>
               <div style={{ fontSize: '10px', color: 'var(--t5)', marginBottom: '24px', lineHeight: 1.6 }}>{t.portfolio.duelDesc}</div>
               <button onClick={() => { setShowFriendPicker(true); loadDuelFriends(); }}
-                style={{ padding: '12px 24px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '8px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', cursor: 'pointer' }}>
+                style={{ padding: '12px 24px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', cursor: 'pointer' }}>
                 {t.portfolio.challengeFriend}
               </button>
             </div>
           )}
 
           {duelMsg && (
-            <div style={{ fontSize: '11px', color: duelMsg.includes('✓') ? '#22d3a5' : '#f05454', textAlign: 'center', marginTop: '12px' }}>{duelMsg}</div>
+            <div style={{ fontSize: '11px', color: duelMsg.includes('✓') ? 'var(--green)' : 'var(--color-down)', textAlign: 'center', marginTop: '12px' }}>{duelMsg}</div>
           )}
 
           {/* Friend picker */}
@@ -1333,7 +1333,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                     <UserAvatar user={f} size={28} showBadge />
                     <div style={{ flex: 1, fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: 'var(--t1)', display: 'flex', alignItems: 'center' }}>{f.username || f.name}{isFounder(f.username) && <FounderBadge size={11} />}</div>
                     <button onClick={() => challengeFriendDuel(f.username)} disabled={duelLoading}
-                      style={{ padding: '6px 12px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, cursor: 'pointer', opacity: duelLoading ? 0.5 : 1 }}>
+                      style={{ padding: '6px 12px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, cursor: 'pointer', opacity: duelLoading ? 0.5 : 1 }}>
                       {t.portfolio.challengeBtn}
                     </button>
                   </div>
@@ -1355,7 +1355,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
           ) : (
             [...portfolio.transactions].reverse().map((tx, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', marginBottom: '6px' }}>
-                <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: tx.action === 'buy' ? 'rgba(34,211,165,0.1)' : 'rgba(240,84,84,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', flexShrink: 0 }}>
+                <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: tx.action === 'buy' ? 'rgba(0,229,160,0.1)' : 'rgba(255,126,179,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', flexShrink: 0 }}>
                   {tx.action === 'buy' ? '▲' : '▼'}
                 </div>
                 <div style={{ flex: 1 }}>
@@ -1365,10 +1365,10 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                   </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: tx.action === 'buy' ? '#f05454' : '#22d3a5' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: tx.action === 'buy' ? 'var(--color-down)' : 'var(--green)' }}>
                     {tx.action === 'buy' ? '-' : '+'}{formatCash(tx.total)}
                   </div>
-                  <div style={{ fontSize: '9px', color: tx.action === 'buy' ? '#22d3a5' : '#f05454', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  <div style={{ fontSize: '9px', color: tx.action === 'buy' ? 'var(--green)' : 'var(--color-down)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                     {tx.action === 'buy' ? t.portfolio.purchase : t.portfolio.sale}
                   </div>
                 </div>
@@ -1412,7 +1412,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
               {notes[noteModal.symbol] && (
                 <button
                   onClick={() => deleteNote(noteModal.symbol)}
-                  style={{ padding: '10px', background: 'transparent', border: '1px solid rgba(240,84,84,0.4)', borderRadius: '6px', color: '#f05454', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer' }}
+                  style={{ padding: '10px', background: 'transparent', border: '1px solid rgba(255,126,179,0.4)', borderRadius: '6px', color: 'var(--color-down)', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer' }}
                 >borrar</button>
               )}
               <button
@@ -1422,7 +1422,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
               <button
                 onClick={() => saveNote(noteModal.symbol, noteText)}
                 disabled={noteSaving || !noteText.trim()}
-                style={{ flex: 2, padding: '10px', background: 'rgba(34,211,165,0.1)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: noteSaving || !noteText.trim() ? 'not-allowed' : 'pointer', letterSpacing: '0.04em', opacity: noteSaving || !noteText.trim() ? 0.5 : 1 }}
+                style={{ flex: 2, padding: '10px', background: 'rgba(0,229,160,0.1)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: noteSaving || !noteText.trim() ? 'not-allowed' : 'pointer', letterSpacing: '0.04em', opacity: noteSaving || !noteText.trim() ? 0.5 : 1 }}
               >{noteSaving ? '···' : 'guardar nota'}</button>
             </div>
           </div>
@@ -1450,7 +1450,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                 <button
                   key={val}
                   onClick={() => setAlertCondition(val)}
-                  style={{ flex: 1, padding: '8px 4px', border: `1px solid ${alertCondition === val ? (val === 'above' ? '#22d3a5' : '#f5c842') : 'var(--bd)'}`, borderRadius: '6px', background: alertCondition === val ? (val === 'above' ? 'rgba(34,211,165,0.08)' : 'rgba(245,200,66,0.08)') : 'transparent', color: alertCondition === val ? (val === 'above' ? '#22d3a5' : '#f5c842') : 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.04em' }}
+                  style={{ flex: 1, padding: '8px 4px', border: `1px solid ${alertCondition === val ? (val === 'above' ? 'var(--green)' : 'var(--color-neutral)') : 'var(--bd)'}`, borderRadius: '6px', background: alertCondition === val ? (val === 'above' ? 'rgba(0,229,160,0.08)' : 'rgba(232,184,75,0.08)') : 'transparent', color: alertCondition === val ? (val === 'above' ? 'var(--green)' : 'var(--color-neutral)') : 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.04em' }}
                 >{label}</button>
               ))}
             </div>
@@ -1472,7 +1472,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
               >cancelar</button>
               <button
                 onClick={() => saveAlert(alertModal.ticker, parseFloat(alertPrice), alertCondition)}
-                style={{ flex: 2, padding: '10px', background: 'rgba(34,211,165,0.1)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em' }}
+                style={{ flex: 2, padding: '10px', background: 'rgba(0,229,160,0.1)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em' }}
               >guardar alerta</button>
             </div>
           </div>

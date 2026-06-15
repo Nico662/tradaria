@@ -350,7 +350,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏆</div>
         <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '24px', color: 'var(--t1)', marginBottom: '8px' }}>{t.home.mode3}</div>
         <div style={{ fontSize: '11px', color: 'var(--t5)', marginBottom: '32px' }}>{t.arena.searching}</div>
-        <a href={`${SERVER}/auth/google`} style={{ display: 'inline-block', padding: '12px 24px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '8px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', textDecoration: 'none', fontWeight: 700 }}>
+        <a href={`${SERVER}/auth/google`} style={{ display: 'inline-block', padding: '12px 24px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '11px', textDecoration: 'none', fontWeight: 700 }}>
           Sign in with Google
         </a>
       </div>
@@ -399,11 +399,11 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
               {academyTournamentId && academyTournamentData ? academyTournamentData.name : formatWeekId(weekId)}
             </div>
             {phase === 'finished' && (
-              <div style={{ marginTop: '8px', fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '32px', color: '#f5c842' }}>{score}</div>
+              <div style={{ marginTop: '8px', fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '32px', color: 'var(--color-neutral)' }}>{score}</div>
             )}
             {phase === 'already_played' && (
               <div style={{ marginTop: '8px', fontSize: '11px', color: 'var(--t5)' }}>
-                {t.gameover.finalScore}: <span style={{ color: '#f5c842', fontWeight: 700 }}>{alreadyScore}</span>
+                {t.gameover.finalScore}: <span style={{ color: 'var(--color-neutral)', fontWeight: 700 }}>{alreadyScore}</span>
               </div>
             )}
           </div>
@@ -424,18 +424,18 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                         const name  = p.userId?.username ? `@${p.userId.username}` : (p.userId?.name || '—');
                         const pid   = String(p.userId?._id || p.userId);
                         const isMe  = myId && pid === myId;
-                        const rankColor = i === 0 ? '#f5c842' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : isMe ? 'rgba(34,211,165,0.6)' : 'var(--bd)';
-                        const numColor  = i === 0 ? '#f5c842' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : 'var(--t6)';
+                        const rankColor = i === 0 ? 'var(--color-neutral)' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : isMe ? 'rgba(0,229,160,0.6)' : 'var(--bd)';
+                        const numColor  = i === 0 ? 'var(--color-neutral)' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : 'var(--t6)';
                         return (
-                          <div key={String(p.userId?._id ?? i)} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: isMe ? 'rgba(34,211,165,0.07)' : 'var(--bg-card)', border: `1px solid ${i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : isMe ? 'rgba(34,211,165,0.6)' : 'transparent'}`, borderLeft: `2px solid ${i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : isMe ? 'rgba(34,211,165,0.6)' : 'transparent'}`, borderRadius: '8px', marginBottom: '8px', overflow: 'hidden', width: '100%' }}>
+                          <div key={String(p.userId?._id ?? i)} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: isMe ? 'rgba(0,229,160,0.07)' : 'var(--bg-card)', border: `1px solid ${i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : isMe ? 'rgba(0,229,160,0.6)' : 'transparent'}`, borderLeft: `2px solid ${i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : isMe ? 'rgba(0,229,160,0.6)' : 'transparent'}`, borderRadius: '8px', marginBottom: '8px', overflow: 'hidden', width: '100%' }}>
                             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: numColor, width: '40px', flexShrink: 0, textAlign: 'center' }}>
                               {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
                             </div>
                             <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
-                              <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: isMe ? '#22d3a5' : 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{name}</span>
-                              {isMe && <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(34,211,165,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>}
+                              <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: isMe ? 'var(--green)' : 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{name}</span>
+                              {isMe && <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>}
                             </div>
-                            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#22d3a5' }}>{p.score}</div>
+                            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--green)' }}>{p.score}</div>
                           </div>
                         );
                       })}
@@ -446,15 +446,15 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                             <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t6)' }}>···</span>
                             <div style={{ flex: 1, height: '1px', background: 'var(--bd)' }} />
                           </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: 'rgba(34,211,165,0.07)', border: '1px solid rgba(34,211,165,0.6)', borderLeft: '2px solid rgba(34,211,165,0.6)', borderRadius: '8px', marginBottom: '8px', overflow: 'hidden', width: '100%' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: 'rgba(0,229,160,0.07)', border: '1px solid rgba(0,229,160,0.6)', borderLeft: '2px solid rgba(0,229,160,0.6)', borderRadius: '8px', marginBottom: '8px', overflow: 'hidden', width: '100%' }}>
                             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--t6)', width: '40px', flexShrink: 0, textAlign: 'center' }}>#{myIdx + 1}</div>
                             <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
-                              <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#22d3a5', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
+                              <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: 'var(--green)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
                                 {myOutside.userId?.username ? `@${myOutside.userId.username}` : (myOutside.userId?.name || '—')}
                               </span>
-                              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(34,211,165,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>
+                              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>
                             </div>
-                            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#22d3a5' }}>{myOutside.score}</div>
+                            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--green)' }}>{myOutside.score}</div>
                           </div>
                         </>
                       )}
@@ -469,17 +469,17 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                 const myId = String(user?._id || user?.id || '');
                 const isMe = myId && String(entry.userId?._id || entry.userId) === myId;
                 return (
-                  <div key={entry._id} onClick={() => !isMe && entry.username && onViewProfile && onViewProfile(entry.username)} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: isMe ? 'rgba(34,211,165,0.07)' : 'var(--bg-card)', border: `1px solid ${i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : isMe ? 'rgba(34,211,165,0.6)' : 'transparent'}`, borderLeft: `2px solid ${i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : isMe ? 'rgba(34,211,165,0.6)' : 'transparent'}`, borderRadius: '8px', marginBottom: '8px', cursor: !isMe && entry.username && onViewProfile ? 'pointer' : 'default', overflow: 'hidden', width: '100%' }}>
-                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : 'var(--t6)', width: '40px', flexShrink: 0, textAlign: 'center' }}>
+                  <div key={entry._id} onClick={() => !isMe && entry.username && onViewProfile && onViewProfile(entry.username)} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: isMe ? 'rgba(0,229,160,0.07)' : 'var(--bg-card)', border: `1px solid ${i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : isMe ? 'rgba(0,229,160,0.6)' : 'transparent'}`, borderLeft: `2px solid ${i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : isMe ? 'rgba(0,229,160,0.6)' : 'transparent'}`, borderRadius: '8px', marginBottom: '8px', cursor: !isMe && entry.username && onViewProfile ? 'pointer' : 'default', overflow: 'hidden', width: '100%' }}>
+                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? 'var(--color-neutral)' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : 'var(--t6)', width: '40px', flexShrink: 0, textAlign: 'center' }}>
                       {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
                     </div>
                     <UserAvatar user={entry} size={24} showBadge style={{ marginLeft: '8px' }} />
                     <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
-                      <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: isMe ? '#22d3a5' : 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{displayName}</span>
+                      <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: isMe ? 'var(--green)' : 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{displayName}</span>
                       {isFounder(entry.username) && <FounderBadge size={11} />}
-                      {isMe && <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(34,211,165,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>}
+                      {isMe && <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>}
                     </div>
-                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#22d3a5' }}>{entry.score}</div>
+                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--green)' }}>{entry.score}</div>
                   </div>
                 );
               })}
@@ -490,16 +490,16 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                     <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t6)' }}>···</span>
                     <div style={{ flex: 1, height: '1px', background: 'var(--bd)' }} />
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: 'rgba(34,211,165,0.07)', border: '1px solid rgba(34,211,165,0.6)', borderLeft: '2px solid rgba(34,211,165,0.6)', borderRadius: '8px', marginBottom: '8px', overflow: 'hidden', width: '100%' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: 'rgba(0,229,160,0.07)', border: '1px solid rgba(0,229,160,0.6)', borderLeft: '2px solid rgba(0,229,160,0.6)', borderRadius: '8px', marginBottom: '8px', overflow: 'hidden', width: '100%' }}>
                     <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--t6)', width: '40px', flexShrink: 0, textAlign: 'center' }}>#{userPosition.rank}</div>
                     <UserAvatar user={userPosition} size={24} showBadge style={{ marginLeft: '8px' }} />
                     <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
-                      <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#22d3a5', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
+                      <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: 'var(--green)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
                         {userPosition.username ? `@${userPosition.username}` : userPosition.name}
                       </span>
-                      <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(34,211,165,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>
+                      <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>
                     </div>
-                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#22d3a5' }}>{userPosition.score}</div>
+                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--green)' }}>{userPosition.score}</div>
                   </div>
                 </>
               )}
@@ -512,7 +512,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
           {/* Torneos de pago */}
           {!academyTournamentId && paidTournaments.length > 0 && (
             <div style={{ marginTop: '28px' }}>
-              <div style={{ fontSize: '9px', color: '#f5c842', letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: "'Space Mono', monospace", marginBottom: '12px' }}>
+              <div style={{ fontSize: '9px', color: 'var(--color-neutral)', letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: "'Space Mono', monospace", marginBottom: '12px' }}>
                 {t.tournament.paidSection}
               </div>
               {paidTournaments.map(pt => {
@@ -526,19 +526,19 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                         <div style={{ fontSize: '11px', color: 'var(--t2)', fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>
                           Entrada €{pt.entryFee} · Premio €{pt.prize}
                         </div>
-                        <div style={{ fontSize: '9px', color: isFull ? '#22d3a5' : 'var(--t5)', marginTop: '3px' }}>
+                        <div style={{ fontSize: '9px', color: isFull ? 'var(--green)' : 'var(--t5)', marginTop: '3px' }}>
                           {isFull ? t.tournament.activeStatus : `${pt.players.length}/${pt.maxPlayers} jugadores`}
                         </div>
                       </div>
                       <div style={{ width: '80px', height: '6px', background: 'var(--bd)', borderRadius: '3px', overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${(pt.players.length / pt.maxPlayers) * 100}%`, background: isFull ? '#22d3a5' : '#f5c842', borderRadius: '3px', transition: 'width 0.4s' }} />
+                        <div style={{ height: '100%', width: `${(pt.players.length / pt.maxPlayers) * 100}%`, background: isFull ? 'var(--green)' : 'var(--color-neutral)', borderRadius: '3px', transition: 'width 0.4s' }} />
                       </div>
                     </div>
                     {!isFull && !alreadyIn && user && (
                       <button
                         onClick={() => joinPaidTournament(String(pt._id))}
                         disabled={joiningId === String(pt._id)}
-                        style={{ width: '100%', padding: '10px', background: 'rgba(245,200,66,0.08)', border: '1px solid #f5c842', borderRadius: '6px', color: '#f5c842', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
+                        style={{ width: '100%', padding: '10px', background: 'rgba(232,184,75,0.08)', border: '1px solid var(--color-neutral)', borderRadius: '6px', color: 'var(--color-neutral)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
                       >
                         {joiningId === String(pt._id) ? t.tournament.loadingJoin : t.tournament.joinFor.replace('{fee}', pt.entryFee)}
                       </button>
@@ -546,13 +546,13 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                     {alreadyIn && pt.status === 'waiting' && (
                       <button
                         onClick={() => { setConfirmLeaveId(String(pt._id)); setLeaveError(''); }}
-                        style={{ width: '100%', padding: '10px', background: 'transparent', border: '1px solid rgba(240,84,84,0.4)', borderRadius: '6px', color: 'rgba(240,84,84,0.85)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
+                        style={{ width: '100%', padding: '10px', background: 'transparent', border: '1px solid rgba(255,126,179,0.4)', borderRadius: '6px', color: 'rgba(255,126,179,0.85)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
                       >
                         {t.tournament.leaveBtn || 'Salir del torneo'}
                       </button>
                     )}
                     {alreadyIn && pt.status !== 'waiting' && (
-                      <div style={{ fontSize: '10px', color: '#22d3a5', textAlign: 'center', fontFamily: "'Space Mono', monospace" }}>{t.tournament.alreadyIn}</div>
+                      <div style={{ fontSize: '10px', color: 'var(--green)', textAlign: 'center', fontFamily: "'Space Mono', monospace" }}>{t.tournament.alreadyIn}</div>
                     )}
                     {!user && (
                       <div style={{ fontSize: '10px', color: 'var(--t5)', textAlign: 'center' }}>{t.tournament.signInJoin}</div>
@@ -560,7 +560,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                     {pt.createdBy && String(pt.createdBy) === String(user?._id || user?.id) && pt.players.length === 0 && (
                       <button
                         onClick={() => { setConfirmDeleteId(String(pt._id)); setDeleteError(''); }}
-                        style={{ marginTop: '8px', width: '100%', padding: '7px', background: 'transparent', border: '1px solid rgba(240,84,84,0.3)', borderRadius: '6px', color: 'rgba(240,84,84,0.75)', fontFamily: "'Space Mono', monospace", fontSize: '9px', letterSpacing: '0.06em', cursor: 'pointer' }}
+                        style={{ marginTop: '8px', width: '100%', padding: '7px', background: 'transparent', border: '1px solid rgba(255,126,179,0.3)', borderRadius: '6px', color: 'rgba(255,126,179,0.75)', fontFamily: "'Space Mono', monospace", fontSize: '9px', letterSpacing: '0.06em', cursor: 'pointer' }}
                       >
                         {t.tournament.deleteBtn}
                       </button>
@@ -582,7 +582,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
 
           {confirmLeaveId && (
             <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,12,15,0.88)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: '20px' }}>
-              <div style={{ width: '100%', maxWidth: '320px', background: 'var(--bg-card)', border: '1px solid rgba(240,84,84,0.4)', borderRadius: '12px', padding: '24px' }}>
+              <div style={{ width: '100%', maxWidth: '320px', background: 'var(--bg-card)', border: '1px solid rgba(255,126,179,0.4)', borderRadius: '12px', padding: '24px' }}>
                 <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: 'var(--t1)', marginBottom: '12px' }}>
                   ¿Salir del torneo?
                 </div>
@@ -592,12 +592,12 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                   </div>
                 )}
                 {leaveMessage && (
-                  <div style={{ fontSize: '11px', color: '#f5c842', fontFamily: "'Space Mono', monospace", marginBottom: '20px', padding: '10px 12px', background: 'rgba(245,200,66,0.08)', border: '1px solid rgba(245,200,66,0.3)', borderRadius: '6px', lineHeight: 1.6 }}>
+                  <div style={{ fontSize: '11px', color: 'var(--color-neutral)', fontFamily: "'Space Mono', monospace", marginBottom: '20px', padding: '10px 12px', background: 'rgba(232,184,75,0.08)', border: '1px solid rgba(232,184,75,0.3)', borderRadius: '6px', lineHeight: 1.6 }}>
                     {leaveMessage}
                   </div>
                 )}
                 {leaveError && (
-                  <div style={{ fontSize: '10px', color: '#f05454', fontFamily: "'Space Mono', monospace", marginBottom: '16px', padding: '8px 10px', background: 'rgba(240,84,84,0.08)', border: '1px solid rgba(240,84,84,0.25)', borderRadius: '6px' }}>
+                  <div style={{ fontSize: '10px', color: 'var(--color-down)', fontFamily: "'Space Mono', monospace", marginBottom: '16px', padding: '8px 10px', background: 'rgba(255,126,179,0.08)', border: '1px solid rgba(255,126,179,0.25)', borderRadius: '6px' }}>
                     {leaveError}
                   </div>
                 )}
@@ -612,7 +612,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                     <button
                       onClick={() => leavePaidTournament(confirmLeaveId)}
                       disabled={!!leavingId}
-                      style={{ flex: 1, padding: '10px', background: 'rgba(240,84,84,0.1)', border: '1px solid #f05454', borderRadius: '6px', color: '#f05454', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', cursor: leavingId ? 'default' : 'pointer', opacity: leavingId ? 0.5 : 1 }}
+                      style={{ flex: 1, padding: '10px', background: 'rgba(255,126,179,0.1)', border: '1px solid var(--color-down)', borderRadius: '6px', color: 'var(--color-down)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', cursor: leavingId ? 'default' : 'pointer', opacity: leavingId ? 0.5 : 1 }}
                     >
                       {leavingId ? '...' : 'Sí, salir'}
                     </button>
@@ -624,7 +624,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
 
           {confirmDeleteId && (
             <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,12,15,0.88)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: '20px' }}>
-              <div style={{ width: '100%', maxWidth: '320px', background: 'var(--bg-card)', border: '1px solid rgba(240,84,84,0.4)', borderRadius: '12px', padding: '24px' }}>
+              <div style={{ width: '100%', maxWidth: '320px', background: 'var(--bg-card)', border: '1px solid rgba(255,126,179,0.4)', borderRadius: '12px', padding: '24px' }}>
                 <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: 'var(--t1)', marginBottom: '12px' }}>
                   {t.tournament.deleteTitle}
                 </div>
@@ -632,7 +632,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                   {t.tournament.deleteConfirmMsg}
                 </div>
                 {deleteError && (
-                  <div style={{ fontSize: '10px', color: '#f05454', fontFamily: "'Space Mono', monospace", marginBottom: '16px', padding: '8px 10px', background: 'rgba(240,84,84,0.08)', border: '1px solid rgba(240,84,84,0.25)', borderRadius: '6px' }}>
+                  <div style={{ fontSize: '10px', color: 'var(--color-down)', fontFamily: "'Space Mono', monospace", marginBottom: '16px', padding: '8px 10px', background: 'rgba(255,126,179,0.08)', border: '1px solid rgba(255,126,179,0.25)', borderRadius: '6px' }}>
                     {deleteError}
                   </div>
                 )}
@@ -646,7 +646,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                   <button
                     onClick={() => deletePaidTournament(confirmDeleteId)}
                     disabled={!!deletingId}
-                    style={{ flex: 1, padding: '10px', background: 'rgba(240,84,84,0.1)', border: '1px solid #f05454', borderRadius: '6px', color: '#f05454', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', cursor: deletingId ? 'default' : 'pointer', opacity: deletingId ? 0.5 : 1 }}
+                    style={{ flex: 1, padding: '10px', background: 'rgba(255,126,179,0.1)', border: '1px solid var(--color-down)', borderRadius: '6px', color: 'var(--color-down)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', cursor: deletingId ? 'default' : 'pointer', opacity: deletingId ? 0.5 : 1 }}
                   >
                     {deletingId ? '...' : t.tournament.confirmDelete}
                   </button>
@@ -680,11 +680,11 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                 </div>
 
                 {Number.isInteger(createParticipants) && createParticipants >= 2 && createParticipants <= 10 && (
-                  <div style={{ padding: '12px 14px', background: 'rgba(245,200,66,0.06)', border: '1px solid rgba(245,200,66,0.18)', borderRadius: '8px', marginBottom: '20px' }}>
+                  <div style={{ padding: '12px 14px', background: 'rgba(232,184,75,0.06)', border: '1px solid rgba(232,184,75,0.18)', borderRadius: '8px', marginBottom: '20px' }}>
                     <div style={{ fontSize: '10px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", lineHeight: 1.8 }}>
-                      {t.tournament.potLinePrefix.replace('{n}', createParticipants)}<span style={{ color: '#f5c842' }}>€{createParticipants * 2}{t.tournament.potLineSuffix}</span>
+                      {t.tournament.potLinePrefix.replace('{n}', createParticipants)}<span style={{ color: 'var(--color-neutral)' }}>€{createParticipants * 2}{t.tournament.potLineSuffix}</span>
                     </div>
-                    <div style={{ fontSize: '11px', color: '#f5c842', fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>
+                    <div style={{ fontSize: '11px', color: 'var(--color-neutral)', fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>
                       {t.tournament.prizeLinePrefix}{createParticipants}
                     </div>
                   </div>
@@ -700,7 +700,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                   <button
                     onClick={createPaidTournament}
                     disabled={creating || !(Number.isInteger(createParticipants) && createParticipants >= 2 && createParticipants <= 10)}
-                    style={{ flex: 1, padding: '10px', background: 'rgba(245,200,66,0.1)', border: '1px solid #f5c842', borderRadius: '6px', color: '#f5c842', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', cursor: (creating || !(Number.isInteger(createParticipants) && createParticipants >= 2 && createParticipants <= 10)) ? 'default' : 'pointer', opacity: (creating || !(Number.isInteger(createParticipants) && createParticipants >= 2 && createParticipants <= 10)) ? 0.4 : 1 }}
+                    style={{ flex: 1, padding: '10px', background: 'rgba(232,184,75,0.1)', border: '1px solid var(--color-neutral)', borderRadius: '6px', color: 'var(--color-neutral)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', cursor: (creating || !(Number.isInteger(createParticipants) && createParticipants >= 2 && createParticipants <= 10)) ? 'default' : 'pointer', opacity: (creating || !(Number.isInteger(createParticipants) && createParticipants >= 2 && createParticipants <= 10)) ? 0.4 : 1 }}
                   >
                     {creating ? t.tournament.creating : t.tournament.create}
                   </button>
@@ -720,19 +720,19 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
             const tok = localStorage.getItem('tradaria_token');
             if (tok) fetch(`${SERVER}/stats/share`, { method: 'POST', headers: { Authorization: `Bearer ${tok}` } }).catch(() => {});
             addXP(5);
-          }} style={{ marginTop: '16px', width: '100%', padding: '12px', background: 'rgba(245,200,66,0.06)', border: '1px solid #f5c842', borderRadius: '6px', color: '#f5c842', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+          }} style={{ marginTop: '16px', width: '100%', padding: '12px', background: 'rgba(232,184,75,0.06)', border: '1px solid var(--color-neutral)', borderRadius: '6px', color: 'var(--color-neutral)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
             📸 {t.daily.share}
           </button>
         </div>
 
-        <div id="share-card-tournament" style={{ position: 'absolute', left: '-9999px', top: 0, width: '320px', background: 'var(--bg-page)', border: '1px solid #f5c842', borderRadius: '12px', padding: '28px 24px', fontFamily: "'Space Mono', monospace" }}>
+        <div id="share-card-tournament" style={{ position: 'absolute', left: '-9999px', top: 0, width: '320px', background: 'var(--bg-page)', border: '1px solid var(--color-neutral)', borderRadius: '12px', padding: '28px 24px', fontFamily: "'Space Mono', monospace" }}>
           <div style={{ fontSize: '10px', color: 'var(--t6)', letterSpacing: '0.1em', marginBottom: '16px' }}>🏆 TRADARIA TOURNAMENT</div>
           <div style={{ fontSize: '11px', color: '#5a6a7d', marginBottom: '16px' }}>{formatWeekId(weekId)}</div>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '48px', color: '#f5c842', letterSpacing: '-0.02em', lineHeight: 1, marginBottom: '4px' }}>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '48px', color: 'var(--color-neutral)', letterSpacing: '-0.02em', lineHeight: 1, marginBottom: '4px' }}>
             {phase === 'finished' ? score : alreadyScore}
           </div>
           <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '16px' }}>{t.gameover.finalScore}</div>
-          <div style={{ fontSize: '9px', color: '#f5c842', letterSpacing: '0.1em', marginTop: '8px' }}>tradaria.dev</div>
+          <div style={{ fontSize: '9px', color: 'var(--color-neutral)', letterSpacing: '0.1em', marginTop: '8px' }}>tradaria.dev</div>
         </div>
 
         {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
@@ -757,7 +757,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
         >{t.game.menu}</button>
 
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: '#f5c842', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(245,200,66,0.2)' }}>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: 'var(--color-neutral)', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(232,184,75,0.2)' }}>
             🏆 {t.home.mode3.toUpperCase()}
           </div>
           <div style={{ fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: "'Space Mono', monospace" }}>
@@ -767,7 +767,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
           <span style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.06em' }}>{round + 1}/10</span>
-          <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#f5c842', textShadow: '0 0 14px rgba(245,200,66,0.35)' }}>{score}</span>
+          <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--color-neutral)', textShadow: '0 0 14px rgba(232,184,75,0.35)' }}>{score}</span>
         </div>
       </div>
 

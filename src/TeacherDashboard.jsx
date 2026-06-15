@@ -17,14 +17,14 @@ function relativeDate(d, t) {
 function tournamentStatus(t) {
   const now = Date.now();
   if (new Date(t.endsAt)   < now) return { label: 'finalizado', color: 'var(--t5)' };
-  if (new Date(t.startsAt) > now) return { label: 'próximo',    color: '#f5c842' };
-  return                                 { label: 'activo',      color: '#22d3a5' };
+  if (new Date(t.startsAt) > now) return { label: 'próximo',    color: 'var(--color-neutral)' };
+  return                                 { label: 'activo',      color: 'var(--green)' };
 }
 
 const PLAN_STYLE = {
   starter:    { label: 'STARTER',    color: 'var(--t4)',  bg: 'rgba(100,115,130,0.10)' },
-  pro:        { label: 'PRO',        color: '#22d3a5',    bg: 'rgba(34,211,165,0.08)'  },
-  enterprise: { label: 'ENTERPRISE', color: '#f5c842',    bg: 'rgba(245,200,66,0.08)'  },
+  pro:        { label: 'PRO',        color: 'var(--green)',    bg: 'rgba(0,229,160,0.08)'  },
+  enterprise: { label: 'ENTERPRISE', color: 'var(--color-neutral)',    bg: 'rgba(232,184,75,0.08)'  },
 };
 
 // ── Sub-components ────────────────────────────────────────────────
@@ -42,8 +42,8 @@ function Btn({ onClick, disabled, children, style = {} }) {
       onClick={onClick}
       disabled={disabled}
       style={{
-        background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5',
-        borderRadius: '7px', color: '#22d3a5',
+        background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)',
+        borderRadius: '7px', color: 'var(--green)',
         fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700,
         letterSpacing: '0.06em', textTransform: 'uppercase',
         padding: '9px 14px', cursor: disabled ? 'default' : 'pointer',
@@ -139,7 +139,7 @@ function CreateAcademyScreen({ onBack, onCreated }) {
         </div>
 
         {err && (
-          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: '#f05454', marginBottom: '12px' }}>
+          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--color-down)', marginBottom: '12px' }}>
             {err}
           </div>
         )}
@@ -149,8 +149,8 @@ function CreateAcademyScreen({ onBack, onCreated }) {
           disabled={submitting}
           style={{
             width: '100%', padding: '13px',
-            background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5',
-            borderRadius: '8px', color: '#22d3a5',
+            background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)',
+            borderRadius: '8px', color: 'var(--green)',
             fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700,
             letterSpacing: '0.06em', textTransform: 'uppercase',
             cursor: submitting ? 'default' : 'pointer', opacity: submitting ? 0.6 : 1,
@@ -291,7 +291,7 @@ function AcademyDashboard({ academyId, onBack }) {
     <div id="gtm-root" style={{ background: 'var(--bg-page)' }}>
       <div style={{ padding: '48px 20px', position: 'relative', zIndex: 2 }}>
         <button onClick={onBack} style={backBtnStyle}>{t.academy.back}</button>
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#f05454', marginTop: '16px' }}>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: 'var(--color-down)', marginTop: '16px' }}>
           {error || t.academy.notFound}
         </div>
       </div>
@@ -337,17 +337,17 @@ function AcademyDashboard({ academyId, onBack }) {
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px',
               padding: '9px 12px', marginBottom: '14px',
-              background: 'rgba(34,211,165,0.06)', border: '1px solid rgba(34,211,165,0.25)',
+              background: 'rgba(0,229,160,0.06)', border: '1px solid rgba(0,229,160,0.25)',
               borderRadius: '8px',
             }}>
-              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: '#22d3a5' }}>
+              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--green)' }}>
                 {`✓ ${t.academy.planActive.replace('{plan}', plan.label)}`}
               </span>
               <button
                 onClick={handlePortal}
                 style={{
-                  background: 'transparent', border: '1px solid rgba(34,211,165,0.4)',
-                  borderRadius: '5px', color: '#22d3a5',
+                  background: 'transparent', border: '1px solid rgba(0,229,160,0.4)',
+                  borderRadius: '5px', color: 'var(--green)',
                   fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700,
                   letterSpacing: '0.06em', textTransform: 'uppercase',
                   padding: '5px 10px', cursor: 'pointer',
@@ -363,17 +363,17 @@ function AcademyDashboard({ academyId, onBack }) {
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px',
               padding: '9px 12px', marginBottom: '14px',
-              background: 'rgba(245,200,66,0.06)', border: '1px solid rgba(245,200,66,0.25)',
+              background: 'rgba(232,184,75,0.06)', border: '1px solid rgba(232,184,75,0.25)',
               borderRadius: '8px',
             }}>
-              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: '#f5c842' }}>
+              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--color-neutral)' }}>
                 {t.academy.trialLeft.replace('{days}', daysLeft).replace('{unit}', daysLeft === 1 ? t.academy.day : t.academy.days)}
               </span>
               <button
                 onClick={() => setPlanModal(true)}
                 style={{
-                  background: 'rgba(245,200,66,0.1)', border: '1px solid rgba(245,200,66,0.4)',
-                  borderRadius: '5px', color: '#f5c842',
+                  background: 'rgba(232,184,75,0.1)', border: '1px solid rgba(232,184,75,0.4)',
+                  borderRadius: '5px', color: 'var(--color-neutral)',
                   fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700,
                   letterSpacing: '0.06em', textTransform: 'uppercase',
                   padding: '5px 10px', cursor: 'pointer',
@@ -389,18 +389,18 @@ function AcademyDashboard({ academyId, onBack }) {
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px',
               padding: '11px 14px', marginBottom: '14px',
-              background: 'rgba(240,84,84,0.08)', border: '1px solid rgba(240,84,84,0.35)',
+              background: 'rgba(255,126,179,0.08)', border: '1px solid rgba(255,126,179,0.35)',
               borderRadius: '8px',
             }}>
-              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: '#f05454', lineHeight: 1.5 }}>
+              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--color-down)', lineHeight: 1.5 }}>
                 {t.academy.trialExpired}
               </span>
               <button
                 onClick={() => setPlanModal(true)}
                 style={{
                   flexShrink: 0,
-                  background: 'rgba(240,84,84,0.12)', border: '1px solid rgba(240,84,84,0.5)',
-                  borderRadius: '5px', color: '#f05454',
+                  background: 'rgba(255,126,179,0.12)', border: '1px solid rgba(255,126,179,0.5)',
+                  borderRadius: '5px', color: 'var(--color-down)',
                   fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700,
                   letterSpacing: '0.06em', textTransform: 'uppercase',
                   padding: '7px 12px', cursor: 'pointer',
@@ -418,8 +418,8 @@ function AcademyDashboard({ academyId, onBack }) {
             </span>
             <span style={{
               fontFamily: "'Space Mono', monospace", fontSize: '14px', fontWeight: 700,
-              color: '#22d3a5', letterSpacing: '0.18em',
-              background: 'rgba(34,211,165,0.07)', border: '1px solid rgba(34,211,165,0.25)',
+              color: 'var(--green)', letterSpacing: '0.18em',
+              background: 'rgba(0,229,160,0.07)', border: '1px solid rgba(0,229,160,0.25)',
               padding: '4px 10px', borderRadius: '6px',
             }}>
               {academy.joinCode}
@@ -429,7 +429,7 @@ function AcademyDashboard({ academyId, onBack }) {
               title={copied ? t.academy.copied : t.academy.copyCode}
               style={{
                 background: 'transparent', border: 'none', cursor: 'pointer',
-                color: copied ? '#22d3a5' : 'var(--t5)',
+                color: copied ? 'var(--green)' : 'var(--t5)',
                 padding: '4px', display: 'flex', alignItems: 'center',
                 transition: 'color 0.2s',
               }}
@@ -502,9 +502,9 @@ function AcademyDashboard({ academyId, onBack }) {
                     {/* Avatar */}
                     <div style={{
                       width: '28px', height: '28px', borderRadius: '50%',
-                      background: 'rgba(34,211,165,0.12)', border: '1px solid rgba(34,211,165,0.25)',
+                      background: 'rgba(0,229,160,0.12)', border: '1px solid rgba(0,229,160,0.25)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '11px', color: '#22d3a5',
+                      fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '11px', color: 'var(--green)',
                       flexShrink: 0,
                     }}>
                       {(s.name || '?')[0].toUpperCase()}
@@ -526,7 +526,7 @@ function AcademyDashboard({ academyId, onBack }) {
                     {/* Accuracy */}
                     <div style={{
                       fontFamily: "'Space Mono', monospace", fontSize: '10px', textAlign: 'center',
-                      color: s.avgAccuracy >= 70 ? '#22d3a5' : s.avgAccuracy >= 50 ? '#f5c842' : 'var(--t4)',
+                      color: s.avgAccuracy >= 70 ? 'var(--green)' : s.avgAccuracy >= 50 ? 'var(--color-neutral)' : 'var(--t4)',
                     }}>
                       {s.gamesPlayed > 0 ? `${s.avgAccuracy}%` : '—'}
                     </div>
@@ -692,7 +692,7 @@ function AcademyDashboard({ academyId, onBack }) {
                             </div>
                             <div style={{
                               fontFamily: "'Space Mono', monospace", fontSize: '10px',
-                              color: '#22d3a5', textAlign: 'center', fontWeight: 700,
+                              color: 'var(--green)', textAlign: 'center', fontWeight: 700,
                             }}>
                               {e.score}
                             </div>
@@ -739,7 +739,7 @@ function AcademyDashboard({ academyId, onBack }) {
 
             {[
               { id: 'starter', label: t.academy.planStarterLabel, price: '29€/mes', desc: t.academy.planStarterDesc, color: 'var(--t3)', bg: 'rgba(100,115,130,0.08)' },
-              { id: 'pro',     label: t.academy.planProLabel,     price: '59€/mes', desc: t.academy.planProDesc,     color: '#22d3a5', bg: 'rgba(34,211,165,0.06)' },
+              { id: 'pro',     label: t.academy.planProLabel,     price: '59€/mes', desc: t.academy.planProDesc,     color: 'var(--green)', bg: 'rgba(0,229,160,0.06)' },
             ].map(p => (
               <div key={p.id} style={{
                 padding: '14px', marginBottom: '10px',
@@ -775,7 +775,7 @@ function AcademyDashboard({ academyId, onBack }) {
             ))}
 
             {formErr && (
-              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: '#f05454', marginTop: '8px' }}>
+              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--color-down)', marginTop: '8px' }}>
                 {formErr}
               </div>
             )}
@@ -844,7 +844,7 @@ function AcademyDashboard({ academyId, onBack }) {
             </div>
 
             {formErr && (
-              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: '#f05454', marginTop: '12px' }}>
+              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--color-down)', marginTop: '12px' }}>
                 {formErr}
               </div>
             )}
@@ -873,10 +873,10 @@ function AcademyDashboard({ academyId, onBack }) {
       {toast && (
         <div style={{
           position: 'fixed', bottom: '28px', left: '50%', transform: 'translateX(-50%)',
-          background: '#22d3a5', color: '#0a0a0a',
+          background: 'var(--green)', color: '#0a0a0a',
           padding: '12px 22px', borderRadius: '8px',
           fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700,
-          zIndex: 400, whiteSpace: 'nowrap', boxShadow: '0 4px 20px rgba(34,211,165,0.3)',
+          zIndex: 400, whiteSpace: 'nowrap', boxShadow: '0 4px 20px rgba(0,229,160,0.3)',
         }}>
           ✓ {toast}
         </div>

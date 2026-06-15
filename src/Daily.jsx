@@ -13,7 +13,7 @@ import MissionNotification from './MissionNotification.jsx';
 function ShareButton({ onShare, copied, t }) {
   return (
     <button onClick={onShare}
-      style={{ marginTop: '12px', width: '100%', padding: '12px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+      style={{ marginTop: '12px', width: '100%', padding: '12px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
       {copied ? t.daily.copied : t.daily.share}
     </button>
   );
@@ -207,7 +207,7 @@ export default function Daily({ onBack }) {
     if (shares >= 3) tryUnlockDailyBadge('screenshot_ready');
   };
 
-  const resultColor = result?.win ? '#22d3a5' : '#f05454';
+  const resultColor = result?.win ? 'var(--green)' : 'var(--color-down)';
 
   return (
     <div id="gtm-root" style={{ position: 'relative' }}>
@@ -251,7 +251,7 @@ export default function Daily({ onBack }) {
           <div style={{ textAlign: 'center', color: 'var(--t6)', fontSize: '11px', marginTop: '60px' }}>loading...</div>
         )}
         {phase === 'error' && (
-          <div style={{ textAlign: 'center', color: '#f05454', fontSize: '11px', marginTop: '60px' }}>error loading challenge. try again later.</div>
+          <div style={{ textAlign: 'center', color: 'var(--color-down)', fontSize: '11px', marginTop: '60px' }}>error loading challenge. try again later.</div>
         )}
 
         {(phase === 'choose' || phase === 'reveal') && dailyAsset && (
@@ -289,7 +289,7 @@ export default function Daily({ onBack }) {
             )}
 
             {phase === 'reveal' && result && !revealing && (
-              <div style={{ margin: '12px 20px 0', background: result.win ? 'rgba(34,211,165,0.05)' : 'rgba(240,84,84,0.05)', border: `1px solid ${resultColor}`, borderRadius: '8px', padding: '20px', textAlign: 'center' }}>
+              <div style={{ margin: '12px 20px 0', background: result.win ? 'rgba(0,229,160,0.05)' : 'rgba(255,126,179,0.05)', border: `1px solid ${resultColor}`, borderRadius: '8px', padding: '20px', textAlign: 'center' }}>
                 <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: resultColor, marginBottom: '8px' }}>
                   {result.win ? t.daily.correct : t.daily.wrong}
                 </div>
@@ -307,7 +307,7 @@ export default function Daily({ onBack }) {
                       setCopiedInvite(true);
                       setTimeout(() => setCopiedInvite(false), 2000);
                     }}
-                    style={{ marginTop: '8px', width: '100%', padding: '10px', background: 'transparent', border: '1px dashed var(--bd2)', borderRadius: '6px', color: copiedInvite ? '#22d3a5' : 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer', letterSpacing: '0.06em', transition: 'all 0.15s' }}
+                    style={{ marginTop: '8px', width: '100%', padding: '10px', background: 'transparent', border: '1px dashed var(--bd2)', borderRadius: '6px', color: copiedInvite ? 'var(--green)' : 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer', letterSpacing: '0.06em', transition: 'all 0.15s' }}
                   >
                     {copiedInvite ? t.friends.inviteCopied : t.friends.inviteDaily}
                   </button>
@@ -318,9 +318,9 @@ export default function Daily({ onBack }) {
         )}
 
         {phase === 'already' && result && (
-          <div style={{ background: result.win ? 'rgba(34,211,165,0.05)' : 'rgba(240,84,84,0.05)', border: `1px solid ${result.win ? '#22d3a5' : '#f05454'}`, borderRadius: '8px', padding: '28px', textAlign: 'center' }}>
+          <div style={{ background: result.win ? 'rgba(0,229,160,0.05)' : 'rgba(255,126,179,0.05)', border: `1px solid ${result.win ? 'var(--green)' : 'var(--color-down)'}`, borderRadius: '8px', padding: '28px', textAlign: 'center' }}>
             <div style={{ fontSize: '13px', color: 'var(--t5)', marginBottom: '12px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{t.daily.result}</div>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: result.win ? '#22d3a5' : '#f05454', marginBottom: '8px' }}>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: result.win ? 'var(--green)' : 'var(--color-down)', marginBottom: '8px' }}>
               {result.win ? t.daily.correct : t.daily.wrong}
             </div>
             <div style={{ fontSize: '11px', color: 'var(--t4)', marginBottom: '16px' }}>
@@ -337,7 +337,7 @@ export default function Daily({ onBack }) {
                   setCopiedInvite(true);
                   setTimeout(() => setCopiedInvite(false), 2000);
                 }}
-                style={{ marginTop: '8px', width: '100%', padding: '10px', background: 'transparent', border: '1px dashed var(--bd2)', borderRadius: '6px', color: copiedInvite ? '#22d3a5' : 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer', letterSpacing: '0.06em', transition: 'all 0.15s' }}
+                style={{ marginTop: '8px', width: '100%', padding: '10px', background: 'transparent', border: '1px dashed var(--bd2)', borderRadius: '6px', color: copiedInvite ? 'var(--green)' : 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer', letterSpacing: '0.06em', transition: 'all 0.15s' }}
               >
                 {copiedInvite ? t.friends.inviteCopied : t.friends.inviteDaily}
               </button>
@@ -354,7 +354,7 @@ export default function Daily({ onBack }) {
             fontFamily: "'Syne', sans-serif",
             fontWeight: 800,
             fontSize: '28px',
-            color: '#22d3a5',
+            color: 'var(--green)',
             zIndex: 9999,
             pointerEvents: 'none',
             animation: 'floatUp 2s ease forwards',

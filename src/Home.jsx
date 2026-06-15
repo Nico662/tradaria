@@ -48,7 +48,7 @@ export default function Home({ onSelect }) {
       .catch(() => {});
   }, [user]);
 
-  const frameStyle = FRAME_STYLES[activeCosmetics.frame] || { border: '1px solid #22d3a5' };
+  const frameStyle = FRAME_STYLES[activeCosmetics.frame] || { border: '1px solid var(--green)' };
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -127,8 +127,8 @@ export default function Home({ onSelect }) {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             {[
-              { id: 'shop',     icon: '🛍️', hover: '#f5c842' },
-              { id: 'friends',  icon: '🤝', hover: '#22d3a5' },
+              { id: 'shop',     icon: '🛍️', hover: 'var(--color-neutral)' },
+              { id: 'friends',  icon: '🤝', hover: 'var(--green)' },
               { id: 'settings', icon: '⚙️', hover: 'var(--t4)' },
             ].map(({ id, icon, hover }) => (
               <div key={id} style={{ position: 'relative', flexShrink: 0 }}>
@@ -138,15 +138,15 @@ export default function Home({ onSelect }) {
                   onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--bd)'}
                 >{icon}</button>
                 {id === 'friends' && hasPendingFriends && (
-                  <span style={{ position: 'absolute', top: '1px', right: '1px', width: '10px', height: '10px', borderRadius: '50%', background: '#e05555', border: '1.5px solid var(--bg, #060b10)', pointerEvents: 'none' }} />
+                  <span style={{ position: 'absolute', top: '1px', right: '1px', width: '10px', height: '10px', borderRadius: '50%', background: 'var(--color-down)', border: '1.5px solid var(--bg, var(--bg-base))', pointerEvents: 'none' }} />
                 )}
               </div>
             ))}
             {user?.role === 'teacher' && (
               <button onClick={() => onSelect('teacher_dashboard')}
-                style={{ background: 'rgba(34,211,165,0.07)', border: '1px solid rgba(34,211,165,0.35)', borderRadius: '6px', padding: '4px 9px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '8px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(34,211,165,0.14)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'rgba(34,211,165,0.07)'}
+                style={{ background: 'rgba(0,229,160,0.07)', border: '1px solid rgba(0,229,160,0.35)', borderRadius: '6px', padding: '4px 9px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '8px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,229,160,0.14)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,229,160,0.07)'}
               >
                 🏫 Academia
               </button>
@@ -154,17 +154,17 @@ export default function Home({ onSelect }) {
             {user && user.role !== 'teacher' && (
               user.academyId ? (
                 <button onClick={() => onSelect('student_dashboard')}
-                  style={{ background: 'rgba(34,211,165,0.07)', border: '1px solid rgba(34,211,165,0.35)', borderRadius: '6px', padding: '4px 9px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '8px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(34,211,165,0.14)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(34,211,165,0.07)'}
+                  style={{ background: 'rgba(0,229,160,0.07)', border: '1px solid rgba(0,229,160,0.35)', borderRadius: '6px', padding: '4px 9px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '8px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,229,160,0.14)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,229,160,0.07)'}
                 >
                   MI ACADEMIA
                 </button>
               ) : (
                 <button onClick={() => onSelect('join_academy')}
-                  style={{ background: 'rgba(34,211,165,0.07)', border: '1px solid rgba(34,211,165,0.35)', borderRadius: '6px', padding: '4px 9px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '8px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(34,211,165,0.14)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(34,211,165,0.07)'}
+                  style={{ background: 'rgba(0,229,160,0.07)', border: '1px solid rgba(0,229,160,0.35)', borderRadius: '6px', padding: '4px 9px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '8px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,229,160,0.14)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,229,160,0.07)'}
                 >
                   + Academia
                 </button>
@@ -173,14 +173,14 @@ export default function Home({ onSelect }) {
           </div>
 
           {isPro ? (
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '5px 12px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '20px', fontSize: '9px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", letterSpacing: '0.06em' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '5px 12px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '20px', fontSize: '9px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", letterSpacing: '0.06em' }}>
               ⚡ Pro
             </div>
           ) : (
             <button onClick={() => onSelect('pricing')}
-              style={{ background: 'rgba(34,211,165,0.07)', border: '1px solid #22d3a5', borderRadius: '20px', padding: '5px 14px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: '5px', boxShadow: '0 0 10px rgba(34,211,165,0.1)' }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(34,211,165,0.15)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'rgba(34,211,165,0.07)'}
+              style={{ background: 'rgba(0,229,160,0.07)', border: '1px solid var(--green)', borderRadius: '20px', padding: '5px 14px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: '5px', boxShadow: '0 0 10px rgba(0,229,160,0.1)' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,229,160,0.15)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,229,160,0.07)'}
             >
               ⚡ Hazte Pro
             </button>
@@ -222,7 +222,7 @@ export default function Home({ onSelect }) {
                   </span>
                 )}
                 {user.academyId && user.isAcademyPro && academyName && (
-                  <span style={{ fontSize: '7px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", letterSpacing: '0.06em', background: 'rgba(34,211,165,0.08)', border: '1px solid rgba(34,211,165,0.2)', borderRadius: '4px', padding: '2px 6px', alignSelf: 'flex-start' }}>
+                  <span style={{ fontSize: '7px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", letterSpacing: '0.06em', background: 'rgba(0,229,160,0.08)', border: '1px solid rgba(0,229,160,0.2)', borderRadius: '4px', padding: '2px 6px', alignSelf: 'flex-start' }}>
                     ALUMNO — {academyName}
                   </span>
                 )}
@@ -238,7 +238,7 @@ export default function Home({ onSelect }) {
               </button>
             </div>
           ) : (
-            <button onClick={login} style={{ background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '8px', padding: '8px 20px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer', letterSpacing: '0.08em', fontWeight: 700 }}>
+            <button onClick={login} style={{ background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', padding: '8px 20px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer', letterSpacing: '0.08em', fontWeight: 700 }}>
               Sign in with Google
             </button>
           )}
@@ -248,11 +248,11 @@ export default function Home({ onSelect }) {
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 200" width="24">
-              <line x1="50" y1="10" x2="50" y2="40" stroke="#22d3a5" strokeWidth="8" strokeLinecap="round"/>
-              <rect x="25" y="40" width="50" height="110" rx="6" fill="#22d3a5"/>
-              <line x1="50" y1="150" x2="50" y2="190" stroke="#22d3a5" strokeWidth="8" strokeLinecap="round"/>
+              <line x1="50" y1="10" x2="50" y2="40" stroke="var(--green)" strokeWidth="8" strokeLinecap="round"/>
+              <rect x="25" y="40" width="50" height="110" rx="6" fill="var(--green)"/>
+              <line x1="50" y1="150" x2="50" y2="190" stroke="var(--green)" strokeWidth="8" strokeLinecap="round"/>
             </svg>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '42px', letterSpacing: '-0.02em', color: 'var(--t1)', textShadow: '0 0 60px rgba(34,211,165,0.2), 0 2px 20px rgba(0,0,0,0.5)' }}>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '42px', letterSpacing: '-0.02em', color: 'var(--t1)', textShadow: '0 0 60px rgba(0,229,160,0.2), 0 2px 20px rgba(0,0,0,0.5)' }}>
               Tradaria
             </div>
           </div>
@@ -265,7 +265,7 @@ export default function Home({ onSelect }) {
             {dailyStreak > 0 && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ fontSize: '14px' }}>🔥</span>
-                <span style={{ fontSize: '9px', color: '#f5c842', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                <span style={{ fontSize: '9px', color: 'var(--color-neutral)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                   {dailyStreak} day streak
                 </span>
               </div>
@@ -298,15 +298,15 @@ export default function Home({ onSelect }) {
             <span className="mode-arrow" style={{ color: '#378ADD', fontSize: '20px' }}>→</span>
           </button>
 
-          <button className="mode-card active" onClick={() => onSelect('daily')} style={{ borderColor: '#f5c842', background: 'rgba(245,200,66,0.06)', padding: '22px 20px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.10s both' }}>
+          <button className="mode-card active" onClick={() => onSelect('daily')} style={{ borderColor: 'var(--color-neutral)', background: 'rgba(232,184,75,0.06)', padding: '22px 20px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.10s both' }}>
             <div className="mode-card-left">
               <span className="mode-icon" style={{ fontSize: '30px' }}>⚡</span>
               <div>
-                <div className="mode-title" style={{ color: '#f5c842', fontSize: '17px' }}>{t.home.mode4}</div>
+                <div className="mode-title" style={{ color: 'var(--color-neutral)', fontSize: '17px' }}>{t.home.mode4}</div>
                 <div className="mode-sub">{t.home.mode4sub}</div>
               </div>
             </div>
-            <span className="mode-arrow" style={{ color: '#f5c842', fontSize: '20px' }}>→</span>
+            <span className="mode-arrow" style={{ color: 'var(--color-neutral)', fontSize: '20px' }}>→</span>
           </button>
 
 
@@ -317,15 +317,15 @@ export default function Home({ onSelect }) {
             <div style={{ flex: 1, height: '1px', background: 'var(--bg-card2)' }} />
           </div>
 
-          <button className="mode-card active" onClick={() => onSelect('survival')} style={{ borderColor: '#f05454', background: 'rgba(240,84,84,0.04)', padding: '13px 16px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.15s both' }}>
+          <button className="mode-card active" onClick={() => onSelect('survival')} style={{ borderColor: 'var(--color-down)', background: 'rgba(255,126,179,0.04)', padding: '13px 16px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.15s both' }}>
             <div className="mode-card-left" style={{ gap: '12px' }}>
               <span className="mode-icon" style={{ fontSize: '20px' }}>☠️</span>
               <div>
-                <div className="mode-title" style={{ color: '#f05454', fontSize: '13px' }}>{t.survival.title}</div>
+                <div className="mode-title" style={{ color: 'var(--color-down)', fontSize: '13px' }}>{t.survival.title}</div>
                 <div className="mode-sub">{t.survival.sub}</div>
               </div>
             </div>
-            <span className="mode-arrow" style={{ color: '#f05454' }}>→</span>
+            <span className="mode-arrow" style={{ color: 'var(--color-down)' }}>→</span>
           </button>
 
           <button className="mode-card active" onClick={() => onSelect('historical')} style={{ borderColor: 'var(--t3)', background: 'rgba(136,153,176,0.04)', padding: '13px 16px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.20s both' }}>
@@ -379,14 +379,14 @@ export default function Home({ onSelect }) {
           <div style={{ display: 'flex', gap: '8px' }}>
             <button onClick={() => onSelect('badges')}
               style={{ flex: 1, background: 'transparent', border: '1px solid var(--bd)', borderRadius: '8px', padding: '8px 16px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = '#22d3a5'}
+              onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--green)'}
               onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--bd)'}
             >
               🏅 {t.home.badges ?? 'Badges'} {unlockedCount > 0 && `· ${unlockedCount}`}
             </button>
             <button onClick={() => onSelect('stats')}
               style={{ flex: 1, background: 'transparent', border: '1px solid var(--bd)', borderRadius: '8px', padding: '8px 16px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = '#22d3a5'}
+              onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--green)'}
               onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--bd)'}
             >
               📊 {t.stats.title}
@@ -395,7 +395,7 @@ export default function Home({ onSelect }) {
 
           <a href="https://ko-fi.com/tradarianicolasvidal" target="_blank" rel="noopener noreferrer"
             style={{ background: 'transparent', border: '1px solid var(--bd)', borderRadius: '8px', padding: '8px 16px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = '#f5c842'}
+            onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--color-neutral)'}
             onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--bd)'}
           >
             ☕ Support tradaria

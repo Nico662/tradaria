@@ -18,11 +18,11 @@ export default function Legal({ onBack }) {
 
         <div style={{ display: 'flex', gap: '8px', padding: '16px 20px 0' }}>
           <button onClick={() => setView('quick')}
-            style={{ padding: '6px 14px', borderRadius: '20px', border: `1px solid ${view === 'quick' ? '#22d3a5' : 'var(--bd2)'}`, background: view === 'quick' ? 'rgba(34,211,165,0.08)' : 'transparent', color: view === 'quick' ? '#22d3a5' : 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', cursor: 'pointer', textTransform: 'uppercase' }}>
+            style={{ padding: '6px 14px', borderRadius: '20px', border: `1px solid ${view === 'quick' ? 'var(--green)' : 'var(--bd2)'}`, background: view === 'quick' ? 'rgba(0,229,160,0.08)' : 'transparent', color: view === 'quick' ? 'var(--green)' : 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', cursor: 'pointer', textTransform: 'uppercase' }}>
             Quick
           </button>
           <button onClick={() => setView('full')}
-            style={{ padding: '6px 14px', borderRadius: '20px', border: `1px solid ${view === 'full' ? '#22d3a5' : 'var(--bd2)'}`, background: view === 'full' ? 'rgba(34,211,165,0.08)' : 'transparent', color: view === 'full' ? '#22d3a5' : 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', cursor: 'pointer', textTransform: 'uppercase' }}>
+            style={{ padding: '6px 14px', borderRadius: '20px', border: `1px solid ${view === 'full' ? 'var(--green)' : 'var(--bd2)'}`, background: view === 'full' ? 'rgba(0,229,160,0.08)' : 'transparent', color: view === 'full' ? 'var(--green)' : 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', cursor: 'pointer', textTransform: 'uppercase' }}>
             Full Legal
           </button>
         </div>

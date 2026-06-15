@@ -35,7 +35,7 @@ function DetailScreen({ onClose }) {
         <button
           onClick={onClose}
           style={{ background: 'transparent', border: 'none', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer', letterSpacing: '0.08em', padding: '8px 0', marginBottom: '28px', display: 'block' }}
-          onMouseEnter={e => e.currentTarget.style.color = '#22d3a5'}
+          onMouseEnter={e => e.currentTarget.style.color = 'var(--green)'}
           onMouseLeave={e => e.currentTarget.style.color = 'var(--t5)'}
         >
           {LABELS.back[lang]}
@@ -59,18 +59,18 @@ function DetailScreen({ onClose }) {
             const title = m.title[lang] || m.title.en;
             const desc  = m.desc[lang]  || m.desc.en;
             return (
-              <div key={m.id} style={{ background: done ? 'rgba(34,211,165,0.04)' : 'var(--bg-card)', border: `1px solid ${done ? 'rgba(34,211,165,0.2)' : 'var(--bd)'}`, borderRadius: '8px', padding: '12px 14px' }}>
+              <div key={m.id} style={{ background: done ? 'rgba(0,229,160,0.04)' : 'var(--bg-card)', border: `1px solid ${done ? 'rgba(0,229,160,0.2)' : 'var(--bd)'}`, borderRadius: '8px', padding: '12px 14px' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1 }}>
                     {done
-                      ? <span style={{ fontSize: '10px', color: '#22d3a5', flexShrink: 0 }}>✓</span>
+                      ? <span style={{ fontSize: '10px', color: 'var(--green)', flexShrink: 0 }}>✓</span>
                       : <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--bd2)', display: 'inline-block', flexShrink: 0, marginTop: '2px' }} />
                     }
-                    <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, color: done ? '#22d3a5' : '#c8d4e0', letterSpacing: '0.02em', lineHeight: 1.3 }}>
+                    <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, color: done ? 'var(--green)' : '#c8d4e0', letterSpacing: '0.02em', lineHeight: 1.3 }}>
                       {title}
                     </span>
                   </div>
-                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, color: '#22d3a5', flexShrink: 0 }}>
+                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, color: 'var(--green)', flexShrink: 0 }}>
                     +{m.xp} XP
                   </span>
                 </div>
@@ -79,7 +79,7 @@ function DetailScreen({ onClose }) {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <div style={{ flex: 1, height: '3px', background: 'var(--bg-card2)', borderRadius: '2px', overflow: 'hidden' }}>
-                    <div style={{ width: `${pct}%`, height: '100%', background: done ? '#22d3a5' : 'rgba(34,211,165,0.45)', borderRadius: '2px', transition: 'width 0.3s ease' }} />
+                    <div style={{ width: `${pct}%`, height: '100%', background: done ? 'var(--green)' : 'rgba(0,229,160,0.45)', borderRadius: '2px', transition: 'width 0.3s ease' }} />
                   </div>
                   <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'var(--bd2)', flexShrink: 0 }}>
                     {progress}/{m.target}
@@ -98,22 +98,22 @@ function DetailScreen({ onClose }) {
           {LABELS.weekly[lang]}
         </div>
 
-        <div style={{ background: 'var(--bg-card)', border: `1px solid ${weeklyCompleted ? '#22d3a544' : '#f5c84233'}`, borderTop: `2px solid ${weeklyCompleted ? '#22d3a5' : '#f5c842'}`, borderRadius: '8px', padding: '14px 16px', position: 'relative' }}>
-          <div style={{ position: 'absolute', top: '10px', right: '12px', fontSize: '7px', color: weeklyCompleted ? '#22d3a5' : '#f5c842', border: `1px solid ${weeklyCompleted ? '#22d3a533' : '#f5c84233'}`, borderRadius: '3px', padding: '2px 6px', letterSpacing: '0.08em', fontFamily: "'Space Mono', monospace" }}>
+        <div style={{ background: 'var(--bg-card)', border: `1px solid ${weeklyCompleted ? 'var(--green)44' : 'var(--color-neutral)33'}`, borderTop: `2px solid ${weeklyCompleted ? 'var(--green)' : 'var(--color-neutral)'}`, borderRadius: '8px', padding: '14px 16px', position: 'relative' }}>
+          <div style={{ position: 'absolute', top: '10px', right: '12px', fontSize: '7px', color: weeklyCompleted ? 'var(--green)' : 'var(--color-neutral)', border: `1px solid ${weeklyCompleted ? 'var(--green)33' : 'var(--color-neutral)33'}`, borderRadius: '3px', padding: '2px 6px', letterSpacing: '0.08em', fontFamily: "'Space Mono', monospace" }}>
             {LABELS.weekly[lang]}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px', marginBottom: '4px', paddingRight: '60px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1 }}>
               {weeklyCompleted
-                ? <span style={{ fontSize: '10px', color: '#22d3a5', flexShrink: 0 }}>✓</span>
+                ? <span style={{ fontSize: '10px', color: 'var(--green)', flexShrink: 0 }}>✓</span>
                 : <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#3a2a08', display: 'inline-block', flexShrink: 0, marginTop: '2px' }} />
               }
-              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, color: weeklyCompleted ? '#22d3a5' : '#e8d4a0', letterSpacing: '0.02em', lineHeight: 1.3 }}>
+              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, color: weeklyCompleted ? 'var(--green)' : '#e8d4a0', letterSpacing: '0.02em', lineHeight: 1.3 }}>
                 {weekly.title[lang] || weekly.title.en}
               </span>
             </div>
-            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, color: weeklyCompleted ? '#22d3a5' : '#f5c842', flexShrink: 0 }}>
+            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, color: weeklyCompleted ? 'var(--green)' : 'var(--color-neutral)', flexShrink: 0 }}>
               +{weekly.xp} XP
             </span>
           </div>
@@ -124,7 +124,7 @@ function DetailScreen({ onClose }) {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div style={{ flex: 1, height: '3px', background: '#1a1508', borderRadius: '2px', overflow: 'hidden' }}>
-              <div style={{ width: `${weeklyPct}%`, height: '100%', background: weeklyCompleted ? '#22d3a5' : '#f5c842', borderRadius: '2px', transition: 'width 0.3s ease' }} />
+              <div style={{ width: `${weeklyPct}%`, height: '100%', background: weeklyCompleted ? 'var(--green)' : 'var(--color-neutral)', borderRadius: '2px', transition: 'width 0.3s ease' }} />
             </div>
             <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: '#5a4a20', flexShrink: 0 }}>
               {weeklyProgress}/{weekly.target}
@@ -165,7 +165,7 @@ export default function MissionsCard() {
         alignSelf: 'stretch',
         background: 'var(--bg-card)',
         border: '1px solid var(--bd)',
-        borderTop: '2px solid #22d3a5',
+        borderTop: '2px solid var(--green)',
         borderRadius: '8px',
         padding: '10px 12px 12px',
         marginBottom: '12px',
@@ -188,14 +188,14 @@ export default function MissionsCard() {
               <div key={m.id}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '3px' }}>
                   {done
-                    ? <span style={{ fontSize: '8px', color: '#22d3a5', flexShrink: 0, lineHeight: 1 }}>✓</span>
+                    ? <span style={{ fontSize: '8px', color: 'var(--green)', flexShrink: 0, lineHeight: 1 }}>✓</span>
                     : <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--bd2)', display: 'inline-block', flexShrink: 0 }} />
                   }
                   <span style={{
                     fontFamily: "'Space Mono', monospace",
                     fontSize: '8px',
                     fontWeight: 700,
-                    color: done ? '#22d3a5' : '#c8d4e0',
+                    color: done ? 'var(--green)' : '#c8d4e0',
                     letterSpacing: '0.01em',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
@@ -207,7 +207,7 @@ export default function MissionsCard() {
                   </span>
                 </div>
                 <div style={{ height: '2px', background: 'var(--bg-card2)', borderRadius: '1px', overflow: 'hidden', marginLeft: '10px' }}>
-                  <div style={{ width: `${pct}%`, height: '100%', background: done ? '#22d3a5' : 'rgba(34,211,165,0.35)', borderRadius: '1px', transition: 'width 0.3s ease' }} />
+                  <div style={{ width: `${pct}%`, height: '100%', background: done ? 'var(--green)' : 'rgba(0,229,160,0.35)', borderRadius: '1px', transition: 'width 0.3s ease' }} />
                 </div>
               </div>
             );
@@ -218,14 +218,14 @@ export default function MissionsCard() {
         <div style={{ borderTop: '1px solid var(--bd)', paddingTop: '6px', marginBottom: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             {weeklyDone
-              ? <span style={{ fontSize: '8px', color: '#22d3a5', flexShrink: 0, lineHeight: 1 }}>✓</span>
+              ? <span style={{ fontSize: '8px', color: 'var(--green)', flexShrink: 0, lineHeight: 1 }}>✓</span>
               : <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#3a2a08', display: 'inline-block', flexShrink: 0 }} />
             }
             <span style={{
               fontFamily: "'Space Mono', monospace",
               fontSize: '8px',
               fontWeight: 700,
-              color: weeklyDone ? '#22d3a5' : '#e8d4a0',
+              color: weeklyDone ? 'var(--green)' : '#e8d4a0',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
@@ -236,16 +236,16 @@ export default function MissionsCard() {
             </span>
           </div>
           <div style={{ height: '2px', background: '#1a1508', borderRadius: '1px', overflow: 'hidden', marginTop: '3px', marginLeft: '10px' }}>
-            <div style={{ width: `${Math.min(weeklyProgress / weekly.target * 100, 100)}%`, height: '100%', background: weeklyDone ? '#22d3a5' : '#f5c842', borderRadius: '1px', transition: 'width 0.3s ease' }} />
+            <div style={{ width: `${Math.min(weeklyProgress / weekly.target * 100, 100)}%`, height: '100%', background: weeklyDone ? 'var(--green)' : 'var(--color-neutral)', borderRadius: '1px', transition: 'width 0.3s ease' }} />
           </div>
         </div>
 
         {/* Button */}
         <button
           onClick={() => setShowDetail(true)}
-          style={{ marginTop: '9px', background: 'transparent', border: '1px solid rgba(34,211,165,0.2)', borderRadius: '4px', padding: '3px 7px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '7px', cursor: 'pointer', letterSpacing: '0.06em', width: '100%', textAlign: 'center' }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(34,211,165,0.5)'; e.currentTarget.style.background = 'rgba(34,211,165,0.08)'; }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(34,211,165,0.2)'; e.currentTarget.style.background = 'transparent'; }}
+          style={{ marginTop: '9px', background: 'transparent', border: '1px solid rgba(0,229,160,0.2)', borderRadius: '4px', padding: '3px 7px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '7px', cursor: 'pointer', letterSpacing: '0.06em', width: '100%', textAlign: 'center' }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(0,229,160,0.5)'; e.currentTarget.style.background = 'rgba(0,229,160,0.08)'; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(0,229,160,0.2)'; e.currentTarget.style.background = 'transparent'; }}
         >
           {LABELS.more[lang]}
         </button>

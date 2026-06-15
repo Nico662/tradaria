@@ -30,15 +30,15 @@ function AccuracyGraph({ trend }) {
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block' }}>
       <defs>
         <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#22d3a5" stopOpacity="0.25" />
-          <stop offset="100%" stopColor="#22d3a5" stopOpacity="0" />
+          <stop offset="0%" stopColor="var(--green)" stopOpacity="0.25" />
+          <stop offset="100%" stopColor="var(--green)" stopOpacity="0" />
         </linearGradient>
       </defs>
       <path d={area} fill="url(#trendGrad)" />
-      <path d={path} fill="none" stroke="#22d3a5" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+      <path d={path} fill="none" stroke="var(--green)" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
       {trend.map((v, i) => {
         const [x, y] = pts[i].split(',');
-        return <circle key={i} cx={x} cy={y} r="3" fill="#22d3a5" />;
+        return <circle key={i} cx={x} cy={y} r="3" fill="var(--green)" />;
       })}
     </svg>
   );
@@ -82,7 +82,7 @@ export default function Stats({ onBack }) {
           >{t.stats.back}</button>
 
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: '#22d3a5', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(34,211,165,0.2)' }}>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: 'var(--green)', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(0,229,160,0.2)' }}>
               📊 {t.stats.title}
             </div>
             <div style={{ fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: "'Space Mono', monospace" }}>
@@ -106,7 +106,7 @@ export default function Stats({ onBack }) {
           )}
 
           {error === true && (
-            <div style={{ textAlign: 'center', color: '#f05454', fontSize: '11px', marginTop: '60px', fontFamily: "'Space Mono', monospace" }}>
+            <div style={{ textAlign: 'center', color: 'var(--color-down)', fontSize: '11px', marginTop: '60px', fontFamily: "'Space Mono', monospace" }}>
               {t.stats.error}
             </div>
           )}
@@ -116,8 +116,8 @@ export default function Stats({ onBack }) {
               {/* Summary grid */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '24px' }}>
                 <StatCard label={t.stats.games}       value={data.totalGames}       color="var(--t1)" />
-                <StatCard label={t.stats.avgAccuracy} value={`${data.avgAccuracy}%`} color="#22d3a5" />
-                <StatCard label={t.stats.bestStreak}  value={`${data.bestStreak}x`} color="#f5c842" />
+                <StatCard label={t.stats.avgAccuracy} value={`${data.avgAccuracy}%`} color="var(--green)" />
+                <StatCard label={t.stats.bestStreak}  value={`${data.bestStreak}x`} color="var(--color-neutral)" />
                 <StatCard label={t.stats.bestScore}   value={data.bestScore}        color="var(--t1)" />
               </div>
 
@@ -144,7 +144,7 @@ export default function Stats({ onBack }) {
                         <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: 'var(--t1)' }}>{MODE_LABELS[mode] || mode}</span>
                       </div>
                       <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#22d3a5' }}>{count}</div>
+                        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--green)' }}>{count}</div>
                         <div style={{ fontSize: '8px', color: 'var(--t6)' }}>{t.stats.plays}</div>
                       </div>
                     </div>
@@ -176,7 +176,7 @@ export default function Stats({ onBack }) {
                 </div>
                 {data.totalGames > 0 ? (
                   <>
-                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px', color: '#22d3a5' }}>
+                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px', color: 'var(--green)' }}>
                       Top {100 - (data.betterThan || 50)}%
                     </div>
                     <div style={{ fontSize: '10px', color: '#5a6a7d', marginTop: '4px', fontFamily: "'Space Mono', monospace" }}>

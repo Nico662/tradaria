@@ -1,0 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+
+:root {
+  /* Fondos */
+  --bg-base:        #0d0d0d;
+  --bg-surface:     #111111;
+  --bg-elevated:    #161616;
+  --bg-subtle:      #1a1a1a;
+
+  /* Marca */
+  --green:          #00e5a0;
+  --green-dim:      rgba(0, 229, 160, 0.12);
+  --green-glow:     rgba(0, 229, 160, 0.08);
+  --pink:           #ff7eb3;
+  --pink-dim:       rgba(255, 126, 179, 0.12);
+  --pink-glow:      rgba(255, 126, 179, 0.08);
+  --pink-dark:      #d4547e;
+
+  /* Gradientes */
+  --gradient-brand:   linear-gradient(135deg, #ff7eb3 0%, #00e5a0 100%);
+  --gradient-brand-v: linear-gradient(180deg, #ff7eb3 0%, #00e5a0 100%);
+  --gradient-surface: linear-gradient(135deg, #1a0d12, #0d1a12);
+
+  /* Semánticos */
+  --color-up:      #00e5a0;
+  --color-down:    #ff7eb3;
+  --color-neutral:        #e8b84b;
+  --color-neutral-dim:    rgba(232, 184, 75, 0.12);
+  --color-neutral-border: rgba(232, 184, 75, 0.22);
+
+  /* Texto */
+  --text-primary:   #ffffff;
+  --text-secondary: #aaaaaa;
+  --text-muted:     #555555;
+  --text-hint:      #333333;
+
+  /* Bordes */
+  --border-default: rgba(255, 255, 255, 0.07);
+  --border-subtle:  rgba(255, 255, 255, 0.04);
+  --border-pink:    rgba(255, 126, 179, 0.22);
+  --border-green:   rgba(0, 229, 160, 0.22);
+
+  /* Espaciado */
+  --space-xs:  4px;
+  --space-sm:  8px;
+  --space-md:  16px;
+  --space-lg:  24px;
+  --space-xl:  32px;
+  --space-2xl: 48px;
+
+  /* Radios */
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-xl:   24px;
+  --radius-full: 9999px;
+
+  /* Tipografía */
+  --font-body:    'Nunito', sans-serif;
+  --font-display: 'Nunito', sans-serif;
+  --font-mono:    'Courier New', 'Menlo', monospace;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  background: var(--bg-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

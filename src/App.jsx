@@ -483,7 +483,7 @@ export default function App() {
             {next && (
               <>
                 <div style={{ height: '4px', background: 'var(--bd)', borderRadius: '2px', overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${progress}%`, background: '#22d3a5', borderRadius: '2px', transition: 'width 0.5s ease' }} />
+                  <div style={{ height: '100%', width: `${progress}%`, background: 'var(--green)', borderRadius: '2px', transition: 'width 0.5s ease' }} />
                 </div>
                 <div style={{ fontSize: '8px', color: 'var(--t6)', marginTop: '4px', textAlign: 'right' }}>
                   {next.icon} {next.name} en {next.xp - xp} XP
@@ -495,19 +495,19 @@ export default function App() {
           <div id="share-card" style={{ background: 'var(--bg-page)', border: '1px solid var(--bd)', borderRadius: '12px', padding: '28px 24px', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: 'var(--t1)' }}>
-                GUESS <span style={{ color: '#22d3a5' }}>THE</span> MARKET
+                GUESS <span style={{ color: 'var(--green)' }}>THE</span> MARKET
               </div>
               <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.1em' }}>tradaria.dev</div>
             </div>
             <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '52px', color: '#f5c842', letterSpacing: '-0.02em', lineHeight: 1 }}>
+              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '52px', color: 'var(--color-neutral)', letterSpacing: '-0.02em', lineHeight: 1 }}>
                 {score}
               </div>
               <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '4px' }}>
                 {t.gameover.finalScore}
               </div>
               {score >= highscore && score > 0 && (
-                <div style={{ marginTop: '8px', fontSize: '10px', color: '#22d3a5', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                <div style={{ marginTop: '8px', fontSize: '10px', color: 'var(--green)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                   ★ new highscore!
                 </div>
               )}
@@ -515,9 +515,9 @@ export default function App() {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '20px' }}>
               {[
-                { label: t.gameover.correct,    value: wins,           color: '#22d3a5' },
+                { label: t.gameover.correct,    value: wins,           color: 'var(--green)' },
                 { label: t.gameover.accuracy,   value: accuracy + '%', color: 'var(--t2)' },
-                { label: t.gameover.bestStreak, value: maxStreak+'x',  color: '#f5c842' },
+                { label: t.gameover.bestStreak, value: maxStreak+'x',  color: 'var(--color-neutral)' },
               ].map(s => (
                 <div key={s.label} className="game-stat-card">
                   <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: s.color }}>{s.value}</div>
@@ -527,7 +527,7 @@ export default function App() {
             </div>
             <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'center' }}>
               {history.map((h, i) => (
-                <div key={i} style={{ width: '10px', height: '10px', borderRadius: '50%', background: h === 'win' ? '#22d3a5' : h === 'lose' ? '#f05454' : '#f5c842' }} />
+                <div key={i} style={{ width: '10px', height: '10px', borderRadius: '50%', background: h === 'win' ? 'var(--green)' : h === 'lose' ? 'var(--color-down)' : 'var(--color-neutral)' }} />
               ))}
             </div>
           </div>
@@ -542,7 +542,7 @@ export default function App() {
                   { label: t.stats.bestStreak,  value: `${personalStats.bestStreak}x` },
                 ].map(s => (
                   <div key={s.label} style={{ textAlign: 'center' }}>
-                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#22d3a5' }}>{s.value}</div>
+                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--green)' }}>{s.value}</div>
                     <div style={{ fontSize: '8px', color: 'var(--t6)', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '2px' }}>{s.label}</div>
                   </div>
                 ))}
@@ -552,9 +552,9 @@ export default function App() {
 
           <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
             <button onClick={shareResult}
-              style={{ flex: 1, padding: '14px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '8px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.18s', boxShadow: '0 0 20px rgba(34,211,165,0.08)' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(34,211,165,0.14)'; e.currentTarget.style.boxShadow = '0 0 28px rgba(34,211,165,0.18)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(34,211,165,0.08)'; e.currentTarget.style.boxShadow = '0 0 20px rgba(34,211,165,0.08)'; }}
+              style={{ flex: 1, padding: '14px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.18s', boxShadow: '0 0 20px rgba(0,229,160,0.08)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,229,160,0.14)'; e.currentTarget.style.boxShadow = '0 0 28px rgba(0,229,160,0.18)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,229,160,0.08)'; e.currentTarget.style.boxShadow = '0 0 20px rgba(0,229,160,0.08)'; }}
             >
               📸 {t.gameover.share ?? 'Share'}
             </button>
@@ -562,7 +562,7 @@ export default function App() {
           <div style={{ display: 'flex', gap: '10px' }}>
             <button onClick={playAgain}
               style={{ flex: 1, padding: '14px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '8px', color: 'var(--t3)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.18s' }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = '#22d3a5'; e.currentTarget.style.color = '#22d3a5'; }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--green)'; e.currentTarget.style.color = 'var(--green)'; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--bd2)'; e.currentTarget.style.color = 'var(--t3)'; }}
             >
               {t.gameover.playAgain}
@@ -711,7 +711,7 @@ export default function App() {
           </div>
         </div>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: '#22d3a5', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(34,211,165,0.2)' }}>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: 'var(--green)', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(0,229,160,0.2)' }}>
             GUESS <span style={{ color: 'var(--t1)' }}>THE</span> MARKET
           </div>
           <div style={{ fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: "'Space Mono', monospace" }}>
@@ -769,17 +769,17 @@ export default function App() {
           const candles  = chartRef.current?.getCandles?.();
           const analysis = analyzeCandles(candles);
            if (!analysis) return null;
-            const trendColor = analysis.trend === 'bullish' ? '#22d3a5' : analysis.trend === 'bearish' ? '#f05454' : '#f5c842';
+            const trendColor = analysis.trend === 'bullish' ? 'var(--green)' : analysis.trend === 'bearish' ? 'var(--color-down)' : 'var(--color-neutral)';
             const trendLabel = analysis.trend === 'bullish' ? t.game.bullish : analysis.trend === 'bearish' ? t.game.bearish : t.game.ranging;
-            const volColor   = analysis.vol === 'low' ? '#22d3a5' : analysis.vol === 'medium' ? '#f5c842' : '#f05454';
+            const volColor   = analysis.vol === 'low' ? 'var(--green)' : analysis.vol === 'medium' ? 'var(--color-neutral)' : 'var(--color-down)';
             const volLabel   = analysis.vol === 'low' ? 'low' : analysis.vol === 'medium' ? 'medium' : 'high';
          return (
           <div style={{ padding: '6px 20px 0', position: 'relative', zIndex: 2 }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
         {[
           { label: 'trend',      value: trendLabel,                                                          color: trendColor },
-          { label: 'last 5',     value: `${analysis.green}▲ ${analysis.red}▼`,                              color: analysis.green > analysis.red ? '#22d3a5' : '#f05454' },
-          { label: 'change',     value: `${analysis.change >= 0 ? '+' : ''}${analysis.change.toFixed(1)}%`, color: analysis.change >= 0 ? '#22d3a5' : '#f05454' },
+          { label: 'last 5',     value: `${analysis.green}▲ ${analysis.red}▼`,                              color: analysis.green > analysis.red ? 'var(--green)' : 'var(--color-down)' },
+          { label: 'change',     value: `${analysis.change >= 0 ? '+' : ''}${analysis.change.toFixed(1)}%`, color: analysis.change >= 0 ? 'var(--green)' : 'var(--color-down)' },
           { label: 'volatility', value: volLabel,                                                            color: volColor },
         ].map(s => (
           <div key={s.label} style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '6px', padding: '7px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -838,11 +838,11 @@ export default function App() {
 
       <div style={{ padding: '12px 20px', borderTop: '1px solid var(--bd)', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', position: 'relative', zIndex: 2 }}>
         {[
-          { label: 'CORRECT',  value: history.filter(h => h === 'win').length,  color: '#22d3a5' },
-          { label: 'WRONG',    value: history.filter(h => h === 'lose').length, color: '#f05454' },
+          { label: 'CORRECT',  value: history.filter(h => h === 'win').length,  color: 'var(--green)' },
+          { label: 'WRONG',    value: history.filter(h => h === 'lose').length, color: 'var(--color-down)' },
           { label: 'ACCURACY', value: history.filter(h => h !== 'skip').length > 0
               ? Math.round(history.filter(h => h === 'win').length / history.filter(h => h !== 'skip').length * 100) + '%'
-              : '—', color: '#f5c842' },
+              : '—', color: 'var(--color-neutral)' },
         ].map(s => (
           <div key={s.label} className="game-stat-card">
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: s.color }}>{s.value}</div>
@@ -859,7 +859,7 @@ export default function App() {
         <div key={floatingXPKeyRef.current} style={{
           position: 'fixed', top: '40%', left: '50%', transform: 'translateX(-50%)',
           fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px',
-          color: '#22d3a5', zIndex: 9999, pointerEvents: 'none',
+          color: 'var(--green)', zIndex: 9999, pointerEvents: 'none',
           animation: 'floatUp 2s ease forwards',
         }}>
           +{floatingXP} XP

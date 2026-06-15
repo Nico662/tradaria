@@ -18,8 +18,8 @@ export default function WeeklyMission() {
     <div style={{ margin: '0 20px 12px' }}>
       <div style={{
         background: 'var(--bg-card)',
-        border: `1px solid ${completed ? '#22d3a544' : '#f5c84233'}`,
-        borderTop: `2px solid ${completed ? '#22d3a5' : '#f5c842'}`,
+        border: `1px solid ${completed ? 'var(--green)44' : 'var(--color-neutral)33'}`,
+        borderTop: `2px solid ${completed ? 'var(--green)' : 'var(--color-neutral)'}`,
         borderRadius: '8px',
         padding: '10px 14px',
         position: 'relative',
@@ -27,8 +27,8 @@ export default function WeeklyMission() {
         {/* Badge */}
         <div style={{
           position: 'absolute', top: '9px', right: '10px',
-          fontSize: '6px', color: completed ? '#22d3a5' : '#f5c842',
-          border: `1px solid ${completed ? '#22d3a533' : '#f5c84233'}`,
+          fontSize: '6px', color: completed ? 'var(--green)' : 'var(--color-neutral)',
+          border: `1px solid ${completed ? 'var(--green)33' : 'var(--color-neutral)33'}`,
           borderRadius: '3px', padding: '1px 5px',
           letterSpacing: '0.08em', fontFamily: "'Space Mono', monospace",
         }}>
@@ -44,14 +44,14 @@ export default function WeeklyMission() {
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '6px', marginBottom: '3px', paddingRight: '52px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flex: 1 }}>
             {completed
-              ? <span style={{ fontSize: '9px', color: '#22d3a5', flexShrink: 0 }}>✓</span>
+              ? <span style={{ fontSize: '9px', color: 'var(--green)', flexShrink: 0 }}>✓</span>
               : <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#3a2a08', display: 'inline-block', flexShrink: 0, marginTop: '2px' }} />
             }
-            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, color: completed ? '#22d3a5' : '#e8d4a0', letterSpacing: '0.02em', lineHeight: 1.3 }}>
+            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, color: completed ? 'var(--green)' : '#e8d4a0', letterSpacing: '0.02em', lineHeight: 1.3 }}>
               {title}
             </span>
           </div>
-          <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', fontWeight: 700, color: completed ? '#22d3a5' : '#f5c842', flexShrink: 0 }}>
+          <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', fontWeight: 700, color: completed ? 'var(--green)' : 'var(--color-neutral)', flexShrink: 0 }}>
             +{mission.xp} XP
           </span>
         </div>
@@ -64,7 +64,7 @@ export default function WeeklyMission() {
         {/* Progress bar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <div style={{ flex: 1, height: '3px', background: '#1a1508', borderRadius: '2px', overflow: 'hidden' }}>
-            <div style={{ width: `${pct}%`, height: '100%', background: completed ? '#22d3a5' : '#f5c842', borderRadius: '2px', transition: 'width 0.3s ease' }} />
+            <div style={{ width: `${pct}%`, height: '100%', background: completed ? 'var(--green)' : 'var(--color-neutral)', borderRadius: '2px', transition: 'width 0.3s ease' }} />
           </div>
           <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '7px', color: '#5a4a20', flexShrink: 0 }}>
             {progress}/{mission.target}

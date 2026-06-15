@@ -46,8 +46,8 @@ export default function ProGate({ children, feature = '' }) {
           onClick={handleUpgrade}
           disabled={loading || !user}
           style={{
-            padding: '12px 28px', background: 'linear-gradient(135deg, #22d3a5, #1aaa84)',
-            border: 'none', borderRadius: '8px', color: '#0a0c0f',
+            padding: '12px 28px', background: 'linear-gradient(135deg, var(--green), #1aaa84)',
+            border: 'none', borderRadius: '8px', color: 'var(--bg-base)',
             fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700,
             letterSpacing: '0.06em', textTransform: 'uppercase', cursor: loading ? 'default' : 'pointer',
             opacity: loading ? 0.7 : 1,

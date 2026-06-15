@@ -22,11 +22,11 @@ function FriendCard({ f, onChallenge, isChallenging, challengeStatus, onViewProf
     ? (challengeStatus === 'unavailable' ? t.friends.unavailable : t.friends.waiting)
     : t.friends.challenge;
   const btnColor = isChallenging
-    ? (challengeStatus === 'unavailable' ? '#f05454' : '#f5c842')
-    : '#22d3a5';
+    ? (challengeStatus === 'unavailable' ? 'var(--color-down)' : 'var(--color-neutral)')
+    : 'var(--green)';
   const btnBg = isChallenging
-    ? (challengeStatus === 'unavailable' ? 'rgba(240,84,84,0.08)' : 'rgba(245,200,66,0.08)')
-    : 'rgba(34,211,165,0.08)';
+    ? (challengeStatus === 'unavailable' ? 'rgba(255,126,179,0.08)' : 'rgba(232,184,75,0.08)')
+    : 'rgba(0,229,160,0.08)';
   return (
     <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
       <UserAvatar user={f} size={38} showBadge />
@@ -52,7 +52,7 @@ function FriendCard({ f, onChallenge, isChallenging, challengeStatus, onViewProf
         onClick={() => !isChallenging && onChallenge && onChallenge(f.username || f.name)}
         disabled={isChallenging}
         style={{ flexShrink: 0, padding: '7px 11px', background: btnBg, border: `1px solid ${btnColor}`, borderRadius: '6px', color: btnColor, fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: isChallenging ? 'default' : 'pointer', letterSpacing: '0.04em', whiteSpace: 'nowrap', transition: 'all 0.2s', minWidth: '90px', textAlign: 'center' }}
-        onMouseEnter={e => { if (!isChallenging) e.currentTarget.style.background = 'rgba(34,211,165,0.18)'; }}
+        onMouseEnter={e => { if (!isChallenging) e.currentTarget.style.background = 'rgba(0,229,160,0.18)'; }}
         onMouseLeave={e => { if (!isChallenging) e.currentTarget.style.background = btnBg; }}
       >
         {btnLabel}
@@ -79,17 +79,17 @@ function PendingCard({ req, onAccept, onReject }) {
       <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
         <button
           onClick={() => onAccept(req.friendshipId)}
-          style={{ padding: '6px 12px', background: 'rgba(34,211,165,0.1)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.04em' }}
-          onMouseEnter={e => e.currentTarget.style.background = 'rgba(34,211,165,0.2)'}
-          onMouseLeave={e => e.currentTarget.style.background = 'rgba(34,211,165,0.1)'}
+          style={{ padding: '6px 12px', background: 'rgba(0,229,160,0.1)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.04em' }}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,229,160,0.2)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,229,160,0.1)'}
         >
           {t.friends.accept}
         </button>
         <button
           onClick={() => onReject(req.friendshipId)}
-          style={{ padding: '6px 10px', background: 'rgba(240,84,84,0.1)', border: '1px solid #f05454', borderRadius: '6px', color: '#f05454', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer' }}
-          onMouseEnter={e => e.currentTarget.style.background = 'rgba(240,84,84,0.2)'}
-          onMouseLeave={e => e.currentTarget.style.background = 'rgba(240,84,84,0.1)'}
+          style={{ padding: '6px 10px', background: 'rgba(255,126,179,0.1)', border: '1px solid var(--color-down)', borderRadius: '6px', color: 'var(--color-down)', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer' }}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,126,179,0.2)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,126,179,0.1)'}
         >
           ✗
         </button>
@@ -105,7 +105,7 @@ function SearchResultCard({ profile, onSendRequest }) {
   const sentRequest    = profile.friendshipStatus === 'pending' && profile.isRequester;
 
   return (
-    <div style={{ background: 'var(--bg-card)', border: '1px solid #22d3a5', borderRadius: '10px', padding: '14px' }}>
+    <div style={{ background: 'var(--bg-card)', border: '1px solid var(--green)', borderRadius: '10px', padding: '14px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <UserAvatar user={profile} size={42} showBadge />
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -117,22 +117,22 @@ function SearchResultCard({ profile, onSendRequest }) {
             {level.icon} {level.name} · {profile.xp || 0} XP
           </div>
           {profile.portfolioReturn !== null && profile.portfolioReturn !== undefined && (
-            <div style={{ fontSize: '9px', fontFamily: "'Space Mono', monospace", marginTop: '2px', color: profile.portfolioReturn >= 0 ? '#22d3a5' : '#f05454' }}>
+            <div style={{ fontSize: '9px', fontFamily: "'Space Mono', monospace", marginTop: '2px', color: profile.portfolioReturn >= 0 ? 'var(--green)' : 'var(--color-down)' }}>
               portfolio {profile.portfolioReturn >= 0 ? '+' : ''}{profile.portfolioReturn.toFixed(1)}%
             </div>
           )}
         </div>
         <div style={{ flexShrink: 0 }}>
           {alreadyFriends ? (
-            <span style={{ fontSize: '9px', color: '#22d3a5', fontFamily: "'Space Mono', monospace" }}>{t.friends.alreadyFriends}</span>
+            <span style={{ fontSize: '9px', color: 'var(--green)', fontFamily: "'Space Mono', monospace" }}>{t.friends.alreadyFriends}</span>
           ) : sentRequest ? (
             <span style={{ fontSize: '9px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace" }}>{t.friends.pending}</span>
           ) : (
             <button
               onClick={() => onSendRequest(profile.username)}
-              style={{ padding: '7px 14px', background: 'rgba(34,211,165,0.1)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer', letterSpacing: '0.04em' }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(34,211,165,0.2)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'rgba(34,211,165,0.1)'}
+              style={{ padding: '7px 14px', background: 'rgba(0,229,160,0.1)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer', letterSpacing: '0.04em' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,229,160,0.2)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,229,160,0.1)'}
             >
               {t.friends.add}
             </button>
@@ -303,7 +303,7 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
             {t.friends.title}
           </div>
           {pending.length > 0 && (
-            <div style={{ background: '#f05454', borderRadius: '10px', padding: '2px 8px', fontSize: '9px', color: '#fff', fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>
+            <div style={{ background: 'var(--color-down)', borderRadius: '10px', padding: '2px 8px', fontSize: '9px', color: '#fff', fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>
               {pending.length}
             </div>
           )}
@@ -311,7 +311,7 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
 
         {/* Flash message */}
         {msg && (
-          <div style={{ marginBottom: '14px', padding: '10px 14px', background: msg.type === 'ok' ? 'rgba(34,211,165,0.1)' : 'rgba(240,84,84,0.1)', border: `1px solid ${msg.type === 'ok' ? '#22d3a5' : '#f05454'}`, borderRadius: '8px', fontSize: '11px', color: msg.type === 'ok' ? '#22d3a5' : '#f05454', fontFamily: "'Space Mono', monospace" }}>
+          <div style={{ marginBottom: '14px', padding: '10px 14px', background: msg.type === 'ok' ? 'rgba(0,229,160,0.1)' : 'rgba(255,126,179,0.1)', border: `1px solid ${msg.type === 'ok' ? 'var(--green)' : 'var(--color-down)'}`, borderRadius: '8px', fontSize: '11px', color: msg.type === 'ok' ? 'var(--green)' : 'var(--color-down)', fontFamily: "'Space Mono', monospace" }}>
             {msg.text}
           </div>
         )}
@@ -324,12 +324,12 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
           <>
             {/* Invite link */}
             {user?.username && (
-              <div style={{ marginBottom: '24px', padding: '14px 16px', background: 'rgba(34,211,165,0.03)', border: '1px dashed var(--bd2)', borderRadius: '10px' }}>
+              <div style={{ marginBottom: '24px', padding: '14px 16px', background: 'rgba(0,229,160,0.03)', border: '1px dashed var(--bd2)', borderRadius: '10px' }}>
                 <div style={{ fontSize: '8px', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '6px' }}>{t.friends.inviteTitle}</div>
                 <div style={{ fontSize: '10px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", marginBottom: '10px', lineHeight: 1.6 }}>{t.friends.inviteSub}</div>
                 <button
                   onClick={copyInviteLink}
-                  style={{ width: '100%', padding: '9px', background: copiedInvite ? 'rgba(34,211,165,0.12)' : 'rgba(34,211,165,0.06)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', transition: 'background 0.15s' }}
+                  style={{ width: '100%', padding: '9px', background: copiedInvite ? 'rgba(0,229,160,0.12)' : 'rgba(0,229,160,0.06)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', transition: 'background 0.15s' }}
                 >
                   {copiedInvite ? t.friends.inviteCopied : t.friends.inviteCopy}
                 </button>
@@ -345,7 +345,7 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
                 value={searchQ}
                 onChange={handleSearch}
                 style={{ width: '100%', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '10px 14px', color: 'var(--t1)', fontFamily: "'Space Mono', monospace", fontSize: '12px', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s' }}
-                onFocus={e => e.currentTarget.style.borderColor = '#22d3a5'}
+                onFocus={e => e.currentTarget.style.borderColor = 'var(--green)'}
                 onBlur={e => e.currentTarget.style.borderColor = 'var(--bd)'}
               />
               {searchLoading && (
@@ -392,7 +392,7 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
                   {user?.username && (
                     <button
                       onClick={copyInviteLink}
-                      style={{ padding: '8px 16px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}
+                      style={{ padding: '8px 16px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}
                     >
                       {copiedInvite ? t.friends.inviteCopied : t.friends.inviteCopy}
                     </button>

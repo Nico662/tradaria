@@ -66,11 +66,11 @@ export default function UsernameModal({ onDone }) {
           onChange={e => checkUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
           placeholder={t.username.placeholder}
           maxLength={16}
-          style={{ width: '100%', background: 'var(--bg-page)', border: `1px solid ${available === true ? '#22d3a5' : available === false ? '#f05454' : 'var(--bd2)'}`, borderRadius: '6px', padding: '12px 14px', color: 'var(--t2)', fontFamily: "'Space Mono', monospace", fontSize: '14px', outline: 'none', marginBottom: '8px', boxSizing: 'border-box' }}
+          style={{ width: '100%', background: 'var(--bg-page)', border: `1px solid ${available === true ? 'var(--green)' : available === false ? 'var(--color-down)' : 'var(--bd2)'}`, borderRadius: '6px', padding: '12px 14px', color: 'var(--t2)', fontFamily: "'Space Mono', monospace", fontSize: '14px', outline: 'none', marginBottom: '8px', boxSizing: 'border-box' }}
         />
 
         {status && (
-          <div style={{ fontSize: '10px', color: available ? '#22d3a5' : '#f05454', marginBottom: '16px', fontFamily: "'Space Mono', monospace" }}>
+          <div style={{ fontSize: '10px', color: available ? 'var(--green)' : 'var(--color-down)', marginBottom: '16px', fontFamily: "'Space Mono', monospace" }}>
             {checking ? t.username.checking : status}
           </div>
         )}
@@ -78,7 +78,7 @@ export default function UsernameModal({ onDone }) {
         <button
           onClick={save}
           disabled={!available || saving}
-          style={{ width: '100%', padding: '14px', background: available ? 'rgba(34,211,165,0.08)' : 'var(--bg-page)', border: `1px solid ${available ? '#22d3a5' : 'var(--bd2)'}`, borderRadius: '6px', color: available ? '#22d3a5' : 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: available ? 'pointer' : 'not-allowed' }}>
+          style={{ width: '100%', padding: '14px', background: available ? 'rgba(0,229,160,0.08)' : 'var(--bg-page)', border: `1px solid ${available ? 'var(--green)' : 'var(--bd2)'}`, borderRadius: '6px', color: available ? 'var(--green)' : 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: available ? 'pointer' : 'not-allowed' }}>
           {saving ? '...' : t.username.confirm}
         </button>
       </div>

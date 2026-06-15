@@ -242,7 +242,7 @@ export default function Survival({ onBack }) {
       <div id="gtm-root" style={{ position: 'relative' }}>
         <div className="scanlines" />
         <div style={{ padding: '40px 28px 36px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '36px', color: '#f05454', marginBottom: '4px' }}>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '36px', color: 'var(--color-down)', marginBottom: '4px' }}>
             {t.survival.gameOver}
           </div>
           <div style={{ fontSize: '10px', color: 'var(--t6)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '32px' }}>
@@ -250,14 +250,14 @@ export default function Survival({ onBack }) {
           </div>
 
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '12px', padding: '28px 24px', marginBottom: '20px' }}>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '52px', color: '#f5c842', letterSpacing: '-0.02em', lineHeight: 1 }}>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '52px', color: 'var(--color-neutral)', letterSpacing: '-0.02em', lineHeight: 1 }}>
               {score}
             </div>
             <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '4px' }}>
               {t.survival.finalScore}
             </div>
             {isNewHS && (
-              <div style={{ marginTop: '8px', fontSize: '10px', color: '#22d3a5', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              <div style={{ marginTop: '8px', fontSize: '10px', color: 'var(--green)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                 {t.survival.newHighscore}
               </div>
             )}
@@ -266,8 +266,8 @@ export default function Survival({ onBack }) {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginTop: '20px', marginBottom: '16px' }}>
               {[
                 { label: 'rounds',   value: round - 1,      color: 'var(--t2)' },
-                { label: 'correct',  value: wins,           color: '#22d3a5' },
-                { label: 'accuracy', value: accuracy + '%', color: '#f5c842' },
+                { label: 'correct',  value: wins,           color: 'var(--green)' },
+                { label: 'accuracy', value: accuracy + '%', color: 'var(--color-neutral)' },
               ].map(s => (
                 <div key={s.label} style={{ background: 'var(--bg-page)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '10px 8px' }}>
                   <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: s.color }}>{s.value}</div>
@@ -278,14 +278,14 @@ export default function Survival({ onBack }) {
 
             <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'center' }}>
               {history.map((h, i) => (
-                <div key={i} style={{ width: '10px', height: '10px', borderRadius: '50%', background: h === 'win' ? '#22d3a5' : h === 'lose' ? '#f05454' : '#f5c842' }} />
+                <div key={i} style={{ width: '10px', height: '10px', borderRadius: '50%', background: h === 'win' ? 'var(--green)' : h === 'lose' ? 'var(--color-down)' : 'var(--color-neutral)' }} />
               ))}
             </div>
           </div>
 
           <div style={{ display: 'flex', gap: '10px' }}>
             <button onClick={playAgain}
-              style={{ flex: 1, padding: '14px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+              style={{ flex: 1, padding: '14px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
               {t.survival.playAgain}
             </button>
             <button onClick={onBack}
@@ -303,7 +303,7 @@ export default function Survival({ onBack }) {
                   { label: t.stats.bestStreak,   value: `${personalStats.bestStreak}x` },
                 ].map(s => (
                   <div key={s.label} style={{ textAlign: 'center' }}>
-                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#22d3a5' }}>{s.value}</div>
+                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--green)' }}>{s.value}</div>
                     <div style={{ fontSize: '8px', color: 'var(--t6)', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '2px' }}>{s.label}</div>
                   </div>
                 ))}
@@ -311,21 +311,21 @@ export default function Survival({ onBack }) {
             </div>
           )}
           <button onClick={shareSurvival}
-            style={{ marginTop: '10px', width: '100%', padding: '12px', background: 'rgba(34,211,165,0.06)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+            style={{ marginTop: '10px', width: '100%', padding: '12px', background: 'rgba(0,229,160,0.06)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
             📸 {t.daily.share}
           </button>
         </div>
-        <div id="share-card-survival" style={{ position: 'absolute', left: '-9999px', top: 0, width: '320px', background: 'var(--bg-page)', border: '1px solid #f05454', borderRadius: '12px', padding: '28px 24px', fontFamily: "'Space Mono', monospace" }}>
+        <div id="share-card-survival" style={{ position: 'absolute', left: '-9999px', top: 0, width: '320px', background: 'var(--bg-page)', border: '1px solid var(--color-down)', borderRadius: '12px', padding: '28px 24px', fontFamily: "'Space Mono', monospace" }}>
           <div style={{ fontSize: '10px', color: 'var(--t6)', letterSpacing: '0.1em', marginBottom: '16px' }}>☠️ TRADARIA SURVIVAL</div>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '48px', color: '#f5c842', letterSpacing: '-0.02em', lineHeight: 1, marginBottom: '4px' }}>{score}</div>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '48px', color: 'var(--color-neutral)', letterSpacing: '-0.02em', lineHeight: 1, marginBottom: '4px' }}>{score}</div>
           <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '16px' }}>{t.survival.finalScore}</div>
-          {isNewHS && <div style={{ fontSize: '10px', color: '#22d3a5', marginBottom: '8px' }}>{t.survival.newHighscore}</div>}
+          {isNewHS && <div style={{ fontSize: '10px', color: 'var(--green)', marginBottom: '8px' }}>{t.survival.newHighscore}</div>}
           <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
             <div><span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--t2)' }}>{round - 1}</span><div style={{ fontSize: '8px', color: 'var(--t5)' }}>rounds</div></div>
-            <div><span style={{ fontSize: '16px', fontWeight: 800, color: '#22d3a5' }}>{wins}</span><div style={{ fontSize: '8px', color: 'var(--t5)' }}>correct</div></div>
-            <div><span style={{ fontSize: '16px', fontWeight: 800, color: '#f5c842' }}>{accuracy}%</span><div style={{ fontSize: '8px', color: 'var(--t5)' }}>accuracy</div></div>
+            <div><span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--green)' }}>{wins}</span><div style={{ fontSize: '8px', color: 'var(--t5)' }}>correct</div></div>
+            <div><span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--color-neutral)' }}>{accuracy}%</span><div style={{ fontSize: '8px', color: 'var(--t5)' }}>accuracy</div></div>
           </div>
-          <div style={{ fontSize: '9px', color: '#22d3a5', letterSpacing: '0.1em', marginTop: '8px' }}>tradaria.dev</div>
+          <div style={{ fontSize: '9px', color: 'var(--green)', letterSpacing: '0.1em', marginTop: '8px' }}>tradaria.dev</div>
         </div>
         {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
       </div>
@@ -347,7 +347,7 @@ export default function Survival({ onBack }) {
 
         {/* Centered title */}
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: '#f05454', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(240,84,84,0.2)' }}>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: 'var(--color-down)', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(255,126,179,0.2)' }}>
             ☠️ {t.survival.title}
           </div>
           <div style={{ fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: "'Space Mono', monospace" }}>
@@ -358,7 +358,7 @@ export default function Survival({ onBack }) {
         {/* Stats right */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
           <span style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.06em' }}>{t.game.score}</span>
-          <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#f5c842', textShadow: '0 0 14px rgba(245,200,66,0.35)' }}>{score}</span>
+          <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--color-neutral)', textShadow: '0 0 14px rgba(232,184,75,0.35)' }}>{score}</span>
         </div>
       </div>
 
@@ -395,7 +395,7 @@ export default function Survival({ onBack }) {
               opacity: i < lives ? 1 : 0.13,
               transition: 'all 0.35s',
               transform: liveLost && i === lives ? 'scale(0.65)' : 'scale(1)',
-              filter: liveLost && i === lives ? 'grayscale(1) brightness(0.4)' : i < lives ? 'drop-shadow(0 0 6px rgba(240,84,84,0.6))' : 'none',
+              filter: liveLost && i === lives ? 'grayscale(1) brightness(0.4)' : i < lives ? 'drop-shadow(0 0 6px rgba(255,126,179,0.6))' : 'none',
             }}>❤️</span>
           ))}
         </div>
@@ -409,11 +409,11 @@ export default function Survival({ onBack }) {
         </div>
         <div style={{ flex: 1, background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '6px', padding: '7px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: '8px', color: 'var(--t5)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t.game.score}</span>
-          <span style={{ fontSize: '11px', color: '#f5c842', fontWeight: 700 }}>{score}</span>
+          <span style={{ fontSize: '11px', color: 'var(--color-neutral)', fontWeight: 700 }}>{score}</span>
         </div>
         <div style={{ flex: 1, background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '6px', padding: '7px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: '8px', color: 'var(--t5)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t.survival.best}</span>
-          <span style={{ fontSize: '11px', color: '#22d3a5', fontWeight: 700 }}>{highscore}</span>
+          <span style={{ fontSize: '11px', color: 'var(--green)', fontWeight: 700 }}>{highscore}</span>
         </div>
       </div>
       {phase === 'choose' && (
@@ -449,7 +449,7 @@ export default function Survival({ onBack }) {
               <div className="result-detail">
                 {dirLabel} &nbsp;{result.pctMove > 0 ? '+' : ''}{result.pctMove.toFixed(2)}% · {result.choice.toUpperCase()}
                 {!result.win && !result.neutral && (
-                  <span style={{ color: '#f05454', marginLeft: '8px' }}>
+                  <span style={{ color: 'var(--color-down)', marginLeft: '8px' }}>
                     {result.livesLeft > 0 ? `❤️ ${result.livesLeft} ${t.survival.livesLeft}` : `💀 ${t.survival.gameOverMsg}`}
                   </span>
                 )}
@@ -472,9 +472,9 @@ export default function Survival({ onBack }) {
 
       <div style={{ padding: '12px 20px', borderTop: '1px solid var(--bd)', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', position: 'relative', zIndex: 2 }}>
         {[
-          { label: t.game.correct, value: history.filter(h => h === 'win').length,  color: '#22d3a5' },
-          { label: t.game.wrong,   value: history.filter(h => h === 'lose').length, color: '#f05454' },
-          { label: t.survival.best, value: highscore,                               color: '#f5c842' },
+          { label: t.game.correct, value: history.filter(h => h === 'win').length,  color: 'var(--green)' },
+          { label: t.game.wrong,   value: history.filter(h => h === 'lose').length, color: 'var(--color-down)' },
+          { label: t.survival.best, value: highscore,                               color: 'var(--color-neutral)' },
         ].map(s => (
           <div key={s.label} style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '10px 8px', textAlign: 'center' }}>
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: s.color }}>{s.value}</div>
@@ -491,7 +491,7 @@ export default function Survival({ onBack }) {
         <div key={floatingXPKeyRef.current} style={{
           position: 'fixed', top: '40%', left: '50%', transform: 'translateX(-50%)',
           fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px',
-          color: '#22d3a5', zIndex: 9999, pointerEvents: 'none',
+          color: 'var(--green)', zIndex: 9999, pointerEvents: 'none',
           animation: 'floatUp 2s ease forwards',
         }}>
           +{floatingXP} XP

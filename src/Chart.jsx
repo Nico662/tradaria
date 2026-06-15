@@ -172,9 +172,9 @@ const Chart = forwardRef(function Chart({ asset, externalCandles, onReady }, ref
           ...existing,
           ...futureMapped.slice(0, i + 1).map(c => ({
             ...c,
-            color:       c.close >= c.open ? 'rgba(34,211,165,0.5)' : 'rgba(240,84,84,0.5)',
-            wickColor:   c.close >= c.open ? 'rgba(34,211,165,0.5)' : 'rgba(240,84,84,0.5)',
-            borderColor: c.close >= c.open ? 'rgba(34,211,165,0.5)' : 'rgba(240,84,84,0.5)',
+            color:       c.close >= c.open ? 'rgba(0,229,160,0.5)' : 'rgba(255,126,179,0.5)',
+            wickColor:   c.close >= c.open ? 'rgba(0,229,160,0.5)' : 'rgba(255,126,179,0.5)',
+            borderColor: c.close >= c.open ? 'rgba(0,229,160,0.5)' : 'rgba(255,126,179,0.5)',
           })),
         ]);
         i++;
@@ -224,12 +224,12 @@ const Chart = forwardRef(function Chart({ asset, externalCandles, onReady }, ref
       });
 
       const series = chart.addSeries(CandlestickSeries, {
-        upColor:         '#22d3a5',
-        downColor:       '#f05454',
-        borderUpColor:   '#22d3a5',
-        borderDownColor: '#f05454',
-        wickUpColor:     '#22d3a5',
-        wickDownColor:   '#f05454',
+        upColor:         'var(--green)',
+        downColor:       'var(--color-down)',
+        borderUpColor:   'var(--green)',
+        borderDownColor: 'var(--color-down)',
+        wickUpColor:     'var(--green)',
+        wickDownColor:   'var(--color-down)',
         priceFormat: forex
           ? { type: 'price', precision: 4, minMove: 0.0001 }
           : { type: 'price', precision: 2, minMove: 0.01 },

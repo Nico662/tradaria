@@ -31,8 +31,8 @@ export default function Badges({ onBack }) {
             const isUnlocked = unlocked.includes(badge.id);
             return (
               <div key={badge.id} style={{
-                background: isUnlocked ? 'rgba(34,211,165,0.05)' : 'var(--bg-card)',
-                border: `1px solid ${isUnlocked ? '#22d3a5' : 'var(--bd)'}`,
+                background: isUnlocked ? 'rgba(0,229,160,0.05)' : 'var(--bg-card)',
+                border: `1px solid ${isUnlocked ? 'var(--green)' : 'var(--bd)'}`,
                 borderRadius: '10px',
                 padding: '16px 12px',
                 textAlign: 'center',

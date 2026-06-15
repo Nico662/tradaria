@@ -26,7 +26,7 @@ function FVGChart() {
 
   return (
     <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
-      <rect width="188" height="158" fill="#060b10" rx="8" />
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
 
       {/* Grid */}
       {[40, 65, 90, 115, 140].map(y => (
@@ -34,14 +34,14 @@ function FVGChart() {
       ))}
 
       {/* FVG zone — extends from after C1 to right edge */}
-      <rect x="60" y={fvgTopY} width="122" height={fvgBotY - fvgTopY} fill="#22d3a51a" />
-      <line x1="60" y1={fvgTopY} x2="182" y2={fvgTopY} stroke="#22d3a5" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.55" />
-      <line x1="60" y1={fvgBotY} x2="182" y2={fvgBotY} stroke="#22d3a5" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.55" />
+      <rect x="60" y={fvgTopY} width="122" height={fvgBotY - fvgTopY} fill="var(--green)1a" />
+      <line x1="60" y1={fvgTopY} x2="182" y2={fvgTopY} stroke="var(--green)" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.55" />
+      <line x1="60" y1={fvgBotY} x2="182" y2={fvgBotY} stroke="var(--green)" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.55" />
 
       {/* Candles */}
       {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
         const bull = C >= O;
-        const col  = bull ? '#22d3a5' : '#e05555';
+        const col  = bull ? 'var(--green)' : 'var(--color-down)';
         const bodyY = py(Math.max(O, C));
         const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
         return (
@@ -56,21 +56,21 @@ function FVGChart() {
       <text
         x="68" y="11"
         textAnchor="middle" fontFamily="'Space Mono', monospace"
-        fontSize="5.5" fill="#f5c842" opacity="0.9"
+        fontSize="5.5" fill="var(--color-neutral)" opacity="0.9"
       >↑ displacement</text>
 
       {/* FVG label — vertically centered in the zone */}
       <text
         x="182" y={(fvgTopY + fvgBotY) / 2 + 3.5}
         textAnchor="end" fontFamily="'Space Mono', monospace"
-        fontSize="8" fontWeight="bold" fill="#22d3a5" opacity="0.9"
+        fontSize="8" fontWeight="bold" fill="var(--green)" opacity="0.9"
       >FVG</text>
 
       {/* fill label — below the candles that re-enter the zone */}
       <text
         x="115" y={fvgBotY + 11}
         textAnchor="middle" fontFamily="'Space Mono', monospace"
-        fontSize="5.5" fill="#22d3a5" opacity="0.6"
+        fontSize="5.5" fill="var(--green)" opacity="0.6"
       >fill ↑</text>
 
       {/* bottom watermark */}
@@ -107,7 +107,7 @@ function DisplacementChart() {
 
   return (
     <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
-      <rect width="188" height="158" fill="#060b10" rx="8" />
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
 
       {/* Grid */}
       {[40, 65, 90, 115, 140].map(y => (
@@ -118,13 +118,13 @@ function DisplacementChart() {
       <rect
         x="60" y={dispTop}
         width="38" height={dispBot - dispTop}
-        fill="#f5c84210" rx="3"
+        fill="var(--color-neutral)10" rx="3"
       />
 
       {/* Candles */}
       {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
         const bull  = C >= O;
-        const col   = bull ? '#22d3a5' : '#e05555';
+        const col   = bull ? 'var(--green)' : 'var(--color-down)';
         const bodyY = py(Math.max(O, C));
         const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
         return (
@@ -139,13 +139,13 @@ function DisplacementChart() {
       <text
         x="79" y="11"
         textAnchor="middle" fontFamily="'Space Mono', monospace"
-        fontSize="5.5" fill="#f5c842" opacity="0.9"
+        fontSize="5.5" fill="var(--color-neutral)" opacity="0.9"
       >↑ displacement</text>
 
       {/* Bracket lines connecting label to candle group */}
-      <line x1="61" y1="14" x2="61" y2="18" stroke="#f5c842" strokeWidth="0.6" opacity="0.35" />
-      <line x1="61" y1="14" x2="97" y2="14" stroke="#f5c842" strokeWidth="0.6" opacity="0.35" />
-      <line x1="97" y1="14" x2="97" y2="18" stroke="#f5c842" strokeWidth="0.6" opacity="0.35" />
+      <line x1="61" y1="14" x2="61" y2="18" stroke="var(--color-neutral)" strokeWidth="0.6" opacity="0.35" />
+      <line x1="61" y1="14" x2="97" y2="14" stroke="var(--color-neutral)" strokeWidth="0.6" opacity="0.35" />
+      <line x1="97" y1="14" x2="97" y2="18" stroke="var(--color-neutral)" strokeWidth="0.6" opacity="0.35" />
 
       {/* Watermark */}
       <text
@@ -181,7 +181,7 @@ function MSSChart() {
 
   return (
     <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
-      <rect width="188" height="158" fill="#060b10" rx="8" />
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
 
       {/* Grid */}
       {[40, 65, 90, 115, 140].map(y => (
@@ -189,13 +189,13 @@ function MSSChart() {
       ))}
 
       {/* MSS level line — dashed red up to break, then faint green as support */}
-      <line x1="53" y1={mssY} x2="108" y2={mssY} stroke="#e05555" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.7" />
-      <line x1="108" y1={mssY} x2="182" y2={mssY} stroke="#22d3a5" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.3" />
+      <line x1="53" y1={mssY} x2="108" y2={mssY} stroke="var(--color-down)" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.7" />
+      <line x1="108" y1={mssY} x2="182" y2={mssY} stroke="var(--green)" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.3" />
 
       {/* Candles */}
       {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
         const bull  = C >= O;
-        const col   = bull ? '#22d3a5' : '#e05555';
+        const col   = bull ? 'var(--green)' : 'var(--color-down)';
         const bodyY = py(Math.max(O, C));
         const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
         return (
@@ -210,18 +210,18 @@ function MSSChart() {
       <text
         x="53" y={py(152)}
         textAnchor="middle" fontFamily="'Space Mono', monospace"
-        fontSize="5.5" fill="#e05555" opacity="0.85"
+        fontSize="5.5" fill="var(--color-down)" opacity="0.85"
       >LH</text>
 
       {/* MSS label at the breakout candle */}
       <text
         x="108" y="11"
         textAnchor="middle" fontFamily="'Space Mono', monospace"
-        fontSize="5.5" fill="#22d3a5" opacity="0.9"
+        fontSize="5.5" fill="var(--green)" opacity="0.9"
       >↑ MSS</text>
 
       {/* Small tick line from label to candle */}
-      <line x1="108" y1="13" x2="108" y2="17" stroke="#22d3a5" strokeWidth="0.6" opacity="0.4" />
+      <line x1="108" y1="13" x2="108" y2="17" stroke="var(--green)" strokeWidth="0.6" opacity="0.4" />
 
       {/* Watermark */}
       <text
@@ -265,7 +265,7 @@ function OrderBlockChart() {
 
   return (
     <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
-      <rect width="188" height="158" fill="#060b10" rx="8" />
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
 
       {/* Grid */}
       {[40, 65, 90, 115, 140].map(y => (
@@ -273,14 +273,14 @@ function OrderBlockChart() {
       ))}
 
       {/* OB zone — from just before the OB candle to right edge */}
-      <rect x="48" y={obTopY} width="134" height={obBotY - obTopY} fill="#f5c84218" />
-      <line x1="48" y1={obTopY} x2="182" y2={obTopY} stroke="#f5c842" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.6" />
-      <line x1="48" y1={obBotY} x2="182" y2={obBotY} stroke="#f5c842" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.6" />
+      <rect x="48" y={obTopY} width="134" height={obBotY - obTopY} fill="var(--color-neutral)18" />
+      <line x1="48" y1={obTopY} x2="182" y2={obTopY} stroke="var(--color-neutral)" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.6" />
+      <line x1="48" y1={obBotY} x2="182" y2={obBotY} stroke="var(--color-neutral)" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.6" />
 
       {/* Candles */}
       {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
         const bull  = C >= O;
-        const col   = bull ? '#22d3a5' : '#e05555';
+        const col   = bull ? 'var(--green)' : 'var(--color-down)';
         const bodyY = py(Math.max(O, C));
         const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
         return (
@@ -295,24 +295,24 @@ function OrderBlockChart() {
       <text
         x="54" y="11"
         textAnchor="middle" fontFamily="'Space Mono', monospace"
-        fontSize="5.5" fill="#f5c842" opacity="0.9"
+        fontSize="5.5" fill="var(--color-neutral)" opacity="0.9"
       >OB ↓</text>
-      <line x1="54" y1="13" x2="54" y2="17" stroke="#f5c842" strokeWidth="0.6" opacity="0.35" />
+      <line x1="54" y1="13" x2="54" y2="17" stroke="var(--color-neutral)" strokeWidth="0.6" opacity="0.35" />
 
       {/* OB label inside the zone on the right */}
       <text
         x="182" y={(obTopY + obBotY) / 2 + 3.5}
         textAnchor="end" fontFamily="'Space Mono', monospace"
-        fontSize="8" fontWeight="bold" fill="#f5c842" opacity="0.9"
+        fontSize="8" fontWeight="bold" fill="var(--color-neutral)" opacity="0.9"
       >OB</text>
 
       {/* Reaction label above the bounce candle */}
       <text
         x="163" y="11"
         textAnchor="middle" fontFamily="'Space Mono', monospace"
-        fontSize="5.5" fill="#22d3a5" opacity="0.9"
+        fontSize="5.5" fill="var(--green)" opacity="0.9"
       >↑ reacción</text>
-      <line x1="163" y1="13" x2="163" y2="17" stroke="#22d3a5" strokeWidth="0.6" opacity="0.4" />
+      <line x1="163" y1="13" x2="163" y2="17" stroke="var(--green)" strokeWidth="0.6" opacity="0.4" />
 
       {/* Watermark */}
       <text
@@ -350,7 +350,7 @@ function DailyBiasChart() {
 
   return (
     <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
-      <rect width="188" height="158" fill="#060b10" rx="8" />
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
 
       {/* Grid */}
       {[40, 65, 90, 115].map(y => (
@@ -358,24 +358,24 @@ function DailyBiasChart() {
       ))}
 
       {/* Today section tint */}
-      <rect x="80" y="14" width="104" height="124" fill="#22d3a508" rx="2" />
+      <rect x="80" y="14" width="104" height="124" fill="var(--green)08" rx="2" />
 
       {/* Vertical separator */}
       <line x1="79" y1="14" x2="79" y2="138" stroke="#1e2530" strokeWidth="0.8" strokeDasharray="3 2" />
 
       {/* Section labels */}
       <text x="41"  y="10" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#2a3345"  letterSpacing="0.12em">PREV DAY</text>
-      <text x="133" y="10" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#22d3a5" letterSpacing="0.12em" opacity="0.75">TODAY</text>
+      <text x="133" y="10" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--green)" letterSpacing="0.12em" opacity="0.75">TODAY</text>
 
       {/* PDC carry-over line from prev day close */}
       <line x1="70" y1={py(136)} x2="182" y2={py(136)}
-        stroke="#22d3a5" strokeWidth="0.7" strokeDasharray="3 2" opacity="0.2" />
-      <text x="181" y={py(136) - 2.5} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#22d3a5" opacity="0.35">PDC</text>
+        stroke="var(--green)" strokeWidth="0.7" strokeDasharray="3 2" opacity="0.2" />
+      <text x="181" y={py(136) - 2.5} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="4.5" fill="var(--green)" opacity="0.35">PDC</text>
 
       {/* Prev day candles */}
       {prevDay.map(({ x, O, H, L, C, bw = 8 }, i) => {
         const bull  = C >= O;
-        const col   = bull ? '#22d3a5' : '#e05555';
+        const col   = bull ? 'var(--green)' : 'var(--color-down)';
         const bodyY = py(Math.max(O, C));
         const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
         return (
@@ -389,7 +389,7 @@ function DailyBiasChart() {
       {/* Today candles */}
       {today.map(({ x, O, H, L, C, bw = 8 }, i) => {
         const bull  = C >= O;
-        const col   = bull ? '#22d3a5' : '#e05555';
+        const col   = bull ? 'var(--green)' : 'var(--color-down)';
         const bodyY = py(Math.max(O, C));
         const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
         return (
@@ -402,11 +402,11 @@ function DailyBiasChart() {
 
       {/* Bias direction — dashed diagonal from pullback low to final close */}
       <line x1="82" y1={py(128)} x2="176" y2={py(154)}
-        stroke="#22d3a5" strokeWidth="1.2" strokeDasharray="5 3" opacity="0.28" />
+        stroke="var(--green)" strokeWidth="1.2" strokeDasharray="5 3" opacity="0.28" />
 
       {/* BULLISH BIAS badge */}
-      <rect x="83" y="139" width="96" height="11" fill="#22d3a514" rx="2.5" />
-      <text x="131" y="147.5" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="6.5" fill="#22d3a5" letterSpacing="0.1em" opacity="0.85">BULLISH BIAS ↑</text>
+      <rect x="83" y="139" width="96" height="11" fill="var(--green)14" rx="2.5" />
+      <text x="131" y="147.5" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="6.5" fill="var(--green)" letterSpacing="0.1em" opacity="0.85">BULLISH BIAS ↑</text>
 
       {/* Watermark */}
       <text x="6" y="154" fontFamily="'Space Mono', monospace" fontSize="5" fill="#172030" letterSpacing="0.1em">DAILY BIAS</text>
@@ -444,23 +444,23 @@ function PremiumDiscountChart() {
 
   return (
     <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
-      <rect width="188" height="158" fill="#060b10" rx="8" />
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
 
       {/* Zone fills */}
-      <rect x="4" y={shY} width="180" height={eqY - shY} fill="#e0555510" />
-      <rect x="4" y={eqY} width="180" height={slY - eqY} fill="#22d3a50e" />
+      <rect x="4" y={shY} width="180" height={eqY - shY} fill="var(--color-down)10" />
+      <rect x="4" y={eqY} width="180" height={slY - eqY} fill="var(--green)0e" />
 
       {/* SH / SL boundary lines */}
-      <line x1="4" y1={shY} x2="184" y2={shY} stroke="#e05555" strokeWidth="0.7" strokeDasharray="4 2" opacity="0.35" />
-      <line x1="4" y1={slY} x2="184" y2={slY} stroke="#22d3a5" strokeWidth="0.7" strokeDasharray="4 2" opacity="0.35" />
+      <line x1="4" y1={shY} x2="184" y2={shY} stroke="var(--color-down)" strokeWidth="0.7" strokeDasharray="4 2" opacity="0.35" />
+      <line x1="4" y1={slY} x2="184" y2={slY} stroke="var(--green)" strokeWidth="0.7" strokeDasharray="4 2" opacity="0.35" />
 
       {/* EQ 50% — main divider */}
-      <line x1="4" y1={eqY} x2="184" y2={eqY} stroke="#f5c842" strokeWidth="1.2" strokeDasharray="6 3" opacity="0.65" />
+      <line x1="4" y1={eqY} x2="184" y2={eqY} stroke="var(--color-neutral)" strokeWidth="1.2" strokeDasharray="6 3" opacity="0.65" />
 
       {/* Candles */}
       {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
         const bull  = C >= O;
-        const col   = bull ? '#22d3a5' : '#e05555';
+        const col   = bull ? 'var(--green)' : 'var(--color-down)';
         const bodyY = py(Math.max(O, C));
         const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
         return (
@@ -472,23 +472,23 @@ function PremiumDiscountChart() {
       })}
 
       {/* Zone labels */}
-      <text x="8" y={shY + 14} fontFamily="'Space Mono', monospace" fontSize="7.5" fill="#e05555" letterSpacing="0.06em" opacity="0.75">PREMIUM</text>
-      <text x="8" y={eqY + 14} fontFamily="'Space Mono', monospace" fontSize="7.5" fill="#22d3a5" letterSpacing="0.06em" opacity="0.75">DISCOUNT</text>
+      <text x="8" y={shY + 14} fontFamily="'Space Mono', monospace" fontSize="7.5" fill="var(--color-down)" letterSpacing="0.06em" opacity="0.75">PREMIUM</text>
+      <text x="8" y={eqY + 14} fontFamily="'Space Mono', monospace" fontSize="7.5" fill="var(--green)" letterSpacing="0.06em" opacity="0.75">DISCOUNT</text>
 
       {/* ↓ SELL annotation above SH candle */}
-      <text x="66" y="11" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#e05555" opacity="0.9">↓ SELL</text>
-      <line x1="66" y1="13" x2="66" y2="17" stroke="#e05555" strokeWidth="0.6" opacity="0.4" />
+      <text x="66" y="11" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-down)" opacity="0.9">↓ SELL</text>
+      <line x1="66" y1="13" x2="66" y2="17" stroke="var(--color-down)" strokeWidth="0.6" opacity="0.4" />
 
       {/* ↑ BUY annotation below deep-discount candles */}
-      <text x="138" y={slY - 6} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#22d3a5" opacity="0.9">↑ BUY</text>
-      <line x1="138" y1={slY - 14} x2="138" y2={slY - 11} stroke="#22d3a5" strokeWidth="0.6" opacity="0.4" />
+      <text x="138" y={slY - 6} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--green)" opacity="0.9">↑ BUY</text>
+      <line x1="138" y1={slY - 14} x2="138" y2={slY - 11} stroke="var(--green)" strokeWidth="0.6" opacity="0.4" />
 
       {/* EQ label */}
-      <text x="183" y={eqY - 3} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#f5c842" opacity="0.85">EQ 50%</text>
+      <text x="183" y={eqY - 3} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-neutral)" opacity="0.85">EQ 50%</text>
 
       {/* SH / SL tiny labels */}
-      <text x="183" y={shY + 5.5} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="5" fill="#e05555" opacity="0.45">SH</text>
-      <text x="183" y={slY - 2.5} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="5" fill="#22d3a5" opacity="0.45">SL</text>
+      <text x="183" y={shY + 5.5} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="5" fill="var(--color-down)" opacity="0.45">SH</text>
+      <text x="183" y={slY - 2.5} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="5" fill="var(--green)" opacity="0.45">SL</text>
 
       {/* Watermark */}
       <text x="6" y="154" fontFamily="'Space Mono', monospace" fontSize="5" fill="#172030" letterSpacing="0.1em">PREMIUM &amp; DISCOUNT</text>
@@ -526,7 +526,7 @@ function BuysideLiquidityChart() {
 
   return (
     <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
-      <rect width="188" height="158" fill="#060b10" rx="8" />
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
 
       {/* Grid */}
       {[40, 65, 90, 115, 140].map(y => (
@@ -542,7 +542,7 @@ function BuysideLiquidityChart() {
       {/* Candles */}
       {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
         const bull  = C >= O;
-        const col   = bull ? '#22d3a5' : '#e05555';
+        const col   = bull ? 'var(--green)' : 'var(--color-down)';
         const bodyY = py(Math.max(O, C));
         const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
         return (
@@ -560,12 +560,12 @@ function BuysideLiquidityChart() {
       <text x="182" y={bslY + 5.5} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="8" fontWeight="bold" fill="#378ADD" opacity="0.9">BSL</text>
 
       {/* Sweep annotation above sweep candle */}
-      <text x="118" y="9" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#f5c842" opacity="0.9">↑ sweep</text>
-      <line x1="118" y1="11" x2="118" y2="15" stroke="#f5c842" strokeWidth="0.6" opacity="0.4" />
+      <text x="118" y="9" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-neutral)" opacity="0.9">↑ sweep</text>
+      <line x1="118" y1="11" x2="118" y2="15" stroke="var(--color-neutral)" strokeWidth="0.6" opacity="0.4" />
 
       {/* Reversal annotation above reversal candles */}
-      <text x="144" y="9" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#e05555" opacity="0.9">↓ reversal</text>
-      <line x1="144" y1="11" x2="144" y2="15" stroke="#e05555" strokeWidth="0.6" opacity="0.4" />
+      <text x="144" y="9" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-down)" opacity="0.9">↓ reversal</text>
+      <line x1="144" y1="11" x2="144" y2="15" stroke="var(--color-down)" strokeWidth="0.6" opacity="0.4" />
 
       {/* Watermark */}
       <text x="6" y="154" fontFamily="'Space Mono', monospace" fontSize="5" fill="#172030" letterSpacing="0.1em">BUY-SIDE LIQUIDITY</text>
@@ -603,7 +603,7 @@ function SellsideLiquidityChart() {
 
   return (
     <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
-      <rect width="188" height="158" fill="#060b10" rx="8" />
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
 
       {/* Grid */}
       {[40, 65, 90, 115, 140].map(y => (
@@ -611,15 +611,15 @@ function SellsideLiquidityChart() {
       ))}
 
       {/* Liquidity pool shading below SSL */}
-      <rect x="4" y={sslY} width="180" height="15" fill="#f5c8420c" />
+      <rect x="4" y={sslY} width="180" height="15" fill="var(--color-neutral)0c" />
 
       {/* SSL level line */}
-      <line x1="4" y1={sslY} x2="182" y2={sslY} stroke="#f5c842" strokeWidth="1" strokeDasharray="4 2.5" opacity="0.65" />
+      <line x1="4" y1={sslY} x2="182" y2={sslY} stroke="var(--color-neutral)" strokeWidth="1" strokeDasharray="4 2.5" opacity="0.65" />
 
       {/* Candles */}
       {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
         const bull  = C >= O;
-        const col   = bull ? '#22d3a5' : '#e05555';
+        const col   = bull ? 'var(--green)' : 'var(--color-down)';
         const bodyY = py(Math.max(O, C));
         const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
         return (
@@ -631,18 +631,18 @@ function SellsideLiquidityChart() {
       })}
 
       {/* "stops below" label inside the liquidity zone */}
-      <text x="8" y={sslY + 11} fontFamily="'Space Mono', monospace" fontSize="4.8" fill="#f5c842" opacity="0.55" letterSpacing="0.08em">stops below</text>
+      <text x="8" y={sslY + 11} fontFamily="'Space Mono', monospace" fontSize="4.8" fill="var(--color-neutral)" opacity="0.55" letterSpacing="0.08em">stops below</text>
 
       {/* SSL label — right side */}
-      <text x="182" y={sslY - 3} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="8" fontWeight="bold" fill="#f5c842" opacity="0.9">SSL</text>
+      <text x="182" y={sslY - 3} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="8" fontWeight="bold" fill="var(--color-neutral)" opacity="0.9">SSL</text>
 
       {/* Sweep annotation above sweep candle */}
-      <text x="118" y="9" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#f5c842" opacity="0.9">↓ sweep</text>
-      <line x1="118" y1="11" x2="118" y2="15" stroke="#f5c842" strokeWidth="0.6" opacity="0.4" />
+      <text x="118" y="9" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-neutral)" opacity="0.9">↓ sweep</text>
+      <line x1="118" y1="11" x2="118" y2="15" stroke="var(--color-neutral)" strokeWidth="0.6" opacity="0.4" />
 
       {/* Reversal annotation above reversal candles */}
-      <text x="148" y="9" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#22d3a5" opacity="0.9">↑ reversal</text>
-      <line x1="144" y1="11" x2="144" y2="15" stroke="#22d3a5" strokeWidth="0.6" opacity="0.4" />
+      <text x="148" y="9" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--green)" opacity="0.9">↑ reversal</text>
+      <line x1="144" y1="11" x2="144" y2="15" stroke="var(--green)" strokeWidth="0.6" opacity="0.4" />
 
       {/* Watermark */}
       <text x="6" y="154" fontFamily="'Space Mono', monospace" fontSize="5" fill="#172030" letterSpacing="0.1em">SELL-SIDE LIQUIDITY</text>
@@ -680,7 +680,7 @@ function LiquiditySweepChart() {
 
   return (
     <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
-      <rect width="188" height="158" fill="#060b10" rx="8" />
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
 
       {/* Grid */}
       {[40, 65, 90, 115, 140].map(y => (
@@ -688,16 +688,16 @@ function LiquiditySweepChart() {
       ))}
 
       {/* Liquidity pool shading above sweep level */}
-      <rect x="50" y={sweepY - 18} width="56" height="18" fill="#f5c84210" />
+      <rect x="50" y={sweepY - 18} width="56" height="18" fill="var(--color-neutral)10" />
 
       {/* Sweep level — yellow before break, faint red after (held as resistance) */}
-      <line x1="50" y1={sweepY} x2="103" y2={sweepY} stroke="#f5c842" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.65" />
-      <line x1="103" y1={sweepY} x2="182" y2={sweepY} stroke="#e05555" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.28" />
+      <line x1="50" y1={sweepY} x2="103" y2={sweepY} stroke="var(--color-neutral)" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.65" />
+      <line x1="103" y1={sweepY} x2="182" y2={sweepY} stroke="var(--color-down)" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.28" />
 
       {/* Candles */}
       {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
         const bull  = C >= O;
-        const col   = bull ? '#22d3a5' : '#e05555';
+        const col   = bull ? 'var(--green)' : 'var(--color-down)';
         const bodyY = py(Math.max(O, C));
         const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
         return (
@@ -709,21 +709,21 @@ function LiquiditySweepChart() {
       })}
 
       {/* "stops above" label inside liquidity zone */}
-      <text x="76" y={sweepY - 6} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#f5c842" opacity="0.5" letterSpacing="0.06em">stops above</text>
+      <text x="76" y={sweepY - 6} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="4.5" fill="var(--color-neutral)" opacity="0.5" letterSpacing="0.06em">stops above</text>
 
       {/* SH label above swing-high candle */}
-      <text x="53" y={py(160)} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#f5c842" opacity="0.8">SH</text>
+      <text x="53" y={py(160)} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-neutral)" opacity="0.8">SH</text>
 
       {/* ↑ sweep annotation above sweep candle wick */}
-      <text x="106" y="9" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#f5c842" opacity="0.9">↑ sweep</text>
-      <line x1="106" y1="11" x2="106" y2="15" stroke="#f5c842" strokeWidth="0.6" opacity="0.4" />
+      <text x="106" y="9" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-neutral)" opacity="0.9">↑ sweep</text>
+      <line x1="106" y1="11" x2="106" y2="15" stroke="var(--color-neutral)" strokeWidth="0.6" opacity="0.4" />
 
       {/* ↓ reversal annotation */}
-      <text x="134" y="9" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#e05555" opacity="0.9">↓ reversal</text>
-      <line x1="120" y1="11" x2="120" y2="15" stroke="#e05555" strokeWidth="0.6" opacity="0.4" />
+      <text x="134" y="9" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-down)" opacity="0.9">↓ reversal</text>
+      <line x1="120" y1="11" x2="120" y2="15" stroke="var(--color-down)" strokeWidth="0.6" opacity="0.4" />
 
       {/* BSL label — right side */}
-      <text x="182" y={sweepY + 5.5} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="8" fontWeight="bold" fill="#f5c842" opacity="0.9">BSL</text>
+      <text x="182" y={sweepY + 5.5} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="8" fontWeight="bold" fill="var(--color-neutral)" opacity="0.9">BSL</text>
 
       {/* Watermark */}
       <text x="6" y="154" fontFamily="'Space Mono', monospace" fontSize="5" fill="#172030" letterSpacing="0.1em">LIQUIDITY SWEEP</text>
@@ -754,7 +754,7 @@ function BOSChart() {
 
   return (
     <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
-      <rect width="188" height="158" fill="#060b10" rx="8" />
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
 
       {/* Grid */}
       {[40, 65, 90, 115, 140].map(y => (
@@ -762,13 +762,13 @@ function BOSChart() {
       ))}
 
       {/* Prior HH level — resistance until break, then flips to support */}
-      <line x1="36" y1={bosY} x2="91" y2={bosY} stroke="#e05555" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.65" />
-      <line x1="91" y1={bosY} x2="182" y2={bosY} stroke="#22d3a5" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.25" />
+      <line x1="36" y1={bosY} x2="91" y2={bosY} stroke="var(--color-down)" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.65" />
+      <line x1="91" y1={bosY} x2="182" y2={bosY} stroke="var(--green)" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.25" />
 
       {/* Candles */}
       {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
         const bull  = C >= O;
-        const col   = bull ? '#22d3a5' : '#e05555';
+        const col   = bull ? 'var(--green)' : 'var(--color-down)';
         const bodyY = py(Math.max(O, C));
         const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
         return (
@@ -783,30 +783,30 @@ function BOSChart() {
       <text
         x="40" y={py(142)}
         textAnchor="middle" fontFamily="'Space Mono', monospace"
-        fontSize="5.5" fill="#e05555" opacity="0.8"
+        fontSize="5.5" fill="var(--color-down)" opacity="0.8"
       >HH</text>
 
       {/* HL label below pullback candle */}
       <text
         x="53" y={py(128) + 1}
         textAnchor="middle" fontFamily="'Space Mono', monospace"
-        fontSize="5.5" fill="#22d3a5" opacity="0.7"
+        fontSize="5.5" fill="var(--green)" opacity="0.7"
       >HL</text>
 
       {/* Prior HH label just before BOS candle */}
       <text
         x="90" y={bosY - 3}
         textAnchor="end" fontFamily="'Space Mono', monospace"
-        fontSize="4.8" fill="#e05555" opacity="0.55"
+        fontSize="4.8" fill="var(--color-down)" opacity="0.55"
       >prior HH</text>
 
       {/* ↑ BOS annotation above breakout candle */}
       <text
         x="94" y="11"
         textAnchor="middle" fontFamily="'Space Mono', monospace"
-        fontSize="5.5" fill="#22d3a5" opacity="0.9"
+        fontSize="5.5" fill="var(--green)" opacity="0.9"
       >↑ BOS</text>
-      <line x1="94" y1="13" x2="94" y2="17" stroke="#22d3a5" strokeWidth="0.6" opacity="0.4" />
+      <line x1="94" y1="13" x2="94" y2="17" stroke="var(--green)" strokeWidth="0.6" opacity="0.4" />
 
       {/* Watermark */}
       <text
@@ -843,7 +843,7 @@ function CHoCHChart() {
 
   return (
     <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
-      <rect width="188" height="158" fill="#060b10" rx="8" />
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
 
       {/* Grid */}
       {[40, 65, 90, 115, 140].map(y => (
@@ -851,13 +851,13 @@ function CHoCHChart() {
       ))}
 
       {/* CHoCH level (LH2) — resistance before break, then flips support */}
-      <line x1="45" y1={chochY} x2="124" y2={chochY} stroke="#e05555" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.65" />
-      <line x1="124" y1={chochY} x2="182" y2={chochY} stroke="#22d3a5" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.25" />
+      <line x1="45" y1={chochY} x2="124" y2={chochY} stroke="var(--color-down)" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.65" />
+      <line x1="124" y1={chochY} x2="182" y2={chochY} stroke="var(--green)" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.25" />
 
       {/* Candles */}
       {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
         const bull  = C >= O;
-        const col   = bull ? '#22d3a5' : '#e05555';
+        const col   = bull ? 'var(--green)' : 'var(--color-down)';
         const bodyY = py(Math.max(O, C));
         const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
         return (
@@ -869,17 +869,17 @@ function CHoCHChart() {
       })}
 
       {/* LH1 */}
-      <text x="10" y={py(160)} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#e05555" opacity="0.75">LH1</text>
+      <text x="10" y={py(160)} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-down)" opacity="0.75">LH1</text>
 
       {/* LH2 / CHoCH level label */}
-      <text x="47" y={chochY - 3} textAnchor="start" fontFamily="'Space Mono', monospace" fontSize="4.8" fill="#e05555" opacity="0.6">LH2 · CHoCH</text>
+      <text x="47" y={chochY - 3} textAnchor="start" fontFamily="'Space Mono', monospace" fontSize="4.8" fill="var(--color-down)" opacity="0.6">LH2 · CHoCH</text>
 
       {/* LL2 */}
-      <text x="75" y={py(131)} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#22d3a5" opacity="0.7">LL2</text>
+      <text x="75" y={py(131)} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--green)" opacity="0.7">LL2</text>
 
       {/* ↑ CHoCH annotation */}
-      <text x="127" y="11" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#22d3a5" opacity="0.9">↑ CHoCH</text>
-      <line x1="127" y1="13" x2="127" y2="17" stroke="#22d3a5" strokeWidth="0.6" opacity="0.4" />
+      <text x="127" y="11" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--green)" opacity="0.9">↑ CHoCH</text>
+      <line x1="127" y1="13" x2="127" y2="17" stroke="var(--green)" strokeWidth="0.6" opacity="0.4" />
 
       {/* Watermark */}
       <text x="6" y="154" fontFamily="'Space Mono', monospace" fontSize="5" fill="#172030" letterSpacing="0.1em">CHANGE OF CHARACTER</text>
@@ -922,7 +922,7 @@ function OTEChart() {
 
   return (
     <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
-      <rect width="188" height="158" fill="#060b10" rx="8" />
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
 
       {/* Grid */}
       {[40, 65, 90, 115, 140].map(y => (
@@ -930,27 +930,27 @@ function OTEChart() {
       ))}
 
       {/* SH / SL reference lines — extend from left to just after the swing candles */}
-      <line x1="4" y1={shY} x2="83" y2={shY} stroke="#f5c842" strokeWidth="0.6" strokeDasharray="3 2" opacity="0.3" />
-      <line x1="4" y1={slY} x2="83" y2={slY} stroke="#f5c842" strokeWidth="0.6" strokeDasharray="3 2" opacity="0.3" />
+      <line x1="4" y1={shY} x2="83" y2={shY} stroke="var(--color-neutral)" strokeWidth="0.6" strokeDasharray="3 2" opacity="0.3" />
+      <line x1="4" y1={slY} x2="83" y2={slY} stroke="var(--color-neutral)" strokeWidth="0.6" strokeDasharray="3 2" opacity="0.3" />
 
       {/* Fibonacci bracket: vertical spine + tick marks on the left */}
-      <line x1="6" y1={shY} x2="6" y2={slY} stroke="#f5c842" strokeWidth="0.5" opacity="0.2" />
-      <line x1="4" y1={shY}     x2="9" y2={shY}     stroke="#f5c842" strokeWidth="0.8" opacity="0.4" />
-      <line x1="4" y1={oteTopY} x2="9" y2={oteTopY} stroke="#22d3a5" strokeWidth="0.8" opacity="0.55" />
-      <line x1="4" y1={oteBotY} x2="9" y2={oteBotY} stroke="#22d3a5" strokeWidth="0.8" opacity="0.55" />
-      <line x1="4" y1={slY}     x2="9" y2={slY}     stroke="#f5c842" strokeWidth="0.8" opacity="0.4" />
+      <line x1="6" y1={shY} x2="6" y2={slY} stroke="var(--color-neutral)" strokeWidth="0.5" opacity="0.2" />
+      <line x1="4" y1={shY}     x2="9" y2={shY}     stroke="var(--color-neutral)" strokeWidth="0.8" opacity="0.4" />
+      <line x1="4" y1={oteTopY} x2="9" y2={oteTopY} stroke="var(--green)" strokeWidth="0.8" opacity="0.55" />
+      <line x1="4" y1={oteBotY} x2="9" y2={oteBotY} stroke="var(--green)" strokeWidth="0.8" opacity="0.55" />
+      <line x1="4" y1={slY}     x2="9" y2={slY}     stroke="var(--color-neutral)" strokeWidth="0.8" opacity="0.4" />
 
       {/* OTE zone fill */}
-      <rect x="4" y={oteTopY} width="180" height={oteBotY - oteTopY} fill="#22d3a514" />
+      <rect x="4" y={oteTopY} width="180" height={oteBotY - oteTopY} fill="var(--green)14" />
 
       {/* OTE zone borders */}
-      <line x1="4" y1={oteTopY} x2="184" y2={oteTopY} stroke="#22d3a5" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.6" />
-      <line x1="4" y1={oteBotY} x2="184" y2={oteBotY} stroke="#22d3a5" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.6" />
+      <line x1="4" y1={oteTopY} x2="184" y2={oteTopY} stroke="var(--green)" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.6" />
+      <line x1="4" y1={oteBotY} x2="184" y2={oteBotY} stroke="var(--green)" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.6" />
 
       {/* Candles */}
       {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
         const bull  = C >= O;
-        const col   = bull ? '#22d3a5' : '#e05555';
+        const col   = bull ? 'var(--green)' : 'var(--color-down)';
         const bodyY = py(Math.max(O, C));
         const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
         return (
@@ -962,27 +962,27 @@ function OTEChart() {
       })}
 
       {/* SL label */}
-      <text x="28" y={slY + 9} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#f5c842" opacity="0.75">SL</text>
+      <text x="28" y={slY + 9} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-neutral)" opacity="0.75">SL</text>
 
       {/* SH label */}
-      <text x="72" y={shY - 3} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#f5c842" opacity="0.75">SH</text>
+      <text x="72" y={shY - 3} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-neutral)" opacity="0.75">SH</text>
 
       {/* Fib labels — right edge */}
-      <text x="183" y={shY + 4}     textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="4.8" fill="#f5c842" opacity="0.45">0%</text>
-      <text x="183" y={oteTopY + 4} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="4.8" fill="#22d3a5" opacity="0.85">61.8%</text>
-      <text x="183" y={oteBotY + 4} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="4.8" fill="#22d3a5" opacity="0.85">79%</text>
-      <text x="183" y={slY + 4}     textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="4.8" fill="#f5c842" opacity="0.45">100%</text>
+      <text x="183" y={shY + 4}     textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="4.8" fill="var(--color-neutral)" opacity="0.45">0%</text>
+      <text x="183" y={oteTopY + 4} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="4.8" fill="var(--green)" opacity="0.85">61.8%</text>
+      <text x="183" y={oteBotY + 4} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="4.8" fill="var(--green)" opacity="0.85">79%</text>
+      <text x="183" y={slY + 4}     textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="4.8" fill="var(--color-neutral)" opacity="0.45">100%</text>
 
       {/* OTE label centred in zone */}
       <text
         x="13" y={(oteTopY + oteBotY) / 2 + 3.5}
         fontFamily="'Space Mono', monospace"
-        fontSize="8" fontWeight="bold" fill="#22d3a5" opacity="0.9"
+        fontSize="8" fontWeight="bold" fill="var(--green)" opacity="0.9"
       >OTE</text>
 
       {/* ↑ entry annotation */}
-      <text x="139" y="11" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#22d3a5" opacity="0.9">↑ entry</text>
-      <line x1="139" y1="13" x2="139" y2="17" stroke="#22d3a5" strokeWidth="0.6" opacity="0.4" />
+      <text x="139" y="11" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--green)" opacity="0.9">↑ entry</text>
+      <line x1="139" y1="13" x2="139" y2="17" stroke="var(--green)" strokeWidth="0.6" opacity="0.4" />
 
       {/* Watermark */}
       <text x="6" y="154" fontFamily="'Space Mono', monospace" fontSize="5" fill="#172030" letterSpacing="0.1em">OTE · OPTIMAL TRADE ENTRY</text>
@@ -1016,7 +1016,7 @@ function SmartMoneyChart() {
 
   return (
     <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
-      <rect width="188" height="158" fill="#060b10" rx="8" />
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
 
       {/* Grid */}
       {[40, 65, 90, 115, 140].map(y => (
@@ -1025,17 +1025,17 @@ function SmartMoneyChart() {
 
       {/* Equal lows — sell-side liquidity */}
       <line x1="35" y1={eqLowY} x2="88" y2={eqLowY}
-        stroke="#f5c842" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.7" />
+        stroke="var(--color-neutral)" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.7" />
 
       {/* Sweep zone */}
-      <rect x="86" y={eqLowY} width="15" height={swpY - eqLowY} fill="#f054540e" />
-      <line x1="86" y1={eqLowY}  x2="101" y2={eqLowY}  stroke="#f05454" strokeWidth="0.5" opacity="0.35" />
-      <line x1="86" y1={swpY}    x2="101" y2={swpY}    stroke="#f05454" strokeWidth="0.5" opacity="0.35" />
+      <rect x="86" y={eqLowY} width="15" height={swpY - eqLowY} fill="var(--color-down)0e" />
+      <line x1="86" y1={eqLowY}  x2="101" y2={eqLowY}  stroke="var(--color-down)" strokeWidth="0.5" opacity="0.35" />
+      <line x1="86" y1={swpY}    x2="101" y2={swpY}    stroke="var(--color-down)" strokeWidth="0.5" opacity="0.35" />
 
       {/* Candles */}
       {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
         const bull  = C >= O;
-        const col   = bull ? '#22d3a5' : '#e05555';
+        const col   = bull ? 'var(--green)' : 'var(--color-down)';
         const bodyY = py(Math.max(O, C));
         const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
         return (
@@ -1049,15 +1049,15 @@ function SmartMoneyChart() {
       {/* Labels */}
       <text x="62" y={eqLowY - 4}
         textAnchor="middle" fontFamily="'Space Mono', monospace"
-        fontSize="4.8" fill="#f5c842" opacity="0.8">sell-side liq.</text>
+        fontSize="4.8" fill="var(--color-neutral)" opacity="0.8">sell-side liq.</text>
 
       <text x="93" y={swpY + 9}
         textAnchor="middle" fontFamily="'Space Mono', monospace"
-        fontSize="5" fill="#f05454" opacity="0.9">sweep ↓</text>
+        fontSize="5" fill="var(--color-down)" opacity="0.9">sweep ↓</text>
 
       <text x="122" y="10"
         textAnchor="middle" fontFamily="'Space Mono', monospace"
-        fontSize="5" fill="#22d3a5" opacity="0.9">SM entry ↑</text>
+        fontSize="5" fill="var(--green)" opacity="0.9">SM entry ↑</text>
 
       {/* Watermark */}
       <text x="6" y="154"
@@ -1099,7 +1099,7 @@ function SupportChart() {
 
   return (
     <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
-      <rect width="188" height="158" fill="#060b10" rx="8" />
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
 
       {/* Grid */}
       {[40, 65, 90, 115, 140].map(y => (
@@ -1107,15 +1107,15 @@ function SupportChart() {
       ))}
 
       {/* Support zone fill */}
-      <rect x="4" y={supportY} width="180" height="12" fill="#22d3a50d" />
+      <rect x="4" y={supportY} width="180" height="12" fill="var(--green)0d" />
 
       {/* Support level line */}
-      <line x1="4" y1={supportY} x2="182" y2={supportY} stroke="#22d3a5" strokeWidth="1.1" strokeDasharray="4 2.5" opacity="0.65" />
+      <line x1="4" y1={supportY} x2="182" y2={supportY} stroke="var(--green)" strokeWidth="1.1" strokeDasharray="4 2.5" opacity="0.65" />
 
       {/* Candles */}
       {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
         const bull  = C >= O;
-        const col   = bull ? '#22d3a5' : '#e05555';
+        const col   = bull ? 'var(--green)' : 'var(--color-down)';
         const bodyY = py(Math.max(O, C));
         const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
         return (
@@ -1127,18 +1127,18 @@ function SupportChart() {
       })}
 
       {/* Support label — right side */}
-      <text x="182" y={supportY - 3} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="8" fontWeight="bold" fill="#22d3a5" opacity="0.9">SUP</text>
+      <text x="182" y={supportY - 3} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="8" fontWeight="bold" fill="var(--green)" opacity="0.9">SUP</text>
 
       {/* 1st bounce annotation */}
-      <text x="66" y="9" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#22d3a5" opacity="0.9">↑ bounce 1</text>
-      <line x1="66" y1="11" x2="66" y2="15" stroke="#22d3a5" strokeWidth="0.6" opacity="0.4" />
+      <text x="66" y="9" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--green)" opacity="0.9">↑ bounce 1</text>
+      <line x1="66" y1="11" x2="66" y2="15" stroke="var(--green)" strokeWidth="0.6" opacity="0.4" />
 
       {/* 2nd bounce annotation */}
-      <text x="124" y="9" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#22d3a5" opacity="0.9">↑ bounce 2</text>
-      <line x1="118" y1="11" x2="118" y2="15" stroke="#22d3a5" strokeWidth="0.6" opacity="0.4" />
+      <text x="124" y="9" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--green)" opacity="0.9">↑ bounce 2</text>
+      <line x1="118" y1="11" x2="118" y2="15" stroke="var(--green)" strokeWidth="0.6" opacity="0.4" />
 
       {/* "buying pressure" label inside zone */}
-      <text x="8" y={supportY + 10} fontFamily="'Space Mono', monospace" fontSize="4.8" fill="#22d3a5" opacity="0.5" letterSpacing="0.08em">buying pressure</text>
+      <text x="8" y={supportY + 10} fontFamily="'Space Mono', monospace" fontSize="4.8" fill="var(--green)" opacity="0.5" letterSpacing="0.08em">buying pressure</text>
 
       {/* Watermark */}
       <text x="6" y="154" fontFamily="'Space Mono', monospace" fontSize="5" fill="#172030" letterSpacing="0.1em">SUPPORT LEVEL</text>
@@ -1179,7 +1179,7 @@ function ResistanceChart() {
 
   return (
     <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
-      <rect width="188" height="158" fill="#060b10" rx="8" />
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
 
       {/* Grid */}
       {[40, 65, 90, 115, 140].map(y => (
@@ -1187,15 +1187,15 @@ function ResistanceChart() {
       ))}
 
       {/* Resistance zone fill */}
-      <rect x="4" y={resistanceY - 10} width="180" height="10" fill="#e055550d" />
+      <rect x="4" y={resistanceY - 10} width="180" height="10" fill="var(--color-down)0d" />
 
       {/* Resistance level line */}
-      <line x1="4" y1={resistanceY} x2="182" y2={resistanceY} stroke="#e05555" strokeWidth="1.1" strokeDasharray="4 2.5" opacity="0.65" />
+      <line x1="4" y1={resistanceY} x2="182" y2={resistanceY} stroke="var(--color-down)" strokeWidth="1.1" strokeDasharray="4 2.5" opacity="0.65" />
 
       {/* Candles */}
       {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
         const bull  = C >= O;
-        const col   = bull ? '#22d3a5' : '#e05555';
+        const col   = bull ? 'var(--green)' : 'var(--color-down)';
         const bodyY = py(Math.max(O, C));
         const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
         return (
@@ -1207,18 +1207,18 @@ function ResistanceChart() {
       })}
 
       {/* Resistance label — right side */}
-      <text x="182" y={resistanceY - 3} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="8" fontWeight="bold" fill="#e05555" opacity="0.9">RES</text>
+      <text x="182" y={resistanceY - 3} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="8" fontWeight="bold" fill="var(--color-down)" opacity="0.9">RES</text>
 
       {/* 1st rejection annotation */}
-      <text x="59" y={resistanceY + 14} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#e05555" opacity="0.9">↓ reject 1</text>
-      <line x1="59" y1={resistanceY + 1} x2="59" y2={resistanceY + 8} stroke="#e05555" strokeWidth="0.6" opacity="0.4" />
+      <text x="59" y={resistanceY + 14} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-down)" opacity="0.9">↓ reject 1</text>
+      <line x1="59" y1={resistanceY + 1} x2="59" y2={resistanceY + 8} stroke="var(--color-down)" strokeWidth="0.6" opacity="0.4" />
 
       {/* 2nd rejection annotation */}
-      <text x="111" y={resistanceY + 14} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#e05555" opacity="0.9">↓ reject 2</text>
-      <line x1="111" y1={resistanceY + 1} x2="111" y2={resistanceY + 8} stroke="#e05555" strokeWidth="0.6" opacity="0.4" />
+      <text x="111" y={resistanceY + 14} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-down)" opacity="0.9">↓ reject 2</text>
+      <line x1="111" y1={resistanceY + 1} x2="111" y2={resistanceY + 8} stroke="var(--color-down)" strokeWidth="0.6" opacity="0.4" />
 
       {/* "selling pressure" label inside zone */}
-      <text x="8" y={resistanceY - 2} fontFamily="'Space Mono', monospace" fontSize="4.8" fill="#e05555" opacity="0.5" letterSpacing="0.08em">selling pressure</text>
+      <text x="8" y={resistanceY - 2} fontFamily="'Space Mono', monospace" fontSize="4.8" fill="var(--color-down)" opacity="0.5" letterSpacing="0.08em">selling pressure</text>
 
       {/* Watermark */}
       <text x="6" y="154" fontFamily="'Space Mono', monospace" fontSize="5" fill="#172030" letterSpacing="0.1em">RESISTANCE LEVEL</text>
@@ -1236,9 +1236,9 @@ function KillZonesChart() {
 
   const zones = [
     { h1: 1,    h2: 5,  fill: '#6678ff12', stroke: '#6678ff', label: 'Asian',   col: '#6678ff' },
-    { h1: 7,    h2: 10, fill: '#f5c84212', stroke: '#f5c842', label: 'London',  col: '#f5c842' },
-    { h1: 12,   h2: 15, fill: '#22d3a512', stroke: '#22d3a5', label: 'NY Open', col: '#22d3a5' },
-    { h1: 18.5, h2: 21, fill: '#f0545412', stroke: '#f05454', label: 'NY PM',   col: '#f05454' },
+    { h1: 7,    h2: 10, fill: 'var(--color-neutral)12', stroke: 'var(--color-neutral)', label: 'London',  col: 'var(--color-neutral)' },
+    { h1: 12,   h2: 15, fill: 'var(--green)12', stroke: 'var(--green)', label: 'NY Open', col: 'var(--green)' },
+    { h1: 18.5, h2: 21, fill: 'var(--color-down)12', stroke: 'var(--color-down)', label: 'NY PM',   col: 'var(--color-down)' },
   ];
 
   const candles = [
@@ -1258,7 +1258,7 @@ function KillZonesChart() {
 
   return (
     <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
-      <rect width="188" height="158" fill="#060b10" rx="8" />
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
 
       {/* Horizontal grid */}
       {[38, 58, 78, 98, 118].map(y => (
@@ -1276,7 +1276,7 @@ function KillZonesChart() {
       {/* Candles */}
       {candles.map(({ x, O, H, L, C, bw = 7 }, i) => {
         const bull  = C >= O;
-        const col   = bull ? '#22d3a5' : '#e05555';
+        const col   = bull ? 'var(--green)' : 'var(--color-down)';
         const bodyY = py(Math.max(O, C));
         const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
         return (
@@ -1301,11 +1301,11 @@ function KillZonesChart() {
 
       {/* London displacement annotation */}
       <text x={tx(9)} y={py(157)} textAnchor="middle" fontFamily="'Space Mono', monospace"
-        fontSize="4.8" fill="#f5c842" opacity="0.85">↑ disp.</text>
+        fontSize="4.8" fill="var(--color-neutral)" opacity="0.85">↑ disp.</text>
 
       {/* NY Open annotation */}
       <text x={tx(15)} y={py(167)} textAnchor="middle" fontFamily="'Space Mono', monospace"
-        fontSize="4.8" fill="#22d3a5" opacity="0.85">↑ NY</text>
+        fontSize="4.8" fill="var(--green)" opacity="0.85">↑ NY</text>
 
       {/* OTE pullback annotation */}
       <text x={tx(13)} y={py(146) + 7} textAnchor="middle" fontFamily="'Space Mono', monospace"
@@ -1313,7 +1313,7 @@ function KillZonesChart() {
 
       {/* NY PM reversal annotation */}
       <text x={tx(19)} y={py(169)} textAnchor="middle" fontFamily="'Space Mono', monospace"
-        fontSize="4.8" fill="#f05454" opacity="0.85">↓ dist.</text>
+        fontSize="4.8" fill="var(--color-down)" opacity="0.85">↓ dist.</text>
 
       {/* Time axis line */}
       <line x1="6" y1="130" x2="182" y2="130" stroke="#0c1520" strokeWidth="0.7" />
@@ -1373,7 +1373,7 @@ function TrendChart() {
 
   const renderCandles = (list, prefix) => list.map(({ x, O, H, L, C, bw = 8 }, i) => {
     const bull  = C >= O;
-    const col   = bull ? '#22d3a5' : '#e05555';
+    const col   = bull ? 'var(--green)' : 'var(--color-down)';
     const bodyY = py(Math.max(O, C));
     const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
     return (
@@ -1386,11 +1386,11 @@ function TrendChart() {
 
   return (
     <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
-      <rect width="188" height="158" fill="#060b10" rx="8" />
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
 
       {/* Phase tints */}
-      <rect x="4"  y="12" width="90" height="136" fill="#22d3a508" />
-      <rect x="98" y="12" width="86" height="136" fill="#e0555508" />
+      <rect x="4"  y="12" width="90" height="136" fill="var(--green)08" />
+      <rect x="98" y="12" width="86" height="136" fill="var(--color-down)08" />
 
       {/* Grid */}
       {[40, 65, 90, 115, 140].map(y => (
@@ -1401,33 +1401,33 @@ function TrendChart() {
       <line x1="97" y1="14" x2="97" y2="146" stroke="#1e2e40" strokeWidth="1" strokeDasharray="3 3" />
 
       {/* Trend lines */}
-      <line x1={utX1} y1={utY1} x2={utX2} y2={utY2} stroke="#22d3a5" strokeWidth="1.3" strokeDasharray="4 2" opacity="0.75" />
-      <line x1={dtX1} y1={dtY1} x2={dtX2} y2={dtY2} stroke="#e05555" strokeWidth="1.3" strokeDasharray="4 2" opacity="0.75" />
+      <line x1={utX1} y1={utY1} x2={utX2} y2={utY2} stroke="var(--green)" strokeWidth="1.3" strokeDasharray="4 2" opacity="0.75" />
+      <line x1={dtX1} y1={dtY1} x2={dtX2} y2={dtY2} stroke="var(--color-down)" strokeWidth="1.3" strokeDasharray="4 2" opacity="0.75" />
 
       {/* Candles */}
       {renderCandles(upCandles, 'u')}
       {renderCandles(downCandles, 'd')}
 
       {/* HH labels */}
-      <text x="39" y={py(127) - 4} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="#22d3a5" opacity="0.9">HH</text>
-      <text x="65" y={py(132) - 4} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="#22d3a5" opacity="0.9">HH</text>
-      <text x="90" y={py(141) - 4} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="#22d3a5" opacity="0.9">HH</text>
+      <text x="39" y={py(127) - 4} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="var(--green)" opacity="0.9">HH</text>
+      <text x="65" y={py(132) - 4} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="var(--green)" opacity="0.9">HH</text>
+      <text x="90" y={py(141) - 4} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="var(--green)" opacity="0.9">HH</text>
 
       {/* HL labels */}
-      <text x="52" y={py(121) + 9} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#22d3a5" opacity="0.7">HL</text>
-      <text x="78" y={py(126) + 9} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#22d3a5" opacity="0.7">HL</text>
+      <text x="52" y={py(121) + 9} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--green)" opacity="0.7">HL</text>
+      <text x="78" y={py(126) + 9} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--green)" opacity="0.7">HL</text>
 
       {/* LH labels */}
-      <text x="116" y={py(136) - 4} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="#e05555" opacity="0.9">LH</text>
-      <text x="142" y={py(128) - 4} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="#e05555" opacity="0.9">LH</text>
+      <text x="116" y={py(136) - 4} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="var(--color-down)" opacity="0.9">LH</text>
+      <text x="142" y={py(128) - 4} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="var(--color-down)" opacity="0.9">LH</text>
 
       {/* LL labels */}
-      <text x="129" y={py(122) + 9} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#e05555" opacity="0.7">LL</text>
-      <text x="155" y={py(116) + 9} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#e05555" opacity="0.7">LL</text>
+      <text x="129" y={py(122) + 9} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-down)" opacity="0.7">LL</text>
+      <text x="155" y={py(116) + 9} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-down)" opacity="0.7">LL</text>
 
       {/* Section labels */}
-      <text x="48"  y="153" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="6" fill="#22d3a5" opacity="0.5" letterSpacing="0.06em">UPTREND ↑</text>
-      <text x="140" y="153" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="6" fill="#e05555" opacity="0.5" letterSpacing="0.06em">DOWNTREND ↓</text>
+      <text x="48"  y="153" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="6" fill="var(--green)" opacity="0.5" letterSpacing="0.06em">UPTREND ↑</text>
+      <text x="140" y="153" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="6" fill="var(--color-down)" opacity="0.5" letterSpacing="0.06em">DOWNTREND ↓</text>
     </svg>
   );
 }
@@ -1458,7 +1458,7 @@ function DojiChart() {
 
   return (
     <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
-      <rect width="188" height="158" fill="#060b10" rx="8" />
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
 
       {/* Grid */}
       {[40, 65, 90, 115, 140].map(y => (
@@ -1467,7 +1467,7 @@ function DojiChart() {
 
       {/* Doji glow */}
       <rect x={dX - 12} y={topY - 2} width="24" height={botY - topY + 4}
-        fill="#f5c84210" rx="4" />
+        fill="var(--color-neutral)10" rx="4" />
 
       {/* Rally candles */}
       {rally.map(({ x, O, H, L, C }, i) => {
@@ -1475,52 +1475,52 @@ function DojiChart() {
         const bH = Math.max(py(Math.min(O, C)) - bY, 1.5);
         return (
           <g key={i}>
-            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke="#22d3a5" strokeWidth="1" opacity="0.65" />
-            <rect x={x - 4} y={bY} width="8" height={bH} fill="#22d3a5" rx="0.5" opacity="0.85" />
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke="var(--green)" strokeWidth="1" opacity="0.65" />
+            <rect x={x - 4} y={bY} width="8" height={bH} fill="var(--green)" rx="0.5" opacity="0.85" />
           </g>
         );
       })}
 
       {/* Doji wick */}
-      <line x1={dX} y1={topY} x2={dX} y2={botY} stroke="#f5c842" strokeWidth="1.3" opacity="0.95" />
+      <line x1={dX} y1={topY} x2={dX} y2={botY} stroke="var(--color-neutral)" strokeWidth="1.3" opacity="0.95" />
       {/* Doji body (tiny) */}
-      <rect x={dX - 5} y={bodyT} width="10" height={bodyH} fill="#f5c842" rx="0.5" opacity="0.95" />
+      <rect x={dX - 5} y={bodyT} width="10" height={bodyH} fill="var(--color-neutral)" rx="0.5" opacity="0.95" />
 
       {/* DOJI label above candle */}
       <text x={dX} y={topY - 7}
         textAnchor="middle" fontFamily="'Space Mono', monospace"
-        fontSize="6.5" fontWeight="bold" fill="#f5c842" letterSpacing="0.1em">DOJI</text>
+        fontSize="6.5" fontWeight="bold" fill="var(--color-neutral)" letterSpacing="0.1em">DOJI</text>
 
       {/* Annotation: upper wick */}
       <line x1={dX + 8} y1={topY} x2={148} y2={topY}
-        stroke="#f5c842" strokeWidth="0.7" strokeDasharray="2 2" opacity="0.4" />
+        stroke="var(--color-neutral)" strokeWidth="0.7" strokeDasharray="2 2" opacity="0.4" />
       <text x={182} y={topY + 2}
         textAnchor="end" fontFamily="'Space Mono', monospace"
-        fontSize="5.5" fill="#f5c842" opacity="0.7">upper wick</text>
+        fontSize="5.5" fill="var(--color-neutral)" opacity="0.7">upper wick</text>
 
       {/* Annotation: open ≈ close */}
       <line x1={dX + 8} y1={midY} x2={148} y2={midY}
-        stroke="#f5c842" strokeWidth="0.7" strokeDasharray="2 2" opacity="0.4" />
+        stroke="var(--color-neutral)" strokeWidth="0.7" strokeDasharray="2 2" opacity="0.4" />
       <text x={182} y={midY + 2}
         textAnchor="end" fontFamily="'Space Mono', monospace"
-        fontSize="5.5" fill="#f5c842" opacity="0.7">open ≈ close</text>
+        fontSize="5.5" fill="var(--color-neutral)" opacity="0.7">open ≈ close</text>
 
       {/* Annotation: lower wick */}
       <line x1={dX + 8} y1={botY} x2={148} y2={botY}
-        stroke="#f5c842" strokeWidth="0.7" strokeDasharray="2 2" opacity="0.4" />
+        stroke="var(--color-neutral)" strokeWidth="0.7" strokeDasharray="2 2" opacity="0.4" />
       <text x={182} y={botY + 2}
         textAnchor="end" fontFamily="'Space Mono', monospace"
-        fontSize="5.5" fill="#f5c842" opacity="0.7">lower wick</text>
+        fontSize="5.5" fill="var(--color-neutral)" opacity="0.7">lower wick</text>
 
       {/* indecision label below doji */}
       <text x={dX} y={botY + 11}
         textAnchor="middle" fontFamily="'Space Mono', monospace"
-        fontSize="5" fill="#f5c842" opacity="0.45" letterSpacing="0.08em">indecision</text>
+        fontSize="5" fill="var(--color-neutral)" opacity="0.45" letterSpacing="0.08em">indecision</text>
 
       {/* Rally section label */}
       <text x="44" y="153"
         textAnchor="middle" fontFamily="'Space Mono', monospace"
-        fontSize="6" fill="#22d3a5" opacity="0.45" letterSpacing="0.06em">RALLY ↑</text>
+        fontSize="6" fill="var(--green)" opacity="0.45" letterSpacing="0.06em">RALLY ↑</text>
     </svg>
   );
 }
@@ -1569,7 +1569,7 @@ function MACDChart() {
 
   return (
     <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
-      <rect width="188" height="158" fill="#060b10" rx="8" />
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
 
       {/* ── PRICE PANEL ── */}
       {[30, 50, 70, 90].map(y => (
@@ -1579,7 +1579,7 @@ function MACDChart() {
       {/* Candles */}
       {candles.map(({ x, O, H, L, C }, i) => {
         const bull  = C >= O;
-        const col   = bull ? '#22d3a5' : '#e05555';
+        const col   = bull ? 'var(--green)' : 'var(--color-down)';
         const bodyY = py(Math.max(O, C));
         const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
         return (
@@ -1592,11 +1592,11 @@ function MACDChart() {
 
       {/* Crossover vertical guide */}
       <line x1={crossX} y1="14" x2={crossX} y2="92"
-        stroke="#f5c842" strokeWidth="0.7" strokeDasharray="3 2" opacity="0.35" />
+        stroke="var(--color-neutral)" strokeWidth="0.7" strokeDasharray="3 2" opacity="0.35" />
 
       {/* "↑ crossover" annotation */}
       <text x={crossX} y="11" textAnchor="middle"
-        fontFamily="'Space Mono', monospace" fontSize="5" fill="#f5c842" opacity="0.8">↑ cross</text>
+        fontFamily="'Space Mono', monospace" fontSize="5" fill="var(--color-neutral)" opacity="0.8">↑ cross</text>
 
       {/* ── SEPARATOR ── */}
       <line x1="6" y1="97" x2="182" y2="97" stroke="#1e2d3d" strokeWidth="0.8" />
@@ -1612,12 +1612,12 @@ function MACDChart() {
 
       {/* Crossover vertical guide in MACD panel */}
       <line x1={crossX} y1="103" x2={crossX} y2="148"
-        stroke="#f5c842" strokeWidth="0.7" strokeDasharray="3 2" opacity="0.35" />
+        stroke="var(--color-neutral)" strokeWidth="0.7" strokeDasharray="3 2" opacity="0.35" />
 
       {/* Histogram bars */}
       {candles.map(({ x }, i) => {
         const hv  = histVals[i];
-        const col = hv >= 0 ? '#22d3a5' : '#e05555';
+        const col = hv >= 0 ? 'var(--green)' : 'var(--color-down)';
         const barY = hv >= 0 ? my(hv) : zeroY;
         const barH = Math.abs(my(hv) - zeroY);
         return (
@@ -1629,16 +1629,16 @@ function MACDChart() {
       })}
 
       {/* Signal line */}
-      <path d={signalPath} fill="none" stroke="#f5c842" strokeWidth="1.3" opacity="0.85" />
+      <path d={signalPath} fill="none" stroke="var(--color-neutral)" strokeWidth="1.3" opacity="0.85" />
 
       {/* MACD line */}
-      <path d={macdPath} fill="none" stroke="#22d3a5" strokeWidth="1.5" opacity="0.9" />
+      <path d={macdPath} fill="none" stroke="var(--green)" strokeWidth="1.5" opacity="0.9" />
 
       {/* Legend */}
-      <line x1="8"  y1="144" x2="18" y2="144" stroke="#22d3a5" strokeWidth="1.5" opacity="0.9" />
-      <text x="20" y="147" fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#22d3a5" opacity="0.8">MACD</text>
-      <line x1="48" y1="144" x2="58" y2="144" stroke="#f5c842" strokeWidth="1.3" opacity="0.85" />
-      <text x="60" y="147" fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#f5c842" opacity="0.8">Signal</text>
+      <line x1="8"  y1="144" x2="18" y2="144" stroke="var(--green)" strokeWidth="1.5" opacity="0.9" />
+      <text x="20" y="147" fontFamily="'Space Mono', monospace" fontSize="4.5" fill="var(--green)" opacity="0.8">MACD</text>
+      <line x1="48" y1="144" x2="58" y2="144" stroke="var(--color-neutral)" strokeWidth="1.3" opacity="0.85" />
+      <text x="60" y="147" fontFamily="'Space Mono', monospace" fontSize="4.5" fill="var(--color-neutral)" opacity="0.8">Signal</text>
 
       {/* Watermark */}
       <text x="182" y="154" textAnchor="end" fontFamily="'Space Mono', monospace"
@@ -1678,7 +1678,7 @@ function VolumeChart() {
 
   return (
     <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
-      <rect width="188" height="158" fill="#060b10" rx="8" />
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
 
       {/* ── PRICE PANEL ── */}
       {[30, 50, 70, 90].map(y => (
@@ -1687,16 +1687,16 @@ function VolumeChart() {
 
       {/* Resistance level — splits before/after breakout */}
       <line x1="4" y1={py(135)} x2="78" y2={py(135)}
-        stroke="#f5c842" strokeWidth="0.9" strokeDasharray="4 2" opacity="0.55" />
+        stroke="var(--color-neutral)" strokeWidth="0.9" strokeDasharray="4 2" opacity="0.55" />
       <line x1="88" y1={py(135)} x2="182" y2={py(135)}
-        stroke="#f5c842" strokeWidth="0.7" strokeDasharray="4 2" opacity="0.22" />
+        stroke="var(--color-neutral)" strokeWidth="0.7" strokeDasharray="4 2" opacity="0.22" />
       <text x="182" y={py(135) - 2} textAnchor="end"
-        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#f5c842" opacity="0.5">res</text>
+        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="var(--color-neutral)" opacity="0.5">res</text>
 
       {/* Candles */}
       {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
         const bull  = C >= O;
-        const col   = bull ? '#22d3a5' : '#e05555';
+        const col   = bull ? 'var(--green)' : 'var(--color-down)';
         const bodyY = py(Math.max(O, C));
         const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
         return (
@@ -1708,7 +1708,7 @@ function VolumeChart() {
       })}
 
       <text x="83" y="11" textAnchor="middle"
-        fontFamily="'Space Mono', monospace" fontSize="5" fill="#22d3a5" opacity="0.8">↑ breakout</text>
+        fontFamily="'Space Mono', monospace" fontSize="5" fill="var(--green)" opacity="0.8">↑ breakout</text>
 
       {/* ── SEPARATOR ── */}
       <line x1="6" y1="97" x2="182" y2="97" stroke="#1e2d3d" strokeWidth="0.8" />
@@ -1725,7 +1725,7 @@ function VolumeChart() {
       {/* Volume bars */}
       {candles.map(({ x, C, O, vol, bw = 8 }, i) => {
         const bull = C >= O;
-        const col  = bull ? '#22d3a5' : '#e05555';
+        const col  = bull ? 'var(--green)' : 'var(--color-down)';
         return (
           <rect key={i}
             x={x - bw / 2} y={vTop(vol)}
@@ -1737,12 +1737,12 @@ function VolumeChart() {
       {/* "3×" spike label — above the breakout bar, inside the gap */}
       <text x="83" y="100" textAnchor="middle"
         fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold"
-        fill="#22d3a5" opacity="0.9">3×</text>
+        fill="var(--green)" opacity="0.9">3×</text>
 
       {/* "low vol" pullback label */}
       <text x="146" y={vTop(20) - 3} textAnchor="middle"
         fontFamily="'Space Mono', monospace" fontSize="4.5"
-        fill="#e05555" opacity="0.7">low vol</text>
+        fill="var(--color-down)" opacity="0.7">low vol</text>
 
       {/* Watermark */}
       <text x="6" y="154" fontFamily="'Space Mono', monospace"
@@ -1785,7 +1785,7 @@ function RSIChart() {
 
   return (
     <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
-      <rect width="188" height="158" fill="#060b10" rx="8" />
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
 
       {/* ── PRICE PANEL ── */}
       {[30, 50, 70, 90].map(y => (
@@ -1794,17 +1794,17 @@ function RSIChart() {
 
       {/* Price: higher-high diagonal */}
       <line x1={pk1x} y1={pk1py} x2={pk2x} y2={pk2py}
-        stroke="#e05555" strokeWidth="1.1" strokeDasharray="4 2" opacity="0.6" />
-      <circle cx={pk1x} cy={pk1py} r="2.5" fill="none" stroke="#e05555" strokeWidth="1" opacity="0.8" />
-      <circle cx={pk2x} cy={pk2py} r="2.5" fill="none" stroke="#e05555" strokeWidth="1" opacity="0.8" />
+        stroke="var(--color-down)" strokeWidth="1.1" strokeDasharray="4 2" opacity="0.6" />
+      <circle cx={pk1x} cy={pk1py} r="2.5" fill="none" stroke="var(--color-down)" strokeWidth="1" opacity="0.8" />
+      <circle cx={pk2x} cy={pk2py} r="2.5" fill="none" stroke="var(--color-down)" strokeWidth="1" opacity="0.8" />
       <text x={pk2x} y={pk2py - 6} textAnchor="middle"
         fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold"
-        fill="#e05555" opacity="0.85">HH</text>
+        fill="var(--color-down)" opacity="0.85">HH</text>
 
       {/* Candles */}
       {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
         const bull  = C >= O;
-        const col   = bull ? '#22d3a5' : '#e05555';
+        const col   = bull ? 'var(--green)' : 'var(--color-down)';
         const bodyY = py(Math.max(O, C));
         const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
         return (
@@ -1816,7 +1816,7 @@ function RSIChart() {
       })}
 
       <text x="9" y="11" fontFamily="'Space Mono', monospace"
-        fontSize="5" fill="#e05555" opacity="0.6">price ↑ HH</text>
+        fontSize="5" fill="var(--color-down)" opacity="0.6">price ↑ HH</text>
 
       {/* ── SEPARATOR ── */}
       <line x1="6" y1="97" x2="182" y2="97" stroke="#1e2d3d" strokeWidth="0.8" />
@@ -1825,37 +1825,37 @@ function RSIChart() {
       {/* ── RSI PANEL ── */}
 
       {/* Overbought / oversold zones */}
-      <rect x="6" y={ry(100)} width="176" height={ry(70) - ry(100)} fill="#e0555508" />
-      <rect x="6" y={ry(30)}  width="176" height={ry(0)  - ry(30)}  fill="#22d3a508" />
+      <rect x="6" y={ry(100)} width="176" height={ry(70) - ry(100)} fill="var(--color-down)08" />
+      <rect x="6" y={ry(30)}  width="176" height={ry(0)  - ry(30)}  fill="var(--green)08" />
 
       {/* Level lines */}
       <line x1="6" y1={ry(70)} x2="182" y2={ry(70)}
-        stroke="#e05555" strokeWidth="0.8" strokeDasharray="3 2" opacity="0.45" />
+        stroke="var(--color-down)" strokeWidth="0.8" strokeDasharray="3 2" opacity="0.45" />
       <text x="8" y={ry(70) - 1} fontFamily="'Space Mono', monospace"
-        fontSize="4.5" fill="#e05555" opacity="0.55">70</text>
+        fontSize="4.5" fill="var(--color-down)" opacity="0.55">70</text>
 
       <line x1="6" y1={ry(50)} x2="182" y2={ry(50)}
         stroke="#2a3d52" strokeWidth="0.6" opacity="0.45" />
 
       <line x1="6" y1={ry(30)} x2="182" y2={ry(30)}
-        stroke="#22d3a5" strokeWidth="0.8" strokeDasharray="3 2" opacity="0.45" />
+        stroke="var(--green)" strokeWidth="0.8" strokeDasharray="3 2" opacity="0.45" />
       <text x="8" y={ry(30) + 5} fontFamily="'Space Mono', monospace"
-        fontSize="4.5" fill="#22d3a5" opacity="0.55">30</text>
+        fontSize="4.5" fill="var(--green)" opacity="0.55">30</text>
 
       {/* RSI line */}
-      <path d={rsiPath} fill="none" stroke="#f5c842" strokeWidth="1.5" opacity="0.9" />
+      <path d={rsiPath} fill="none" stroke="var(--color-neutral)" strokeWidth="1.5" opacity="0.9" />
 
       {/* RSI: lower-high diagonal */}
       <line x1={pk1x} y1={pk1ry} x2={pk2x} y2={pk2ry}
-        stroke="#e05555" strokeWidth="1.1" strokeDasharray="4 2" opacity="0.6" />
-      <circle cx={pk1x} cy={pk1ry} r="2.5" fill="none" stroke="#e05555" strokeWidth="1" opacity="0.8" />
-      <circle cx={pk2x} cy={pk2ry} r="2.5" fill="none" stroke="#e05555" strokeWidth="1" opacity="0.8" />
+        stroke="var(--color-down)" strokeWidth="1.1" strokeDasharray="4 2" opacity="0.6" />
+      <circle cx={pk1x} cy={pk1ry} r="2.5" fill="none" stroke="var(--color-down)" strokeWidth="1" opacity="0.8" />
+      <circle cx={pk2x} cy={pk2ry} r="2.5" fill="none" stroke="var(--color-down)" strokeWidth="1" opacity="0.8" />
       <text x={pk2x} y={pk2ry + 9} textAnchor="middle"
         fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold"
-        fill="#e05555" opacity="0.85">LH</text>
+        fill="var(--color-down)" opacity="0.85">LH</text>
 
       <text x="9" y={ry(100) + 8} fontFamily="'Space Mono', monospace"
-        fontSize="5" fill="#e05555" opacity="0.6">RSI ↓ LH</text>
+        fontSize="5" fill="var(--color-down)" opacity="0.6">RSI ↓ LH</text>
 
       {/* Watermark */}
       <text x="6" y="154" fontFamily="'Space Mono', monospace"
@@ -1902,7 +1902,7 @@ function SpreadChart() {
 
   return (
     <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
-      <rect width="188" height="158" fill="#060b10" rx="8" />
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
 
       {/* ─ PRICE PANEL grid ─ */}
       {[30, 50, 70, 90].map(y => (
@@ -1910,44 +1910,44 @@ function SpreadChart() {
       ))}
 
       {/* Normal (tight) bid/ask zone — left half */}
-      <rect x="6" y={nAskY} width="84" height={nBidY - nAskY} fill="#f5c84214" />
-      <line x1="6"  y1={nAskY} x2="90" y2={nAskY} stroke="#22d3a5" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.8" />
-      <line x1="6"  y1={nBidY} x2="90" y2={nBidY} stroke="#e05555" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.8" />
+      <rect x="6" y={nAskY} width="84" height={nBidY - nAskY} fill="var(--color-neutral)14" />
+      <line x1="6"  y1={nAskY} x2="90" y2={nAskY} stroke="var(--green)" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.8" />
+      <line x1="6"  y1={nBidY} x2="90" y2={nBidY} stroke="var(--color-down)" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.8" />
 
       {/* News (wide) bid/ask zone — right half */}
-      <rect x="92" y={wAskY} width="90" height={wBidY - wAskY} fill="#f5c84212" />
-      <line x1="92" y1={wAskY} x2="182" y2={wAskY} stroke="#22d3a5" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.8" />
-      <line x1="92" y1={wBidY} x2="182" y2={wBidY} stroke="#e05555" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.8" />
+      <rect x="92" y={wAskY} width="90" height={wBidY - wAskY} fill="var(--color-neutral)12" />
+      <line x1="92" y1={wAskY} x2="182" y2={wAskY} stroke="var(--green)" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.8" />
+      <line x1="92" y1={wBidY} x2="182" y2={wBidY} stroke="var(--color-down)" strokeWidth="0.9" strokeDasharray="3 2" opacity="0.8" />
 
       {/* Labels — left zone */}
       <text x="8" y={nAskY - 2}
-        fontFamily="'Space Mono', monospace" fontSize="5" fill="#22d3a5" opacity="0.9">ASK</text>
+        fontFamily="'Space Mono', monospace" fontSize="5" fill="var(--green)" opacity="0.9">ASK</text>
       <text x="8" y={nBidY + 6}
-        fontFamily="'Space Mono', monospace" fontSize="5" fill="#e05555" opacity="0.9">BID</text>
+        fontFamily="'Space Mono', monospace" fontSize="5" fill="var(--color-down)" opacity="0.9">BID</text>
       <text x="88" y={(nAskY + nBidY) / 2 + 2}
         textAnchor="end"
-        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#f5c842" opacity="0.7">1 pip</text>
+        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="var(--color-neutral)" opacity="0.7">1 pip</text>
 
       {/* Labels — right zone */}
       <text x="94" y={wAskY + 7}
-        fontFamily="'Space Mono', monospace" fontSize="5" fill="#22d3a5" opacity="0.9">ASK</text>
+        fontFamily="'Space Mono', monospace" fontSize="5" fill="var(--green)" opacity="0.9">ASK</text>
       <text x="94" y={wBidY - 3}
-        fontFamily="'Space Mono', monospace" fontSize="5" fill="#e05555" opacity="0.9">BID</text>
+        fontFamily="'Space Mono', monospace" fontSize="5" fill="var(--color-down)" opacity="0.9">BID</text>
       <text x="182" y={(wAskY + wBidY) / 2 + 2}
         textAnchor="end"
-        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#f5c842" opacity="0.7">5 pips</text>
+        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="var(--color-neutral)" opacity="0.7">5 pips</text>
 
       {/* News divider */}
       <line x1="91" y1="12" x2="91" y2="88"
-        stroke="#f5c842" strokeWidth="0.7" strokeDasharray="2 2" opacity="0.55" />
+        stroke="var(--color-neutral)" strokeWidth="0.7" strokeDasharray="2 2" opacity="0.55" />
       <text x="91" y="11"
         textAnchor="middle"
-        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#f5c842" opacity="0.9">NEWS</text>
+        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="var(--color-neutral)" opacity="0.9">NEWS</text>
 
       {/* Candles */}
       {data.map(({ x, O, H, L, C }, i) => {
         const bull  = C >= O;
-        const col   = bull ? '#22d3a5' : '#e05555';
+        const col   = bull ? 'var(--green)' : 'var(--color-down)';
         const bodyY = py(Math.max(O, C));
         const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
         return (
@@ -1974,15 +1974,15 @@ function SpreadChart() {
 
       {/* Reference: 5 pips */}
       <line x1="6" y1={sp5Y} x2="182" y2={sp5Y}
-        stroke="#f5c842" strokeWidth="0.6" strokeDasharray="3 2" opacity="0.4" />
+        stroke="var(--color-neutral)" strokeWidth="0.6" strokeDasharray="3 2" opacity="0.4" />
       <text x="182" y={sp5Y - 1.5}
         textAnchor="end"
-        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#f5c842" opacity="0.55">5p</text>
+        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="var(--color-neutral)" opacity="0.55">5p</text>
 
       {/* Spread bars */}
       {data.map(({ x, sp }, i) => {
         const h   = bh(sp);
-        const col = sp > 2 ? '#f5c842' : '#22d3a5';
+        const col = sp > 2 ? 'var(--color-neutral)' : 'var(--green)';
         return (
           <rect key={i}
             x={x - 4} y={144 - h}
@@ -1995,7 +1995,7 @@ function SpreadChart() {
       <text x="97" y={144 - bh(6.5) - 4}
         textAnchor="middle"
         fontFamily="'Space Mono', monospace" fontSize="5" fontWeight="bold"
-        fill="#f5c842" opacity="0.9">wide!</text>
+        fill="var(--color-neutral)" opacity="0.9">wide!</text>
 
       {/* Watermark */}
       <text x="6" y="154"
@@ -2030,7 +2030,7 @@ function VolatilityChart() {
 
   return (
     <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
-      <rect width="188" height="158" fill="#060b10" rx="8" />
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
 
       {/* Grid */}
       {[40, 65, 90, 115, 140].map(y => (
@@ -2038,22 +2038,22 @@ function VolatilityChart() {
       ))}
 
       {/* Expanding ATR envelope fill */}
-      <polygon points="6,80 182,16 182,142 6,88" fill="#22d3a508" />
+      <polygon points="6,80 182,16 182,142 6,88" fill="var(--green)08" />
 
       {/* Envelope boundary lines — expanding from narrow to wide */}
       <line x1="6" y1="80" x2="182" y2="16"
-        stroke="#22d3a5" strokeWidth="0.8" strokeDasharray="3 2" opacity="0.4" />
+        stroke="var(--green)" strokeWidth="0.8" strokeDasharray="3 2" opacity="0.4" />
       <line x1="6" y1="88" x2="182" y2="142"
-        stroke="#22d3a5" strokeWidth="0.8" strokeDasharray="3 2" opacity="0.4" />
+        stroke="var(--green)" strokeWidth="0.8" strokeDasharray="3 2" opacity="0.4" />
 
       {/* Subtle divider between low / high vol sections */}
       <line x1="74" y1="14" x2="74" y2="144"
-        stroke="#f5c842" strokeWidth="0.5" strokeDasharray="2 3" opacity="0.2" />
+        stroke="var(--color-neutral)" strokeWidth="0.5" strokeDasharray="2 3" opacity="0.2" />
 
       {/* Candles */}
       {candles.map(({ x, O, H, L, C, bw }, i) => {
         const bull  = C >= O;
-        const col   = bull ? '#22d3a5' : '#e05555';
+        const col   = bull ? 'var(--green)' : 'var(--color-down)';
         const bodyY = py(Math.max(O, C));
         const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
         return (
@@ -2067,17 +2067,17 @@ function VolatilityChart() {
       {/* Low vol label */}
       <text x="42" y="10"
         textAnchor="middle" fontFamily="'Space Mono', monospace"
-        fontSize="5" fill="#22d3a5" opacity="0.7" letterSpacing="0.05em">low vol</text>
+        fontSize="5" fill="var(--green)" opacity="0.7" letterSpacing="0.05em">low vol</text>
 
       {/* High vol label */}
       <text x="140" y="10"
         textAnchor="middle" fontFamily="'Space Mono', monospace"
-        fontSize="5" fill="#e05555" opacity="0.85" letterSpacing="0.05em">high vol</text>
+        fontSize="5" fill="var(--color-down)" opacity="0.85" letterSpacing="0.05em">high vol</text>
 
       {/* ATR label — right edge mid-chart */}
       <text x="182" y="84"
         textAnchor="end" fontFamily="'Space Mono', monospace"
-        fontSize="6" fontWeight="bold" fill="#22d3a5" opacity="0.5">ATR</text>
+        fontSize="6" fontWeight="bold" fill="var(--green)" opacity="0.5">ATR</text>
 
       {/* Watermark */}
       <text x="6" y="154"
@@ -2126,32 +2126,32 @@ function DrawdownChart() {
 
   return (
     <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
-      <rect width="188" height="158" fill="#060b10" rx="8" />
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
 
       {[40, 65, 90, 115, 140].map(y => (
         <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
       ))}
 
       {/* Drawdown zone fill */}
-      <rect x="6" y={peakY} width="170" height={troughY - peakY} fill="#e0555510" />
+      <rect x="6" y={peakY} width="170" height={troughY - peakY} fill="var(--color-down)10" />
 
       {/* Peak dashed line */}
       <line x1={97} y1={peakY} x2={bX} y2={peakY}
-        stroke="#f5c842" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.55" />
+        stroke="var(--color-neutral)" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.55" />
 
       {/* Trough dashed line */}
       <line x1={158} y1={troughY} x2={bX} y2={troughY}
-        stroke="#e05555" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.55" />
+        stroke="var(--color-down)" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.55" />
 
       {/* Bracket */}
-      <line x1={bX} y1={peakY} x2={bX} y2={troughY} stroke="#e05555" strokeWidth="1.1" opacity="0.75" />
-      <line x1={bX - 2.5} y1={peakY}   x2={bX + 2.5} y2={peakY}   stroke="#e05555" strokeWidth="1.1" opacity="0.75" />
-      <line x1={bX - 2.5} y1={troughY} x2={bX + 2.5} y2={troughY} stroke="#e05555" strokeWidth="1.1" opacity="0.75" />
+      <line x1={bX} y1={peakY} x2={bX} y2={troughY} stroke="var(--color-down)" strokeWidth="1.1" opacity="0.75" />
+      <line x1={bX - 2.5} y1={peakY}   x2={bX + 2.5} y2={peakY}   stroke="var(--color-down)" strokeWidth="1.1" opacity="0.75" />
+      <line x1={bX - 2.5} y1={troughY} x2={bX + 2.5} y2={troughY} stroke="var(--color-down)" strokeWidth="1.1" opacity="0.75" />
 
       {/* Candles */}
       {allCandles.map(({ x, O, H, L, C }, i) => {
         const bull  = C >= O;
-        const col   = bull ? '#22d3a5' : '#e05555';
+        const col   = bull ? 'var(--green)' : 'var(--color-down)';
         const bodyY = py(Math.max(O, C));
         const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
         return (
@@ -2165,20 +2165,20 @@ function DrawdownChart() {
       {/* PEAK label */}
       <text x={97} y={py(159) - 4}
         textAnchor="middle" fontFamily="'Space Mono', monospace"
-        fontSize="5.5" fontWeight="bold" fill="#f5c842" opacity="0.9">PEAK</text>
+        fontSize="5.5" fontWeight="bold" fill="var(--color-neutral)" opacity="0.9">PEAK</text>
 
       {/* TROUGH label */}
       <text x={158} y={troughY + 9}
         textAnchor="middle" fontFamily="'Space Mono', monospace"
-        fontSize="5.5" fill="#e05555" opacity="0.9">TROUGH</text>
+        fontSize="5.5" fill="var(--color-down)" opacity="0.9">TROUGH</text>
 
       {/* DD annotation — left of bracket, vertically centered */}
       <text x={bX - 5} y={midY - 3}
         textAnchor="end" fontFamily="'Space Mono', monospace"
-        fontSize="6.5" fontWeight="bold" fill="#e05555" opacity="0.9">-26%</text>
+        fontSize="6.5" fontWeight="bold" fill="var(--color-down)" opacity="0.9">-26%</text>
       <text x={bX - 5} y={midY + 6}
         textAnchor="end" fontFamily="'Space Mono', monospace"
-        fontSize="5" fill="#e05555" opacity="0.6" letterSpacing="0.05em">MAX DD</text>
+        fontSize="5" fill="var(--color-down)" opacity="0.6" letterSpacing="0.05em">MAX DD</text>
 
       {/* Watermark */}
       <text x="6" y="154"
@@ -2222,35 +2222,35 @@ function RallyChart() {
 
   return (
     <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
-      <rect width="188" height="158" fill="#060b10" rx="8" />
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
 
       {[40, 65, 90, 115, 140].map(y => (
         <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
       ))}
 
       {/* Rally zone fill */}
-      <rect x="84" y={rallyEndY} width={bX - 84} height={rallyStartY - rallyEndY} fill="#22d3a510" />
+      <rect x="84" y={rallyEndY} width={bX - 84} height={rallyStartY - rallyEndY} fill="var(--green)10" />
 
       {/* Rally baseline dashed line */}
       <line x1="84" y1={rallyStartY} x2={bX} y2={rallyStartY}
-        stroke="#f5c842" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.55" />
+        stroke="var(--color-neutral)" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.55" />
 
       {/* Rally peak dashed line */}
       <line x1="162" y1={rallyEndY} x2={bX} y2={rallyEndY}
-        stroke="#22d3a5" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.55" />
+        stroke="var(--green)" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.55" />
 
       {/* Bracket */}
       <line x1={bX} y1={rallyStartY} x2={bX} y2={rallyEndY}
-        stroke="#22d3a5" strokeWidth="1.1" opacity="0.75" />
+        stroke="var(--green)" strokeWidth="1.1" opacity="0.75" />
       <line x1={bX - 2.5} y1={rallyStartY} x2={bX + 2.5} y2={rallyStartY}
-        stroke="#22d3a5" strokeWidth="1.1" opacity="0.75" />
+        stroke="var(--green)" strokeWidth="1.1" opacity="0.75" />
       <line x1={bX - 2.5} y1={rallyEndY} x2={bX + 2.5} y2={rallyEndY}
-        stroke="#22d3a5" strokeWidth="1.1" opacity="0.75" />
+        stroke="var(--green)" strokeWidth="1.1" opacity="0.75" />
 
       {/* Candles */}
       {candles.map(({ x, O, H, L, C }, i) => {
         const bull  = C >= O;
-        const col   = bull ? '#22d3a5' : '#e05555';
+        const col   = bull ? 'var(--green)' : 'var(--color-down)';
         const bodyY = py(Math.max(O, C));
         const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
         return (
@@ -2264,15 +2264,15 @@ function RallyChart() {
       {/* Catalyst label below breakout candle */}
       <text x={90} y={rallyStartY + 12}
         textAnchor="middle" fontFamily="'Space Mono', monospace"
-        fontSize="5" fill="#f5c842" opacity="0.75">▲ catalyst</text>
+        fontSize="5" fill="var(--color-neutral)" opacity="0.75">▲ catalyst</text>
 
       {/* Gain annotation */}
       <text x={bX - 5} y={midY - 3}
         textAnchor="end" fontFamily="'Space Mono', monospace"
-        fontSize="6.5" fontWeight="bold" fill="#22d3a5" opacity="0.9">+12%</text>
+        fontSize="6.5" fontWeight="bold" fill="var(--green)" opacity="0.9">+12%</text>
       <text x={bX - 5} y={midY + 6}
         textAnchor="end" fontFamily="'Space Mono', monospace"
-        fontSize="5" fill="#22d3a5" opacity="0.6" letterSpacing="0.05em">RALLY</text>
+        fontSize="5" fill="var(--green)" opacity="0.6" letterSpacing="0.05em">RALLY</text>
 
       {/* Watermark */}
       <text x="6" y="154"
@@ -2317,7 +2317,7 @@ function CorrectionChart() {
 
   return (
     <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
-      <rect width="188" height="158" fill="#060b10" rx="8" />
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
 
       {/* Grid */}
       {[40, 65, 90, 115, 140].map(y => (
@@ -2325,25 +2325,25 @@ function CorrectionChart() {
       ))}
 
       {/* Correction zone fill */}
-      <rect x="108" y={peakY} width="60" height={troughY - peakY} fill="#e0555510" />
+      <rect x="108" y={peakY} width="60" height={troughY - peakY} fill="var(--color-down)10" />
 
       {/* Peak dashed line */}
       <line x1={100} y1={peakY} x2={bX} y2={peakY}
-        stroke="#f5c842" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.55" />
+        stroke="var(--color-neutral)" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.55" />
 
       {/* Trough dashed line */}
       <line x1={152} y1={troughY} x2={bX} y2={troughY}
-        stroke="#e05555" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.55" />
+        stroke="var(--color-down)" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.55" />
 
       {/* Right bracket */}
-      <line x1={bX} y1={peakY}   x2={bX} y2={troughY}   stroke="#e05555" strokeWidth="1.1" opacity="0.75" />
-      <line x1={bX - 2.5} y1={peakY}   x2={bX + 2.5} y2={peakY}   stroke="#e05555" strokeWidth="1.1" opacity="0.75" />
-      <line x1={bX - 2.5} y1={troughY} x2={bX + 2.5} y2={troughY} stroke="#e05555" strokeWidth="1.1" opacity="0.75" />
+      <line x1={bX} y1={peakY}   x2={bX} y2={troughY}   stroke="var(--color-down)" strokeWidth="1.1" opacity="0.75" />
+      <line x1={bX - 2.5} y1={peakY}   x2={bX + 2.5} y2={peakY}   stroke="var(--color-down)" strokeWidth="1.1" opacity="0.75" />
+      <line x1={bX - 2.5} y1={troughY} x2={bX + 2.5} y2={troughY} stroke="var(--color-down)" strokeWidth="1.1" opacity="0.75" />
 
       {/* Candles */}
       {candles.map(({ x, O, H, L, C }, i) => {
         const bull  = C >= O;
-        const col   = bull ? '#22d3a5' : '#e05555';
+        const col   = bull ? 'var(--green)' : 'var(--color-down)';
         const bodyY = py(Math.max(O, C));
         const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
         return (
@@ -2357,25 +2357,25 @@ function CorrectionChart() {
       {/* Uptrend phase label */}
       <text x="55" y="12"
         textAnchor="middle" fontFamily="'Space Mono', monospace"
-        fontSize="5" fill="#22d3a5" opacity="0.5" letterSpacing="0.04em">↑ uptrend</text>
+        fontSize="5" fill="var(--green)" opacity="0.5" letterSpacing="0.04em">↑ uptrend</text>
 
       {/* PEAK label */}
       <text x={104} y={py(151) - 4}
         textAnchor="middle" fontFamily="'Space Mono', monospace"
-        fontSize="5.5" fontWeight="bold" fill="#f5c842" opacity="0.9">PEAK</text>
+        fontSize="5.5" fontWeight="bold" fill="var(--color-neutral)" opacity="0.9">PEAK</text>
 
       {/* TROUGH label */}
       <text x={156} y={troughY + 9}
         textAnchor="middle" fontFamily="'Space Mono', monospace"
-        fontSize="5.5" fill="#e05555" opacity="0.9">TROUGH</text>
+        fontSize="5.5" fill="var(--color-down)" opacity="0.9">TROUGH</text>
 
       {/* Bracket annotation */}
       <text x={bX - 5} y={midY - 3}
         textAnchor="end" fontFamily="'Space Mono', monospace"
-        fontSize="6.5" fontWeight="bold" fill="#e05555" opacity="0.9">-13%</text>
+        fontSize="6.5" fontWeight="bold" fill="var(--color-down)" opacity="0.9">-13%</text>
       <text x={bX - 5} y={midY + 6}
         textAnchor="end" fontFamily="'Space Mono', monospace"
-        fontSize="5" fill="#e05555" opacity="0.6" letterSpacing="0.05em">CORRECTION</text>
+        fontSize="5" fill="var(--color-down)" opacity="0.6" letterSpacing="0.05em">CORRECTION</text>
 
       {/* Watermark */}
       <text x="6" y="154"
@@ -2415,7 +2415,7 @@ function BullMarketChart() {
 
   return (
     <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
-      <rect width="188" height="158" fill="#060b10" rx="8" />
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
 
       {/* Grid */}
       {[40, 65, 90, 115, 140].map(y => (
@@ -2423,26 +2423,26 @@ function BullMarketChart() {
       ))}
 
       {/* Bear base background */}
-      <rect x="6" y="14" width="66" height="134" fill="#e055550a" />
+      <rect x="6" y="14" width="66" height="134" fill="var(--color-down)0a" />
 
       {/* +20% confirmation line */}
       <line x1="6" y1={confY} x2="182" y2={confY}
-        stroke="#f5c842" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.6" />
+        stroke="var(--color-neutral)" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.6" />
       <text x="8" y={confY - 2.5}
-        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#f5c842" opacity="0.8">+20% from low</text>
+        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="var(--color-neutral)" opacity="0.8">+20% from low</text>
 
       {/* Rising trendline */}
       <line x1={tlX1} y1={tlY1} x2={tlX2} y2={tlY2}
-        stroke="#22d3a5" strokeWidth="1.2" strokeDasharray="4 2" opacity="0.45" />
+        stroke="var(--green)" strokeWidth="1.2" strokeDasharray="4 2" opacity="0.45" />
 
       {/* Bear → bull separator */}
       <line x1="72" y1="14" x2="72" y2="148"
-        stroke="#f5c842" strokeWidth="0.6" strokeDasharray="2 3" opacity="0.35" />
+        stroke="var(--color-neutral)" strokeWidth="0.6" strokeDasharray="2 3" opacity="0.35" />
 
       {/* Candles */}
       {candles.map(({ x, O, H, L, C, bw }, i) => {
         const bull  = C >= O;
-        const col   = bull ? '#22d3a5' : '#e05555';
+        const col   = bull ? 'var(--green)' : 'var(--color-down)';
         const bodyY = py(Math.max(O, C));
         const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
         return (
@@ -2454,26 +2454,26 @@ function BullMarketChart() {
       })}
 
       {/* Trough marker */}
-      <circle cx={40} cy={py(94)} r="2.5" fill="none" stroke="#e05555" strokeWidth="1" opacity="0.7" />
+      <circle cx={40} cy={py(94)} r="2.5" fill="none" stroke="var(--color-down)" strokeWidth="1" opacity="0.7" />
 
       {/* HH labels */}
-      <text x={79}  y={py(121) - 5} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="#22d3a5" opacity="0.9">HH</text>
-      <text x={105} y={py(128) - 5} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="#22d3a5" opacity="0.9">HH</text>
-      <text x={131} y={py(137) - 5} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="#22d3a5" opacity="0.9">HH</text>
-      <text x={157} y={py(144) - 5} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="#22d3a5" opacity="0.9">HH</text>
+      <text x={79}  y={py(121) - 5} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="var(--green)" opacity="0.9">HH</text>
+      <text x={105} y={py(128) - 5} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="var(--green)" opacity="0.9">HH</text>
+      <text x={131} y={py(137) - 5} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="var(--green)" opacity="0.9">HH</text>
+      <text x={157} y={py(144) - 5} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="var(--green)" opacity="0.9">HH</text>
 
       {/* HL labels */}
-      <text x={92}  y={py(115) + 10} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#22d3a5" opacity="0.7">HL</text>
-      <text x={118} y={py(122) + 10} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#22d3a5" opacity="0.7">HL</text>
-      <text x={144} y={py(131) + 10} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#22d3a5" opacity="0.7">HL</text>
+      <text x={92}  y={py(115) + 10} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--green)" opacity="0.7">HL</text>
+      <text x={118} y={py(122) + 10} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--green)" opacity="0.7">HL</text>
+      <text x={144} y={py(131) + 10} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--green)" opacity="0.7">HL</text>
 
       {/* Section labels */}
       <text x="38" y="11"
         textAnchor="middle" fontFamily="'Space Mono', monospace"
-        fontSize="5" fill="#e05555" opacity="0.55" letterSpacing="0.04em">BEAR BASE</text>
+        fontSize="5" fill="var(--color-down)" opacity="0.55" letterSpacing="0.04em">BEAR BASE</text>
       <text x="128" y="11"
         textAnchor="middle" fontFamily="'Space Mono', monospace"
-        fontSize="5" fill="#22d3a5" opacity="0.55" letterSpacing="0.04em">BULL MARKET ↑</text>
+        fontSize="5" fill="var(--green)" opacity="0.55" letterSpacing="0.04em">BULL MARKET ↑</text>
 
       {/* Watermark */}
       <text x="6" y="154"
@@ -2514,7 +2514,7 @@ function BearMarketChart() {
 
   return (
     <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
-      <rect width="188" height="158" fill="#060b10" rx="8" />
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
 
       {/* Grid */}
       {[40, 65, 90, 115, 140].map(y => (
@@ -2522,26 +2522,26 @@ function BearMarketChart() {
       ))}
 
       {/* Bear zone background */}
-      <rect x="47" y="14" width="135" height="134" fill="#e055550a" />
+      <rect x="47" y="14" width="135" height="134" fill="var(--color-down)0a" />
 
       {/* -20% confirmation line */}
       <line x1="6" y1={confY} x2="182" y2={confY}
-        stroke="#f5c842" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.6" />
+        stroke="var(--color-neutral)" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.6" />
       <text x="8" y={confY - 2.5}
-        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#f5c842" opacity="0.8">-20% from peak</text>
+        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="var(--color-neutral)" opacity="0.8">-20% from peak</text>
 
       {/* Falling trendline */}
       <line x1={tlX1} y1={tlY1} x2={tlX2} y2={tlY2}
-        stroke="#e05555" strokeWidth="1.2" strokeDasharray="4 2" opacity="0.45" />
+        stroke="var(--color-down)" strokeWidth="1.2" strokeDasharray="4 2" opacity="0.45" />
 
       {/* Bull → bear separator */}
       <line x1="47" y1="14" x2="47" y2="148"
-        stroke="#f5c842" strokeWidth="0.6" strokeDasharray="2 3" opacity="0.35" />
+        stroke="var(--color-neutral)" strokeWidth="0.6" strokeDasharray="2 3" opacity="0.35" />
 
       {/* Candles */}
       {candles.map(({ x, O, H, L, C, bw }, i) => {
         const bull  = C >= O;
-        const col   = bull ? '#22d3a5' : '#e05555';
+        const col   = bull ? 'var(--green)' : 'var(--color-down)';
         const bodyY = py(Math.max(O, C));
         const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
         return (
@@ -2553,28 +2553,28 @@ function BearMarketChart() {
       })}
 
       {/* Peak marker */}
-      <circle cx={40} cy={py(150)} r="2.5" fill="none" stroke="#f5c842" strokeWidth="1" opacity="0.7" />
+      <circle cx={40} cy={py(150)} r="2.5" fill="none" stroke="var(--color-neutral)" strokeWidth="1" opacity="0.7" />
       <text x={40} y={py(150) - 4}
         textAnchor="middle" fontFamily="'Space Mono', monospace"
-        fontSize="5.5" fontWeight="bold" fill="#f5c842" opacity="0.9">PEAK</text>
+        fontSize="5.5" fontWeight="bold" fill="var(--color-neutral)" opacity="0.9">PEAK</text>
 
       {/* LH labels */}
-      <text x={66}  y={py(144) - 5} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="#e05555" opacity="0.9">LH</text>
-      <text x={92}  y={py(136) - 5} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="#e05555" opacity="0.9">LH</text>
-      <text x={118} y={py(124) - 5} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="#e05555" opacity="0.9">LH</text>
+      <text x={66}  y={py(144) - 5} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="var(--color-down)" opacity="0.9">LH</text>
+      <text x={92}  y={py(136) - 5} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="var(--color-down)" opacity="0.9">LH</text>
+      <text x={118} y={py(124) - 5} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="var(--color-down)" opacity="0.9">LH</text>
 
       {/* LL labels */}
-      <text x={79}  y={py(128) + 10} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#e05555" opacity="0.7">LL</text>
-      <text x={105} y={py(116) + 10} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#e05555" opacity="0.7">LL</text>
-      <text x={131} y={py(103) + 10} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#e05555" opacity="0.7">LL</text>
+      <text x={79}  y={py(128) + 10} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-down)" opacity="0.7">LL</text>
+      <text x={105} y={py(116) + 10} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-down)" opacity="0.7">LL</text>
+      <text x={131} y={py(103) + 10} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-down)" opacity="0.7">LL</text>
 
       {/* Section labels */}
       <text x="27" y="11"
         textAnchor="middle" fontFamily="'Space Mono', monospace"
-        fontSize="5" fill="#22d3a5" opacity="0.55" letterSpacing="0.04em">BULL RUN</text>
+        fontSize="5" fill="var(--green)" opacity="0.55" letterSpacing="0.04em">BULL RUN</text>
       <text x="122" y="11"
         textAnchor="middle" fontFamily="'Space Mono', monospace"
-        fontSize="5" fill="#e05555" opacity="0.55" letterSpacing="0.04em">BEAR MARKET ↓</text>
+        fontSize="5" fill="var(--color-down)" opacity="0.55" letterSpacing="0.04em">BEAR MARKET ↓</text>
 
       {/* Watermark */}
       <text x="6" y="154"
@@ -2594,12 +2594,12 @@ function FibonacciChart() {
   const r = swingHigh - swingLow; // 50
 
   const fib = [
-    { pct: '0%',    p: swingHigh,           col: '#22d3a5', op: 0.55 },
+    { pct: '0%',    p: swingHigh,           col: 'var(--green)', op: 0.55 },
     { pct: '23.6%', p: swingHigh - 0.236*r, col: '#4a6680', op: 0.75 },
     { pct: '38.2%', p: swingHigh - 0.382*r, col: '#4a6680', op: 0.75 },
-    { pct: '50%',   p: swingHigh - 0.5  *r, col: '#f5c842', op: 0.65 },
-    { pct: '61.8%', p: swingHigh - 0.618*r, col: '#f5c842', op: 1.0  },
-    { pct: '100%',  p: swingLow,            col: '#e05555', op: 0.55 },
+    { pct: '50%',   p: swingHigh - 0.5  *r, col: 'var(--color-neutral)', op: 0.65 },
+    { pct: '61.8%', p: swingHigh - 0.618*r, col: 'var(--color-neutral)', op: 1.0  },
+    { pct: '100%',  p: swingLow,            col: 'var(--color-down)', op: 0.55 },
   ];
 
   const p618 = swingHigh - 0.618 * r; // 119.1
@@ -2628,7 +2628,7 @@ function FibonacciChart() {
 
   return (
     <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
-      <rect width="188" height="158" fill="#060b10" rx="8" />
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
 
       {/* Grid */}
       {[40, 65, 90, 115, 140].map(y => (
@@ -2637,7 +2637,7 @@ function FibonacciChart() {
 
       {/* 61.8% golden zone fill */}
       <rect x="6" y={py(p618 + 2.5)} width="176" height={py(p618 - 2.5) - py(p618 + 2.5)}
-        fill="#f5c84212" />
+        fill="var(--color-neutral)12" />
 
       {/* Fibonacci level lines + labels */}
       {fib.map(({ pct, p, col, op }) => {
@@ -2657,7 +2657,7 @@ function FibonacciChart() {
       {/* Candles */}
       {candles.map(({ x, O, H, L, C, bw }, i) => {
         const bull  = C >= O;
-        const col   = bull ? '#22d3a5' : '#e05555';
+        const col   = bull ? 'var(--green)' : 'var(--color-down)';
         const bodyY = py(Math.max(O, C));
         const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
         return (
@@ -2669,15 +2669,15 @@ function FibonacciChart() {
       })}
 
       {/* Swing high marker */}
-      <circle cx={83} cy={py(150)} r="2.5" fill="none" stroke="#22d3a5" strokeWidth="1" opacity="0.7" />
+      <circle cx={83} cy={py(150)} r="2.5" fill="none" stroke="var(--green)" strokeWidth="1" opacity="0.7" />
 
       {/* Bounce at 61.8% marker */}
-      <circle cx={125} cy={py(119)} r="3" fill="none" stroke="#f5c842" strokeWidth="1.3" opacity="0.95" />
+      <circle cx={125} cy={py(119)} r="3" fill="none" stroke="var(--color-neutral)" strokeWidth="1.3" opacity="0.95" />
 
       {/* Golden ratio label */}
       <text x="8" y={py(p618) - 4}
         fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold"
-        fill="#f5c842" opacity="0.85">golden ratio</text>
+        fill="var(--color-neutral)" opacity="0.85">golden ratio</text>
 
       {/* Watermark */}
       <text x="6" y="154"
@@ -2723,7 +2723,7 @@ function MovingAverageChart() {
 
   return (
     <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
-      <rect width="188" height="158" fill="#060b10" rx="8" />
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
 
       {/* Grid */}
       {[40, 65, 90, 115, 140].map(y => (
@@ -2731,17 +2731,17 @@ function MovingAverageChart() {
       ))}
 
       {/* 200 MA — teal, flat dynamic support */}
-      <path d={ma200Path} fill="none" stroke="#22d3a5" strokeWidth="1.8"
+      <path d={ma200Path} fill="none" stroke="var(--green)" strokeWidth="1.8"
         strokeLinejoin="round" opacity="0.85" />
 
       {/* 50 MA — yellow, tracks price closely */}
-      <path d={ma50Path} fill="none" stroke="#f5c842" strokeWidth="1.8"
+      <path d={ma50Path} fill="none" stroke="var(--color-neutral)" strokeWidth="1.8"
         strokeLinejoin="round" opacity="0.85" />
 
       {/* Candles */}
       {candles.map(({ x, O, H, L, C }, i) => {
         const bull  = C >= O;
-        const col   = bull ? '#22d3a5' : '#e05555';
+        const col   = bull ? 'var(--green)' : 'var(--color-down)';
         const bodyY = py(Math.max(O, C));
         const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
         return (
@@ -2754,28 +2754,28 @@ function MovingAverageChart() {
 
       {/* Golden cross annotation */}
       <line x1="55" y1="55" x2={crossX - 3} y2={crossY - 3}
-        stroke="#f5c842" strokeWidth="0.8" strokeDasharray="3 2" opacity="0.55" />
+        stroke="var(--color-neutral)" strokeWidth="0.8" strokeDasharray="3 2" opacity="0.55" />
       <circle cx={crossX} cy={crossY} r="3.5" fill="none"
-        stroke="#f5c842" strokeWidth="1.2" opacity="0.9" />
+        stroke="var(--color-neutral)" strokeWidth="1.2" opacity="0.9" />
       <text x="10" y="48"
         fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold"
-        fill="#f5c842" opacity="0.9">golden</text>
+        fill="var(--color-neutral)" opacity="0.9">golden</text>
       <text x="10" y="56"
         fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold"
-        fill="#f5c842" opacity="0.9">cross</text>
+        fill="var(--color-neutral)" opacity="0.9">cross</text>
 
       {/* Bounce off 50 MA — label between the two MAs at the pullback */}
       <text x="124" y={bounceY + 11}
         textAnchor="start" fontFamily="'Space Mono', monospace"
-        fontSize="5" fill="#f5c842" opacity="0.7">↑ bounce</text>
+        fontSize="5" fill="var(--color-neutral)" opacity="0.7">↑ bounce</text>
 
       {/* MA labels on the right */}
       <text x="181" y={py(147) - 3}
         textAnchor="end" fontFamily="'Space Mono', monospace"
-        fontSize="6" fontWeight="bold" fill="#f5c842" opacity="0.9">50 MA</text>
+        fontSize="6" fontWeight="bold" fill="var(--color-neutral)" opacity="0.9">50 MA</text>
       <text x="181" y={py(143) + 8}
         textAnchor="end" fontFamily="'Space Mono', monospace"
-        fontSize="6" fontWeight="bold" fill="#22d3a5" opacity="0.9">200 MA</text>
+        fontSize="6" fontWeight="bold" fill="var(--green)" opacity="0.9">200 MA</text>
 
       {/* Watermark */}
       <text x="6" y="154"

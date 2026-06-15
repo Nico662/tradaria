@@ -5,41 +5,41 @@ import { SERVER } from './config.js';
 
 const SHOP_ITEMS = {
   frames: [
-    { id: 'frame_gold',     name: 'Gold Frame',     desc: { en: 'Exclusive gold border',     es: 'Borde dorado exclusivo',      de: 'Exklusiver Goldrahmen'     }, price: 2.99, emoji: '🥇', color: '#f5c842' },
-    { id: 'frame_neon',     name: 'Neon Frame',     desc: { en: 'Glowing neon border',       es: 'Borde neón brillante',        de: 'Leuchtender Neonrahmen'    }, price: 1.99, emoji: '💚', color: '#22d3a5' },
-    { id: 'frame_fire',     name: 'Fire Frame',     desc: { en: 'Animated fire border',      es: 'Borde de fuego animado',      de: 'Animierter Feuerrahmen'    }, price: 3.99, emoji: '🔥', color: '#f05454' },
+    { id: 'frame_gold',     name: 'Gold Frame',     desc: { en: 'Exclusive gold border',     es: 'Borde dorado exclusivo',      de: 'Exklusiver Goldrahmen'     }, price: 2.99, emoji: '🥇', color: 'var(--color-neutral)' },
+    { id: 'frame_neon',     name: 'Neon Frame',     desc: { en: 'Glowing neon border',       es: 'Borde neón brillante',        de: 'Leuchtender Neonrahmen'    }, price: 1.99, emoji: '💚', color: 'var(--green)' },
+    { id: 'frame_fire',     name: 'Fire Frame',     desc: { en: 'Animated fire border',      es: 'Borde de fuego animado',      de: 'Animierter Feuerrahmen'    }, price: 3.99, emoji: '🔥', color: 'var(--color-down)' },
     { id: 'frame_diamond',  name: 'Diamond Frame',  desc: { en: 'Diamond pattern border',    es: 'Borde con patrón de diamante',de: 'Diamantmuster-Rahmen'      }, price: 4.99, emoji: '💎', color: 'var(--t3)' },
   ],
   themes: [
-    { id: 'theme_matrix',   name: 'Matrix',         desc: { en: 'Green on black',            es: 'Verde sobre negro',           de: 'Grün auf Schwarz'          }, price: 1.99, emoji: '🟩', color: '#22d3a5' },
-    { id: 'theme_blood',    name: 'Blood Market',   desc: { en: 'Red dark theme',            es: 'Tema oscuro rojo',            de: 'Rotes dunkles Theme'       }, price: 1.99, emoji: '🩸', color: '#f05454' },
-    { id: 'theme_gold',     name: 'Gold Rush',      desc: { en: 'Gold and black theme',      es: 'Tema dorado y negro',         de: 'Gold und Schwarz Theme'    }, price: 2.99, emoji: '✨', color: '#f5c842' },
+    { id: 'theme_matrix',   name: 'Matrix',         desc: { en: 'Green on black',            es: 'Verde sobre negro',           de: 'Grün auf Schwarz'          }, price: 1.99, emoji: '🟩', color: 'var(--green)' },
+    { id: 'theme_blood',    name: 'Blood Market',   desc: { en: 'Red dark theme',            es: 'Tema oscuro rojo',            de: 'Rotes dunkles Theme'       }, price: 1.99, emoji: '🩸', color: 'var(--color-down)' },
+    { id: 'theme_gold',     name: 'Gold Rush',      desc: { en: 'Gold and black theme',      es: 'Tema dorado y negro',         de: 'Gold und Schwarz Theme'    }, price: 2.99, emoji: '✨', color: 'var(--color-neutral)' },
     { id: 'theme_midnight', name: 'Midnight',       desc: { en: 'Deep blue dark theme',      es: 'Tema azul oscuro profundo',   de: 'Tiefblaues dunkles Theme'  }, price: 1.99, emoji: '🌙', color: 'var(--t4)' },
   ],
   avatars: [
-    { id: 'avatar_bull',    name: 'Bull',           desc: { en: 'Bullish trader avatar',     es: 'Avatar de trader alcista',    de: 'Bullen-Trader Avatar'      }, price: 0.99, emoji: '🐂', color: '#22d3a5' },
-    { id: 'avatar_bear',    name: 'Bear',           desc: { en: 'Bearish trader avatar',     es: 'Avatar de trader bajista',    de: 'Bären-Trader Avatar'       }, price: 0.99, emoji: '🐻', color: '#f05454' },
+    { id: 'avatar_bull',    name: 'Bull',           desc: { en: 'Bullish trader avatar',     es: 'Avatar de trader alcista',    de: 'Bullen-Trader Avatar'      }, price: 0.99, emoji: '🐂', color: 'var(--green)' },
+    { id: 'avatar_bear',    name: 'Bear',           desc: { en: 'Bearish trader avatar',     es: 'Avatar de trader bajista',    de: 'Bären-Trader Avatar'       }, price: 0.99, emoji: '🐻', color: 'var(--color-down)' },
     { id: 'avatar_whale',   name: 'Whale',          desc: { en: 'Big money avatar',          es: 'Avatar de gran inversor',     de: 'Großinvestor Avatar'       }, price: 1.99, emoji: '🐋', color: 'var(--t3)' },
-    { id: 'avatar_robot',   name: 'AlgoBot',        desc: { en: 'Algorithm trader avatar',   es: 'Avatar de trader algorítmico',de: 'Algorithmus-Trader Avatar' }, price: 1.99, emoji: '🤖', color: '#f5c842' },
+    { id: 'avatar_robot',   name: 'AlgoBot',        desc: { en: 'Algorithm trader avatar',   es: 'Avatar de trader algorítmico',de: 'Algorithmus-Trader Avatar' }, price: 1.99, emoji: '🤖', color: 'var(--color-neutral)' },
   ],
   effects: [
-    { id: 'effect_confetti',  name: 'Confetti',     desc: { en: 'Confetti on correct answer',es: 'Confeti al acertar',          de: 'Konfetti bei richtiger Antwort'}, price: 1.99, emoji: '🎉', color: '#f5c842' },
-    { id: 'effect_lightning', name: 'Lightning',    desc: { en: 'Lightning bolt on streak',  es: 'Rayo en racha',               de: 'Blitz bei Serie'           }, price: 2.99, emoji: '⚡', color: '#22d3a5' },
-    { id: 'effect_explosion', name: 'Explosion',    desc: { en: 'Explosion on big win',      es: 'Explosión en gran victoria',  de: 'Explosion bei großem Gewinn'}, price: 2.99, emoji: '💥', color: '#f05454' },
-    { id: 'effect_stars',     name: 'Stars',        desc: { en: 'Stars rain on win',         es: 'Lluvia de estrellas al ganar',de: 'Sternregen beim Gewinn'    }, price: 1.99, emoji: '⭐', color: '#f5c842' },
+    { id: 'effect_confetti',  name: 'Confetti',     desc: { en: 'Confetti on correct answer',es: 'Confeti al acertar',          de: 'Konfetti bei richtiger Antwort'}, price: 1.99, emoji: '🎉', color: 'var(--color-neutral)' },
+    { id: 'effect_lightning', name: 'Lightning',    desc: { en: 'Lightning bolt on streak',  es: 'Rayo en racha',               de: 'Blitz bei Serie'           }, price: 2.99, emoji: '⚡', color: 'var(--green)' },
+    { id: 'effect_explosion', name: 'Explosion',    desc: { en: 'Explosion on big win',      es: 'Explosión en gran victoria',  de: 'Explosion bei großem Gewinn'}, price: 2.99, emoji: '💥', color: 'var(--color-down)' },
+    { id: 'effect_stars',     name: 'Stars',        desc: { en: 'Stars rain on win',         es: 'Lluvia de estrellas al ganar',de: 'Sternregen beim Gewinn'    }, price: 1.99, emoji: '⭐', color: 'var(--color-neutral)' },
   ],
 };
 
 const FRAME_STYLES = {
-  frame_gold:    { border: '2px solid #f5c842', boxShadow: '0 0 8px rgba(245,200,66,0.6)' },
-  frame_neon:    { border: '2px solid #22d3a5', boxShadow: '0 0 8px rgba(34,211,165,0.6)' },
-  frame_fire:    { border: '2px solid #f05454', boxShadow: '0 0 8px rgba(240,84,84,0.6)' },
+  frame_gold:    { border: '2px solid var(--color-neutral)', boxShadow: '0 0 8px rgba(232,184,75,0.6)' },
+  frame_neon:    { border: '2px solid var(--green)', boxShadow: '0 0 8px rgba(0,229,160,0.6)' },
+  frame_fire:    { border: '2px solid var(--color-down)', boxShadow: '0 0 8px rgba(255,126,179,0.6)' },
   frame_diamond: { border: '2px solid var(--t3)', boxShadow: '0 0 8px rgba(136,153,176,0.6)' },
 };
 
 const THEME_COLORS = {
-  theme_blood:    { bg: '#0d0000', border: '#3a0000', accent: '#f05454', text: '#6b2020', down: '#7a0000' },
-  theme_gold:     { bg: '#0d0a00', border: '#3a2e00', accent: '#f5c842', text: '#6b5a00', down: '#7a4400' },
+  theme_blood:    { bg: '#0d0000', border: '#3a0000', accent: 'var(--color-down)', text: '#6b2020', down: '#7a0000' },
+  theme_gold:     { bg: '#0d0a00', border: '#3a2e00', accent: 'var(--color-neutral)', text: '#6b5a00', down: '#7a4400' },
   theme_midnight: { bg: '#020510', border: '#0a1535', accent: '#6b9fff', text: '#2a3a6b', down: '#7a2a2a' },
   theme_matrix:   { bg: '#000000', border: '#003300', accent: '#00ff41', text: '#004400', down: '#008800' },
 };
@@ -53,7 +53,7 @@ const MINI_CANDLES = [
   { x: 74, oy: 14, cy: 10, hy: 6,  ly: 18 },
 ];
 
-const CONFETTI_COLORS = ['#f5c842', '#22d3a5', '#f05454', '#6b9fff', '#ff9800', '#e040fb', '#00ff41'];
+const CONFETTI_COLORS = ['var(--color-neutral)', 'var(--green)', 'var(--color-down)', '#6b9fff', '#ff9800', '#e040fb', '#00ff41'];
 
 if (!document.getElementById('shop-preview-css')) {
   const el = document.createElement('style');
@@ -214,7 +214,7 @@ function PreviewLightning() {
     <>
       <div style={{
         position: 'absolute', inset: 0,
-        background: 'rgba(245,200,66,0.15)',
+        background: 'rgba(232,184,75,0.15)',
         animation: 'preview-lightning-flash 0.9s ease forwards',
       }} />
       <svg
@@ -223,8 +223,8 @@ function PreviewLightning() {
       >
         <polyline
           points="30,3 16,36 26,36 12,69"
-          fill="none" stroke="#f5c842" strokeWidth="2.5" strokeLinejoin="round"
-          style={{ filter: 'drop-shadow(0 0 5px #f5c842)' }}
+          fill="none" stroke="var(--color-neutral)" strokeWidth="2.5" strokeLinejoin="round"
+          style={{ filter: 'drop-shadow(0 0 5px var(--color-neutral))' }}
         />
       </svg>
     </>
@@ -238,7 +238,7 @@ function PreviewExplosion() {
       return {
         tx:    Math.round(Math.cos(angle) * 30),
         ty:    Math.round(Math.sin(angle) * 26),
-        color: ['#f05454', '#f5c842', '#22d3a5', '#ff9800'][i % 4],
+        color: ['var(--color-down)', 'var(--color-neutral)', 'var(--green)', '#ff9800'][i % 4],
         delay: i * 0.02,
       };
     }), []
@@ -247,12 +247,12 @@ function PreviewExplosion() {
     <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{
         position: 'absolute', width: '44px', height: '44px', borderRadius: '50%',
-        border: '2px solid #f05454',
+        border: '2px solid var(--color-down)',
         animation: 'preview-explosion-ring 0.9s ease-out forwards',
       }} />
       <div style={{
         position: 'absolute', width: '22px', height: '22px', borderRadius: '50%',
-        border: '1px solid rgba(240,84,84,0.5)',
+        border: '1px solid rgba(255,126,179,0.5)',
         animation: 'preview-explosion-ring 0.9s 0.12s ease-out forwards',
       }} />
       {particles.map((p, i) => (
@@ -354,13 +354,13 @@ export default function Shop({ onBack }) {
       <div className="scanlines" />
       <div style={{ position: 'relative', zIndex: 2 }}>
 
-        <div style={{ padding: '14px 20px 13px', borderBottom: '1px solid var(--bd)', display: 'flex', alignItems: 'center', gap: '12px', background: 'linear-gradient(180deg, rgba(245,200,66,0.025) 0%, transparent 100%)' }}>
+        <div style={{ padding: '14px 20px 13px', borderBottom: '1px solid var(--bd)', display: 'flex', alignItems: 'center', gap: '12px', background: 'linear-gradient(180deg, rgba(232,184,75,0.025) 0%, transparent 100%)' }}>
           <button onClick={onBack}
             style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', transition: 'color 0.15s' }}
             onMouseEnter={e => e.target.style.color = 'var(--t2)'}
             onMouseLeave={e => e.target.style.color = 'var(--t6)'}
           >{t.shop.back}</button>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '15px', color: '#f5c842', letterSpacing: '0.06em', textShadow: '0 0 20px rgba(245,200,66,0.25)' }}>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '15px', color: 'var(--color-neutral)', letterSpacing: '0.06em', textShadow: '0 0 20px rgba(232,184,75,0.25)' }}>
             🛍️ {t.home.shop}
           </div>
         </div>
@@ -370,9 +370,9 @@ export default function Shop({ onBack }) {
             <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
               style={{
                 padding: '6px 14px', borderRadius: '20px', whiteSpace: 'nowrap',
-                border: `1px solid ${activeCategory === cat.id ? '#22d3a5' : 'var(--bd2)'}`,
-                background: activeCategory === cat.id ? 'rgba(34,211,165,0.08)' : 'transparent',
-                color: activeCategory === cat.id ? '#22d3a5' : 'var(--t5)',
+                border: `1px solid ${activeCategory === cat.id ? 'var(--green)' : 'var(--bd2)'}`,
+                background: activeCategory === cat.id ? 'rgba(0,229,160,0.08)' : 'transparent',
+                color: activeCategory === cat.id ? 'var(--green)' : 'var(--t5)',
                 fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700,
                 letterSpacing: '0.08em', cursor: 'pointer', textTransform: 'uppercase',
               }}>
@@ -426,7 +426,7 @@ export default function Shop({ onBack }) {
                 ) : (
                   <button onClick={() => handleBuy(item.id)} disabled={loading === item.id} style={{
                     width: '100%', padding: '8px', marginTop: '4px',
-                    background: loading === item.id ? 'var(--bg-card2)' : 'rgba(34,211,165,0.08)',
+                    background: loading === item.id ? 'var(--bg-card2)' : 'rgba(0,229,160,0.08)',
                     border: `1px solid ${loading === item.id ? 'var(--bd2)' : item.color}`,
                     borderRadius: '6px',
                     color: loading === item.id ? 'var(--t5)' : item.color,

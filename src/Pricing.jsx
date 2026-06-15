@@ -55,8 +55,8 @@ export default function Pricing({ onBack, fromTournament }) {
         </div>
 
         {isPro && (
-          <div style={{ marginBottom: '20px', padding: '12px 16px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '8px', textAlign: 'center' }}>
-            <span style={{ fontSize: '11px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", letterSpacing: '0.06em' }}>
+          <div style={{ marginBottom: '20px', padding: '12px 16px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', textAlign: 'center' }}>
+            <span style={{ fontSize: '11px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", letterSpacing: '0.06em' }}>
               {t.pricing.alreadyPro}
             </span>
           </div>
@@ -78,14 +78,14 @@ export default function Pricing({ onBack, fromTournament }) {
         </div>
 
         {/* Pro plan */}
-        <div style={{ marginBottom: '24px', padding: '20px', background: 'var(--bg-card)', border: '2px solid #22d3a5', borderRadius: '12px', boxShadow: '0 0 24px rgba(34,211,165,0.08)' }}>
+        <div style={{ marginBottom: '24px', padding: '20px', background: 'var(--bg-card)', border: '2px solid var(--green)', borderRadius: '12px', boxShadow: '0 0 24px rgba(0,229,160,0.08)' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '4px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--t1)' }}>Pro</div>
-              <span style={{ fontSize: '9px', color: '#22d3a5', background: 'rgba(34,211,165,0.1)', padding: '2px 8px', borderRadius: '4px', letterSpacing: '0.06em', fontFamily: "'Space Mono', monospace" }}>{t.pricing.recommended}</span>
+              <span style={{ fontSize: '9px', color: 'var(--green)', background: 'rgba(0,229,160,0.1)', padding: '2px 8px', borderRadius: '4px', letterSpacing: '0.06em', fontFamily: "'Space Mono', monospace" }}>{t.pricing.recommended}</span>
             </div>
             <div>
-              <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: '#22d3a5' }}>€3.99</span>
+              <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: 'var(--green)' }}>€3.99</span>
               <span style={{ fontSize: '10px', color: 'var(--t5)' }}>/mes</span>
             </div>
           </div>
@@ -95,7 +95,7 @@ export default function Pricing({ onBack, fromTournament }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
             {PRO_FEATURES.map(f => (
               <div key={f} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: 'var(--t3)' }}>
-                <span style={{ color: '#22d3a5', fontSize: '10px' }}>✓</span>{f}
+                <span style={{ color: 'var(--green)', fontSize: '10px' }}>✓</span>{f}
               </div>
             ))}
           </div>
@@ -106,8 +106,8 @@ export default function Pricing({ onBack, fromTournament }) {
               disabled={loading}
               style={{
                 width: '100%', padding: '14px',
-                background: loading ? 'rgba(34,211,165,0.3)' : 'linear-gradient(135deg, #22d3a5, #1aaa84)',
-                border: 'none', borderRadius: '8px', color: '#0a0c0f',
+                background: loading ? 'rgba(0,229,160,0.3)' : 'linear-gradient(135deg, var(--green), #1aaa84)',
+                border: 'none', borderRadius: '8px', color: 'var(--bg-base)',
                 fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700,
                 letterSpacing: '0.06em', textTransform: 'uppercase',
                 cursor: loading ? 'default' : 'pointer',
@@ -117,7 +117,7 @@ export default function Pricing({ onBack, fromTournament }) {
             </button>
           )}
           {msg && (
-            <div style={{ marginTop: '8px', fontSize: '10px', color: '#f05454', textAlign: 'center' }}>{msg}</div>
+            <div style={{ marginTop: '8px', fontSize: '10px', color: 'var(--color-down)', textAlign: 'center' }}>{msg}</div>
           )}
         </div>
 
@@ -127,7 +127,7 @@ export default function Pricing({ onBack, fromTournament }) {
             {t.pricing.paidSection}
           </div>
           <div style={{ fontSize: '11px', color: 'var(--t5)', lineHeight: 1.6 }}>
-            {t.pricing.paidDescPart1} <strong style={{ color: 'var(--t3)' }}>€2</strong> {t.pricing.paidDescPart2} <strong style={{ color: '#f5c842' }}>{t.pricing.paidDescPart3}</strong>{t.pricing.paidDescPart4}
+            {t.pricing.paidDescPart1} <strong style={{ color: 'var(--t3)' }}>€2</strong> {t.pricing.paidDescPart2} <strong style={{ color: 'var(--color-neutral)' }}>{t.pricing.paidDescPart3}</strong>{t.pricing.paidDescPart4}
           </div>
         </div>
 

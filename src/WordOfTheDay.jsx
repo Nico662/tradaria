@@ -3,7 +3,7 @@ import { GLOSSARY } from './tradingGlossary.js';
 import { CHARTS } from './glossaryCharts.jsx';
 import { useLang } from './LangContext.jsx';
 
-const ACCENTS = ['#22d3a5', '#f5c842', 'var(--t3)'];
+const ACCENTS = ['var(--green)', 'var(--color-neutral)', 'var(--t3)'];
 
 function getUTCDoy(offset) {
   const now = new Date();

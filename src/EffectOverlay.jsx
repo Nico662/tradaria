@@ -84,7 +84,7 @@ export default function EffectOverlay({ effect, active }) {
 
 /* ── Confetti ─────────────────────────────────────────────────────── */
 function Confetti({ base }) {
-  const COLORS = ['#f05454', '#22d3a5', '#f5c842', '#378ADD', '#ff8c00', '#e879f9', '#ffffff'];
+  const COLORS = ['var(--color-down)', 'var(--green)', 'var(--color-neutral)', '#378ADD', '#ff8c00', '#e879f9', '#ffffff'];
   const pieces = useMemo(() =>
     Array.from({ length: 44 }, (_, i) => ({
       id:    i,
@@ -120,7 +120,7 @@ function Confetti({ base }) {
 function Lightning({ base }) {
   const bolts = [
     { points: [[12,0],[24,18],[6,34],[28,52],[10,68],[30,85],[18,100]],  color: '#ffffff', w: 4,   delay: 0     },
-    { points: [[50,0],[62,14],[43,32],[64,48],[48,65],[66,82],[53,100]], color: '#f5c842', w: 2.5, delay: 0.04  },
+    { points: [[50,0],[62,14],[43,32],[64,48],[48,65],[66,82],[53,100]], color: 'var(--color-neutral)', w: 2.5, delay: 0.04  },
     { points: [[82,0],[70,22],[88,40],[68,58],[84,74],[72,100]],         color: '#ffffff', w: 2,   delay: 0.09  },
   ];
 
@@ -162,7 +162,7 @@ function Lightning({ base }) {
 
 /* ── Explosion ────────────────────────────────────────────────────── */
 function Explosion({ base }) {
-  const COLORS = ['#f05454', '#f5c842', '#ff8c00', '#ffffff', '#ff6b35', '#22d3a5'];
+  const COLORS = ['var(--color-down)', 'var(--color-neutral)', '#ff8c00', '#ffffff', '#ff6b35', 'var(--green)'];
   const particles = useMemo(() =>
     Array.from({ length: 28 }, (_, i) => {
       const angle = (i / 28) * Math.PI * 2;
@@ -180,10 +180,10 @@ function Explosion({ base }) {
   );
 
   const rings = [
-    { size: 40,  border: 4, color: '#f05454', delay: 0,    dur: 0.9 },
-    { size: 60,  border: 3, color: '#f5c842', delay: 0.07, dur: 1.0 },
+    { size: 40,  border: 4, color: 'var(--color-down)', delay: 0,    dur: 0.9 },
+    { size: 60,  border: 3, color: 'var(--color-neutral)', delay: 0.07, dur: 1.0 },
     { size: 90,  border: 2, color: '#ff8c00', delay: 0.14, dur: 1.1 },
-    { size: 130, border: 1, color: '#f05454', delay: 0.21, dur: 1.2 },
+    { size: 130, border: 1, color: 'var(--color-down)', delay: 0.21, dur: 1.2 },
   ];
 
   return (

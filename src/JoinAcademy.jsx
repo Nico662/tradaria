@@ -84,8 +84,8 @@ export default function JoinAcademy({ onBack }) {
             spellCheck={false}
             style={{
               width: '100%', padding: '16px',
-              background: 'var(--bg-card)', border: `1px solid ${previewErr ? '#f05454' : preview ? '#22d3a5' : 'var(--bd)'}`,
-              borderRadius: '8px', color: '#22d3a5',
+              background: 'var(--bg-card)', border: `1px solid ${previewErr ? 'var(--color-down)' : preview ? 'var(--green)' : 'var(--bd)'}`,
+              borderRadius: '8px', color: 'var(--green)',
               fontFamily: "'Space Mono', monospace", fontSize: '22px', fontWeight: 700,
               letterSpacing: '0.22em', textAlign: 'center',
               outline: 'none', boxSizing: 'border-box',
@@ -103,7 +103,7 @@ export default function JoinAcademy({ onBack }) {
 
         {/* Error */}
         {previewErr && !previewLoading && (
-          <div style={{ marginTop: '14px', fontFamily: "'Space Mono', monospace", fontSize: '10px', color: '#f05454', textAlign: 'center' }}>
+          <div style={{ marginTop: '14px', fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--color-down)', textAlign: 'center' }}>
             {previewErr}
           </div>
         )}
@@ -112,7 +112,7 @@ export default function JoinAcademy({ onBack }) {
         {preview && !previewLoading && !done && (
           <div style={{
             marginTop: '20px', padding: '18px 16px',
-            background: 'rgba(34,211,165,0.05)', border: '1px solid rgba(34,211,165,0.25)',
+            background: 'rgba(0,229,160,0.05)', border: '1px solid rgba(0,229,160,0.25)',
             borderRadius: '10px', textAlign: 'center',
           }}>
             <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t4)', marginBottom: '6px' }}>
@@ -122,7 +122,7 @@ export default function JoinAcademy({ onBack }) {
               {preview.name}
             </div>
             {joinErr && (
-              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: '#f05454', marginBottom: '12px' }}>
+              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--color-down)', marginBottom: '12px' }}>
                 {joinErr}
               </div>
             )}
@@ -131,8 +131,8 @@ export default function JoinAcademy({ onBack }) {
               disabled={joining}
               style={{
                 width: '100%', padding: '13px',
-                background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5',
-                borderRadius: '8px', color: '#22d3a5',
+                background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)',
+                borderRadius: '8px', color: 'var(--green)',
                 fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700,
                 letterSpacing: '0.06em', textTransform: 'uppercase',
                 cursor: joining ? 'default' : 'pointer', opacity: joining ? 0.6 : 1,
@@ -145,9 +145,9 @@ export default function JoinAcademy({ onBack }) {
 
         {/* Success */}
         {done && (
-          <div style={{ marginTop: '20px', padding: '20px', textAlign: 'center', background: 'rgba(34,211,165,0.05)', border: '1px solid rgba(34,211,165,0.25)', borderRadius: '10px' }}>
+          <div style={{ marginTop: '20px', padding: '20px', textAlign: 'center', background: 'rgba(0,229,160,0.05)', border: '1px solid rgba(0,229,160,0.25)', borderRadius: '10px' }}>
             <div style={{ fontSize: '24px', marginBottom: '8px' }}>✓</div>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#22d3a5' }}>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: 'var(--green)' }}>
               {t.academy.joinSuccess}
             </div>
           </div>

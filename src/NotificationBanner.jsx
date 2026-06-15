@@ -63,9 +63,9 @@ export default function NotificationBanner() {
       position: 'fixed', bottom: '20px', left: '50%',
       transform: 'translateX(-50%)',
       width: 'calc(100% - 40px)', maxWidth: '400px',
-      background: 'var(--bg-card)', border: '1px solid #22d3a5',
+      background: 'var(--bg-card)', border: '1px solid var(--green)',
       borderRadius: '12px', padding: '16px 20px',
-      zIndex: 9998, boxShadow: '0 0 24px rgba(34,211,165,0.15)',
+      zIndex: 9998, boxShadow: '0 0 24px rgba(0,229,160,0.15)',
       animation: 'slideUp 0.3s ease',
     }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
@@ -81,7 +81,7 @@ export default function NotificationBanner() {
       </div>
       <div style={{ display: 'flex', gap: '8px', marginTop: '14px' }}>
         <button onClick={() => { console.log('Allow clicked'); allow(); }}
-          style={{ flex: 1, padding: '10px', background: 'rgba(34,211,165,0.1)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>
+          style={{ flex: 1, padding: '10px', background: 'rgba(0,229,160,0.1)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>
              Allow
         </button>
         <button onClick={dismiss}

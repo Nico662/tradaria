@@ -60,7 +60,7 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
   if (error || !profile) return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', padding: '40px' }}>
       <div style={{ fontSize: '32px' }}>👤</div>
-      <div style={{ fontSize: '11px', color: '#f05454', fontFamily: "'Space Mono', monospace" }}>{error || t.profile.notFound}</div>
+      <div style={{ fontSize: '11px', color: 'var(--color-down)', fontFamily: "'Space Mono', monospace" }}>{error || t.profile.notFound}</div>
       {onBack && <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em' }}>{t.profile.back}</button>}
     </div>
   );
@@ -91,7 +91,7 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
             @{profile.username}
             {isFounder(profile.username) && <FounderBadge size={18} />}
             {profile.isPro && (
-              <span style={{ fontSize: '9px', color: '#22d3a5', background: 'rgba(34,211,165,0.1)', border: '1px solid #22d3a5', borderRadius: '20px', padding: '2px 7px', fontFamily: "'Space Mono', monospace", letterSpacing: '0.06em' }}>
+              <span style={{ fontSize: '9px', color: 'var(--green)', background: 'rgba(0,229,160,0.1)', border: '1px solid var(--green)', borderRadius: '20px', padding: '2px 7px', fontFamily: "'Space Mono', monospace", letterSpacing: '0.06em' }}>
                 ⚡ Pro
               </span>
             )}
@@ -116,7 +116,7 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
 
         {/* Portfolio */}
         {profile.portfolioReturn !== null && profile.totalValue !== null && (
-          <div style={{ background: 'var(--bg-card)', border: `1px solid ${profile.portfolioReturn >= 0 ? 'rgba(34,211,165,0.3)' : 'rgba(240,84,84,0.3)'}`, borderRadius: '10px', padding: '16px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ background: 'var(--bg-card)', border: `1px solid ${profile.portfolioReturn >= 0 ? 'rgba(0,229,160,0.3)' : 'rgba(255,126,179,0.3)'}`, borderRadius: '10px', padding: '16px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <div style={{ fontSize: '8px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '4px' }}>💼 Portfolio</div>
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--t1)' }}>
@@ -124,7 +124,7 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
               </div>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: profile.portfolioReturn >= 0 ? '#22d3a5' : '#f05454' }}>
+              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: profile.portfolioReturn >= 0 ? 'var(--green)' : 'var(--color-down)' }}>
                 {profile.portfolioReturn >= 0 ? '+' : ''}{profile.portfolioReturn.toFixed(2)}%
               </div>
               <div style={{ fontSize: '8px', color: 'var(--t5)' }}>{t.profile.vsInitial}</div>
@@ -156,14 +156,14 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {isFriend && user && onChallenge && (
             <button onClick={() => onChallenge(profile.username)}
-              style={{ width: '100%', padding: '14px', background: 'rgba(240,84,84,0.08)', border: '1px solid #f05454', borderRadius: '8px', color: '#f05454', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+              style={{ width: '100%', padding: '14px', background: 'rgba(255,126,179,0.08)', border: '1px solid var(--color-down)', borderRadius: '8px', color: 'var(--color-down)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
               {t.profile.challenge}
             </button>
           )}
 
           {user && !isOwnProfile && (
             friendStatus === 'accepted' ? (
-              <div style={{ width: '100%', padding: '14px', boxSizing: 'border-box', background: 'rgba(34,211,165,0.06)', border: '1px solid rgba(34,211,165,0.3)', borderRadius: '8px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', textAlign: 'center' }}>
+              <div style={{ width: '100%', padding: '14px', boxSizing: 'border-box', background: 'rgba(0,229,160,0.06)', border: '1px solid rgba(0,229,160,0.3)', borderRadius: '8px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', textAlign: 'center' }}>
                 {t.profile.alreadyFriends}
               </div>
             ) : friendStatus === 'pending' ? (
@@ -173,7 +173,7 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
             ) : (
               <button onClick={sendFriendRequest}
                 style={{ width: '100%', padding: '14px', background: 'transparent', border: '1px solid var(--bd)', borderRadius: '8px', color: 'var(--t3)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', transition: 'border-color 0.15s, color 0.15s' }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = '#22d3a5'; e.currentTarget.style.color = '#22d3a5'; }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--green)'; e.currentTarget.style.color = 'var(--green)'; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--bd)'; e.currentTarget.style.color = 'var(--t3)'; }}
               >
                 {t.profile.addFriend}
@@ -182,7 +182,7 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
           )}
 
           <a href="https://tradaria.dev"
-            style={{ display: 'block', textAlign: 'center', padding: '14px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '8px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', textDecoration: 'none' }}>
+            style={{ display: 'block', textAlign: 'center', padding: '14px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', textDecoration: 'none' }}>
             {t.profile.playOn}
           </a>
         </div>
