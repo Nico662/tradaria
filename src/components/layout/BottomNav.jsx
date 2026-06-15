@@ -4,7 +4,7 @@ const NAV_ITEMS = [
   { id: 'home',    label: 'Inicio',  Icon: Home,             screen: 'home'   },
   { id: 'modes',   label: 'Modos',   Icon: LayoutGrid,       screen: 'modes'  },
   { id: 'play',    label: 'Jugar',   Icon: CandlestickChart, screen: 'game'   },
-  { id: 'ranking', label: 'Ranking', Icon: Trophy,           screen: 'league' },
+  { id: 'ranking', label: 'Liga',    Icon: Trophy,           screen: 'league' },
   { id: 'profile', label: 'Perfil',  Icon: User,             screen: 'stats'  },
 ];
 
