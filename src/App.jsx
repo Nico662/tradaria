@@ -37,6 +37,7 @@ import JoinAcademy from './JoinAcademy.jsx';
 import TeacherDashboard from './TeacherDashboard.jsx';
 import StudentDashboard from './StudentDashboard.jsx';
 import AcadiasLanding from './AcadiasLanding.jsx';
+import AppLayout from './components/layout/AppLayout.jsx';
 
 
 const CATEGORIES = [
@@ -601,7 +602,7 @@ export default function App() {
   // ── Home ──────────────────────────────────────────────────────────
   if (screen === 'home') {
     return (
-      <>
+      <AppLayout screen={screen} onNavigate={setScreen}>
         <Home onSelect={(mode) => {
           if (mode === 'arena')      setScreen('arena');
           else if (mode === 'legal')      setScreen('legal');
@@ -626,7 +627,7 @@ export default function App() {
         }} />
         <NotificationBanner />
         {challengeOverlay}
-      </>
+      </AppLayout>
     );
   }
 
@@ -639,14 +640,14 @@ export default function App() {
   if (screen === 'pricing')    return <><Pricing    onBack={() => { setScreen('home'); setPricingFromTournament(false); }} fromTournament={pricingFromTournament} />{challengeOverlay}</>;
   if (screen === 'legal')      return <><Legal      onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'badges')     return <><Badges     onBack={() => setScreen('home')} />{challengeOverlay}</>;
-  if (screen === 'stats')      return <><Stats      onBack={() => setScreen('home')} />{challengeOverlay}</>;
+  if (screen === 'stats')      return <AppLayout screen={screen} onNavigate={setScreen}><Stats      onBack={() => setScreen('home')} />{challengeOverlay}</AppLayout>;
   if (screen === 'daily')      return <><Daily      onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'historical') return <><Historical onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'tournament') return <><Tournament onBack={() => { setAcademyTournamentCtx(null); setScreen(academyTournamentCtx ? 'student_dashboard' : 'home'); }} onViewProfile={(uname) => { setPublicProfileUsername(uname); setScreen('public_profile'); window.history.pushState({}, '', `/u/${uname}`); }} onGoPricing={() => { setPricingFromTournament(true); setScreen('pricing'); }} academyTournamentId={academyTournamentCtx?.tournamentId ?? null} academyId={academyTournamentCtx?.academyId ?? null} />{challengeOverlay}</>;
   if (screen === 'survival')   return <><Survival   onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'shop')       return <><Shop       onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'settings')   return <><Settings   onBack={() => setScreen('home')} />{challengeOverlay}</>;
-  if (screen === 'portfolio')  return <><Portfolio  onBack={() => setScreen('home')} onViewProfile={(uname) => { setPublicProfileUsername(uname); setScreen('public_profile'); window.history.pushState({}, '', `/u/${uname}`); }} onOpenLeague={(id) => { setLeagueId(id); setScreen('league'); }} onGoPricing={() => setScreen('pricing')} />{challengeOverlay}</>;
+  if (screen === 'portfolio')  return <AppLayout screen={screen} onNavigate={setScreen}><Portfolio  onBack={() => setScreen('home')} onViewProfile={(uname) => { setPublicProfileUsername(uname); setScreen('public_profile'); window.history.pushState({}, '', `/u/${uname}`); }} onOpenLeague={(id) => { setLeagueId(id); setScreen('league'); }} onGoPricing={() => setScreen('pricing')} />{challengeOverlay}</AppLayout>;
   if (screen === 'league')          return <><League leagueId={leagueId} onBack={() => setScreen('portfolio')} />{challengeOverlay}</>;
   if (screen === 'join_academy')     return <JoinAcademy onBack={() => setScreen('home')} />;
   if (screen === 'student_dashboard') return <StudentDashboard onBack={() => setScreen('home')} onPlayTournament={(aId, tId) => { setAcademyTournamentCtx({ academyId: aId, tournamentId: tId }); setScreen('tournament'); }} />;
@@ -654,7 +655,7 @@ export default function App() {
     ? <TeacherDashboard academyId={String(user.academyId)} onBack={() => setScreen('home')} />
     : null;
   if (screen === 'friends') return (
-    <>
+    <AppLayout screen={screen} onNavigate={setScreen}>
       <Friends
         onBack={() => setScreen('home')}
         challengeSocket={challengeSocket}
@@ -665,7 +666,7 @@ export default function App() {
         }}
       />
       {challengeOverlay}
-    </>
+    </AppLayout>
   );
 
   if (screen === 'public_profile') return (
