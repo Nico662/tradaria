@@ -393,14 +393,6 @@ export default function Home({ onSelect }) {
             </button>
           </div>
 
-          <a href="https://ko-fi.com/tradarianicolasvidal" target="_blank" rel="noopener noreferrer"
-            style={{ background: 'transparent', border: '1px solid var(--bd)', borderRadius: '8px', padding: '8px 16px', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--color-neutral)'}
-            onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--bd)'}
-          >
-            ☕ Support tradaria
-          </a>
-
 
           <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', alignItems: 'center' }}>
             <span style={{ fontSize: '9px', color: 'var(--bd2)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
