@@ -73,7 +73,13 @@ function toChartData(candles, startIndex = 0) {
         d.setDate(d.getDate() - (candles.length - startIndex - i));
         time = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
       }
-      return { time, open: c.open, high: c.high, low: c.low, close: c.close };
+      const bull = c.close >= c.open;
+      return {
+        time, open: c.open, high: c.high, low: c.low, close: c.close,
+        color:       bull ? '#00e5a0' : '#ff7eb3',
+        borderColor: bull ? '#00e5a0' : '#ff7eb3',
+        wickColor:   bull ? '#00e5a0' : '#ff7eb3',
+      };
     });
 }
 
@@ -88,7 +94,13 @@ function toChartDataForex(candles, startIndex = 0) {
             d.setHours(d.getHours() - (candles.length - startIndex - i));
             return Math.floor(d.getTime() / 1000);
           })();
-      return { time, open: c.open, high: c.high, low: c.low, close: c.close };
+      const bull = c.close >= c.open;
+      return {
+        time, open: c.open, high: c.high, low: c.low, close: c.close,
+        color:       bull ? '#00e5a0' : '#ff7eb3',
+        borderColor: bull ? '#00e5a0' : '#ff7eb3',
+        wickColor:   bull ? '#00e5a0' : '#ff7eb3',
+      };
     });
 }
 
@@ -237,6 +249,15 @@ const Chart = forwardRef(function Chart({ asset, externalCandles, onReady }, ref
         priceFormat: forex
           ? { type: 'price', precision: 4, minMove: 0.0001 }
           : { type: 'price', precision: 2, minMove: 0.01 },
+      });
+
+      series.applyOptions({
+        upColor:         '#00e5a0',
+        downColor:       '#ff7eb3',
+        borderUpColor:   '#00e5a0',
+        borderDownColor: '#ff7eb3',
+        wickUpColor:     '#00e5a0',
+        wickDownColor:   '#ff7eb3',
       });
 
       chartRef.current  = chart;
