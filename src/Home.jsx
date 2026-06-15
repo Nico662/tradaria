@@ -1,5 +1,6 @@
 import { useLang } from './LangContext';
 import { useState, useEffect, useRef } from 'react';
+import { ShoppingBag, Users, Settings } from 'lucide-react';
 import MissionsCard from './MissionsCard.jsx';
 import WordOfTheDay from './WordOfTheDay.jsx';
 import { SERVER } from './config.js';
@@ -15,6 +16,12 @@ const TOURNAMENT_SUB = {
   es: 'Semanal · Ranking global · 10 rondas',
   de: 'Wöchentlich · Globales Ranking · 10 Runden',
 };
+
+const TOP_BUTTONS = [
+  { id: 'shop',     Icon: ShoppingBag, hover: 'var(--color-neutral)'  },
+  { id: 'friends',  Icon: Users,       hover: 'var(--green)'          },
+  { id: 'settings', Icon: Settings,    hover: 'var(--text-secondary)' },
+];
 
 export default function Home({ onSelect }) {
   const { lang, t } = useLang();
@@ -61,7 +68,6 @@ export default function Home({ onSelect }) {
     return () => clearInterval(interval);
   }, []);
 
-  // Mostrar modal de username si el usuario está logueado y no tiene username
   useEffect(() => {
     if (user && !user.username) {
       setShowUsernameModal(true);
@@ -115,30 +121,27 @@ export default function Home({ onSelect }) {
 
   return (
     <div id="gtm-root">
-      <div className="scanlines" />
-
       {showUsernameModal && (
         <UsernameModal onDone={handleUsernameDone} />
       )}
 
-      <div style={{ padding: '48px 28px 32px', position: 'relative', zIndex: 2 }}>
+      <div style={{ padding: '16px 16px 24px', position: 'relative', zIndex: 2 }}>
 
         {/* Top bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            {[
-              { id: 'shop',     icon: '🛍️', hover: 'var(--color-neutral)' },
-              { id: 'friends',  icon: '🤝', hover: 'var(--green)' },
-              { id: 'settings', icon: '⚙️', hover: 'var(--t4)' },
-            ].map(({ id, icon, hover }) => (
+            {TOP_BUTTONS.map(({ id, Icon, hover }) => (
               <div key={id} style={{ position: 'relative', flexShrink: 0 }}>
-                <button onClick={() => { if (id === 'friends') setHasPendingFriends(false); onSelect(id); }}
-                  style={{ background: 'transparent', border: '1px solid var(--bd)', borderRadius: '50%', width: '34px', height: '34px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}
+                <button
+                  onClick={() => { if (id === 'friends') setHasPendingFriends(false); onSelect(id); }}
+                  style={{ background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'border-color 0.15s' }}
                   onMouseEnter={e => e.currentTarget.style.borderColor = hover}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--bd)'}
-                >{icon}</button>
+                  onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-default)'}
+                >
+                  <Icon size={16} strokeWidth={1.8} style={{ stroke: 'var(--text-muted)' }} aria-hidden="true" />
+                </button>
                 {id === 'friends' && hasPendingFriends && (
-                  <span style={{ position: 'absolute', top: '1px', right: '1px', width: '10px', height: '10px', borderRadius: '50%', background: 'var(--color-down)', border: '1.5px solid var(--bg, var(--bg-base))', pointerEvents: 'none' }} />
+                  <span style={{ position: 'absolute', top: '1px', right: '1px', width: '10px', height: '10px', borderRadius: '50%', background: 'var(--color-down)', border: '1.5px solid var(--bg-base)', pointerEvents: 'none' }} />
                 )}
               </div>
             ))}
@@ -173,15 +176,12 @@ export default function Home({ onSelect }) {
           </div>
 
           {isPro ? (
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '5px 12px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '20px', fontSize: '9px', color: 'var(--green)', fontFamily: 'var(--font-body)', letterSpacing: '0.06em' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '5px 12px', background: 'var(--green-dim)', border: '0.5px solid var(--border-green)', borderRadius: 'var(--radius-full)', fontSize: '10px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontWeight: 800, letterSpacing: '0.06em' }}>
               ⚡ Pro
             </div>
           ) : (
             <button onClick={() => onSelect('pricing')}
-              style={{ background: 'rgba(0,229,160,0.07)', border: '1px solid var(--green)', borderRadius: '20px', padding: '5px 14px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '9px', cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: '5px', boxShadow: '0 0 10px rgba(0,229,160,0.1)' }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,229,160,0.15)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,229,160,0.07)'}
-            >
+              style={{ background: 'var(--gradient-brand)', border: 'none', borderRadius: 'var(--radius-full)', padding: '6px 16px', color: '#0d0d0d', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 900, cursor: 'pointer', letterSpacing: '0.06em' }}>
               ⚡ Hazte Pro
             </button>
           )}
@@ -245,164 +245,125 @@ export default function Home({ onSelect }) {
         </div>
 
         {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 200" width="24">
-              <line x1="50" y1="10" x2="50" y2="40" stroke="var(--green)" strokeWidth="8" strokeLinecap="round"/>
-              <rect x="25" y="40" width="50" height="110" rx="6" fill="var(--green)"/>
-              <line x1="50" y1="150" x2="50" y2="190" stroke="var(--green)" strokeWidth="8" strokeLinecap="round"/>
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 200" width="22">
+              <line x1="50" y1="10" x2="50" y2="40" stroke="#ff7eb3" strokeWidth="8" strokeLinecap="round"/>
+              <rect x="25" y="40" width="50" height="110" rx="6" fill="url(#candleGradHome)"/>
+              <line x1="50" y1="150" x2="50" y2="190" stroke="#00e5a0" strokeWidth="8" strokeLinecap="round"/>
+              <defs>
+                <linearGradient id="candleGradHome" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#ff7eb3"/>
+                  <stop offset="100%" stopColor="#00e5a0"/>
+                </linearGradient>
+              </defs>
             </svg>
-            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '42px', letterSpacing: '-0.02em', color: 'var(--t1)', textShadow: '0 0 60px rgba(0,229,160,0.2), 0 2px 20px rgba(0,0,0,0.5)' }}>
-              Tradaria
-            </div>
+            <span style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '38px', letterSpacing: '-1px', color: 'var(--text-primary)', lineHeight: 1 }}>
+              Tradi<span style={{ color: 'var(--pink)' }}>aria</span>
+            </span>
           </div>
-          <div style={{ fontSize: '10px', color: '#5a6a7d', letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: '6px' }}>
+          <div style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: '6px', fontFamily: 'var(--font-body)', fontWeight: 700 }}>
             {t.home.tagline}
           </div>
-
-          {/* Streak + Level */}
-          <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
+          <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px' }}>
             {dailyStreak > 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '14px' }}>🔥</span>
-                <span style={{ fontSize: '9px', color: 'var(--color-neutral)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                  {dailyStreak} day streak
-                </span>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'var(--pink-dim)', border: '0.5px solid var(--border-pink)', borderRadius: 'var(--radius-full)', padding: '4px 10px' }}>
+                <span style={{ fontSize: '12px' }}>🔥</span>
+                <span style={{ fontSize: '10px', color: 'var(--pink)', fontFamily: 'var(--font-body)', fontWeight: 800, letterSpacing: '0.06em' }}>{dailyStreak} días</span>
               </div>
             )}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '12px' }}>{level.icon}</span>
-              <span style={{ fontSize: '9px', color: 'var(--t3)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                {level.name} · {xp} XP
-              </span>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'var(--green-dim)', border: '0.5px solid var(--border-green)', borderRadius: 'var(--radius-full)', padding: '4px 10px' }}>
+              <span style={{ fontSize: '11px' }}>{level.icon}</span>
+              <span style={{ fontSize: '10px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontWeight: 800, letterSpacing: '0.06em' }}>{level.name} · {xp} XP</span>
             </div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
           <MissionsCard />
           <WordOfTheDay />
         </div>
 
-        {/* Mode cards — hero */}
+        {/* Mode cards */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
 
-          <button className="mode-card active" onClick={() => onSelect('portfolio')} style={{ borderColor: '#378ADD', background: 'rgba(55,138,221,0.06)', padding: '22px 20px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.05s both' }}>
-            <div className="mode-card-left">
-              <span className="mode-icon" style={{ fontSize: '30px' }}>💼</span>
-              <div>
-                <div className="mode-title" style={{ color: '#378ADD', fontSize: '17px' }}>{t.portfolio?.title ?? 'Portfolio Mode'}</div>
-                <div className="mode-sub">{t.portfolio?.sub ?? '$50,000 virtual · real prices'}</div>
-              </div>
+          {/* Hero: Portfolio */}
+          <button
+            onClick={() => onSelect('portfolio')}
+            style={{ width: '100%', background: 'var(--gradient-surface)', border: '0.5px solid var(--border-pink)', borderRadius: 'var(--radius-lg)', padding: '18px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', transition: 'transform 0.1s', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.05s both' }}
+            onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
+            onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+            onTouchStart={e => e.currentTarget.style.transform = 'scale(0.98)'}
+            onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
+          >
+            <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-md)', background: 'rgba(55,138,221,0.15)', border: '1px solid rgba(55,138,221,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', flexShrink: 0 }}>💼</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '15px', color: '#378ADD', marginBottom: '3px' }}>{t.portfolio?.title ?? 'Portfolio Mode'}</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>{t.portfolio?.sub ?? '$50,000 virtual · real prices'}</div>
             </div>
-            <span className="mode-arrow" style={{ color: '#378ADD', fontSize: '20px' }}>→</span>
+            <span style={{ color: '#378ADD', fontSize: '18px', flexShrink: 0 }}>›</span>
           </button>
 
-          <button className="mode-card active" onClick={() => onSelect('daily')} style={{ borderColor: 'var(--color-neutral)', background: 'rgba(232,184,75,0.06)', padding: '22px 20px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.10s both' }}>
-            <div className="mode-card-left">
-              <span className="mode-icon" style={{ fontSize: '30px' }}>⚡</span>
-              <div>
-                <div className="mode-title" style={{ color: 'var(--color-neutral)', fontSize: '17px' }}>{t.home.mode4}</div>
-                <div className="mode-sub">{t.home.mode4sub}</div>
-              </div>
+          {/* Hero: Daily */}
+          <button
+            onClick={() => onSelect('daily')}
+            style={{ width: '100%', background: 'var(--gradient-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-lg)', padding: '18px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', transition: 'transform 0.1s', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.10s both' }}
+            onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
+            onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+            onTouchStart={e => e.currentTarget.style.transform = 'scale(0.98)'}
+            onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
+          >
+            <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-md)', background: 'rgba(232,184,75,0.12)', border: '1px solid rgba(232,184,75,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', flexShrink: 0 }}>⚡</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '15px', color: 'var(--color-neutral)', marginBottom: '3px' }}>{t.home.mode4}</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>{t.home.mode4sub}</div>
             </div>
-            <span className="mode-arrow" style={{ color: 'var(--color-neutral)', fontSize: '20px' }}>→</span>
+            <span style={{ color: 'var(--color-neutral)', fontSize: '18px', flexShrink: 0 }}>›</span>
           </button>
-
 
           {/* Divider */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '2px 0' }}>
-            <div style={{ flex: 1, height: '1px', background: 'var(--bg-card2)' }} />
-            <span style={{ fontSize: '8px', color: 'var(--bd2)', letterSpacing: '0.18em', fontFamily: 'var(--font-body)' }}>{t.home.moreModes.toUpperCase()}</span>
-            <div style={{ flex: 1, height: '1px', background: 'var(--bg-card2)' }} />
+            <div style={{ flex: 1, height: '1px', background: 'var(--border-default)' }} />
+            <span style={{ fontSize: '8px', color: 'var(--text-hint)', letterSpacing: '0.18em', fontFamily: 'var(--font-body)', fontWeight: 700 }}>{t.home.moreModes.toUpperCase()}</span>
+            <div style={{ flex: 1, height: '1px', background: 'var(--border-default)' }} />
           </div>
 
-          <button className="mode-card active" onClick={() => onSelect('survival')} style={{ borderColor: 'var(--color-down)', background: 'rgba(255,126,179,0.04)', padding: '13px 16px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.15s both' }}>
-            <div className="mode-card-left" style={{ gap: '12px' }}>
-              <span className="mode-icon" style={{ fontSize: '20px' }}>☠️</span>
-              <div>
-                <div className="mode-title" style={{ color: 'var(--color-down)', fontSize: '13px' }}>{t.survival.title}</div>
-                <div className="mode-sub">{t.survival.sub}</div>
+          {/* Secondary cards */}
+          {[
+            { id: 'survival',   icon: '☠️', label: t.survival.title,   sub: t.survival.sub,          color: 'var(--pink)',          delay: '0.15s' },
+            { id: 'historical', icon: '📜', label: t.home.mode5,        sub: t.home.mode5sub,         color: 'var(--text-secondary)', delay: '0.20s' },
+            { id: 'arena',      icon: '⚔️', label: t.home.mode2,        sub: t.arena.sub,             color: 'var(--text-primary)',   delay: '0.25s' },
+            { id: 'tournament', icon: '🏆', label: t.home.mode3,        sub: TOURNAMENT_SUB[lang],    color: 'var(--text-primary)',   delay: '0.30s' },
+            { id: 'game',       icon: '📈', label: t.home.mode1,        sub: t.home.mode1sub,         color: 'var(--text-primary)',   delay: '0.35s' },
+          ].map(({ id, icon, label, sub, color, delay }) => (
+            <button
+              key={id}
+              onClick={() => onSelect(id)}
+              style={{ width: '100%', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-lg)', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', transition: 'transform 0.1s', textAlign: 'left', animation: `fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) ${delay} both` }}
+              onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
+              onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+              onTouchStart={e => e.currentTarget.style.transform = 'scale(0.98)'}
+              onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              <div style={{ width: '38px', height: '38px', borderRadius: 'var(--radius-md)', background: 'var(--bg-base)', border: '0.5px solid var(--border-default)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>{icon}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '13px', color, marginBottom: '3px' }}>{label}</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>{sub}</div>
               </div>
-            </div>
-            <span className="mode-arrow" style={{ color: 'var(--color-down)' }}>→</span>
-          </button>
-
-          <button className="mode-card active" onClick={() => onSelect('historical')} style={{ borderColor: 'var(--t3)', background: 'rgba(136,153,176,0.04)', padding: '13px 16px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.20s both' }}>
-            <div className="mode-card-left" style={{ gap: '12px' }}>
-              <span className="mode-icon" style={{ fontSize: '20px' }}>📜</span>
-              <div>
-                <div className="mode-title" style={{ color: 'var(--t3)', fontSize: '13px' }}>{t.home.mode5}</div>
-                <div className="mode-sub">{t.home.mode5sub}</div>
-              </div>
-            </div>
-            <span className="mode-arrow" style={{ color: 'var(--t3)' }}>→</span>
-          </button>
-
-          <button className="mode-card active" onClick={() => onSelect('arena')} style={{ padding: '13px 16px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.25s both' }}>
-            <div className="mode-card-left" style={{ gap: '12px' }}>
-              <span className="mode-icon" style={{ fontSize: '20px' }}>⚔️</span>
-              <div>
-                <div className="mode-title" style={{ fontSize: '13px' }}>{t.home.mode2}</div>
-                <div className="mode-sub">{t.arena.sub}</div>
-              </div>
-            </div>
-            <span className="mode-arrow">→</span>
-          </button>
-
-          <button className="mode-card active" onClick={() => onSelect('tournament')} style={{ padding: '13px 16px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.30s both' }}>
-            <div className="mode-card-left" style={{ gap: '12px' }}>
-              <span className="mode-icon" style={{ fontSize: '20px' }}>🏆</span>
-              <div>
-                <div className="mode-title" style={{ fontSize: '13px' }}>{t.home.mode3}</div>
-                <div className="mode-sub">{TOURNAMENT_SUB[lang]}</div>
-              </div>
-            </div>
-            <span className="mode-arrow">→</span>
-          </button>
-
-          <button className="mode-card active" onClick={() => onSelect('game')} style={{ padding: '13px 16px', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.35s both' }}>
-            <div className="mode-card-left" style={{ gap: '12px' }}>
-              <span className="mode-icon" style={{ fontSize: '20px' }}>📈</span>
-              <div>
-                <div className="mode-title" style={{ fontSize: '13px' }}>{t.home.mode1}</div>
-                <div className="mode-sub">{t.home.mode1sub}</div>
-              </div>
-            </div>
-            <span className="mode-arrow">→</span>
-          </button>
+              <span style={{ color, fontSize: '18px', flexShrink: 0 }}>›</span>
+            </button>
+          ))}
 
         </div>
 
         {/* Footer */}
-        <div style={{ textAlign: 'center', marginTop: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button onClick={() => onSelect('badges')}
-              style={{ flex: 1, background: 'transparent', border: '1px solid var(--bd)', borderRadius: '8px', padding: '8px 16px', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--green)'}
-              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--bd)'}
-            >
-              🏅 {t.home.badges ?? 'Badges'} {unlockedCount > 0 && `· ${unlockedCount}`}
-            </button>
-            <button onClick={() => onSelect('stats')}
-              style={{ flex: 1, background: 'transparent', border: '1px solid var(--bd)', borderRadius: '8px', padding: '8px 16px', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--green)'}
-              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--bd)'}
-            >
-              📊 {t.stats.title}
-            </button>
-          </div>
-
-
+        <div style={{ textAlign: 'center', marginTop: '32px', paddingBottom: '8px' }}>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', alignItems: 'center' }}>
-            <span style={{ fontSize: '9px', color: 'var(--bd2)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: '9px', color: 'var(--text-hint)', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'var(--font-body)' }}>
               {t.home.version}
             </span>
             <button onClick={() => onSelect('legal')}
-              style={{ background: 'transparent', border: 'none', color: 'var(--bd2)', fontFamily: 'var(--font-body)', fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'underline' }}
-              onMouseEnter={e => e.target.style.color = 'var(--t4)'}
-              onMouseLeave={e => e.target.style.color = 'var(--bd2)'}
-            >
+              style={{ background: 'transparent', border: 'none', color: 'var(--text-hint)', fontFamily: 'var(--font-body)', fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'underline' }}>
               Legal
             </button>
           </div>
