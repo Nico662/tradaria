@@ -613,11 +613,11 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
       <div className="scanlines" />
       <div style={{ padding: '40px 28px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
         <button onClick={goBack}
-          style={{ position: 'absolute', top: '12px', left: '20px', background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}>
+          style={{ position: 'absolute', top: '12px', left: '20px', background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer' }}>
           ← {t.arena.menu}
         </button>
         <div style={{ fontSize: '40px', marginBottom: '16px' }}>⚔️</div>
-        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: 'var(--t1)', marginBottom: '8px' }}>
+        <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '22px', color: 'var(--t1)', marginBottom: '8px' }}>
           {t.arena.asyncAcceptTitle}
         </div>
         <div style={{ fontSize: '11px', color: 'var(--t5)', marginBottom: '4px' }}>
@@ -629,10 +629,10 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
         <div style={{ marginBottom: '20px' }}>
           <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>{t.arena.yourName}</div>
           <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="..." maxLength={16}
-            style={{ width: '100%', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '6px', padding: '12px 14px', color: 'var(--t2)', fontFamily: "'Space Mono', monospace", fontSize: '13px', outline: 'none', boxSizing: 'border-box' }} />
+            style={{ width: '100%', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '6px', padding: '12px 14px', color: 'var(--t2)', fontFamily: 'var(--font-body)', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }} />
         </div>
         <button onClick={acceptAsyncChallenge} disabled={!name.trim()}
-          style={{ width: '100%', padding: '16px', background: name.trim() ? 'rgba(255,126,179,0.1)' : 'var(--bg-card)', border: `1px solid ${name.trim() ? 'var(--color-down)' : 'var(--bd)'}`, borderRadius: '8px', color: name.trim() ? 'var(--color-down)' : 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: name.trim() ? 'pointer' : 'not-allowed' }}>
+          style={{ width: '100%', padding: '16px', background: name.trim() ? 'rgba(255,126,179,0.1)' : 'var(--bg-card)', border: `1px solid ${name.trim() ? 'var(--color-down)' : 'var(--bd)'}`, borderRadius: '8px', color: name.trim() ? 'var(--color-down)' : 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: name.trim() ? 'pointer' : 'not-allowed' }}>
           {t.arena.asyncAcceptBtn}
         </button>
       </div>
@@ -644,9 +644,9 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
     <div id="gtm-root" style={{ position: 'relative' }}>
       <div className="scanlines" />
       <div style={{ padding: '40px 28px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
-        <button onClick={goBack} style={{ position: 'absolute', top: '12px', left: '20px', background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}>← {t.arena.menu}</button>
+        <button onClick={goBack} style={{ position: 'absolute', top: '12px', left: '20px', background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer' }}>← {t.arena.menu}</button>
         <div style={{ fontSize: '40px', marginBottom: '16px' }}>⌛</div>
-        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: 'var(--color-down)' }}>{t.arena.asyncExpired}</div>
+        <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: 'var(--color-down)' }}>{t.arena.asyncExpired}</div>
       </div>
     </div>
   );
@@ -665,21 +665,21 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
       <div id="gtm-root" style={{ position: 'relative' }}>
         <div className="scanlines" />
         <div style={{ padding: '40px 28px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
-          <button onClick={goBack} style={{ position: 'absolute', top: '12px', left: '20px', background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}>← {t.arena.menu}</button>
+          <button onClick={goBack} style={{ position: 'absolute', top: '12px', left: '20px', background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer' }}>← {t.arena.menu}</button>
           <div style={{ fontSize: '40px', marginBottom: '16px' }}>⏳</div>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: 'var(--t1)', marginBottom: '20px' }}>{t.arena.asyncWaitingTitle}</div>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: 'var(--t1)', marginBottom: '20px' }}>{t.arena.asyncWaitingTitle}</div>
           <div style={{ padding: '20px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '10px', marginBottom: '20px' }}>
             <div style={{ fontSize: '11px', color: 'var(--t5)', marginBottom: '6px' }}>
-              {t.arena.asyncYourResult} <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: 'var(--color-neutral)' }}>{correctCount}/10</span>
+              {t.arena.asyncYourResult} <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '22px', color: 'var(--color-neutral)' }}>{correctCount}/10</span>
             </div>
             <div style={{ fontSize: '10px', color: 'var(--t6)', marginTop: '8px' }}>
               {t.arena.asyncTimeLeft} <span style={{ color: 'var(--green)', fontWeight: 700 }}>{hoursLeft} {t.arena.asyncHours}</span>
             </div>
           </div>
           <div style={{ padding: '14px', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', marginBottom: '16px' }}>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--green)', wordBreak: 'break-all', marginBottom: '10px' }}>{link}</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--green)', wordBreak: 'break-all', marginBottom: '10px' }}>{link}</div>
             <button onClick={handleCopy}
-              style={{ width: '100%', padding: '10px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>
+              style={{ width: '100%', padding: '10px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>
               {status === t.arena.asyncCopied ? status : t.arena.asyncCopyLink}
             </button>
           </div>
@@ -702,22 +702,22 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
       <div id="gtm-root" style={{ position: 'relative' }}>
         <div className="scanlines" />
         <div style={{ padding: '40px 28px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
-          <button onClick={goBack} style={{ position: 'absolute', top: '12px', left: '20px', background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}>← {t.arena.menu}</button>
+          <button onClick={goBack} style={{ position: 'absolute', top: '12px', left: '20px', background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer' }}>← {t.arena.menu}</button>
           <div style={{ fontSize: '40px', marginBottom: '16px' }}>🎯</div>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: 'var(--color-neutral)', marginBottom: '8px' }}>{t.arena.asyncSentTitle}</div>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '22px', color: 'var(--color-neutral)', marginBottom: '8px' }}>{t.arena.asyncSentTitle}</div>
           <div style={{ fontSize: '13px', color: 'var(--t3)', marginBottom: '24px' }}>
-            {t.arena.asyncYourScore}: <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: 'var(--color-neutral)' }}>{correctCount}/10</span>
+            {t.arena.asyncYourScore}: <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: 'var(--color-neutral)' }}>{correctCount}/10</span>
           </div>
           <div style={{ padding: '16px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '8px', marginBottom: '20px' }}>
             <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>Link</div>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--green)', wordBreak: 'break-all', marginBottom: '12px' }}>{link}</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--green)', wordBreak: 'break-all', marginBottom: '12px' }}>{link}</div>
             <div style={{ display: 'flex', gap: '8px' }}>
               <button onClick={handleCopy}
-                style={{ flex: 1, padding: '10px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>
+                style={{ flex: 1, padding: '10px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>
                 {status === t.arena.asyncCopied ? status : t.arena.asyncCopyLink}
               </button>
               <button onClick={handleShare}
-                style={{ flex: 1, padding: '10px', background: 'rgba(232,184,75,0.08)', border: '1px solid var(--color-neutral)', borderRadius: '6px', color: 'var(--color-neutral)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>
+                style={{ flex: 1, padding: '10px', background: 'rgba(232,184,75,0.08)', border: '1px solid var(--color-neutral)', borderRadius: '6px', color: 'var(--color-neutral)', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>
                 {t.arena.asyncShare}
               </button>
             </div>
@@ -760,23 +760,23 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
       <div id="gtm-root" style={{ position: 'relative' }}>
         <div className="scanlines" />
         <div style={{ padding: '40px 28px 36px', position: 'relative', zIndex: 2 }}>
-          <button onClick={goBack} style={{ position: 'absolute', top: '12px', left: '20px', background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}>← {t.arena.menu}</button>
+          <button onClick={goBack} style={{ position: 'absolute', top: '12px', left: '20px', background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer' }}>← {t.arena.menu}</button>
           <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: 'var(--color-neutral)', marginBottom: '16px', letterSpacing: '0.06em' }}>{t.arena.asyncCompleted}</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--color-neutral)', marginBottom: '16px', letterSpacing: '0.06em' }}>{t.arena.asyncCompleted}</div>
             <div style={{ display: 'flex', gap: '12px', marginBottom: '8px' }}>
               <div style={{ flex: 1, padding: '16px', background: chalWon ? 'rgba(0,229,160,0.08)' : 'var(--bg-card)', border: `1px solid ${chalWon ? 'var(--green)' : 'var(--bd)'}`, borderRadius: '10px' }}>
                 {chalWon && !isDraw && <div style={{ fontSize: '8px', color: 'var(--green)', letterSpacing: '0.1em', marginBottom: '4px' }}>{t.arena.asyncWinner}</div>}
                 <div style={{ fontSize: '9px', color: 'var(--t5)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.06em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{chal.name || '—'}</div>
-                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px', color: 'var(--green)' }}>{chalCorrect}<span style={{ fontSize: '14px', color: 'var(--t5)' }}>/10</span></div>
+                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '28px', color: 'var(--green)' }}>{chalCorrect}<span style={{ fontSize: '14px', color: 'var(--t5)' }}>/10</span></div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 6px' }}>
-                <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '12px', color: 'var(--t5)' }}>vs</span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)' }}>vs</span>
                 {isDraw && <span style={{ fontSize: '9px', color: 'var(--color-neutral)', marginTop: '4px' }}>{t.arena.asyncDraw}</span>}
               </div>
               <div style={{ flex: 1, padding: '16px', background: !chalWon && !isDraw ? 'rgba(255,126,179,0.08)' : 'var(--bg-card)', border: `1px solid ${!chalWon && !isDraw ? 'var(--color-down)' : 'var(--bd)'}`, borderRadius: '10px' }}>
                 {!chalWon && !isDraw && <div style={{ fontSize: '8px', color: 'var(--color-down)', letterSpacing: '0.1em', marginBottom: '4px' }}>{t.arena.asyncWinner}</div>}
                 <div style={{ fontSize: '9px', color: 'var(--t5)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.06em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{riv.name || '—'}</div>
-                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px', color: 'var(--color-down)' }}>{rivCorrect}<span style={{ fontSize: '14px', color: 'var(--t5)' }}>/10</span></div>
+                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '28px', color: 'var(--color-down)' }}>{rivCorrect}<span style={{ fontSize: '14px', color: 'var(--t5)' }}>/10</span></div>
               </div>
             </div>
           </div>
@@ -784,7 +784,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
           {/* Round by round table */}
           {chal.answers?.length > 0 && (
             <div style={{ marginBottom: '20px' }}>
-              <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px', fontFamily: "'Space Mono', monospace" }}>{t.arena.asyncRoundTable}</div>
+              <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px', fontFamily: 'var(--font-body)' }}>{t.arena.asyncRoundTable}</div>
               <div style={{ display: 'grid', gridTemplateColumns: '28px 1fr 72px 72px', gap: '4px 8px', fontSize: '8px', color: 'var(--t5)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '6px', padding: '0 2px' }}>
                 <span>#</span><span>{charts[0]?.asset ? 'Asset' : ''}</span><span style={{ textAlign: 'center' }}>{chal.name?.slice(0, 6) || '—'}</span><span style={{ textAlign: 'center' }}>{riv.name?.slice(0, 6) || '—'}</span>
               </div>
@@ -793,12 +793,12 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
                 const chart = charts[i];
                 return (
                   <div key={i} style={{ display: 'grid', gridTemplateColumns: '28px 1fr 72px 72px', gap: '4px 8px', padding: '7px 2px', borderBottom: '1px solid var(--bd)', alignItems: 'center' }}>
-                    <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t6)' }}>{i + 1}</span>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t6)' }}>{i + 1}</span>
                     <span style={{ fontSize: '9px', color: 'var(--t3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{chart?.asset || '—'}</span>
-                    <div style={{ textAlign: 'center', fontSize: '9px', color: ca.win ? 'var(--green)' : 'var(--color-down)', fontFamily: "'Space Mono', monospace" }}>
+                    <div style={{ textAlign: 'center', fontSize: '9px', color: ca.win ? 'var(--green)' : 'var(--color-down)', fontFamily: 'var(--font-body)' }}>
                       {ca.choice?.toUpperCase().slice(0, 1)} {ca.win ? '✓' : '✗'}
                     </div>
-                    <div style={{ textAlign: 'center', fontSize: '9px', color: ra ? (ra.win ? 'var(--green)' : 'var(--color-down)') : 'var(--t6)', fontFamily: "'Space Mono', monospace" }}>
+                    <div style={{ textAlign: 'center', fontSize: '9px', color: ra ? (ra.win ? 'var(--green)' : 'var(--color-down)') : 'var(--t6)', fontFamily: 'var(--font-body)' }}>
                       {ra ? `${ra.choice?.toUpperCase().slice(0, 1)} ${ra.win ? '✓' : '✗'}` : '—'}
                     </div>
                   </div>
@@ -809,26 +809,26 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
 
           <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
             <button onClick={handleRematch}
-              style={{ flex: 1, padding: '12px', background: 'rgba(255,126,179,0.08)', border: '1px solid var(--color-down)', borderRadius: '6px', color: 'var(--color-down)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+              style={{ flex: 1, padding: '12px', background: 'rgba(255,126,179,0.08)', border: '1px solid var(--color-down)', borderRadius: '6px', color: 'var(--color-down)', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
               ⚔️ {t.arena.asyncRematch}
             </button>
             <button onClick={handleShare}
-              style={{ flex: 1, padding: '12px', background: 'rgba(232,184,75,0.06)', border: '1px solid var(--color-neutral)', borderRadius: '6px', color: 'var(--color-neutral)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+              style={{ flex: 1, padding: '12px', background: 'rgba(232,184,75,0.06)', border: '1px solid var(--color-neutral)', borderRadius: '6px', color: 'var(--color-neutral)', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
               📸 {t.arena.share}
             </button>
           </div>
 
           {/* Hidden share card */}
-          <div id="async-share-card" style={{ position: 'absolute', left: '-9999px', top: 0, width: '320px', background: 'var(--bg-base)', border: '1px solid var(--color-neutral)', borderRadius: '12px', padding: '28px 24px', fontFamily: "'Space Mono', monospace" }}>
+          <div id="async-share-card" style={{ position: 'absolute', left: '-9999px', top: 0, width: '320px', background: 'var(--bg-base)', border: '1px solid var(--color-neutral)', borderRadius: '12px', padding: '28px 24px', fontFamily: 'var(--font-body)' }}>
             <div style={{ fontSize: '10px', color: '#5a6a7d', letterSpacing: '0.1em', marginBottom: '16px' }}>⚔️ TRADARIA ASYNC DUEL</div>
             <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
               <div style={{ flex: 1, textAlign: 'center' }}>
-                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '36px', color: 'var(--green)' }}>{chalCorrect}</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '36px', color: 'var(--green)' }}>{chalCorrect}</div>
                 <div style={{ fontSize: '9px', color: '#5a6a7d', marginTop: '2px' }}>{chal.name}</div>
               </div>
               <div style={{ alignSelf: 'center', color: '#5a6a7d' }}>vs</div>
               <div style={{ flex: 1, textAlign: 'center' }}>
-                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '36px', color: 'var(--color-down)' }}>{rivCorrect}</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '36px', color: 'var(--color-down)' }}>{rivCorrect}</div>
                 <div style={{ fontSize: '9px', color: '#5a6a7d', marginTop: '2px' }}>{riv.name}</div>
               </div>
             </div>
@@ -846,7 +846,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
       <div className="scanlines" />
       <div style={{ padding: '40px 28px', position: 'relative', zIndex: 2 }}>
         <button onClick={goBack}
-          style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', marginBottom: '32px', display: 'block' }}
+          style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', marginBottom: '32px', display: 'block' }}
           onMouseEnter={e => e.target.style.color = 'var(--t2)'}
           onMouseLeave={e => e.target.style.color = 'var(--t6)'}
         >{t.game.menu}</button>
@@ -862,35 +862,35 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
         </div>
 
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '30px', color: 'var(--t1)', marginBottom: '8px', textShadow: '0 0 40px rgba(255,126,179,0.2)' }}>{t.arena.title}</div>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '30px', color: 'var(--t1)', marginBottom: '8px', textShadow: '0 0 40px rgba(255,126,179,0.2)' }}>{t.arena.title}</div>
           <div style={{ fontSize: '10px', color: '#5a6a7d', letterSpacing: '0.15em', textTransform: 'uppercase' }}>{t.arena.sub}</div>
         </div>
 
         <div style={{ marginBottom: '20px' }}>
           <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>{t.arena.yourName}</div>
           <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="..." maxLength={16}
-            style={{ width: '100%', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '6px', padding: '12px 14px', color: 'var(--t2)', fontFamily: "'Space Mono', monospace", fontSize: '13px', outline: 'none' }} />
+            style={{ width: '100%', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '6px', padding: '12px 14px', color: 'var(--t2)', fontFamily: 'var(--font-body)', fontSize: '13px', outline: 'none' }} />
         </div>
 
         {status && <div style={{ fontSize: '10px', color: 'var(--color-down)', marginBottom: '12px' }}>{status}</div>}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <button onClick={findRandom} disabled={!name.trim()}
-            style={{ width: '100%', padding: '16px', background: name.trim() ? 'rgba(0,229,160,0.08)' : 'var(--bg-card)', border: `1px solid ${name.trim() ? 'var(--green)' : 'var(--bd2)'}`, borderRadius: '8px', color: name.trim() ? 'var(--green)' : 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: name.trim() ? 'pointer' : 'not-allowed', transition: 'all 0.18s', boxShadow: name.trim() ? '0 0 20px rgba(0,229,160,0.08)' : 'none' }}
+            style={{ width: '100%', padding: '16px', background: name.trim() ? 'rgba(0,229,160,0.08)' : 'var(--bg-card)', border: `1px solid ${name.trim() ? 'var(--green)' : 'var(--bd2)'}`, borderRadius: '8px', color: name.trim() ? 'var(--green)' : 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: name.trim() ? 'pointer' : 'not-allowed', transition: 'all 0.18s', boxShadow: name.trim() ? '0 0 20px rgba(0,229,160,0.08)' : 'none' }}
             onMouseEnter={e => { if (name.trim()) { e.currentTarget.style.background = 'rgba(0,229,160,0.14)'; e.currentTarget.style.boxShadow = '0 0 28px rgba(0,229,160,0.18), 0 8px 20px rgba(0,0,0,0.4)'; e.currentTarget.style.transform = 'translateY(-2px)'; } }}
             onMouseLeave={e => { e.currentTarget.style.background = name.trim() ? 'rgba(0,229,160,0.08)' : 'var(--bg-card)'; e.currentTarget.style.boxShadow = name.trim() ? '0 0 20px rgba(0,229,160,0.08)' : 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
           >
             ⚡ {t.arena.findMatch}
           </button>
           <button onClick={createRoom} disabled={!name.trim()}
-            style={{ width: '100%', padding: '14px', background: 'var(--bg-card)', border: `1px solid ${name.trim() ? 'var(--bd2)' : 'var(--bd)'}`, borderRadius: '8px', color: name.trim() ? 'var(--t3)' : 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: name.trim() ? 'pointer' : 'not-allowed', transition: 'all 0.18s' }}
+            style={{ width: '100%', padding: '14px', background: 'var(--bg-card)', border: `1px solid ${name.trim() ? 'var(--bd2)' : 'var(--bd)'}`, borderRadius: '8px', color: name.trim() ? 'var(--t3)' : 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: name.trim() ? 'pointer' : 'not-allowed', transition: 'all 0.18s' }}
             onMouseEnter={e => { if (name.trim()) { e.currentTarget.style.borderColor = 'var(--color-down)'; e.currentTarget.style.color = 'var(--color-down)'; } }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = name.trim() ? 'var(--bd2)' : 'var(--bd)'; e.currentTarget.style.color = name.trim() ? 'var(--t3)' : 'var(--t6)'; }}
           >
             🔒 {t.arena.createRoom}
           </button>
           <button onClick={startAsyncChallenge} disabled={!name.trim() || !localStorage.getItem('tradaria_token') || isCreating}
-            style={{ width: '100%', padding: '14px', background: 'var(--bg-card)', border: `1px solid ${name.trim() ? 'rgba(232,184,75,0.5)' : 'var(--bd)'}`, borderRadius: '8px', color: name.trim() ? 'var(--color-neutral)' : 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: name.trim() ? 'pointer' : 'not-allowed', transition: 'all 0.18s' }}
+            style={{ width: '100%', padding: '14px', background: 'var(--bg-card)', border: `1px solid ${name.trim() ? 'rgba(232,184,75,0.5)' : 'var(--bd)'}`, borderRadius: '8px', color: name.trim() ? 'var(--color-neutral)' : 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: name.trim() ? 'pointer' : 'not-allowed', transition: 'all 0.18s' }}
             onMouseEnter={e => { if (name.trim()) { e.currentTarget.style.borderColor = 'var(--color-neutral)'; e.currentTarget.style.background = 'rgba(232,184,75,0.08)'; } }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = name.trim() ? 'rgba(232,184,75,0.5)' : 'var(--bd)'; e.currentTarget.style.background = 'var(--bg-card)'; }}
           >
@@ -898,9 +898,9 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
           </button>
           <div style={{ display: 'flex', gap: '8px' }}>
             <input type="text" value={joinCode} onChange={e => setJoinCode(e.target.value.toUpperCase())} onKeyDown={e => e.key === 'Enter' && joinRoom()} placeholder="XKQZ" maxLength={4}
-              style={{ flex: 1, background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '6px', padding: '12px 14px', color: 'var(--t2)', fontFamily: "'Space Mono', monospace", fontSize: '16px', outline: 'none', letterSpacing: '0.2em', textAlign: 'center', textTransform: 'uppercase' }} />
+              style={{ flex: 1, background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '6px', padding: '12px 14px', color: 'var(--t2)', fontFamily: 'var(--font-body)', fontSize: '16px', outline: 'none', letterSpacing: '0.2em', textAlign: 'center', textTransform: 'uppercase' }} />
             <button onClick={joinRoom} disabled={!name.trim() || joinCode.length < 4}
-              style={{ padding: '12px 20px', background: name.trim() && joinCode.length >= 4 ? 'rgba(232,184,75,0.08)' : 'var(--bg-card)', border: `1px solid ${name.trim() && joinCode.length >= 4 ? 'var(--color-neutral)' : 'var(--bd2)'}`, borderRadius: '6px', color: name.trim() && joinCode.length >= 4 ? 'var(--color-neutral)' : 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, cursor: name.trim() && joinCode.length >= 4 ? 'pointer' : 'not-allowed', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>
+              style={{ padding: '12px 20px', background: name.trim() && joinCode.length >= 4 ? 'rgba(232,184,75,0.08)' : 'var(--bg-card)', border: `1px solid ${name.trim() && joinCode.length >= 4 ? 'var(--color-neutral)' : 'var(--bd2)'}`, borderRadius: '6px', color: name.trim() && joinCode.length >= 4 ? 'var(--color-neutral)' : 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, cursor: name.trim() && joinCode.length >= 4 ? 'pointer' : 'not-allowed', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>
               {t.arena.joinRoom}
             </button>
           </div>
@@ -908,9 +908,9 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
 
         {myDuels !== null && (
           <div style={{ marginTop: '24px' }}>
-            <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '10px', fontFamily: "'Space Mono', monospace" }}>{t.arena.myDuelsTitle}</div>
+            <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '10px', fontFamily: 'var(--font-body)' }}>{t.arena.myDuelsTitle}</div>
             {myDuels.length === 0 ? (
-              <div style={{ fontSize: '10px', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", padding: '12px 0' }}>{t.arena.myDuelsEmpty}</div>
+              <div style={{ fontSize: '10px', color: 'var(--t6)', fontFamily: 'var(--font-body)', padding: '12px 0' }}>{t.arena.myDuelsEmpty}</div>
             ) : myDuels.map(d => {
               const isWaiting   = d.status === 'waiting_challenger' || d.status === 'waiting_rival';
               const isCompleted = d.status === 'completed';
@@ -927,27 +927,27 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
                   onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--bd)'}
                 >
                   <div>
-                    <div style={{ fontFamily: "'Space Mono', monospace", fontWeight: 700, fontSize: '11px', color: 'var(--t2)', letterSpacing: '0.12em', marginBottom: '3px' }}>{d.code}</div>
-                    <div style={{ fontSize: '9px', color: statusColor, fontFamily: "'Space Mono', monospace" }}>{statusLabel}</div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '11px', color: 'var(--t2)', letterSpacing: '0.12em', marginBottom: '3px' }}>{d.code}</div>
+                    <div style={{ fontSize: '9px', color: statusColor, fontFamily: 'var(--font-body)' }}>{statusLabel}</div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     {isCompleted && (
-                      <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: won ? 'var(--green)' : lost ? 'var(--color-down)' : 'var(--color-neutral)', marginBottom: '2px' }}>
+                      <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: won ? 'var(--green)' : lost ? 'var(--color-down)' : 'var(--color-neutral)', marginBottom: '2px' }}>
                         {d.myCorrect} – {d.oppCorrect}
                       </div>
                     )}
                     {isCompleted && (
-                      <div style={{ fontSize: '8px', color: won ? 'var(--green)' : lost ? 'var(--color-down)' : 'var(--color-neutral)', fontFamily: "'Space Mono', monospace" }}>
+                      <div style={{ fontSize: '8px', color: won ? 'var(--green)' : lost ? 'var(--color-down)' : 'var(--color-neutral)', fontFamily: 'var(--font-body)' }}>
                         {won ? t.arena.myDuelsWon : lost ? t.arena.myDuelsLost : t.arena.myDuelsDraw}
                       </div>
                     )}
                     {isWaiting && d.status === 'waiting_rival' && (
-                      <div style={{ fontSize: '8px', color: 'var(--color-neutral)', fontFamily: "'Space Mono', monospace" }}>
+                      <div style={{ fontSize: '8px', color: 'var(--color-neutral)', fontFamily: 'var(--font-body)' }}>
                         {t.arena.myDuelsExpiresIn} {d.hoursLeft}h
                       </div>
                     )}
                     {isExpired && (
-                      <div style={{ fontSize: '8px', color: 'var(--t6)', fontFamily: "'Space Mono', monospace" }}>—</div>
+                      <div style={{ fontSize: '8px', color: 'var(--t6)', fontFamily: 'var(--font-body)' }}>—</div>
                     )}
                   </div>
                 </button>
@@ -971,7 +971,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
     <div id="gtm-root" style={{ position: 'relative' }}>
       <div className="scanlines" />
       <div style={{ padding: '40px 28px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
-        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '24px', color: 'var(--t1)', marginBottom: '16px' }}>
+        <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '24px', color: 'var(--t1)', marginBottom: '16px' }}>
           {status === 'waiting_for_friend' ? t.arena.roomCreated : status === 'JOINING_CHALLENGE' ? t.arena.joiningChallenge : t.arena.searching}
         </div>
         <div style={{ fontSize: '32px', marginBottom: '24px' }}>
@@ -987,7 +987,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
         {status === 'waiting_for_friend' && roomCode ? (
           <div style={{ marginBottom: '24px' }}>
             <div style={{ fontSize: '10px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '12px' }}>{t.arena.shareCode}</div>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '48px', color: 'var(--green)', letterSpacing: '0.3em', background: 'var(--bg-card)', border: '1px solid var(--green)', borderRadius: '10px', padding: '16px 24px', display: 'inline-block' }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '48px', color: 'var(--green)', letterSpacing: '0.3em', background: 'var(--bg-card)', border: '1px solid var(--green)', borderRadius: '10px', padding: '16px 24px', display: 'inline-block' }}>
               {roomCode}
             </div>
             <div style={{ marginTop: '12px', fontSize: '10px', color: 'var(--t6)', letterSpacing: '0.06em' }}>{t.arena.waitingFriend}</div>
@@ -1000,7 +1000,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
             <div style={{ marginBottom: '24px', padding: '20px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '10px' }}>
               <div style={{ fontSize: '10px', color: 'var(--t5)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '12px' }}>{t.arena.noOpponents}</div>
               <button onClick={startBotGame}
-                style={{ width: '100%', padding: '14px', background: 'rgba(232,184,75,0.08)', border: '1px solid var(--color-neutral)', borderRadius: '6px', color: 'var(--color-neutral)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer' }}
+                style={{ width: '100%', padding: '14px', background: 'rgba(232,184,75,0.08)', border: '1px solid var(--color-neutral)', borderRadius: '6px', color: 'var(--color-neutral)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer' }}
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(232,184,75,0.15)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'rgba(232,184,75,0.08)'}>
                 🤖 {t.arena.vsBot}
@@ -1011,7 +1011,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
         ) : null}
 
         <button onClick={goBack}
-          style={{ background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '10px', padding: '8px 16px', cursor: 'pointer', letterSpacing: '0.06em' }}>
+          style={{ background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '10px', padding: '8px 16px', cursor: 'pointer', letterSpacing: '0.06em' }}>
           {t.arena.cancel}
         </button>
       </div>
@@ -1032,10 +1032,10 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
         {/* Header con scores + botón abandonar integrado */}
         <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--bd)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', zIndex: 2 }}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', minWidth: '70px' }}>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--green)' }}>{myScore}</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--green)' }}>{myScore}</div>
             <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.06em' }}>{name.toUpperCase()}</div>
             <button onClick={goBack}
-              style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.06em', padding: '2px 0', marginTop: '2px', minHeight: '24px', minWidth: '44px' }}
+              style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '9px', cursor: 'pointer', letterSpacing: '0.06em', padding: '2px 0', marginTop: '2px', minHeight: '24px', minWidth: '44px' }}
               onMouseEnter={e => e.target.style.color = 'var(--color-down)'}
               onMouseLeave={e => e.target.style.color = 'var(--t6)'}
             >{t.arena.forfeit}</button>
@@ -1044,14 +1044,14 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
             <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{t.game.round.toLowerCase()} {round}/{total}</div>
             {phase === 'choose' && !isAsyncGame && (
-              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: timeLeft <= 5 ? 'var(--color-down)' : 'var(--color-neutral)' }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: timeLeft <= 5 ? 'var(--color-down)' : 'var(--color-neutral)' }}>
                 {timeLeft}s
               </div>
             )}
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', minWidth: '70px' }}>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--color-down)' }}>{oppScore}</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--color-down)' }}>{oppScore}</div>
             <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.06em' }}>
               {opponent.toUpperCase()}
               {isBotGame && <span style={{ color: 'var(--color-neutral)', marginLeft: '4px' }}>🤖</span>}
@@ -1070,14 +1070,14 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
        <div style={{ padding: '8px 16px', position: 'relative', zIndex: 2, display: 'flex', gap: '8px' }}>
         <div style={{ flex: 1, background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '6px', padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: '8px', color: 'var(--t5)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{name}</span>
-          <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: 'var(--green)' }}>{myScore}</span>
+          <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--green)' }}>{myScore}</span>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 8px' }}>
-          <span style={{ fontSize: '9px', color: 'var(--bd2)', fontFamily: "'Space Mono', monospace" }}>vs</span>
+          <span style={{ fontSize: '9px', color: 'var(--bd2)', fontFamily: 'var(--font-body)' }}>vs</span>
         </div>
         <div style={{ flex: 1, background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '6px', padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: '8px', color: 'var(--t5)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{opponent}</span>
-          <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: 'var(--color-down)' }}>{oppScore}</span>
+          <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--color-down)' }}>{oppScore}</span>
         </div>
       </div>
         {phase === 'choose' && (
@@ -1111,14 +1111,14 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
             <div style={{ borderRadius: '8px', padding: '14px 16px', border: `1px solid ${myResult?.win ? 'var(--green)' : 'var(--color-down)'}`, background: myResult?.win ? 'rgba(0,229,160,0.05)' : 'rgba(255,126,179,0.05)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
                 <div>
-                  <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: myResult?.win ? 'var(--green)' : 'var(--color-down)' }}>
+                  <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: myResult?.win ? 'var(--green)' : 'var(--color-down)' }}>
                     {myResult?.win ? t.arena.correct : t.arena.incorrect}
                   </div>
                   <div style={{ fontSize: '9px', color: 'var(--t5)', marginTop: '2px' }}>
                     {t.arena.youPlayed}: {myResult?.choice?.toUpperCase()} · {t.arena.oppPlayed}: {oppResult?.choice?.toUpperCase()}
                   </div>
                 </div>
-                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: myResult?.win ? 'var(--green)' : 'var(--color-down)' }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: myResult?.win ? 'var(--green)' : 'var(--color-down)' }}>
                   {myResult?.win ? '+100' : '±0'}
                 </div>
               </div>
@@ -1132,7 +1132,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
               )}
               {isAsyncGame && (
                 <button onClick={nextAsyncRound}
-                  style={{ marginTop: '10px', width: '100%', padding: '10px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', cursor: 'pointer' }}>
+                  style={{ marginTop: '10px', width: '100%', padding: '10px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', cursor: 'pointer' }}>
                   {round >= total ? '✓ ' + (t.game.finish || 'Finish') : (t.game.next || 'Next →')}
                 </button>
               )}
@@ -1141,7 +1141,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
         )}
 
         {!isBotGame && chatMsg && (
-          <div style={{ position: 'absolute', top: '60px', right: '16px', zIndex: 20, background: 'var(--bg-card2)', border: '1px solid var(--bd2)', borderRadius: '8px', padding: '8px 12px', fontFamily: "'Space Mono', monospace", fontSize: '11px', color: 'var(--t2)', maxWidth: '160px' }}>
+          <div style={{ position: 'absolute', top: '60px', right: '16px', zIndex: 20, background: 'var(--bg-card2)', border: '1px solid var(--bd2)', borderRadius: '8px', padding: '8px 12px', fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--t2)', maxWidth: '160px' }}>
             <span style={{ color: 'var(--green)', fontSize: '9px' }}>{chatMsg.from}</span>
             <div>{chatMsg.msg}</div>
           </div>
@@ -1151,7 +1151,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
           <div style={{ position: 'absolute', bottom: '60px', right: '16px', zIndex: 20, background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '10px', padding: '10px', display: 'flex', flexWrap: 'wrap', gap: '6px', maxWidth: '200px' }}>
             {['👍', '😂', '🔥', 'gg', 'wp', '😤'].map(msg => (
               <button key={msg} onClick={() => sendChat(msg)}
-                style={{ background: 'var(--bg-card2)', border: '1px solid var(--bd2)', borderRadius: '6px', padding: '6px 10px', color: 'var(--t2)', fontFamily: "'Space Mono', monospace", fontSize: '13px', cursor: 'pointer' }}>
+                style={{ background: 'var(--bg-card2)', border: '1px solid var(--bd2)', borderRadius: '6px', padding: '6px 10px', color: 'var(--t2)', fontFamily: 'var(--font-body)', fontSize: '13px', cursor: 'pointer' }}>
                 {msg}
               </button>
             ))}
@@ -1183,7 +1183,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
         <div id="gtm-root" style={{ position: 'relative' }}>
           <div className="scanlines" />
           <div style={{ padding: '40px 28px 36px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '36px', color: iWon ? 'var(--green)' : 'var(--color-down)', marginBottom: '4px' }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '36px', color: iWon ? 'var(--green)' : 'var(--color-down)', marginBottom: '4px' }}>
               {iWon ? t.arena.won : t.arena.forfeited}
             </div>
             <div style={{ fontSize: '10px', color: 'var(--t6)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '32px' }}>
@@ -1191,11 +1191,11 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
             </div>
             <div style={{ display: 'flex', gap: '10px' }}>
               <button onClick={() => { setScreen('lobby'); setResult(null); setScores({}); setFinalData(null); resetBotState(); }}
-                style={{ flex: 1, padding: '14px', background: 'var(--bg-card)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+                style={{ flex: 1, padding: '14px', background: 'var(--bg-card)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
                 {t.arena.rematch}
               </button>
               <button onClick={goBack}
-                style={{ flex: 1, padding: '14px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t3)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+                style={{ flex: 1, padding: '14px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t3)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
                 {t.arena.menu}
               </button>
             </div>
@@ -1214,7 +1214,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
       <div id="gtm-root" style={{ position: 'relative' }}>
         <div className="scanlines" />
         <div style={{ padding: '40px 28px 36px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '36px', color: iWon ? 'var(--green)' : isDraw ? 'var(--color-neutral)' : 'var(--color-down)', marginBottom: '4px' }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '36px', color: iWon ? 'var(--green)' : isDraw ? 'var(--color-neutral)' : 'var(--color-down)', marginBottom: '4px' }}>
             {iWon ? t.arena.won : isDraw ? t.arena.draw : t.arena.lost}
           </div>
           <div style={{ fontSize: '10px', color: 'var(--t6)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '32px' }}>
@@ -1230,30 +1230,30 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
           <div style={{ display: 'flex', gap: '12px', marginBottom: '32px' }}>
             <div style={{ flex: 1, background: 'var(--bg-card)', border: '1px solid var(--green)', borderRadius: '10px', padding: '20px' }}>
               <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>{name}</div>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '32px', color: 'var(--green)' }}>{myScore}</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '32px', color: 'var(--green)' }}>{myScore}</div>
             </div>
             <div style={{ flex: 1, background: 'var(--bg-card)', border: '1px solid var(--color-down)', borderRadius: '10px', padding: '20px' }}>
               <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>
                 {opponent} {isBotGame && '🤖'}
               </div>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '32px', color: 'var(--color-down)' }}>{oppScore}</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '32px', color: 'var(--color-down)' }}>{oppScore}</div>
             </div>
           </div>
 
           <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
             {isBotGame ? (
               <button onClick={startBotGame}
-                style={{ flex: 1, padding: '14px', background: 'rgba(232,184,75,0.08)', border: '1px solid var(--color-neutral)', borderRadius: '6px', color: 'var(--color-neutral)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+                style={{ flex: 1, padding: '14px', background: 'rgba(232,184,75,0.08)', border: '1px solid var(--color-neutral)', borderRadius: '6px', color: 'var(--color-neutral)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
                 🤖 {t.arena.anotherVsBot}
               </button>
             ) : (
               <button onClick={() => { socketRef.current?.emit('rematch:request'); setRematchState('waiting'); }}
-                style={{ flex: 1, padding: '14px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+                style={{ flex: 1, padding: '14px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
                 ⚡ {t.arena.rematch}
               </button>
             )}
             <button onClick={() => { setScreen('lobby'); setResult(null); setScores({}); setFinalData(null); resetBotState(); }}
-              style={{ flex: 1, padding: '14px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t3)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+              style={{ flex: 1, padding: '14px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t3)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
               {t.arena.menu}
             </button>
           </div>
@@ -1273,11 +1273,11 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
               </div>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button onClick={() => { socketRef.current?.emit('rematch:accept'); setRematchState('countdown'); }}
-                  style={{ flex: 1, padding: '14px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+                  style={{ flex: 1, padding: '14px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
                   ✓ {t.arena.accept}
                 </button>
                 <button onClick={goBack}
-                  style={{ flex: 1, padding: '14px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t3)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+                  style={{ flex: 1, padding: '14px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t3)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
                   {t.arena.decline}
                 </button>
               </div>
@@ -1289,7 +1289,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
               <div style={{ fontSize: '10px', color: 'var(--green)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
                 {t.arena.rematchStarting}
               </div>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '48px', color: 'var(--green)' }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '48px', color: 'var(--green)' }}>
                 {rematchCountdown}
               </div>
             </div>
@@ -1297,7 +1297,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
 
           {personalStats && (
             <div style={{ marginTop: '4px', padding: '12px 16px', background: 'var(--bg-page)', border: '1px solid var(--bd)', borderRadius: '8px' }}>
-              <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px', fontFamily: "'Space Mono', monospace" }}>{t.stats.myHistory}</div>
+              <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px', fontFamily: 'var(--font-body)' }}>{t.stats.myHistory}</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
                 {[
                   { label: t.stats.games,       value: personalStats.totalGames },
@@ -1305,7 +1305,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
                   { label: t.stats.arenaWinRate, value: `${personalStats.winRate}%` },
                 ].map(s => (
                   <div key={s.label} style={{ textAlign: 'center' }}>
-                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--green)' }}>{s.value}</div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--green)' }}>{s.value}</div>
                     <div style={{ fontSize: '8px', color: 'var(--t6)', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '2px' }}>{s.label}</div>
                   </div>
                 ))}
@@ -1323,23 +1323,23 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
             link.click();
             const tok = localStorage.getItem('tradaria_token');
             if (tok) fetch(`${SERVER}/stats/share`, { method: 'POST', headers: { Authorization: `Bearer ${tok}` } }).catch(() => {});
-          }} style={{ marginTop: '4px', width: '100%', padding: '12px', background: 'rgba(0,229,160,0.06)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+          }} style={{ marginTop: '4px', width: '100%', padding: '12px', background: 'rgba(0,229,160,0.06)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
             📸 {t.daily.share}
           </button>
         </div>
-        <div id="share-card-arena" style={{ position: 'absolute', left: '-9999px', top: 0, width: '320px', background: 'var(--bg-page)', border: `1px solid ${iWon ? 'var(--green)' : isDraw ? 'var(--color-neutral)' : 'var(--color-down)'}`, borderRadius: '12px', padding: '28px 24px', fontFamily: "'Space Mono', monospace" }}>
+        <div id="share-card-arena" style={{ position: 'absolute', left: '-9999px', top: 0, width: '320px', background: 'var(--bg-page)', border: `1px solid ${iWon ? 'var(--green)' : isDraw ? 'var(--color-neutral)' : 'var(--color-down)'}`, borderRadius: '12px', padding: '28px 24px', fontFamily: 'var(--font-body)' }}>
           <div style={{ fontSize: '10px', color: 'var(--t6)', letterSpacing: '0.1em', marginBottom: '16px' }}>⚡ TRADARIA ARENA</div>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px', color: iWon ? 'var(--green)' : isDraw ? 'var(--color-neutral)' : 'var(--color-down)', marginBottom: '20px' }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '28px', color: iWon ? 'var(--green)' : isDraw ? 'var(--color-neutral)' : 'var(--color-down)', marginBottom: '20px' }}>
             {iWon ? t.arena.won : isDraw ? t.arena.draw : t.arena.lost}
           </div>
           <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
             <div style={{ flex: 1, textAlign: 'center' }}>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '32px', color: 'var(--green)' }}>{myScore}</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '32px', color: 'var(--green)' }}>{myScore}</div>
               <div style={{ fontSize: '9px', color: 'var(--t6)', marginTop: '2px' }}>{name}</div>
             </div>
             <div style={{ alignSelf: 'center', fontSize: '14px', color: 'var(--t6)' }}>vs</div>
             <div style={{ flex: 1, textAlign: 'center' }}>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '32px', color: 'var(--color-down)' }}>{oppScore}</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '32px', color: 'var(--color-down)' }}>{oppScore}</div>
               <div style={{ fontSize: '9px', color: 'var(--t6)', marginTop: '2px' }}>{opponent}</div>
             </div>
           </div>

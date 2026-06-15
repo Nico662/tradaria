@@ -53,7 +53,7 @@ export default function UsernameModal({ onDone }) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
       <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '12px', padding: '32px 28px', width: '100%', maxWidth: '380px' }}>
-        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: 'var(--t1)', marginBottom: '8px' }}>
+        <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '22px', color: 'var(--t1)', marginBottom: '8px' }}>
           {t.username.title}
         </div>
         <div style={{ fontSize: '10px', color: 'var(--t5)', letterSpacing: '0.06em', marginBottom: '24px' }}>
@@ -66,11 +66,11 @@ export default function UsernameModal({ onDone }) {
           onChange={e => checkUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
           placeholder={t.username.placeholder}
           maxLength={16}
-          style={{ width: '100%', background: 'var(--bg-page)', border: `1px solid ${available === true ? 'var(--green)' : available === false ? 'var(--color-down)' : 'var(--bd2)'}`, borderRadius: '6px', padding: '12px 14px', color: 'var(--t2)', fontFamily: "'Space Mono', monospace", fontSize: '14px', outline: 'none', marginBottom: '8px', boxSizing: 'border-box' }}
+          style={{ width: '100%', background: 'var(--bg-page)', border: `1px solid ${available === true ? 'var(--green)' : available === false ? 'var(--color-down)' : 'var(--bd2)'}`, borderRadius: '6px', padding: '12px 14px', color: 'var(--t2)', fontFamily: 'var(--font-body)', fontSize: '14px', outline: 'none', marginBottom: '8px', boxSizing: 'border-box' }}
         />
 
         {status && (
-          <div style={{ fontSize: '10px', color: available ? 'var(--green)' : 'var(--color-down)', marginBottom: '16px', fontFamily: "'Space Mono', monospace" }}>
+          <div style={{ fontSize: '10px', color: available ? 'var(--green)' : 'var(--color-down)', marginBottom: '16px', fontFamily: 'var(--font-body)' }}>
             {checking ? t.username.checking : status}
           </div>
         )}
@@ -78,7 +78,7 @@ export default function UsernameModal({ onDone }) {
         <button
           onClick={save}
           disabled={!available || saving}
-          style={{ width: '100%', padding: '14px', background: available ? 'rgba(0,229,160,0.08)' : 'var(--bg-page)', border: `1px solid ${available ? 'var(--green)' : 'var(--bd2)'}`, borderRadius: '6px', color: available ? 'var(--green)' : 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: available ? 'pointer' : 'not-allowed' }}>
+          style={{ width: '100%', padding: '14px', background: available ? 'rgba(0,229,160,0.08)' : 'var(--bg-page)', border: `1px solid ${available ? 'var(--green)' : 'var(--bd2)'}`, borderRadius: '6px', color: available ? 'var(--green)' : 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: available ? 'pointer' : 'not-allowed' }}>
           {saving ? '...' : t.username.confirm}
         </button>
       </div>

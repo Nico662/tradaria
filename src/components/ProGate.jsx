@@ -36,7 +36,7 @@ export default function ProGate({ children, feature = '' }) {
         backdropFilter: 'blur(4px)',
       }}>
         <div style={{ fontSize: '28px' }}>⚡</div>
-        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--t1)', textAlign: 'center' }}>
+        <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t1)', textAlign: 'center' }}>
           Función Pro
         </div>
         {feature && (
@@ -48,7 +48,7 @@ export default function ProGate({ children, feature = '' }) {
           style={{
             padding: '12px 28px', background: 'linear-gradient(135deg, var(--green), #1aaa84)',
             border: 'none', borderRadius: '8px', color: 'var(--bg-base)',
-            fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700,
+            fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700,
             letterSpacing: '0.06em', textTransform: 'uppercase', cursor: loading ? 'default' : 'pointer',
             opacity: loading ? 0.7 : 1,
           }}

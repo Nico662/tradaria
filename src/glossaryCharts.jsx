@@ -55,28 +55,28 @@ function FVGChart() {
       {/* displacement label — above the tall candle */}
       <text
         x="68" y="11"
-        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="5.5" fill="var(--color-neutral)" opacity="0.9"
       >↑ displacement</text>
 
       {/* FVG label — vertically centered in the zone */}
       <text
         x="182" y={(fvgTopY + fvgBotY) / 2 + 3.5}
-        textAnchor="end" fontFamily="'Space Mono', monospace"
+        textAnchor="end" fontFamily="var(--font-mono)"
         fontSize="8" fontWeight="bold" fill="var(--green)" opacity="0.9"
       >FVG</text>
 
       {/* fill label — below the candles that re-enter the zone */}
       <text
         x="115" y={fvgBotY + 11}
-        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="5.5" fill="var(--green)" opacity="0.6"
       >fill ↑</text>
 
       {/* bottom watermark */}
       <text
         x="6" y="154"
-        fontFamily="'Space Mono', monospace"
+        fontFamily="var(--font-mono)"
         fontSize="5" fill="#172030" letterSpacing="0.1em"
       >BULLISH FVG</text>
     </svg>
@@ -138,7 +138,7 @@ function DisplacementChart() {
       {/* Label above displacement candles */}
       <text
         x="79" y="11"
-        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="5.5" fill="var(--color-neutral)" opacity="0.9"
       >↑ displacement</text>
 
@@ -150,7 +150,7 @@ function DisplacementChart() {
       {/* Watermark */}
       <text
         x="6" y="154"
-        fontFamily="'Space Mono', monospace"
+        fontFamily="var(--font-mono)"
         fontSize="5" fill="#172030" letterSpacing="0.1em"
       >DISPLACEMENT</text>
     </svg>
@@ -209,14 +209,14 @@ function MSSChart() {
       {/* LH marker above the key candle */}
       <text
         x="53" y={py(152)}
-        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="5.5" fill="var(--color-down)" opacity="0.85"
       >LH</text>
 
       {/* MSS label at the breakout candle */}
       <text
         x="108" y="11"
-        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="5.5" fill="var(--green)" opacity="0.9"
       >↑ MSS</text>
 
@@ -226,7 +226,7 @@ function MSSChart() {
       {/* Watermark */}
       <text
         x="6" y="154"
-        fontFamily="'Space Mono', monospace"
+        fontFamily="var(--font-mono)"
         fontSize="5" fill="#172030" letterSpacing="0.1em"
       >BULLISH MSS</text>
     </svg>
@@ -294,7 +294,7 @@ function OrderBlockChart() {
       {/* OB label above the OB candle */}
       <text
         x="54" y="11"
-        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="5.5" fill="var(--color-neutral)" opacity="0.9"
       >OB ↓</text>
       <line x1="54" y1="13" x2="54" y2="17" stroke="var(--color-neutral)" strokeWidth="0.6" opacity="0.35" />
@@ -302,14 +302,14 @@ function OrderBlockChart() {
       {/* OB label inside the zone on the right */}
       <text
         x="182" y={(obTopY + obBotY) / 2 + 3.5}
-        textAnchor="end" fontFamily="'Space Mono', monospace"
+        textAnchor="end" fontFamily="var(--font-mono)"
         fontSize="8" fontWeight="bold" fill="var(--color-neutral)" opacity="0.9"
       >OB</text>
 
       {/* Reaction label above the bounce candle */}
       <text
         x="163" y="11"
-        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="5.5" fill="var(--green)" opacity="0.9"
       >↑ reacción</text>
       <line x1="163" y1="13" x2="163" y2="17" stroke="var(--green)" strokeWidth="0.6" opacity="0.4" />
@@ -317,7 +317,7 @@ function OrderBlockChart() {
       {/* Watermark */}
       <text
         x="6" y="154"
-        fontFamily="'Space Mono', monospace"
+        fontFamily="var(--font-mono)"
         fontSize="5" fill="#172030" letterSpacing="0.1em"
       >BULLISH ORDER BLOCK</text>
     </svg>
@@ -364,13 +364,13 @@ function DailyBiasChart() {
       <line x1="79" y1="14" x2="79" y2="138" stroke="#1e2530" strokeWidth="0.8" strokeDasharray="3 2" />
 
       {/* Section labels */}
-      <text x="41"  y="10" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="#2a3345"  letterSpacing="0.12em">PREV DAY</text>
-      <text x="133" y="10" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--green)" letterSpacing="0.12em" opacity="0.75">TODAY</text>
+      <text x="41"  y="10" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fill="#2a3345"  letterSpacing="0.12em">PREV DAY</text>
+      <text x="133" y="10" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fill="var(--green)" letterSpacing="0.12em" opacity="0.75">TODAY</text>
 
       {/* PDC carry-over line from prev day close */}
       <line x1="70" y1={py(136)} x2="182" y2={py(136)}
         stroke="var(--green)" strokeWidth="0.7" strokeDasharray="3 2" opacity="0.2" />
-      <text x="181" y={py(136) - 2.5} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="4.5" fill="var(--green)" opacity="0.35">PDC</text>
+      <text x="181" y={py(136) - 2.5} textAnchor="end" fontFamily="var(--font-mono)" fontSize="4.5" fill="var(--green)" opacity="0.35">PDC</text>
 
       {/* Prev day candles */}
       {prevDay.map(({ x, O, H, L, C, bw = 8 }, i) => {
@@ -406,10 +406,10 @@ function DailyBiasChart() {
 
       {/* BULLISH BIAS badge */}
       <rect x="83" y="139" width="96" height="11" fill="var(--green)14" rx="2.5" />
-      <text x="131" y="147.5" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="6.5" fill="var(--green)" letterSpacing="0.1em" opacity="0.85">BULLISH BIAS ↑</text>
+      <text x="131" y="147.5" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="6.5" fill="var(--green)" letterSpacing="0.1em" opacity="0.85">BULLISH BIAS ↑</text>
 
       {/* Watermark */}
-      <text x="6" y="154" fontFamily="'Space Mono', monospace" fontSize="5" fill="#172030" letterSpacing="0.1em">DAILY BIAS</text>
+      <text x="6" y="154" fontFamily="var(--font-mono)" fontSize="5" fill="#172030" letterSpacing="0.1em">DAILY BIAS</text>
     </svg>
   );
 }
@@ -472,26 +472,26 @@ function PremiumDiscountChart() {
       })}
 
       {/* Zone labels */}
-      <text x="8" y={shY + 14} fontFamily="'Space Mono', monospace" fontSize="7.5" fill="var(--color-down)" letterSpacing="0.06em" opacity="0.75">PREMIUM</text>
-      <text x="8" y={eqY + 14} fontFamily="'Space Mono', monospace" fontSize="7.5" fill="var(--green)" letterSpacing="0.06em" opacity="0.75">DISCOUNT</text>
+      <text x="8" y={shY + 14} fontFamily="var(--font-mono)" fontSize="7.5" fill="var(--color-down)" letterSpacing="0.06em" opacity="0.75">PREMIUM</text>
+      <text x="8" y={eqY + 14} fontFamily="var(--font-mono)" fontSize="7.5" fill="var(--green)" letterSpacing="0.06em" opacity="0.75">DISCOUNT</text>
 
       {/* ↓ SELL annotation above SH candle */}
-      <text x="66" y="11" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-down)" opacity="0.9">↓ SELL</text>
+      <text x="66" y="11" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fill="var(--color-down)" opacity="0.9">↓ SELL</text>
       <line x1="66" y1="13" x2="66" y2="17" stroke="var(--color-down)" strokeWidth="0.6" opacity="0.4" />
 
       {/* ↑ BUY annotation below deep-discount candles */}
-      <text x="138" y={slY - 6} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--green)" opacity="0.9">↑ BUY</text>
+      <text x="138" y={slY - 6} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fill="var(--green)" opacity="0.9">↑ BUY</text>
       <line x1="138" y1={slY - 14} x2="138" y2={slY - 11} stroke="var(--green)" strokeWidth="0.6" opacity="0.4" />
 
       {/* EQ label */}
-      <text x="183" y={eqY - 3} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-neutral)" opacity="0.85">EQ 50%</text>
+      <text x="183" y={eqY - 3} textAnchor="end" fontFamily="var(--font-mono)" fontSize="5.5" fill="var(--color-neutral)" opacity="0.85">EQ 50%</text>
 
       {/* SH / SL tiny labels */}
-      <text x="183" y={shY + 5.5} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="5" fill="var(--color-down)" opacity="0.45">SH</text>
-      <text x="183" y={slY - 2.5} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="5" fill="var(--green)" opacity="0.45">SL</text>
+      <text x="183" y={shY + 5.5} textAnchor="end" fontFamily="var(--font-mono)" fontSize="5" fill="var(--color-down)" opacity="0.45">SH</text>
+      <text x="183" y={slY - 2.5} textAnchor="end" fontFamily="var(--font-mono)" fontSize="5" fill="var(--green)" opacity="0.45">SL</text>
 
       {/* Watermark */}
-      <text x="6" y="154" fontFamily="'Space Mono', monospace" fontSize="5" fill="#172030" letterSpacing="0.1em">PREMIUM &amp; DISCOUNT</text>
+      <text x="6" y="154" fontFamily="var(--font-mono)" fontSize="5" fill="#172030" letterSpacing="0.1em">PREMIUM &amp; DISCOUNT</text>
     </svg>
   );
 }
@@ -554,21 +554,21 @@ function BuysideLiquidityChart() {
       })}
 
       {/* "stops above" label inside the liquidity zone */}
-      <text x="8" y={bslY - 4} fontFamily="'Space Mono', monospace" fontSize="4.8" fill="#378ADD" opacity="0.55" letterSpacing="0.08em">stops above</text>
+      <text x="8" y={bslY - 4} fontFamily="var(--font-mono)" fontSize="4.8" fill="#378ADD" opacity="0.55" letterSpacing="0.08em">stops above</text>
 
       {/* BSL label — right side */}
-      <text x="182" y={bslY + 5.5} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="8" fontWeight="bold" fill="#378ADD" opacity="0.9">BSL</text>
+      <text x="182" y={bslY + 5.5} textAnchor="end" fontFamily="var(--font-mono)" fontSize="8" fontWeight="bold" fill="#378ADD" opacity="0.9">BSL</text>
 
       {/* Sweep annotation above sweep candle */}
-      <text x="118" y="9" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-neutral)" opacity="0.9">↑ sweep</text>
+      <text x="118" y="9" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fill="var(--color-neutral)" opacity="0.9">↑ sweep</text>
       <line x1="118" y1="11" x2="118" y2="15" stroke="var(--color-neutral)" strokeWidth="0.6" opacity="0.4" />
 
       {/* Reversal annotation above reversal candles */}
-      <text x="144" y="9" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-down)" opacity="0.9">↓ reversal</text>
+      <text x="144" y="9" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fill="var(--color-down)" opacity="0.9">↓ reversal</text>
       <line x1="144" y1="11" x2="144" y2="15" stroke="var(--color-down)" strokeWidth="0.6" opacity="0.4" />
 
       {/* Watermark */}
-      <text x="6" y="154" fontFamily="'Space Mono', monospace" fontSize="5" fill="#172030" letterSpacing="0.1em">BUY-SIDE LIQUIDITY</text>
+      <text x="6" y="154" fontFamily="var(--font-mono)" fontSize="5" fill="#172030" letterSpacing="0.1em">BUY-SIDE LIQUIDITY</text>
     </svg>
   );
 }
@@ -631,21 +631,21 @@ function SellsideLiquidityChart() {
       })}
 
       {/* "stops below" label inside the liquidity zone */}
-      <text x="8" y={sslY + 11} fontFamily="'Space Mono', monospace" fontSize="4.8" fill="var(--color-neutral)" opacity="0.55" letterSpacing="0.08em">stops below</text>
+      <text x="8" y={sslY + 11} fontFamily="var(--font-mono)" fontSize="4.8" fill="var(--color-neutral)" opacity="0.55" letterSpacing="0.08em">stops below</text>
 
       {/* SSL label — right side */}
-      <text x="182" y={sslY - 3} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="8" fontWeight="bold" fill="var(--color-neutral)" opacity="0.9">SSL</text>
+      <text x="182" y={sslY - 3} textAnchor="end" fontFamily="var(--font-mono)" fontSize="8" fontWeight="bold" fill="var(--color-neutral)" opacity="0.9">SSL</text>
 
       {/* Sweep annotation above sweep candle */}
-      <text x="118" y="9" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-neutral)" opacity="0.9">↓ sweep</text>
+      <text x="118" y="9" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fill="var(--color-neutral)" opacity="0.9">↓ sweep</text>
       <line x1="118" y1="11" x2="118" y2="15" stroke="var(--color-neutral)" strokeWidth="0.6" opacity="0.4" />
 
       {/* Reversal annotation above reversal candles */}
-      <text x="148" y="9" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--green)" opacity="0.9">↑ reversal</text>
+      <text x="148" y="9" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fill="var(--green)" opacity="0.9">↑ reversal</text>
       <line x1="144" y1="11" x2="144" y2="15" stroke="var(--green)" strokeWidth="0.6" opacity="0.4" />
 
       {/* Watermark */}
-      <text x="6" y="154" fontFamily="'Space Mono', monospace" fontSize="5" fill="#172030" letterSpacing="0.1em">SELL-SIDE LIQUIDITY</text>
+      <text x="6" y="154" fontFamily="var(--font-mono)" fontSize="5" fill="#172030" letterSpacing="0.1em">SELL-SIDE LIQUIDITY</text>
     </svg>
   );
 }
@@ -709,24 +709,24 @@ function LiquiditySweepChart() {
       })}
 
       {/* "stops above" label inside liquidity zone */}
-      <text x="76" y={sweepY - 6} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="4.5" fill="var(--color-neutral)" opacity="0.5" letterSpacing="0.06em">stops above</text>
+      <text x="76" y={sweepY - 6} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="4.5" fill="var(--color-neutral)" opacity="0.5" letterSpacing="0.06em">stops above</text>
 
       {/* SH label above swing-high candle */}
-      <text x="53" y={py(160)} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-neutral)" opacity="0.8">SH</text>
+      <text x="53" y={py(160)} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fill="var(--color-neutral)" opacity="0.8">SH</text>
 
       {/* ↑ sweep annotation above sweep candle wick */}
-      <text x="106" y="9" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-neutral)" opacity="0.9">↑ sweep</text>
+      <text x="106" y="9" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fill="var(--color-neutral)" opacity="0.9">↑ sweep</text>
       <line x1="106" y1="11" x2="106" y2="15" stroke="var(--color-neutral)" strokeWidth="0.6" opacity="0.4" />
 
       {/* ↓ reversal annotation */}
-      <text x="134" y="9" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-down)" opacity="0.9">↓ reversal</text>
+      <text x="134" y="9" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fill="var(--color-down)" opacity="0.9">↓ reversal</text>
       <line x1="120" y1="11" x2="120" y2="15" stroke="var(--color-down)" strokeWidth="0.6" opacity="0.4" />
 
       {/* BSL label — right side */}
-      <text x="182" y={sweepY + 5.5} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="8" fontWeight="bold" fill="var(--color-neutral)" opacity="0.9">BSL</text>
+      <text x="182" y={sweepY + 5.5} textAnchor="end" fontFamily="var(--font-mono)" fontSize="8" fontWeight="bold" fill="var(--color-neutral)" opacity="0.9">BSL</text>
 
       {/* Watermark */}
-      <text x="6" y="154" fontFamily="'Space Mono', monospace" fontSize="5" fill="#172030" letterSpacing="0.1em">LIQUIDITY SWEEP</text>
+      <text x="6" y="154" fontFamily="var(--font-mono)" fontSize="5" fill="#172030" letterSpacing="0.1em">LIQUIDITY SWEEP</text>
     </svg>
   );
 }
@@ -782,28 +782,28 @@ function BOSChart() {
       {/* HH label above swing-high candle */}
       <text
         x="40" y={py(142)}
-        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="5.5" fill="var(--color-down)" opacity="0.8"
       >HH</text>
 
       {/* HL label below pullback candle */}
       <text
         x="53" y={py(128) + 1}
-        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="5.5" fill="var(--green)" opacity="0.7"
       >HL</text>
 
       {/* Prior HH label just before BOS candle */}
       <text
         x="90" y={bosY - 3}
-        textAnchor="end" fontFamily="'Space Mono', monospace"
+        textAnchor="end" fontFamily="var(--font-mono)"
         fontSize="4.8" fill="var(--color-down)" opacity="0.55"
       >prior HH</text>
 
       {/* ↑ BOS annotation above breakout candle */}
       <text
         x="94" y="11"
-        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="5.5" fill="var(--green)" opacity="0.9"
       >↑ BOS</text>
       <line x1="94" y1="13" x2="94" y2="17" stroke="var(--green)" strokeWidth="0.6" opacity="0.4" />
@@ -811,7 +811,7 @@ function BOSChart() {
       {/* Watermark */}
       <text
         x="6" y="154"
-        fontFamily="'Space Mono', monospace"
+        fontFamily="var(--font-mono)"
         fontSize="5" fill="#172030" letterSpacing="0.1em"
       >BULLISH BOS</text>
     </svg>
@@ -869,20 +869,20 @@ function CHoCHChart() {
       })}
 
       {/* LH1 */}
-      <text x="10" y={py(160)} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-down)" opacity="0.75">LH1</text>
+      <text x="10" y={py(160)} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fill="var(--color-down)" opacity="0.75">LH1</text>
 
       {/* LH2 / CHoCH level label */}
-      <text x="47" y={chochY - 3} textAnchor="start" fontFamily="'Space Mono', monospace" fontSize="4.8" fill="var(--color-down)" opacity="0.6">LH2 · CHoCH</text>
+      <text x="47" y={chochY - 3} textAnchor="start" fontFamily="var(--font-mono)" fontSize="4.8" fill="var(--color-down)" opacity="0.6">LH2 · CHoCH</text>
 
       {/* LL2 */}
-      <text x="75" y={py(131)} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--green)" opacity="0.7">LL2</text>
+      <text x="75" y={py(131)} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fill="var(--green)" opacity="0.7">LL2</text>
 
       {/* ↑ CHoCH annotation */}
-      <text x="127" y="11" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--green)" opacity="0.9">↑ CHoCH</text>
+      <text x="127" y="11" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fill="var(--green)" opacity="0.9">↑ CHoCH</text>
       <line x1="127" y1="13" x2="127" y2="17" stroke="var(--green)" strokeWidth="0.6" opacity="0.4" />
 
       {/* Watermark */}
-      <text x="6" y="154" fontFamily="'Space Mono', monospace" fontSize="5" fill="#172030" letterSpacing="0.1em">CHANGE OF CHARACTER</text>
+      <text x="6" y="154" fontFamily="var(--font-mono)" fontSize="5" fill="#172030" letterSpacing="0.1em">CHANGE OF CHARACTER</text>
     </svg>
   );
 }
@@ -962,30 +962,30 @@ function OTEChart() {
       })}
 
       {/* SL label */}
-      <text x="28" y={slY + 9} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-neutral)" opacity="0.75">SL</text>
+      <text x="28" y={slY + 9} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fill="var(--color-neutral)" opacity="0.75">SL</text>
 
       {/* SH label */}
-      <text x="72" y={shY - 3} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-neutral)" opacity="0.75">SH</text>
+      <text x="72" y={shY - 3} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fill="var(--color-neutral)" opacity="0.75">SH</text>
 
       {/* Fib labels — right edge */}
-      <text x="183" y={shY + 4}     textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="4.8" fill="var(--color-neutral)" opacity="0.45">0%</text>
-      <text x="183" y={oteTopY + 4} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="4.8" fill="var(--green)" opacity="0.85">61.8%</text>
-      <text x="183" y={oteBotY + 4} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="4.8" fill="var(--green)" opacity="0.85">79%</text>
-      <text x="183" y={slY + 4}     textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="4.8" fill="var(--color-neutral)" opacity="0.45">100%</text>
+      <text x="183" y={shY + 4}     textAnchor="end" fontFamily="var(--font-mono)" fontSize="4.8" fill="var(--color-neutral)" opacity="0.45">0%</text>
+      <text x="183" y={oteTopY + 4} textAnchor="end" fontFamily="var(--font-mono)" fontSize="4.8" fill="var(--green)" opacity="0.85">61.8%</text>
+      <text x="183" y={oteBotY + 4} textAnchor="end" fontFamily="var(--font-mono)" fontSize="4.8" fill="var(--green)" opacity="0.85">79%</text>
+      <text x="183" y={slY + 4}     textAnchor="end" fontFamily="var(--font-mono)" fontSize="4.8" fill="var(--color-neutral)" opacity="0.45">100%</text>
 
       {/* OTE label centred in zone */}
       <text
         x="13" y={(oteTopY + oteBotY) / 2 + 3.5}
-        fontFamily="'Space Mono', monospace"
+        fontFamily="var(--font-mono)"
         fontSize="8" fontWeight="bold" fill="var(--green)" opacity="0.9"
       >OTE</text>
 
       {/* ↑ entry annotation */}
-      <text x="139" y="11" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--green)" opacity="0.9">↑ entry</text>
+      <text x="139" y="11" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fill="var(--green)" opacity="0.9">↑ entry</text>
       <line x1="139" y1="13" x2="139" y2="17" stroke="var(--green)" strokeWidth="0.6" opacity="0.4" />
 
       {/* Watermark */}
-      <text x="6" y="154" fontFamily="'Space Mono', monospace" fontSize="5" fill="#172030" letterSpacing="0.1em">OTE · OPTIMAL TRADE ENTRY</text>
+      <text x="6" y="154" fontFamily="var(--font-mono)" fontSize="5" fill="#172030" letterSpacing="0.1em">OTE · OPTIMAL TRADE ENTRY</text>
     </svg>
   );
 }
@@ -1048,20 +1048,20 @@ function SmartMoneyChart() {
 
       {/* Labels */}
       <text x="62" y={eqLowY - 4}
-        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="4.8" fill="var(--color-neutral)" opacity="0.8">sell-side liq.</text>
 
       <text x="93" y={swpY + 9}
-        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="5" fill="var(--color-down)" opacity="0.9">sweep ↓</text>
 
       <text x="122" y="10"
-        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="5" fill="var(--green)" opacity="0.9">SM entry ↑</text>
 
       {/* Watermark */}
       <text x="6" y="154"
-        fontFamily="'Space Mono', monospace"
+        fontFamily="var(--font-mono)"
         fontSize="5" fill="#172030" letterSpacing="0.1em">SMART MONEY CONCEPT</text>
     </svg>
   );
@@ -1127,21 +1127,21 @@ function SupportChart() {
       })}
 
       {/* Support label — right side */}
-      <text x="182" y={supportY - 3} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="8" fontWeight="bold" fill="var(--green)" opacity="0.9">SUP</text>
+      <text x="182" y={supportY - 3} textAnchor="end" fontFamily="var(--font-mono)" fontSize="8" fontWeight="bold" fill="var(--green)" opacity="0.9">SUP</text>
 
       {/* 1st bounce annotation */}
-      <text x="66" y="9" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--green)" opacity="0.9">↑ bounce 1</text>
+      <text x="66" y="9" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fill="var(--green)" opacity="0.9">↑ bounce 1</text>
       <line x1="66" y1="11" x2="66" y2="15" stroke="var(--green)" strokeWidth="0.6" opacity="0.4" />
 
       {/* 2nd bounce annotation */}
-      <text x="124" y="9" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--green)" opacity="0.9">↑ bounce 2</text>
+      <text x="124" y="9" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fill="var(--green)" opacity="0.9">↑ bounce 2</text>
       <line x1="118" y1="11" x2="118" y2="15" stroke="var(--green)" strokeWidth="0.6" opacity="0.4" />
 
       {/* "buying pressure" label inside zone */}
-      <text x="8" y={supportY + 10} fontFamily="'Space Mono', monospace" fontSize="4.8" fill="var(--green)" opacity="0.5" letterSpacing="0.08em">buying pressure</text>
+      <text x="8" y={supportY + 10} fontFamily="var(--font-mono)" fontSize="4.8" fill="var(--green)" opacity="0.5" letterSpacing="0.08em">buying pressure</text>
 
       {/* Watermark */}
-      <text x="6" y="154" fontFamily="'Space Mono', monospace" fontSize="5" fill="#172030" letterSpacing="0.1em">SUPPORT LEVEL</text>
+      <text x="6" y="154" fontFamily="var(--font-mono)" fontSize="5" fill="#172030" letterSpacing="0.1em">SUPPORT LEVEL</text>
     </svg>
   );
 }
@@ -1207,21 +1207,21 @@ function ResistanceChart() {
       })}
 
       {/* Resistance label — right side */}
-      <text x="182" y={resistanceY - 3} textAnchor="end" fontFamily="'Space Mono', monospace" fontSize="8" fontWeight="bold" fill="var(--color-down)" opacity="0.9">RES</text>
+      <text x="182" y={resistanceY - 3} textAnchor="end" fontFamily="var(--font-mono)" fontSize="8" fontWeight="bold" fill="var(--color-down)" opacity="0.9">RES</text>
 
       {/* 1st rejection annotation */}
-      <text x="59" y={resistanceY + 14} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-down)" opacity="0.9">↓ reject 1</text>
+      <text x="59" y={resistanceY + 14} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fill="var(--color-down)" opacity="0.9">↓ reject 1</text>
       <line x1="59" y1={resistanceY + 1} x2="59" y2={resistanceY + 8} stroke="var(--color-down)" strokeWidth="0.6" opacity="0.4" />
 
       {/* 2nd rejection annotation */}
-      <text x="111" y={resistanceY + 14} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-down)" opacity="0.9">↓ reject 2</text>
+      <text x="111" y={resistanceY + 14} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fill="var(--color-down)" opacity="0.9">↓ reject 2</text>
       <line x1="111" y1={resistanceY + 1} x2="111" y2={resistanceY + 8} stroke="var(--color-down)" strokeWidth="0.6" opacity="0.4" />
 
       {/* "selling pressure" label inside zone */}
-      <text x="8" y={resistanceY - 2} fontFamily="'Space Mono', monospace" fontSize="4.8" fill="var(--color-down)" opacity="0.5" letterSpacing="0.08em">selling pressure</text>
+      <text x="8" y={resistanceY - 2} fontFamily="var(--font-mono)" fontSize="4.8" fill="var(--color-down)" opacity="0.5" letterSpacing="0.08em">selling pressure</text>
 
       {/* Watermark */}
-      <text x="6" y="154" fontFamily="'Space Mono', monospace" fontSize="5" fill="#172030" letterSpacing="0.1em">RESISTANCE LEVEL</text>
+      <text x="6" y="154" fontFamily="var(--font-mono)" fontSize="5" fill="#172030" letterSpacing="0.1em">RESISTANCE LEVEL</text>
     </svg>
   );
 }
@@ -1293,26 +1293,26 @@ function KillZonesChart() {
         return (
           <text key={`lbl-${z.label}`}
             x={cx} y="10"
-            textAnchor="middle" fontFamily="'Space Mono', monospace"
+            textAnchor="middle" fontFamily="var(--font-mono)"
             fontSize="5" fill={z.col} opacity="0.9" letterSpacing="0.04em"
           >{z.label}</text>
         );
       })}
 
       {/* London displacement annotation */}
-      <text x={tx(9)} y={py(157)} textAnchor="middle" fontFamily="'Space Mono', monospace"
+      <text x={tx(9)} y={py(157)} textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="4.8" fill="var(--color-neutral)" opacity="0.85">↑ disp.</text>
 
       {/* NY Open annotation */}
-      <text x={tx(15)} y={py(167)} textAnchor="middle" fontFamily="'Space Mono', monospace"
+      <text x={tx(15)} y={py(167)} textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="4.8" fill="var(--green)" opacity="0.85">↑ NY</text>
 
       {/* OTE pullback annotation */}
-      <text x={tx(13)} y={py(146) + 7} textAnchor="middle" fontFamily="'Space Mono', monospace"
+      <text x={tx(13)} y={py(146) + 7} textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="4.5" fill="#6678ff" opacity="0.75">OTE</text>
 
       {/* NY PM reversal annotation */}
-      <text x={tx(19)} y={py(169)} textAnchor="middle" fontFamily="'Space Mono', monospace"
+      <text x={tx(19)} y={py(169)} textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="4.8" fill="var(--color-down)" opacity="0.85">↓ dist.</text>
 
       {/* Time axis line */}
@@ -1323,16 +1323,16 @@ function KillZonesChart() {
         <g key={`t${h}`}>
           <line x1={tx(h)} y1="130" x2={tx(h)} y2="133" stroke="#1e2d3d" strokeWidth="0.8" />
           <text x={tx(h)} y="141"
-            textAnchor="middle" fontFamily="'Space Mono', monospace"
+            textAnchor="middle" fontFamily="var(--font-mono)"
             fontSize="5" fill="#2a3d52" letterSpacing="0.04em"
           >{String(h).padStart(2,'0')}h</text>
         </g>
       ))}
-      <text x="182" y="141" textAnchor="end" fontFamily="'Space Mono', monospace"
+      <text x="182" y="141" textAnchor="end" fontFamily="var(--font-mono)"
         fontSize="5" fill="#2a3d52">24h</text>
 
       {/* Watermark */}
-      <text x="6" y="154" fontFamily="'Space Mono', monospace"
+      <text x="6" y="154" fontFamily="var(--font-mono)"
         fontSize="5" fill="#172030" letterSpacing="0.1em">ICT KILL ZONES · UTC</text>
     </svg>
   );
@@ -1409,25 +1409,25 @@ function TrendChart() {
       {renderCandles(downCandles, 'd')}
 
       {/* HH labels */}
-      <text x="39" y={py(127) - 4} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="var(--green)" opacity="0.9">HH</text>
-      <text x="65" y={py(132) - 4} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="var(--green)" opacity="0.9">HH</text>
-      <text x="90" y={py(141) - 4} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="var(--green)" opacity="0.9">HH</text>
+      <text x="39" y={py(127) - 4} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fontWeight="bold" fill="var(--green)" opacity="0.9">HH</text>
+      <text x="65" y={py(132) - 4} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fontWeight="bold" fill="var(--green)" opacity="0.9">HH</text>
+      <text x="90" y={py(141) - 4} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fontWeight="bold" fill="var(--green)" opacity="0.9">HH</text>
 
       {/* HL labels */}
-      <text x="52" y={py(121) + 9} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--green)" opacity="0.7">HL</text>
-      <text x="78" y={py(126) + 9} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--green)" opacity="0.7">HL</text>
+      <text x="52" y={py(121) + 9} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fill="var(--green)" opacity="0.7">HL</text>
+      <text x="78" y={py(126) + 9} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fill="var(--green)" opacity="0.7">HL</text>
 
       {/* LH labels */}
-      <text x="116" y={py(136) - 4} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="var(--color-down)" opacity="0.9">LH</text>
-      <text x="142" y={py(128) - 4} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="var(--color-down)" opacity="0.9">LH</text>
+      <text x="116" y={py(136) - 4} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fontWeight="bold" fill="var(--color-down)" opacity="0.9">LH</text>
+      <text x="142" y={py(128) - 4} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fontWeight="bold" fill="var(--color-down)" opacity="0.9">LH</text>
 
       {/* LL labels */}
-      <text x="129" y={py(122) + 9} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-down)" opacity="0.7">LL</text>
-      <text x="155" y={py(116) + 9} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-down)" opacity="0.7">LL</text>
+      <text x="129" y={py(122) + 9} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fill="var(--color-down)" opacity="0.7">LL</text>
+      <text x="155" y={py(116) + 9} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fill="var(--color-down)" opacity="0.7">LL</text>
 
       {/* Section labels */}
-      <text x="48"  y="153" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="6" fill="var(--green)" opacity="0.5" letterSpacing="0.06em">UPTREND ↑</text>
-      <text x="140" y="153" textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="6" fill="var(--color-down)" opacity="0.5" letterSpacing="0.06em">DOWNTREND ↓</text>
+      <text x="48"  y="153" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="6" fill="var(--green)" opacity="0.5" letterSpacing="0.06em">UPTREND ↑</text>
+      <text x="140" y="153" textAnchor="middle" fontFamily="var(--font-mono)" fontSize="6" fill="var(--color-down)" opacity="0.5" letterSpacing="0.06em">DOWNTREND ↓</text>
     </svg>
   );
 }
@@ -1488,38 +1488,38 @@ function DojiChart() {
 
       {/* DOJI label above candle */}
       <text x={dX} y={topY - 7}
-        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="6.5" fontWeight="bold" fill="var(--color-neutral)" letterSpacing="0.1em">DOJI</text>
 
       {/* Annotation: upper wick */}
       <line x1={dX + 8} y1={topY} x2={148} y2={topY}
         stroke="var(--color-neutral)" strokeWidth="0.7" strokeDasharray="2 2" opacity="0.4" />
       <text x={182} y={topY + 2}
-        textAnchor="end" fontFamily="'Space Mono', monospace"
+        textAnchor="end" fontFamily="var(--font-mono)"
         fontSize="5.5" fill="var(--color-neutral)" opacity="0.7">upper wick</text>
 
       {/* Annotation: open ≈ close */}
       <line x1={dX + 8} y1={midY} x2={148} y2={midY}
         stroke="var(--color-neutral)" strokeWidth="0.7" strokeDasharray="2 2" opacity="0.4" />
       <text x={182} y={midY + 2}
-        textAnchor="end" fontFamily="'Space Mono', monospace"
+        textAnchor="end" fontFamily="var(--font-mono)"
         fontSize="5.5" fill="var(--color-neutral)" opacity="0.7">open ≈ close</text>
 
       {/* Annotation: lower wick */}
       <line x1={dX + 8} y1={botY} x2={148} y2={botY}
         stroke="var(--color-neutral)" strokeWidth="0.7" strokeDasharray="2 2" opacity="0.4" />
       <text x={182} y={botY + 2}
-        textAnchor="end" fontFamily="'Space Mono', monospace"
+        textAnchor="end" fontFamily="var(--font-mono)"
         fontSize="5.5" fill="var(--color-neutral)" opacity="0.7">lower wick</text>
 
       {/* indecision label below doji */}
       <text x={dX} y={botY + 11}
-        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="5" fill="var(--color-neutral)" opacity="0.45" letterSpacing="0.08em">indecision</text>
 
       {/* Rally section label */}
       <text x="44" y="153"
-        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="6" fill="var(--green)" opacity="0.45" letterSpacing="0.06em">RALLY ↑</text>
     </svg>
   );
@@ -1596,11 +1596,11 @@ function MACDChart() {
 
       {/* "↑ crossover" annotation */}
       <text x={crossX} y="11" textAnchor="middle"
-        fontFamily="'Space Mono', monospace" fontSize="5" fill="var(--color-neutral)" opacity="0.8">↑ cross</text>
+        fontFamily="var(--font-mono)" fontSize="5" fill="var(--color-neutral)" opacity="0.8">↑ cross</text>
 
       {/* ── SEPARATOR ── */}
       <line x1="6" y1="97" x2="182" y2="97" stroke="#1e2d3d" strokeWidth="0.8" />
-      <text x="8" y="101" fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#2a3d52">MACD(12,26,9)</text>
+      <text x="8" y="101" fontFamily="var(--font-mono)" fontSize="4.5" fill="#2a3d52">MACD(12,26,9)</text>
 
       {/* ── MACD PANEL ── */}
 
@@ -1608,7 +1608,7 @@ function MACDChart() {
       <line x1="6" y1={zeroY} x2="182" y2={zeroY}
         stroke="#2a3d52" strokeWidth="0.8" opacity="0.6" />
       <text x="8" y={zeroY - 1.5}
-        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#2a3d52" opacity="0.6">0</text>
+        fontFamily="var(--font-mono)" fontSize="4.5" fill="#2a3d52" opacity="0.6">0</text>
 
       {/* Crossover vertical guide in MACD panel */}
       <line x1={crossX} y1="103" x2={crossX} y2="148"
@@ -1636,12 +1636,12 @@ function MACDChart() {
 
       {/* Legend */}
       <line x1="8"  y1="144" x2="18" y2="144" stroke="var(--green)" strokeWidth="1.5" opacity="0.9" />
-      <text x="20" y="147" fontFamily="'Space Mono', monospace" fontSize="4.5" fill="var(--green)" opacity="0.8">MACD</text>
+      <text x="20" y="147" fontFamily="var(--font-mono)" fontSize="4.5" fill="var(--green)" opacity="0.8">MACD</text>
       <line x1="48" y1="144" x2="58" y2="144" stroke="var(--color-neutral)" strokeWidth="1.3" opacity="0.85" />
-      <text x="60" y="147" fontFamily="'Space Mono', monospace" fontSize="4.5" fill="var(--color-neutral)" opacity="0.8">Signal</text>
+      <text x="60" y="147" fontFamily="var(--font-mono)" fontSize="4.5" fill="var(--color-neutral)" opacity="0.8">Signal</text>
 
       {/* Watermark */}
-      <text x="182" y="154" textAnchor="end" fontFamily="'Space Mono', monospace"
+      <text x="182" y="154" textAnchor="end" fontFamily="var(--font-mono)"
         fontSize="5" fill="#172030" letterSpacing="0.1em">BULLISH CROSSOVER</text>
     </svg>
   );
@@ -1691,7 +1691,7 @@ function VolumeChart() {
       <line x1="88" y1={py(135)} x2="182" y2={py(135)}
         stroke="var(--color-neutral)" strokeWidth="0.7" strokeDasharray="4 2" opacity="0.22" />
       <text x="182" y={py(135) - 2} textAnchor="end"
-        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="var(--color-neutral)" opacity="0.5">res</text>
+        fontFamily="var(--font-mono)" fontSize="4.5" fill="var(--color-neutral)" opacity="0.5">res</text>
 
       {/* Candles */}
       {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
@@ -1708,11 +1708,11 @@ function VolumeChart() {
       })}
 
       <text x="83" y="11" textAnchor="middle"
-        fontFamily="'Space Mono', monospace" fontSize="5" fill="var(--green)" opacity="0.8">↑ breakout</text>
+        fontFamily="var(--font-mono)" fontSize="5" fill="var(--green)" opacity="0.8">↑ breakout</text>
 
       {/* ── SEPARATOR ── */}
       <line x1="6" y1="97" x2="182" y2="97" stroke="#1e2d3d" strokeWidth="0.8" />
-      <text x="8" y="101" fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#2a3d52">VOLUME</text>
+      <text x="8" y="101" fontFamily="var(--font-mono)" fontSize="4.5" fill="#2a3d52">VOLUME</text>
 
       {/* ── VOLUME PANEL ── */}
 
@@ -1720,7 +1720,7 @@ function VolumeChart() {
       <line x1="6" y1={avgY} x2="182" y2={avgY}
         stroke="#2a3d52" strokeWidth="0.7" strokeDasharray="3 2" opacity="0.7" />
       <text x="182" y={avgY - 1.5} textAnchor="end"
-        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#2a3d52" opacity="0.75">avg</text>
+        fontFamily="var(--font-mono)" fontSize="4.5" fill="#2a3d52" opacity="0.75">avg</text>
 
       {/* Volume bars */}
       {candles.map(({ x, C, O, vol, bw = 8 }, i) => {
@@ -1736,16 +1736,16 @@ function VolumeChart() {
 
       {/* "3×" spike label — above the breakout bar, inside the gap */}
       <text x="83" y="100" textAnchor="middle"
-        fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold"
+        fontFamily="var(--font-mono)" fontSize="5.5" fontWeight="bold"
         fill="var(--green)" opacity="0.9">3×</text>
 
       {/* "low vol" pullback label */}
       <text x="146" y={vTop(20) - 3} textAnchor="middle"
-        fontFamily="'Space Mono', monospace" fontSize="4.5"
+        fontFamily="var(--font-mono)" fontSize="4.5"
         fill="var(--color-down)" opacity="0.7">low vol</text>
 
       {/* Watermark */}
-      <text x="6" y="154" fontFamily="'Space Mono', monospace"
+      <text x="6" y="154" fontFamily="var(--font-mono)"
         fontSize="5" fill="#172030" letterSpacing="0.1em">VOLUME CONFIRMS MOVES</text>
     </svg>
   );
@@ -1798,7 +1798,7 @@ function RSIChart() {
       <circle cx={pk1x} cy={pk1py} r="2.5" fill="none" stroke="var(--color-down)" strokeWidth="1" opacity="0.8" />
       <circle cx={pk2x} cy={pk2py} r="2.5" fill="none" stroke="var(--color-down)" strokeWidth="1" opacity="0.8" />
       <text x={pk2x} y={pk2py - 6} textAnchor="middle"
-        fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold"
+        fontFamily="var(--font-mono)" fontSize="5.5" fontWeight="bold"
         fill="var(--color-down)" opacity="0.85">HH</text>
 
       {/* Candles */}
@@ -1815,12 +1815,12 @@ function RSIChart() {
         );
       })}
 
-      <text x="9" y="11" fontFamily="'Space Mono', monospace"
+      <text x="9" y="11" fontFamily="var(--font-mono)"
         fontSize="5" fill="var(--color-down)" opacity="0.6">price ↑ HH</text>
 
       {/* ── SEPARATOR ── */}
       <line x1="6" y1="97" x2="182" y2="97" stroke="#1e2d3d" strokeWidth="0.8" />
-      <text x="8" y="101" fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#2a3d52">RSI(14)</text>
+      <text x="8" y="101" fontFamily="var(--font-mono)" fontSize="4.5" fill="#2a3d52">RSI(14)</text>
 
       {/* ── RSI PANEL ── */}
 
@@ -1831,7 +1831,7 @@ function RSIChart() {
       {/* Level lines */}
       <line x1="6" y1={ry(70)} x2="182" y2={ry(70)}
         stroke="var(--color-down)" strokeWidth="0.8" strokeDasharray="3 2" opacity="0.45" />
-      <text x="8" y={ry(70) - 1} fontFamily="'Space Mono', monospace"
+      <text x="8" y={ry(70) - 1} fontFamily="var(--font-mono)"
         fontSize="4.5" fill="var(--color-down)" opacity="0.55">70</text>
 
       <line x1="6" y1={ry(50)} x2="182" y2={ry(50)}
@@ -1839,7 +1839,7 @@ function RSIChart() {
 
       <line x1="6" y1={ry(30)} x2="182" y2={ry(30)}
         stroke="var(--green)" strokeWidth="0.8" strokeDasharray="3 2" opacity="0.45" />
-      <text x="8" y={ry(30) + 5} fontFamily="'Space Mono', monospace"
+      <text x="8" y={ry(30) + 5} fontFamily="var(--font-mono)"
         fontSize="4.5" fill="var(--green)" opacity="0.55">30</text>
 
       {/* RSI line */}
@@ -1851,14 +1851,14 @@ function RSIChart() {
       <circle cx={pk1x} cy={pk1ry} r="2.5" fill="none" stroke="var(--color-down)" strokeWidth="1" opacity="0.8" />
       <circle cx={pk2x} cy={pk2ry} r="2.5" fill="none" stroke="var(--color-down)" strokeWidth="1" opacity="0.8" />
       <text x={pk2x} y={pk2ry + 9} textAnchor="middle"
-        fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold"
+        fontFamily="var(--font-mono)" fontSize="5.5" fontWeight="bold"
         fill="var(--color-down)" opacity="0.85">LH</text>
 
-      <text x="9" y={ry(100) + 8} fontFamily="'Space Mono', monospace"
+      <text x="9" y={ry(100) + 8} fontFamily="var(--font-mono)"
         fontSize="5" fill="var(--color-down)" opacity="0.6">RSI ↓ LH</text>
 
       {/* Watermark */}
-      <text x="6" y="154" fontFamily="'Space Mono', monospace"
+      <text x="6" y="154" fontFamily="var(--font-mono)"
         fontSize="5" fill="#172030" letterSpacing="0.1em">BEARISH DIVERGENCE</text>
     </svg>
   );
@@ -1921,28 +1921,28 @@ function SpreadChart() {
 
       {/* Labels — left zone */}
       <text x="8" y={nAskY - 2}
-        fontFamily="'Space Mono', monospace" fontSize="5" fill="var(--green)" opacity="0.9">ASK</text>
+        fontFamily="var(--font-mono)" fontSize="5" fill="var(--green)" opacity="0.9">ASK</text>
       <text x="8" y={nBidY + 6}
-        fontFamily="'Space Mono', monospace" fontSize="5" fill="var(--color-down)" opacity="0.9">BID</text>
+        fontFamily="var(--font-mono)" fontSize="5" fill="var(--color-down)" opacity="0.9">BID</text>
       <text x="88" y={(nAskY + nBidY) / 2 + 2}
         textAnchor="end"
-        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="var(--color-neutral)" opacity="0.7">1 pip</text>
+        fontFamily="var(--font-mono)" fontSize="4.5" fill="var(--color-neutral)" opacity="0.7">1 pip</text>
 
       {/* Labels — right zone */}
       <text x="94" y={wAskY + 7}
-        fontFamily="'Space Mono', monospace" fontSize="5" fill="var(--green)" opacity="0.9">ASK</text>
+        fontFamily="var(--font-mono)" fontSize="5" fill="var(--green)" opacity="0.9">ASK</text>
       <text x="94" y={wBidY - 3}
-        fontFamily="'Space Mono', monospace" fontSize="5" fill="var(--color-down)" opacity="0.9">BID</text>
+        fontFamily="var(--font-mono)" fontSize="5" fill="var(--color-down)" opacity="0.9">BID</text>
       <text x="182" y={(wAskY + wBidY) / 2 + 2}
         textAnchor="end"
-        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="var(--color-neutral)" opacity="0.7">5 pips</text>
+        fontFamily="var(--font-mono)" fontSize="4.5" fill="var(--color-neutral)" opacity="0.7">5 pips</text>
 
       {/* News divider */}
       <line x1="91" y1="12" x2="91" y2="88"
         stroke="var(--color-neutral)" strokeWidth="0.7" strokeDasharray="2 2" opacity="0.55" />
       <text x="91" y="11"
         textAnchor="middle"
-        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="var(--color-neutral)" opacity="0.9">NEWS</text>
+        fontFamily="var(--font-mono)" fontSize="4.5" fill="var(--color-neutral)" opacity="0.9">NEWS</text>
 
       {/* Candles */}
       {data.map(({ x, O, H, L, C }, i) => {
@@ -1961,7 +1961,7 @@ function SpreadChart() {
       {/* ─ SEPARATOR ─ */}
       <line x1="6" y1="94" x2="182" y2="94" stroke="#1e2d3d" strokeWidth="0.8" />
       <text x="8" y="101"
-        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#2a3d52">SPREAD</text>
+        fontFamily="var(--font-mono)" fontSize="4.5" fill="#2a3d52">SPREAD</text>
 
       {/* ─ SPREAD PANEL ─ */}
 
@@ -1970,14 +1970,14 @@ function SpreadChart() {
         stroke="#2a3d52" strokeWidth="0.6" strokeDasharray="3 2" opacity="0.6" />
       <text x="182" y={sp1Y - 1.5}
         textAnchor="end"
-        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="#2a3d52" opacity="0.7">1p</text>
+        fontFamily="var(--font-mono)" fontSize="4.5" fill="#2a3d52" opacity="0.7">1p</text>
 
       {/* Reference: 5 pips */}
       <line x1="6" y1={sp5Y} x2="182" y2={sp5Y}
         stroke="var(--color-neutral)" strokeWidth="0.6" strokeDasharray="3 2" opacity="0.4" />
       <text x="182" y={sp5Y - 1.5}
         textAnchor="end"
-        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="var(--color-neutral)" opacity="0.55">5p</text>
+        fontFamily="var(--font-mono)" fontSize="4.5" fill="var(--color-neutral)" opacity="0.55">5p</text>
 
       {/* Spread bars */}
       {data.map(({ x, sp }, i) => {
@@ -1994,12 +1994,12 @@ function SpreadChart() {
       {/* Spike annotation */}
       <text x="97" y={144 - bh(6.5) - 4}
         textAnchor="middle"
-        fontFamily="'Space Mono', monospace" fontSize="5" fontWeight="bold"
+        fontFamily="var(--font-mono)" fontSize="5" fontWeight="bold"
         fill="var(--color-neutral)" opacity="0.9">wide!</text>
 
       {/* Watermark */}
       <text x="6" y="154"
-        fontFamily="'Space Mono', monospace" fontSize="5" fill="#172030" letterSpacing="0.1em">BID / ASK SPREAD</text>
+        fontFamily="var(--font-mono)" fontSize="5" fill="#172030" letterSpacing="0.1em">BID / ASK SPREAD</text>
     </svg>
   );
 }
@@ -2066,22 +2066,22 @@ function VolatilityChart() {
 
       {/* Low vol label */}
       <text x="42" y="10"
-        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="5" fill="var(--green)" opacity="0.7" letterSpacing="0.05em">low vol</text>
 
       {/* High vol label */}
       <text x="140" y="10"
-        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="5" fill="var(--color-down)" opacity="0.85" letterSpacing="0.05em">high vol</text>
 
       {/* ATR label — right edge mid-chart */}
       <text x="182" y="84"
-        textAnchor="end" fontFamily="'Space Mono', monospace"
+        textAnchor="end" fontFamily="var(--font-mono)"
         fontSize="6" fontWeight="bold" fill="var(--green)" opacity="0.5">ATR</text>
 
       {/* Watermark */}
       <text x="6" y="154"
-        fontFamily="'Space Mono', monospace"
+        fontFamily="var(--font-mono)"
         fontSize="5" fill="#172030" letterSpacing="0.1em">VOLATILITY</text>
     </svg>
   );
@@ -2164,25 +2164,25 @@ function DrawdownChart() {
 
       {/* PEAK label */}
       <text x={97} y={py(159) - 4}
-        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="5.5" fontWeight="bold" fill="var(--color-neutral)" opacity="0.9">PEAK</text>
 
       {/* TROUGH label */}
       <text x={158} y={troughY + 9}
-        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="5.5" fill="var(--color-down)" opacity="0.9">TROUGH</text>
 
       {/* DD annotation — left of bracket, vertically centered */}
       <text x={bX - 5} y={midY - 3}
-        textAnchor="end" fontFamily="'Space Mono', monospace"
+        textAnchor="end" fontFamily="var(--font-mono)"
         fontSize="6.5" fontWeight="bold" fill="var(--color-down)" opacity="0.9">-26%</text>
       <text x={bX - 5} y={midY + 6}
-        textAnchor="end" fontFamily="'Space Mono', monospace"
+        textAnchor="end" fontFamily="var(--font-mono)"
         fontSize="5" fill="var(--color-down)" opacity="0.6" letterSpacing="0.05em">MAX DD</text>
 
       {/* Watermark */}
       <text x="6" y="154"
-        fontFamily="'Space Mono', monospace"
+        fontFamily="var(--font-mono)"
         fontSize="5" fill="#172030" letterSpacing="0.1em">DRAWDOWN</text>
     </svg>
   );
@@ -2263,20 +2263,20 @@ function RallyChart() {
 
       {/* Catalyst label below breakout candle */}
       <text x={90} y={rallyStartY + 12}
-        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="5" fill="var(--color-neutral)" opacity="0.75">▲ catalyst</text>
 
       {/* Gain annotation */}
       <text x={bX - 5} y={midY - 3}
-        textAnchor="end" fontFamily="'Space Mono', monospace"
+        textAnchor="end" fontFamily="var(--font-mono)"
         fontSize="6.5" fontWeight="bold" fill="var(--green)" opacity="0.9">+12%</text>
       <text x={bX - 5} y={midY + 6}
-        textAnchor="end" fontFamily="'Space Mono', monospace"
+        textAnchor="end" fontFamily="var(--font-mono)"
         fontSize="5" fill="var(--green)" opacity="0.6" letterSpacing="0.05em">RALLY</text>
 
       {/* Watermark */}
       <text x="6" y="154"
-        fontFamily="'Space Mono', monospace"
+        fontFamily="var(--font-mono)"
         fontSize="5" fill="#172030" letterSpacing="0.1em">RALLY</text>
     </svg>
   );
@@ -2356,30 +2356,30 @@ function CorrectionChart() {
 
       {/* Uptrend phase label */}
       <text x="55" y="12"
-        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="5" fill="var(--green)" opacity="0.5" letterSpacing="0.04em">↑ uptrend</text>
 
       {/* PEAK label */}
       <text x={104} y={py(151) - 4}
-        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="5.5" fontWeight="bold" fill="var(--color-neutral)" opacity="0.9">PEAK</text>
 
       {/* TROUGH label */}
       <text x={156} y={troughY + 9}
-        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="5.5" fill="var(--color-down)" opacity="0.9">TROUGH</text>
 
       {/* Bracket annotation */}
       <text x={bX - 5} y={midY - 3}
-        textAnchor="end" fontFamily="'Space Mono', monospace"
+        textAnchor="end" fontFamily="var(--font-mono)"
         fontSize="6.5" fontWeight="bold" fill="var(--color-down)" opacity="0.9">-13%</text>
       <text x={bX - 5} y={midY + 6}
-        textAnchor="end" fontFamily="'Space Mono', monospace"
+        textAnchor="end" fontFamily="var(--font-mono)"
         fontSize="5" fill="var(--color-down)" opacity="0.6" letterSpacing="0.05em">CORRECTION</text>
 
       {/* Watermark */}
       <text x="6" y="154"
-        fontFamily="'Space Mono', monospace"
+        fontFamily="var(--font-mono)"
         fontSize="5" fill="#172030" letterSpacing="0.1em">CORRECTION · 10–20% FROM PEAK</text>
     </svg>
   );
@@ -2429,7 +2429,7 @@ function BullMarketChart() {
       <line x1="6" y1={confY} x2="182" y2={confY}
         stroke="var(--color-neutral)" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.6" />
       <text x="8" y={confY - 2.5}
-        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="var(--color-neutral)" opacity="0.8">+20% from low</text>
+        fontFamily="var(--font-mono)" fontSize="4.5" fill="var(--color-neutral)" opacity="0.8">+20% from low</text>
 
       {/* Rising trendline */}
       <line x1={tlX1} y1={tlY1} x2={tlX2} y2={tlY2}
@@ -2457,27 +2457,27 @@ function BullMarketChart() {
       <circle cx={40} cy={py(94)} r="2.5" fill="none" stroke="var(--color-down)" strokeWidth="1" opacity="0.7" />
 
       {/* HH labels */}
-      <text x={79}  y={py(121) - 5} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="var(--green)" opacity="0.9">HH</text>
-      <text x={105} y={py(128) - 5} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="var(--green)" opacity="0.9">HH</text>
-      <text x={131} y={py(137) - 5} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="var(--green)" opacity="0.9">HH</text>
-      <text x={157} y={py(144) - 5} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="var(--green)" opacity="0.9">HH</text>
+      <text x={79}  y={py(121) - 5} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fontWeight="bold" fill="var(--green)" opacity="0.9">HH</text>
+      <text x={105} y={py(128) - 5} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fontWeight="bold" fill="var(--green)" opacity="0.9">HH</text>
+      <text x={131} y={py(137) - 5} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fontWeight="bold" fill="var(--green)" opacity="0.9">HH</text>
+      <text x={157} y={py(144) - 5} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fontWeight="bold" fill="var(--green)" opacity="0.9">HH</text>
 
       {/* HL labels */}
-      <text x={92}  y={py(115) + 10} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--green)" opacity="0.7">HL</text>
-      <text x={118} y={py(122) + 10} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--green)" opacity="0.7">HL</text>
-      <text x={144} y={py(131) + 10} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--green)" opacity="0.7">HL</text>
+      <text x={92}  y={py(115) + 10} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fill="var(--green)" opacity="0.7">HL</text>
+      <text x={118} y={py(122) + 10} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fill="var(--green)" opacity="0.7">HL</text>
+      <text x={144} y={py(131) + 10} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fill="var(--green)" opacity="0.7">HL</text>
 
       {/* Section labels */}
       <text x="38" y="11"
-        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="5" fill="var(--color-down)" opacity="0.55" letterSpacing="0.04em">BEAR BASE</text>
       <text x="128" y="11"
-        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="5" fill="var(--green)" opacity="0.55" letterSpacing="0.04em">BULL MARKET ↑</text>
 
       {/* Watermark */}
       <text x="6" y="154"
-        fontFamily="'Space Mono', monospace"
+        fontFamily="var(--font-mono)"
         fontSize="5" fill="#172030" letterSpacing="0.1em">BULL MARKET · +20% FROM LOWS</text>
     </svg>
   );
@@ -2528,7 +2528,7 @@ function BearMarketChart() {
       <line x1="6" y1={confY} x2="182" y2={confY}
         stroke="var(--color-neutral)" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.6" />
       <text x="8" y={confY - 2.5}
-        fontFamily="'Space Mono', monospace" fontSize="4.5" fill="var(--color-neutral)" opacity="0.8">-20% from peak</text>
+        fontFamily="var(--font-mono)" fontSize="4.5" fill="var(--color-neutral)" opacity="0.8">-20% from peak</text>
 
       {/* Falling trendline */}
       <line x1={tlX1} y1={tlY1} x2={tlX2} y2={tlY2}
@@ -2555,30 +2555,30 @@ function BearMarketChart() {
       {/* Peak marker */}
       <circle cx={40} cy={py(150)} r="2.5" fill="none" stroke="var(--color-neutral)" strokeWidth="1" opacity="0.7" />
       <text x={40} y={py(150) - 4}
-        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="5.5" fontWeight="bold" fill="var(--color-neutral)" opacity="0.9">PEAK</text>
 
       {/* LH labels */}
-      <text x={66}  y={py(144) - 5} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="var(--color-down)" opacity="0.9">LH</text>
-      <text x={92}  y={py(136) - 5} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="var(--color-down)" opacity="0.9">LH</text>
-      <text x={118} y={py(124) - 5} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold" fill="var(--color-down)" opacity="0.9">LH</text>
+      <text x={66}  y={py(144) - 5} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fontWeight="bold" fill="var(--color-down)" opacity="0.9">LH</text>
+      <text x={92}  y={py(136) - 5} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fontWeight="bold" fill="var(--color-down)" opacity="0.9">LH</text>
+      <text x={118} y={py(124) - 5} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fontWeight="bold" fill="var(--color-down)" opacity="0.9">LH</text>
 
       {/* LL labels */}
-      <text x={79}  y={py(128) + 10} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-down)" opacity="0.7">LL</text>
-      <text x={105} y={py(116) + 10} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-down)" opacity="0.7">LL</text>
-      <text x={131} y={py(103) + 10} textAnchor="middle" fontFamily="'Space Mono', monospace" fontSize="5.5" fill="var(--color-down)" opacity="0.7">LL</text>
+      <text x={79}  y={py(128) + 10} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fill="var(--color-down)" opacity="0.7">LL</text>
+      <text x={105} y={py(116) + 10} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fill="var(--color-down)" opacity="0.7">LL</text>
+      <text x={131} y={py(103) + 10} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fill="var(--color-down)" opacity="0.7">LL</text>
 
       {/* Section labels */}
       <text x="27" y="11"
-        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="5" fill="var(--green)" opacity="0.55" letterSpacing="0.04em">BULL RUN</text>
       <text x="122" y="11"
-        textAnchor="middle" fontFamily="'Space Mono', monospace"
+        textAnchor="middle" fontFamily="var(--font-mono)"
         fontSize="5" fill="var(--color-down)" opacity="0.55" letterSpacing="0.04em">BEAR MARKET ↓</text>
 
       {/* Watermark */}
       <text x="6" y="154"
-        fontFamily="'Space Mono', monospace"
+        fontFamily="var(--font-mono)"
         fontSize="5" fill="#172030" letterSpacing="0.1em">BEAR MARKET · -20% FROM PEAK</text>
     </svg>
   );
@@ -2648,7 +2648,7 @@ function FibonacciChart() {
               stroke={col} strokeWidth={pct === '61.8%' ? 1.2 : 0.8}
               strokeDasharray="4 2.5" opacity={op} />
             <text x="182" y={y + 2.5}
-              textAnchor="end" fontFamily="'Space Mono', monospace"
+              textAnchor="end" fontFamily="var(--font-mono)"
               fontSize="5" fill={col} opacity={op}>{pct}</text>
           </g>
         );
@@ -2676,12 +2676,12 @@ function FibonacciChart() {
 
       {/* Golden ratio label */}
       <text x="8" y={py(p618) - 4}
-        fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold"
+        fontFamily="var(--font-mono)" fontSize="5.5" fontWeight="bold"
         fill="var(--color-neutral)" opacity="0.85">golden ratio</text>
 
       {/* Watermark */}
       <text x="6" y="154"
-        fontFamily="'Space Mono', monospace"
+        fontFamily="var(--font-mono)"
         fontSize="5" fill="#172030" letterSpacing="0.1em">FIBONACCI RETRACEMENT</text>
     </svg>
   );
@@ -2758,28 +2758,28 @@ function MovingAverageChart() {
       <circle cx={crossX} cy={crossY} r="3.5" fill="none"
         stroke="var(--color-neutral)" strokeWidth="1.2" opacity="0.9" />
       <text x="10" y="48"
-        fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold"
+        fontFamily="var(--font-mono)" fontSize="5.5" fontWeight="bold"
         fill="var(--color-neutral)" opacity="0.9">golden</text>
       <text x="10" y="56"
-        fontFamily="'Space Mono', monospace" fontSize="5.5" fontWeight="bold"
+        fontFamily="var(--font-mono)" fontSize="5.5" fontWeight="bold"
         fill="var(--color-neutral)" opacity="0.9">cross</text>
 
       {/* Bounce off 50 MA — label between the two MAs at the pullback */}
       <text x="124" y={bounceY + 11}
-        textAnchor="start" fontFamily="'Space Mono', monospace"
+        textAnchor="start" fontFamily="var(--font-mono)"
         fontSize="5" fill="var(--color-neutral)" opacity="0.7">↑ bounce</text>
 
       {/* MA labels on the right */}
       <text x="181" y={py(147) - 3}
-        textAnchor="end" fontFamily="'Space Mono', monospace"
+        textAnchor="end" fontFamily="var(--font-mono)"
         fontSize="6" fontWeight="bold" fill="var(--color-neutral)" opacity="0.9">50 MA</text>
       <text x="181" y={py(143) + 8}
-        textAnchor="end" fontFamily="'Space Mono', monospace"
+        textAnchor="end" fontFamily="var(--font-mono)"
         fontSize="6" fontWeight="bold" fill="var(--green)" opacity="0.9">200 MA</text>
 
       {/* Watermark */}
       <text x="6" y="154"
-        fontFamily="'Space Mono', monospace"
+        fontFamily="var(--font-mono)"
         fontSize="5" fill="#172030" letterSpacing="0.1em">MOVING AVERAGE</text>
     </svg>
   );

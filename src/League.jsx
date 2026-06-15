@@ -80,14 +80,14 @@ export default function League({ leagueId, onBack }) {
 
   if (loading) return (
     <div id="gtm-root" style={{ minHeight: '100dvh', background: 'var(--bg-page)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: 'var(--t6)' }}>...</div>
+      <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--t6)' }}>...</div>
     </div>
   );
 
   if (!data || data.error) return (
     <div id="gtm-root" style={{ minHeight: '100dvh', background: 'var(--bg-page)', padding: '48px 20px' }}>
-      <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}>{tl.back}</button>
-      <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '11px' }}>{tl.notFound}</div>
+      <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer' }}>{tl.back}</button>
+      <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '11px' }}>{tl.notFound}</div>
     </div>
   );
 
@@ -96,19 +96,19 @@ export default function League({ leagueId, onBack }) {
       <div className="scanlines" />
       <div style={{ padding: '48px 20px 48px', position: 'relative', zIndex: 2 }}>
 
-        <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', marginBottom: '24px', display: 'block' }}>{tl.back}</button>
+        <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer', marginBottom: '24px', display: 'block' }}>{tl.back}</button>
 
         {/* Header */}
         <div style={{ marginBottom: '28px' }}>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: 'var(--t1)', marginBottom: '10px' }}>{data.name}</div>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '22px', color: 'var(--t1)', marginBottom: '10px' }}>{data.name}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 10px', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '6px' }}>
-              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '14px', color: 'var(--green)', fontWeight: 700, letterSpacing: '0.18em' }}>{data.code}</span>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--green)', fontWeight: 700, letterSpacing: '0.18em' }}>{data.code}</span>
               <button onClick={copyCode} style={{ background: 'transparent', border: 'none', color: copied ? 'var(--green)' : 'var(--t6)', cursor: 'pointer', fontSize: '13px', lineHeight: 1, padding: '0 2px' }}>
                 {copied ? '✓' : '⎘'}
               </button>
             </div>
-            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t5)' }}>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t5)' }}>
               {tl.since} {new Date(data.startDate + 'T00:00:00').toLocaleDateString()}
               {daysLeft !== null && ` · ${daysLeft}${tl.daysLeft}`}
             </span>
@@ -116,7 +116,7 @@ export default function League({ leagueId, onBack }) {
         </div>
 
         {/* Ranking */}
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t4)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '12px' }}>{tl.rankingLabel} · {data.ranking.length} {tl.participants}</div>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t4)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '12px' }}>{tl.rankingLabel} · {data.ranking.length} {tl.participants}</div>
 
         {data.ranking.map((entry, i) => {
           const posColor = i === 0 ? 'var(--color-neutral)' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : 'var(--t6)';
@@ -124,23 +124,23 @@ export default function League({ leagueId, onBack }) {
           const name     = entry.username ? `@${entry.username}` : entry.name;
           return (
             <div key={String(entry.userId)} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', background: entry.isYou ? 'rgba(0,229,160,0.07)' : 'var(--bg-card)', border: `1px solid ${i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : entry.isYou ? 'rgba(0,229,160,0.6)' : 'transparent'}`, borderLeft: `2px solid ${i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : entry.isYou ? 'rgba(0,229,160,0.6)' : 'transparent'}`, borderRadius: '8px', marginBottom: '8px', overflow: 'hidden', width: '100%' }}>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: posColor, width: '40px', flexShrink: 0, textAlign: 'center' }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: posColor, width: '40px', flexShrink: 0, textAlign: 'center' }}>
                 {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
               </div>
               <UserAvatar user={entry} size={24} showBadge style={{ marginLeft: '8px' }} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
-                  <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: entry.isYou ? 'var(--green)' : 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{name}</span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: entry.isYou ? 'var(--green)' : 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{name}</span>
                   {isFounder(entry.username) && <FounderBadge size={10} />}
-                  {entry.isYou && <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>}
+                  {entry.isYou && <span style={{ fontFamily: 'var(--font-body)', fontSize: '8px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>}
                 </div>
-                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t5)' }}>{formatCash(entry.totalValue)}</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t5)' }}>{formatCash(entry.totalValue)}</div>
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '15px', color: entry.returnPct >= 0 ? 'var(--green)' : 'var(--color-down)' }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '15px', color: entry.returnPct >= 0 ? 'var(--green)' : 'var(--color-down)' }}>
                   {entry.returnPct >= 0 ? '+' : ''}{entry.returnPct.toFixed(2)}%
                 </div>
-                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: diff >= 0 ? 'var(--green)70' : 'var(--color-down)70' }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: diff >= 0 ? 'var(--green)70' : 'var(--color-down)70' }}>
                   {diff >= 0 ? '+' : '-'}{formatCash(diff)}
                 </div>
               </div>
@@ -155,24 +155,24 @@ export default function League({ leagueId, onBack }) {
             <>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 0', margin: '4px 0' }}>
                 <div style={{ flex: 1, height: '1px', background: 'var(--bd)' }} />
-                <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t6)' }}>···</span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t6)' }}>···</span>
                 <div style={{ flex: 1, height: '1px', background: 'var(--bd)' }} />
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', background: 'rgba(0,229,160,0.07)', border: '1px solid rgba(0,229,160,0.6)', borderLeft: '2px solid rgba(0,229,160,0.6)', borderRadius: '8px', marginBottom: '8px', overflow: 'hidden', width: '100%' }}>
-                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--t6)', width: '40px', flexShrink: 0, textAlign: 'center' }}>#{up.rank}</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t6)', width: '40px', flexShrink: 0, textAlign: 'center' }}>#{up.rank}</div>
                 <UserAvatar user={up} size={24} showBadge style={{ marginLeft: '8px' }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
-                    <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: 'var(--green)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{name}</span>
-                    <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>
+                    <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: 'var(--green)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{name}</span>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: '8px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>
                   </div>
-                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t5)' }}>{formatCash(up.totalValue)}</div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t5)' }}>{formatCash(up.totalValue)}</div>
                 </div>
                 <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                  <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '15px', color: up.returnPct >= 0 ? 'var(--green)' : 'var(--color-down)' }}>
+                  <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '15px', color: up.returnPct >= 0 ? 'var(--green)' : 'var(--color-down)' }}>
                     {up.returnPct >= 0 ? '+' : ''}{up.returnPct.toFixed(2)}%
                   </div>
-                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: diff >= 0 ? 'var(--green)70' : 'var(--color-down)70' }}>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: diff >= 0 ? 'var(--green)70' : 'var(--color-down)70' }}>
                     {diff >= 0 ? '+' : '-'}{formatCash(diff)}
                   </div>
                 </div>
@@ -183,15 +183,15 @@ export default function League({ leagueId, onBack }) {
 
         {/* Footer */}
         <div style={{ marginTop: '28px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <button onClick={share} style={{ width: '100%', padding: '13px', background: 'rgba(0,229,160,0.06)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+          <button onClick={share} style={{ width: '100%', padding: '13px', background: 'rgba(0,229,160,0.06)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
             {tl.shareCode}
           </button>
           {data.isOwner ? (
-            <button onClick={deleteLeague} disabled={busy} style={{ width: '100%', padding: '12px', background: 'transparent', border: '1px solid var(--color-down)30', borderRadius: '8px', color: 'var(--color-down)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', opacity: 0.65 }}>
+            <button onClick={deleteLeague} disabled={busy} style={{ width: '100%', padding: '12px', background: 'transparent', border: '1px solid var(--color-down)30', borderRadius: '8px', color: 'var(--color-down)', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', opacity: 0.65 }}>
               {busy ? '...' : tl.deleteLeague}
             </button>
           ) : (
-            <button onClick={leave} disabled={busy} style={{ width: '100%', padding: '12px', background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '8px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+            <button onClick={leave} disabled={busy} style={{ width: '100%', padding: '12px', background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '8px', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
               {busy ? '...' : tl.leaveLeague}
             </button>
           )}

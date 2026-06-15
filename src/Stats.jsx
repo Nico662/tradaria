@@ -6,7 +6,7 @@ import { useLang } from './LangContext.jsx';
 function StatCard({ label, value, color = 'var(--t1)', sub }) {
   return (
     <div style={{ background: 'var(--bg-page)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '16px 12px', textAlign: 'center' }}>
-      <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '24px', color, lineHeight: 1 }}>{value ?? '—'}</div>
+      <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '24px', color, lineHeight: 1 }}>{value ?? '—'}</div>
       <div style={{ fontSize: '8px', color: 'var(--t5)', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: '4px' }}>{label}</div>
       {sub && <div style={{ fontSize: '8px', color: 'var(--t6)', marginTop: '2px' }}>{sub}</div>}
     </div>
@@ -76,16 +76,16 @@ export default function Stats({ onBack }) {
         {/* Header */}
         <div className="header" style={{ display: 'grid', gridTemplateColumns: '80px 1fr 80px', alignItems: 'center', padding: '12px 20px 10px' }}>
           <button onClick={onBack}
-            style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', padding: 0, textAlign: 'left', transition: 'color 0.15s' }}
+            style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', padding: 0, textAlign: 'left', transition: 'color 0.15s' }}
             onMouseEnter={e => e.currentTarget.style.color = 'var(--t2)'}
             onMouseLeave={e => e.currentTarget.style.color = 'var(--t6)'}
           >{t.stats.back}</button>
 
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: 'var(--green)', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(0,229,160,0.2)' }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--green)', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(0,229,160,0.2)' }}>
               📊 {t.stats.title}
             </div>
-            <div style={{ fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: "'Space Mono', monospace" }}>
+            <div style={{ fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: 'var(--font-body)' }}>
               STATS MODE
             </div>
           </div>
@@ -95,18 +95,18 @@ export default function Stats({ onBack }) {
 
         <div style={{ padding: '20px 28px 0' }}>
           {loading && (
-            <div style={{ textAlign: 'center', color: 'var(--t6)', fontSize: '11px', marginTop: '60px', fontFamily: "'Space Mono', monospace" }}>loading...</div>
+            <div style={{ textAlign: 'center', color: 'var(--t6)', fontSize: '11px', marginTop: '60px', fontFamily: 'var(--font-body)' }}>loading...</div>
           )}
 
           {error === 'login' && (
-            <div style={{ textAlign: 'center', color: 'var(--t5)', fontSize: '11px', marginTop: '60px', fontFamily: "'Space Mono', monospace" }}>
+            <div style={{ textAlign: 'center', color: 'var(--t5)', fontSize: '11px', marginTop: '60px', fontFamily: 'var(--font-body)' }}>
               <div style={{ marginBottom: '8px' }}>{t.stats.signIn}</div>
               <div style={{ fontSize: '9px', color: 'var(--t6)' }}>{t.stats.signInSub}</div>
             </div>
           )}
 
           {error === true && (
-            <div style={{ textAlign: 'center', color: 'var(--color-down)', fontSize: '11px', marginTop: '60px', fontFamily: "'Space Mono', monospace" }}>
+            <div style={{ textAlign: 'center', color: 'var(--color-down)', fontSize: '11px', marginTop: '60px', fontFamily: 'var(--font-body)' }}>
               {t.stats.error}
             </div>
           )}
@@ -124,7 +124,7 @@ export default function Stats({ onBack }) {
               {/* Accuracy trend */}
               {data.accuracyTrend?.length >= 2 && (
                 <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '16px', marginBottom: '24px' }}>
-                  <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '12px', fontFamily: "'Space Mono', monospace" }}>
+                  <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '12px', fontFamily: 'var(--font-body)' }}>
                     {t.stats.lastGames} {data.accuracyTrend.length} {t.stats.lastGamesSuffix}
                   </div>
                   <AccuracyGraph trend={data.accuracyTrend} />
@@ -134,17 +134,17 @@ export default function Stats({ onBack }) {
               {/* Per mode */}
               {data.modeCounts && Object.keys(data.modeCounts).length > 0 && (
                 <div style={{ marginBottom: '24px' }}>
-                  <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px', fontFamily: "'Space Mono', monospace" }}>
+                  <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px', fontFamily: 'var(--font-body)' }}>
                     {t.stats.byMode}
                   </div>
                   {Object.entries(data.modeCounts).sort((a, b) => b[1] - a[1]).map(([mode, count]) => (
                     <div key={mode} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', marginBottom: '6px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <span style={{ fontSize: '16px' }}>{MODE_ICONS[mode] || '🎮'}</span>
-                        <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: 'var(--t1)' }}>{MODE_LABELS[mode] || mode}</span>
+                        <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: 'var(--t1)' }}>{MODE_LABELS[mode] || mode}</span>
                       </div>
                       <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--green)' }}>{count}</div>
+                        <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--green)' }}>{count}</div>
                         <div style={{ fontSize: '8px', color: 'var(--t6)' }}>{t.stats.plays}</div>
                       </div>
                     </div>
@@ -155,14 +155,14 @@ export default function Stats({ onBack }) {
               {/* Recent badges */}
               {recentBadges.length > 0 && (
                 <div style={{ marginBottom: '24px' }}>
-                  <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px', fontFamily: "'Space Mono', monospace" }}>
+                  <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px', fontFamily: 'var(--font-body)' }}>
                     {t.stats.recentBadges}
                   </div>
                   <div style={{ display: 'flex', gap: '8px' }}>
                     {recentBadges.map(b => (
                       <div key={b.id} style={{ flex: 1, background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '12px 8px', textAlign: 'center' }}>
                         <div style={{ fontSize: '22px', marginBottom: '4px' }}>{b.icon}</div>
-                        <div style={{ fontSize: '8px', color: 'var(--t1)', fontFamily: "'Space Mono', monospace", lineHeight: 1.3 }}>{b.name}</div>
+                        <div style={{ fontSize: '8px', color: 'var(--t1)', fontFamily: 'var(--font-body)', lineHeight: 1.3 }}>{b.name}</div>
                       </div>
                     ))}
                   </div>
@@ -171,15 +171,15 @@ export default function Stats({ onBack }) {
 
               {/* Global comparison */}
               <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '16px', textAlign: 'center' }}>
-                <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px', fontFamily: "'Space Mono', monospace" }}>
+                <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px', fontFamily: 'var(--font-body)' }}>
                   {t.stats.globalComparison}
                 </div>
                 {data.totalGames > 0 ? (
                   <>
-                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px', color: 'var(--green)' }}>
+                    <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '28px', color: 'var(--green)' }}>
                       Top {100 - (data.betterThan || 50)}%
                     </div>
-                    <div style={{ fontSize: '10px', color: '#5a6a7d', marginTop: '4px', fontFamily: "'Space Mono', monospace" }}>
+                    <div style={{ fontSize: '10px', color: '#5a6a7d', marginTop: '4px', fontFamily: 'var(--font-body)' }}>
                       {t.stats.betterThan} {data.betterThan}{t.stats.betterThanSuffix}
                     </div>
                     {data.winRate > 0 && (
@@ -189,7 +189,7 @@ export default function Stats({ onBack }) {
                     )}
                   </>
                 ) : (
-                  <div style={{ fontSize: '10px', color: 'var(--t6)', fontFamily: "'Space Mono', monospace" }}>
+                  <div style={{ fontSize: '10px', color: 'var(--t6)', fontFamily: 'var(--font-body)' }}>
                     {t.stats.playMore}
                   </div>
                 )}

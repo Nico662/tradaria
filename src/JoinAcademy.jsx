@@ -66,10 +66,10 @@ export default function JoinAcademy({ onBack }) {
 
         <button onClick={onBack} style={backBtn}>{t.academy.back}</button>
 
-        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: 'var(--t1)', marginBottom: '6px' }}>
+        <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '22px', color: 'var(--t1)', marginBottom: '6px' }}>
           {t.academy.joinTitle}
         </div>
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t5)', marginBottom: '32px' }}>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--t5)', marginBottom: '32px' }}>
           {t.academy.joinSub}
         </div>
 
@@ -86,7 +86,7 @@ export default function JoinAcademy({ onBack }) {
               width: '100%', padding: '16px',
               background: 'var(--bg-card)', border: `1px solid ${previewErr ? 'var(--color-down)' : preview ? 'var(--green)' : 'var(--bd)'}`,
               borderRadius: '8px', color: 'var(--green)',
-              fontFamily: "'Space Mono', monospace", fontSize: '22px', fontWeight: 700,
+              fontFamily: 'var(--font-body)', fontSize: '22px', fontWeight: 700,
               letterSpacing: '0.22em', textAlign: 'center',
               outline: 'none', boxSizing: 'border-box',
               transition: 'border-color 0.2s',
@@ -96,14 +96,14 @@ export default function JoinAcademy({ onBack }) {
 
         {/* Loading */}
         {previewLoading && (
-          <div style={{ marginTop: '16px', fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t5)', textAlign: 'center' }}>
+          <div style={{ marginTop: '16px', fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--t5)', textAlign: 'center' }}>
             {t.academy.searching}
           </div>
         )}
 
         {/* Error */}
         {previewErr && !previewLoading && (
-          <div style={{ marginTop: '14px', fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--color-down)', textAlign: 'center' }}>
+          <div style={{ marginTop: '14px', fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--color-down)', textAlign: 'center' }}>
             {previewErr}
           </div>
         )}
@@ -115,14 +115,14 @@ export default function JoinAcademy({ onBack }) {
             background: 'rgba(0,229,160,0.05)', border: '1px solid rgba(0,229,160,0.25)',
             borderRadius: '10px', textAlign: 'center',
           }}>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t4)', marginBottom: '6px' }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--t4)', marginBottom: '6px' }}>
               {t.academy.joinQuestion}
             </div>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: 'var(--t1)', marginBottom: '18px' }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--t1)', marginBottom: '18px' }}>
               {preview.name}
             </div>
             {joinErr && (
-              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--color-down)', marginBottom: '12px' }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--color-down)', marginBottom: '12px' }}>
                 {joinErr}
               </div>
             )}
@@ -133,7 +133,7 @@ export default function JoinAcademy({ onBack }) {
                 width: '100%', padding: '13px',
                 background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)',
                 borderRadius: '8px', color: 'var(--green)',
-                fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700,
+                fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700,
                 letterSpacing: '0.06em', textTransform: 'uppercase',
                 cursor: joining ? 'default' : 'pointer', opacity: joining ? 0.6 : 1,
               }}
@@ -147,7 +147,7 @@ export default function JoinAcademy({ onBack }) {
         {done && (
           <div style={{ marginTop: '20px', padding: '20px', textAlign: 'center', background: 'rgba(0,229,160,0.05)', border: '1px solid rgba(0,229,160,0.25)', borderRadius: '10px' }}>
             <div style={{ fontSize: '24px', marginBottom: '8px' }}>✓</div>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: 'var(--green)' }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--green)' }}>
               {t.academy.joinSuccess}
             </div>
           </div>
@@ -160,13 +160,13 @@ export default function JoinAcademy({ onBack }) {
 
 const backBtn = {
   background: 'transparent', border: 'none',
-  color: 'var(--t6)', fontFamily: "'Space Mono', monospace",
+  color: 'var(--t6)', fontFamily: 'var(--font-body)',
   fontSize: '11px', cursor: 'pointer',
   marginBottom: '28px', display: 'block', padding: 0,
 };
 
 const labelStyle = {
-  fontFamily: "'Space Mono', monospace", fontSize: '9px',
+  fontFamily: 'var(--font-body)', fontSize: '9px',
   color: 'var(--t4)', letterSpacing: '0.1em',
   textTransform: 'uppercase', marginBottom: '8px',
 };

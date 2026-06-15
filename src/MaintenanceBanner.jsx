@@ -18,7 +18,7 @@ export default function MaintenanceBanner() {
       zIndex: 9999,
       background: 'var(--color-neutral)',
       color: 'var(--bg-base)',
-      fontFamily: "'Space Mono', monospace",
+      fontFamily: 'var(--font-body)',
       fontSize: '12px',
       padding: '8px 16px',
       display: 'flex',

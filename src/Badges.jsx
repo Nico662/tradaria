@@ -12,14 +12,14 @@ export default function Badges({ onBack }) {
       <div style={{ padding: '48px 24px 32px', position: 'relative', zIndex: 2 }}>
 
         <button onClick={onBack}
-          style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', marginBottom: '24px', display: 'block', transition: 'color 0.15s' }}
+          style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', marginBottom: '24px', display: 'block', transition: 'color 0.15s' }}
           onMouseEnter={e => e.target.style.color = 'var(--t2)'}
           onMouseLeave={e => e.target.style.color = 'var(--t6)'}
         >
           {t.badges.back}
         </button>
 
-        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '24px', color: 'var(--t1)', marginBottom: '4px' }}>
+        <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '24px', color: 'var(--t1)', marginBottom: '4px' }}>
           {t.badges.title}
         </div>
         <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '24px' }}>
@@ -42,7 +42,7 @@ export default function Badges({ onBack }) {
                 <div style={{ fontSize: '32px', marginBottom: '8px', filter: isUnlocked ? 'none' : 'grayscale(1)' }}>
                   {badge.icon}
                 </div>
-                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '11px', color: isUnlocked ? 'var(--t1)' : 'var(--t5)', marginBottom: '4px', lineHeight: 1.3 }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '11px', color: isUnlocked ? 'var(--t1)' : 'var(--t5)', marginBottom: '4px', lineHeight: 1.3 }}>
                   {t.badges.items?.[badge.id]?.name ?? badge.name}
                 </div>
                 <div style={{ fontSize: '9px', color: 'var(--t6)', lineHeight: 1.5 }}>

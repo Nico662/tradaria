@@ -6,7 +6,7 @@ import AcadiasLanding from './AcadiasLanding.jsx';
 
 function Label({ children }) {
   return (
-    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '10px' }}>
+    <div style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '10px' }}>
       {children}
     </div>
   );
@@ -115,7 +115,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
 
   if (loading) return (
     <div id="gtm-root" style={{ background: 'var(--bg-page)' }}>
-      <div style={{ padding: '80px 20px', textAlign: 'center', fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t6)' }}>
+      <div style={{ padding: '80px 20px', textAlign: 'center', fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--t6)' }}>
         {t.academy.loading}
       </div>
     </div>
@@ -125,7 +125,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
     <div id="gtm-root" style={{ background: 'var(--bg-page)' }}>
       <div style={{ padding: '48px 20px', position: 'relative', zIndex: 2 }}>
         <button onClick={onBack} style={backBtn}>{t.academy.back}</button>
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: 'var(--color-down)', marginTop: '16px' }}>{error}</div>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--color-down)', marginTop: '16px' }}>{error}</div>
       </div>
     </div>
   );
@@ -147,7 +147,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
             borderRadius: '8px',
           }}>
             <span style={{ fontSize: '14px' }}>⚠️</span>
-            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--color-down)', lineHeight: 1.5 }}>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--color-down)', lineHeight: 1.5 }}>
               {t.academy.academyExpired}
             </span>
           </div>
@@ -155,11 +155,11 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
 
         {/* ── Header ── */}
         <div style={{ marginBottom: '28px' }}>
-          <h1 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '24px', color: 'var(--t1)', margin: '0 0 8px' }}>
+          <h1 style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '24px', color: 'var(--t1)', margin: '0 0 8px' }}>
             {academyName}
           </h1>
           <span style={{
-            fontFamily: "'Space Mono', monospace", fontSize: '8px', fontWeight: 700,
+            fontFamily: 'var(--font-body)', fontSize: '8px', fontWeight: 700,
             letterSpacing: '0.1em', padding: '3px 8px', borderRadius: '4px',
             color: 'var(--green)', background: 'rgba(0,229,160,0.08)',
             border: '1px solid rgba(0,229,160,0.25)',
@@ -174,7 +174,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
 
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', overflow: 'hidden' }}>
             {students.length === 0 ? (
-              <div style={{ padding: '32px 20px', textAlign: 'center', fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t5)' }}>
+              <div style={{ padding: '32px 20px', textAlign: 'center', fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--t5)' }}>
                 {t.academy.noStudentsYet}
               </div>
             ) : (
@@ -182,7 +182,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
                 {/* Header row */}
                 <div style={{ display: 'grid', gridTemplateColumns: '36px 1fr 44px 52px', gap: '8px', padding: '8px 14px', borderBottom: '1px solid var(--bd)' }}>
                   {[t.academy.colPos, t.academy.colName, t.academy.colGames, t.academy.colAccuracy].map((h, i) => (
-                    <div key={i} style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.08em', textAlign: i >= 2 ? 'center' : 'left' }}>
+                    <div key={i} style={{ fontFamily: 'var(--font-body)', fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.08em', textAlign: i >= 2 ? 'center' : 'left' }}>
                       {h}
                     </div>
                   ))}
@@ -205,7 +205,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
                             borderLeft: isMe ? '2px solid rgba(0,229,160,0.6)' : '2px solid transparent',
                             overflow: 'hidden', width: '100%',
                           }}>
-                            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', textAlign: 'center' }}>
+                            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', textAlign: 'center' }}>
                               <Medal pos={i + 1} />
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
@@ -214,13 +214,13 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
                                 background: isMe ? 'rgba(0,229,160,0.2)' : 'rgba(255,255,255,0.05)',
                                 border: `1px solid ${isMe ? 'rgba(0,229,160,0.4)' : 'var(--bd2)'}`,
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '9px',
+                                fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '9px',
                                 color: isMe ? 'var(--green)' : 'var(--t4)',
                               }}>
                                 {(s.name || '?')[0].toUpperCase()}
                               </div>
                               <span style={{
-                                fontFamily: "'Space Mono', monospace", fontSize: '11px',
+                                fontFamily: 'var(--font-body)', fontSize: '11px',
                                 color: isMe ? 'var(--green)' : 'var(--t1)',
                                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                                 fontWeight: isMe ? 700 : 400,
@@ -228,13 +228,13 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
                               }}>
                                 {s.name}
                               </span>
-                              {isMe && <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>}
+                              {isMe && <span style={{ fontFamily: 'var(--font-body)', fontSize: '8px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>}
                             </div>
-                            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t4)', textAlign: 'center' }}>
+                            <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--t4)', textAlign: 'center' }}>
                               {s.gamesPlayed}
                             </div>
                             <div style={{
-                              fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, textAlign: 'center',
+                              fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, textAlign: 'center',
                               color: s.avgAccuracy >= 70 ? 'var(--green)' : s.avgAccuracy >= 50 ? 'var(--color-neutral)' : 'var(--t4)',
                             }}>
                               {s.gamesPlayed > 0 ? `${s.avgAccuracy}%` : '—'}
@@ -246,7 +246,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
                         <>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 14px' }}>
                             <div style={{ flex: 1, height: '1px', background: 'var(--bd)' }} />
-                            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t6)' }}>···</span>
+                            <span style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t6)' }}>···</span>
                             <div style={{ flex: 1, height: '1px', background: 'var(--bd)' }} />
                           </div>
                           <div style={{
@@ -257,7 +257,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
                             borderLeft: '2px solid rgba(0,229,160,0.6)',
                             overflow: 'hidden', width: '100%',
                           }}>
-                            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', textAlign: 'center', color: 'var(--t5)' }}>
+                            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', textAlign: 'center', color: 'var(--t5)' }}>
                               #{myIdx + 1}
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
@@ -266,21 +266,21 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
                                 background: 'rgba(0,229,160,0.2)',
                                 border: '1px solid rgba(0,229,160,0.4)',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '9px',
+                                fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '9px',
                                 color: 'var(--green)',
                               }}>
                                 {(myOutside.name || '?')[0].toUpperCase()}
                               </div>
-                              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: 'var(--green)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 700, flex: 1, minWidth: 0 }}>
+                              <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--green)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 700, flex: 1, minWidth: 0 }}>
                                 {myOutside.name}
                               </span>
-                              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>
+                              <span style={{ fontFamily: 'var(--font-body)', fontSize: '8px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>
                             </div>
-                            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t4)', textAlign: 'center' }}>
+                            <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--t4)', textAlign: 'center' }}>
                               {myOutside.gamesPlayed}
                             </div>
                             <div style={{
-                              fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, textAlign: 'center',
+                              fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, textAlign: 'center',
                               color: myOutside.avgAccuracy >= 70 ? 'var(--green)' : myOutside.avgAccuracy >= 50 ? 'var(--color-neutral)' : 'var(--t4)',
                             }}>
                               {myOutside.gamesPlayed > 0 ? `${myOutside.avgAccuracy}%` : '—'}
@@ -301,12 +301,12 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
           <Label>{t.academy.activeTournament}</Label>
 
           {tournament === undefined && (
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t6)' }}>{t.academy.loading}</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--t6)' }}>{t.academy.loading}</div>
           )}
 
           {tournament === false && (
             <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '28px 20px', textAlign: 'center' }}>
-              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t5)' }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--t5)' }}>
                 {t.academy.noActiveTournament}
               </div>
             </div>
@@ -317,21 +317,21 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
               {/* Tournament header */}
               <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--bd)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
                 <div>
-                  <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: 'var(--t1)', marginBottom: '3px' }}>
+                  <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: 'var(--t1)', marginBottom: '3px' }}>
                     {tournament.name}
                   </div>
-                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t5)' }}>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t5)' }}>
                     {t.academy.endsOn} {new Date(tournament.endsAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}
                   </div>
                 </div>
-                <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', fontWeight: 700, letterSpacing: '0.08em', padding: '3px 8px', borderRadius: '4px', color: 'var(--green)', background: 'rgba(0,229,160,0.08)', border: '1px solid rgba(0,229,160,0.25)', flexShrink: 0 }}>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: '8px', fontWeight: 700, letterSpacing: '0.08em', padding: '3px 8px', borderRadius: '4px', color: 'var(--green)', background: 'rgba(0,229,160,0.08)', border: '1px solid rgba(0,229,160,0.25)', flexShrink: 0 }}>
                   {t.academy.activeStatus}
                 </span>
               </div>
 
               {/* Leaderboard */}
               {(tournament.participants || []).length === 0 ? (
-                <div style={{ padding: '24px 16px', textAlign: 'center', fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t5)' }}>
+                <div style={{ padding: '24px 16px', textAlign: 'center', fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--t5)' }}>
                   {t.academy.noParticipants}
                 </div>
               ) : (() => {
@@ -354,16 +354,16 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
                             borderLeft: isMe ? '2px solid rgba(0,229,160,0.6)' : '2px solid transparent',
                             overflow: 'hidden', width: '100%',
                           }}>
-                            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', width: '28px', textAlign: 'center' }}>
+                            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', width: '28px', textAlign: 'center' }}>
                               <Medal pos={i + 1} />
                             </div>
                             <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
-                              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: isMe ? 'var(--green)' : 'var(--t1)', fontWeight: isMe ? 700 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
+                              <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: isMe ? 'var(--green)' : 'var(--t1)', fontWeight: isMe ? 700 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
                                 {name}
                               </span>
-                              {isMe && <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>}
+                              {isMe && <span style={{ fontFamily: 'var(--font-body)', fontSize: '8px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>}
                             </div>
-                            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: 'var(--green)' }}>
+                            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: 'var(--green)' }}>
                               {p.score}
                             </div>
                           </div>
@@ -373,7 +373,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
                         <>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 16px' }}>
                             <div style={{ flex: 1, height: '1px', background: 'var(--bd)' }} />
-                            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t6)' }}>···</span>
+                            <span style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t6)' }}>···</span>
                             <div style={{ flex: 1, height: '1px', background: 'var(--bd)' }} />
                           </div>
                           <div style={{
@@ -384,16 +384,16 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
                             borderLeft: '2px solid rgba(0,229,160,0.6)',
                             overflow: 'hidden', width: '100%',
                           }}>
-                            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', width: '28px', textAlign: 'center', color: 'var(--t5)' }}>
+                            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', width: '28px', textAlign: 'center', color: 'var(--t5)' }}>
                               #{myIdx + 1}
                             </div>
                             <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
-                              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: 'var(--green)', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
+                              <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--green)', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
                                 {myOutside.userId?.name || myOutside.userId?.username || '—'}
                               </span>
-                              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>
+                              <span style={{ fontFamily: 'var(--font-body)', fontSize: '8px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>
                             </div>
-                            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: 'var(--green)' }}>
+                            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: 'var(--green)' }}>
                               {myOutside.score}
                             </div>
                           </div>
@@ -414,7 +414,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
                         width: '100%', padding: '12px',
                         background: 'transparent', border: '1px solid rgba(255,126,179,0.3)',
                         borderRadius: '8px', color: 'rgba(255,126,179,0.5)',
-                        fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700,
+                        fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700,
                         letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'default',
                       }}>
                         {t.academy.academyInactive}
@@ -429,7 +429,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
                           width: '100%', padding: '12px',
                           background: 'transparent', border: '1px solid rgba(0,229,160,0.3)',
                           borderRadius: '8px', color: 'var(--t4)',
-                          fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700,
+                          fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700,
                           letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer',
                         }}
                       >
@@ -444,7 +444,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
                         width: '100%', padding: '12px',
                         background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)',
                         borderRadius: '8px', color: 'var(--green)',
-                        fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700,
+                        fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700,
                         letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer',
                       }}
                     >
@@ -461,7 +461,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
         <div style={{ paddingTop: '16px', borderTop: '1px solid var(--bd)' }}>
           <button
             onClick={() => setConfirmLeave(true)}
-            style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer', padding: 0, letterSpacing: '0.04em' }}
+            style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '10px', cursor: 'pointer', padding: 0, letterSpacing: '0.04em' }}
           >
             {t.academy.leaveAcademy} →
           </button>
@@ -473,24 +473,24 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
       {confirmLeave && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '14px', padding: '28px 24px', maxWidth: '340px', width: '100%' }}>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--t1)', marginBottom: '12px' }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t1)', marginBottom: '12px' }}>
               {t.academy.leaveConfirmTitle}
             </div>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'var(--t4)', lineHeight: 1.7, marginBottom: '24px' }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--t4)', lineHeight: 1.7, marginBottom: '24px' }}>
               {t.academy.leaveConfirmText}
             </div>
             <div style={{ display: 'flex', gap: '10px' }}>
               <button
                 onClick={() => setConfirmLeave(false)}
                 disabled={leaving}
-                style={{ flex: 1, padding: '11px', background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '8px', color: 'var(--t4)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em' }}
+                style={{ flex: 1, padding: '11px', background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '8px', color: 'var(--t4)', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em' }}
               >
                 {t.academy.leaveCancelBtn}
               </button>
               <button
                 onClick={leaveAcademy}
                 disabled={leaving}
-                style={{ flex: 1, padding: '11px', background: 'rgba(255,126,179,0.08)', border: '1px solid rgba(255,126,179,0.4)', borderRadius: '8px', color: 'var(--color-down)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: leaving ? 'default' : 'pointer', letterSpacing: '0.04em', opacity: leaving ? 0.6 : 1 }}
+                style={{ flex: 1, padding: '11px', background: 'rgba(255,126,179,0.08)', border: '1px solid rgba(255,126,179,0.4)', borderRadius: '8px', color: 'var(--color-down)', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700, cursor: leaving ? 'default' : 'pointer', letterSpacing: '0.04em', opacity: leaving ? 0.6 : 1 }}
               >
                 {leaving ? t.academy.leaveLoading : t.academy.leaveConfirmBtn}
               </button>
@@ -504,7 +504,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
 
 const backBtn = {
   background: 'transparent', border: 'none',
-  color: 'var(--t6)', fontFamily: "'Space Mono', monospace",
+  color: 'var(--t6)', fontFamily: 'var(--font-body)',
   fontSize: '11px', cursor: 'pointer',
   marginBottom: '28px', display: 'block', padding: 0,
 };

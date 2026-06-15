@@ -9,20 +9,20 @@ export default function Legal({ onBack }) {
       <div style={{ position: 'relative', zIndex: 2 }}>
         <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--bd)', display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button onClick={onBack}
-            style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em' }}
+            style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em' }}
             onMouseEnter={e => e.target.style.color = 'var(--t2)'}
             onMouseLeave={e => e.target.style.color = 'var(--t6)'}
           >← back</button>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: 'var(--t1)', letterSpacing: '0.06em' }}>LEGAL</div>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: 'var(--t1)', letterSpacing: '0.06em' }}>LEGAL</div>
         </div>
 
         <div style={{ display: 'flex', gap: '8px', padding: '16px 20px 0' }}>
           <button onClick={() => setView('quick')}
-            style={{ padding: '6px 14px', borderRadius: '20px', border: `1px solid ${view === 'quick' ? 'var(--green)' : 'var(--bd2)'}`, background: view === 'quick' ? 'rgba(0,229,160,0.08)' : 'transparent', color: view === 'quick' ? 'var(--green)' : 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', cursor: 'pointer', textTransform: 'uppercase' }}>
+            style={{ padding: '6px 14px', borderRadius: '20px', border: `1px solid ${view === 'quick' ? 'var(--green)' : 'var(--bd2)'}`, background: view === 'quick' ? 'rgba(0,229,160,0.08)' : 'transparent', color: view === 'quick' ? 'var(--green)' : 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', cursor: 'pointer', textTransform: 'uppercase' }}>
             Quick
           </button>
           <button onClick={() => setView('full')}
-            style={{ padding: '6px 14px', borderRadius: '20px', border: `1px solid ${view === 'full' ? 'var(--green)' : 'var(--bd2)'}`, background: view === 'full' ? 'rgba(0,229,160,0.08)' : 'transparent', color: view === 'full' ? 'var(--green)' : 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', cursor: 'pointer', textTransform: 'uppercase' }}>
+            style={{ padding: '6px 14px', borderRadius: '20px', border: `1px solid ${view === 'full' ? 'var(--green)' : 'var(--bd2)'}`, background: view === 'full' ? 'rgba(0,229,160,0.08)' : 'transparent', color: view === 'full' ? 'var(--green)' : 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', cursor: 'pointer', textTransform: 'uppercase' }}>
             Full Legal
           </button>
         </div>
@@ -38,7 +38,7 @@ export default function Legal({ onBack }) {
 function Section({ emoji, title, children }) {
   return (
     <div style={{ marginBottom: '20px' }}>
-      <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: 'var(--t2)', marginBottom: '6px' }}>{emoji} {title}</div>
+      <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--t2)', marginBottom: '6px' }}>{emoji} {title}</div>
       <div style={{ fontSize: '11px', color: 'var(--t4)', lineHeight: 1.7 }}>{children}</div>
     </div>
   );
@@ -47,7 +47,7 @@ function Section({ emoji, title, children }) {
 function QuickVersion() {
   return (
     <div>
-      <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '10px', color: 'var(--t6)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '20px' }}>Quick Heads-Up</div>
+      <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '10px', color: 'var(--t6)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '20px' }}>Quick Heads-Up</div>
       <Section emoji="🧠" title="What is Tradaria?">Tradaria is a simulation game, not real trading. Nothing here is financial advice. You must be at least 16 years old to use this app.</Section>
       <Section emoji="📊" title="About the Game">You're trading in a simulated market — no real money, no real risk. Just your skills against the market.</Section>
       <Section emoji="⚠️" title="Keep in Mind">Market data may be delayed or simulated. Don't use it for real-world financial decisions.</Section>
@@ -65,7 +65,7 @@ function QuickVersion() {
 function FullVersion() {
   return (
     <div>
-      <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '10px', color: 'var(--t6)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '20px' }}>Terms & Privacy Policy</div>
+      <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '10px', color: 'var(--t6)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '20px' }}>Terms & Privacy Policy</div>
 
       <Section emoji="📌" title="Disclaimer">
         Tradaria is provided for educational and entertainment purposes only. The information, simulations, and results presented within the application do not constitute financial, investment, legal, or other professional advice. Users are solely responsible for their real-world financial decisions. Tradaria makes no guarantees regarding the accuracy, completeness, or usefulness of the information provided and assumes no liability for any losses incurred as a result of using the application.

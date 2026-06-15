@@ -35,7 +35,7 @@ export default function BadgeNotification({ badge, onDone }) {
         <div style={{ fontSize: '8px', color: 'var(--green)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '2px' }}>
           badge unlocked
         </div>
-        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: 'var(--t1)' }}>
+        <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: 'var(--t1)' }}>
           {badge.name}
         </div>
         <div style={{ fontSize: '9px', color: 'var(--t5)', marginTop: '2px' }}>

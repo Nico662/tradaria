@@ -13,7 +13,7 @@ import MissionNotification from './MissionNotification.jsx';
 function ShareButton({ onShare, copied, t }) {
   return (
     <button onClick={onShare}
-      style={{ marginTop: '12px', width: '100%', padding: '12px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+      style={{ marginTop: '12px', width: '100%', padding: '12px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
       {copied ? t.daily.copied : t.daily.share}
     </button>
   );
@@ -217,22 +217,22 @@ export default function Daily({ onBack }) {
         {/* Header row: back | lang */}
         <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr 80px', alignItems: 'center', marginBottom: '20px' }}>
           <button onClick={onBack}
-            style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', padding: 0, textAlign: 'left', transition: 'color 0.15s' }}
+            style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', padding: 0, textAlign: 'left', transition: 'color 0.15s' }}
             onMouseEnter={e => e.target.style.color = 'var(--t2)'}
             onMouseLeave={e => e.target.style.color = 'var(--t6)'}
           >{t.daily.back}</button>
 
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: '#378ADD', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(55,138,221,0.2)' }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: '#378ADD', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(55,138,221,0.2)' }}>
               📅 {t.daily.title}
             </div>
-            <div style={{ fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: "'Space Mono', monospace" }}>
+            <div style={{ fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: 'var(--font-body)' }}>
               DAILY CHALLENGE
             </div>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
-            <span style={{ fontSize: '8px', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", letterSpacing: '0.06em' }}>{new Date().toISOString().split('T')[0]}</span>
+            <span style={{ fontSize: '8px', color: 'var(--t6)', fontFamily: 'var(--font-body)', letterSpacing: '0.06em' }}>{new Date().toISOString().split('T')[0]}</span>
             <div className="lang-selector" style={{ marginTop: '2px' }}>
               {['en', 'es', 'de'].map(l => (
                 <button key={l} className={`lang-btn${lang === l ? ' active' : ''}`} onClick={() => setLang(l)}>
@@ -290,7 +290,7 @@ export default function Daily({ onBack }) {
 
             {phase === 'reveal' && result && !revealing && (
               <div style={{ margin: '12px 20px 0', background: result.win ? 'rgba(0,229,160,0.05)' : 'rgba(255,126,179,0.05)', border: `1px solid ${resultColor}`, borderRadius: '8px', padding: '20px', textAlign: 'center' }}>
-                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: resultColor, marginBottom: '8px' }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '22px', color: resultColor, marginBottom: '8px' }}>
                   {result.win ? t.daily.correct : t.daily.wrong}
                 </div>
                 <div style={{ fontSize: '11px', color: 'var(--t4)' }}>
@@ -307,7 +307,7 @@ export default function Daily({ onBack }) {
                       setCopiedInvite(true);
                       setTimeout(() => setCopiedInvite(false), 2000);
                     }}
-                    style={{ marginTop: '8px', width: '100%', padding: '10px', background: 'transparent', border: '1px dashed var(--bd2)', borderRadius: '6px', color: copiedInvite ? 'var(--green)' : 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer', letterSpacing: '0.06em', transition: 'all 0.15s' }}
+                    style={{ marginTop: '8px', width: '100%', padding: '10px', background: 'transparent', border: '1px dashed var(--bd2)', borderRadius: '6px', color: copiedInvite ? 'var(--green)' : 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '10px', cursor: 'pointer', letterSpacing: '0.06em', transition: 'all 0.15s' }}
                   >
                     {copiedInvite ? t.friends.inviteCopied : t.friends.inviteDaily}
                   </button>
@@ -320,7 +320,7 @@ export default function Daily({ onBack }) {
         {phase === 'already' && result && (
           <div style={{ background: result.win ? 'rgba(0,229,160,0.05)' : 'rgba(255,126,179,0.05)', border: `1px solid ${result.win ? 'var(--green)' : 'var(--color-down)'}`, borderRadius: '8px', padding: '28px', textAlign: 'center' }}>
             <div style={{ fontSize: '13px', color: 'var(--t5)', marginBottom: '12px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{t.daily.result}</div>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: result.win ? 'var(--green)' : 'var(--color-down)', marginBottom: '8px' }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '22px', color: result.win ? 'var(--green)' : 'var(--color-down)', marginBottom: '8px' }}>
               {result.win ? t.daily.correct : t.daily.wrong}
             </div>
             <div style={{ fontSize: '11px', color: 'var(--t4)', marginBottom: '16px' }}>
@@ -337,7 +337,7 @@ export default function Daily({ onBack }) {
                   setCopiedInvite(true);
                   setTimeout(() => setCopiedInvite(false), 2000);
                 }}
-                style={{ marginTop: '8px', width: '100%', padding: '10px', background: 'transparent', border: '1px dashed var(--bd2)', borderRadius: '6px', color: copiedInvite ? 'var(--green)' : 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer', letterSpacing: '0.06em', transition: 'all 0.15s' }}
+                style={{ marginTop: '8px', width: '100%', padding: '10px', background: 'transparent', border: '1px dashed var(--bd2)', borderRadius: '6px', color: copiedInvite ? 'var(--green)' : 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '10px', cursor: 'pointer', letterSpacing: '0.06em', transition: 'all 0.15s' }}
               >
                 {copiedInvite ? t.friends.inviteCopied : t.friends.inviteDaily}
               </button>
@@ -351,7 +351,7 @@ export default function Daily({ onBack }) {
             top: '40%',
             left: '50%',
             transform: 'translateX(-50%)',
-            fontFamily: "'Syne', sans-serif",
+            fontFamily: 'var(--font-body)',
             fontWeight: 800,
             fontSize: '28px',
             color: 'var(--green)',

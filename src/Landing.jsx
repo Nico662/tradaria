@@ -70,7 +70,7 @@ function DemoChart() {
 
   return (
     <div style={{ background: 'var(--bg-surface)', border: '1px solid #1e2530', borderRadius: '12px', padding: '20px', marginBottom: '28px' }}>
-      <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '16px', fontFamily: "'Space Mono', monospace" }}>
+      <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '16px', fontFamily: 'var(--font-body)' }}>
         BTC/USDT · 1h
       </div>
 
@@ -80,7 +80,7 @@ function DemoChart() {
         ))}
         <MiniCandle candle={FUTURE_CANDLE} visible={revealed} width={28} animate />
         {revealed && (
-          <div style={{ position: 'absolute', top: `${priceToY(FUTURE_CANDLE.h) - 20}px`, right: '10px', fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: 'var(--green)', animation: 'fadeInUp 0.4s both' }}>
+          <div style={{ position: 'absolute', top: `${priceToY(FUTURE_CANDLE.h) - 20}px`, right: '10px', fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--green)', animation: 'fadeInUp 0.4s both' }}>
             +{pct}%
           </div>
         )}
@@ -94,7 +94,7 @@ function DemoChart() {
             { id: 'short', label: '▼ Short',    color: 'var(--color-down)', bg: 'rgba(255,126,179,0.08)'   },
           ].map(btn => (
             <button key={btn.id} onClick={() => pick(btn.id)}
-              style={{ flex: 1, padding: '8px 4px', background: btn.bg, border: `1px solid ${btn.color}`, borderRadius: '6px', color: btn.color, fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, letterSpacing: '0.04em', cursor: 'pointer', transition: 'transform 0.15s' }}
+              style={{ flex: 1, padding: '8px 4px', background: btn.bg, border: `1px solid ${btn.color}`, borderRadius: '6px', color: btn.color, fontFamily: 'var(--font-body)', fontSize: '9px', fontWeight: 700, letterSpacing: '0.04em', cursor: 'pointer', transition: 'transform 0.15s' }}
               onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
               onMouseLeave={e => e.currentTarget.style.transform = ''}
             >{btn.label}</button>
@@ -103,18 +103,18 @@ function DemoChart() {
       )}
 
       {choice && !revealed && (
-        <div style={{ textAlign: 'center', fontSize: '10px', color: '#3a4455', fontFamily: "'Space Mono', monospace", letterSpacing: '0.08em', padding: '8px 0' }}>
+        <div style={{ textAlign: 'center', fontSize: '10px', color: '#3a4455', fontFamily: 'var(--font-body)', letterSpacing: '0.08em', padding: '8px 0' }}>
           revealing...
         </div>
       )}
 
       {revealed && (
         <div style={{ textAlign: 'center', animation: 'fadeInUp 0.4s both' }}>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: result ? 'var(--green)' : 'var(--color-down)', marginBottom: '4px' }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: result ? 'var(--green)' : 'var(--color-down)', marginBottom: '4px' }}>
             {result ? '✅ CORRECT' : '❌ WRONG'}
           </div>
           <button onClick={reset}
-            style={{ marginTop: '8px', padding: '6px 16px', background: 'transparent', border: '1px solid #2a3345', borderRadius: '6px', color: '#5a6a7d', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.06em' }}>
+            style={{ marginTop: '8px', padding: '6px 16px', background: 'transparent', border: '1px solid #2a3345', borderRadius: '6px', color: '#5a6a7d', fontFamily: 'var(--font-body)', fontSize: '9px', cursor: 'pointer', letterSpacing: '0.06em' }}>
             try again
           </button>
         </div>
@@ -130,7 +130,7 @@ export default function Landing({ onEnter }) {
   }
 
   return (
-    <div style={{ background: 'var(--bg-base)', minHeight: '100vh', fontFamily: "'Space Mono', monospace", position: 'relative', overflowY: 'auto' }}>
+    <div style={{ background: 'var(--bg-base)', minHeight: '100vh', fontFamily: 'var(--font-body)', position: 'relative', overflowY: 'auto' }}>
       <style>{`
         @keyframes candleIn { from { opacity: 0; transform: scaleY(0.4); } to { opacity: 1; transform: scaleY(1); } }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
@@ -146,7 +146,7 @@ export default function Landing({ onEnter }) {
 
       {/* Skip */}
       <button onClick={enter}
-        style={{ position: 'fixed', top: '16px', right: '16px', zIndex: 100, background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer', letterSpacing: '0.06em', padding: '8px' }}
+        style={{ position: 'fixed', top: '16px', right: '16px', zIndex: 100, background: 'transparent', border: 'none', color: '#3a4455', fontFamily: 'var(--font-body)', fontSize: '10px', cursor: 'pointer', letterSpacing: '0.06em', padding: '8px' }}
         onMouseEnter={e => e.currentTarget.style.color = '#e2e8f0'}
         onMouseLeave={e => e.currentTarget.style.color = '#3a4455'}
       >Skip →</button>
@@ -161,11 +161,11 @@ export default function Landing({ onEnter }) {
               <rect x="25" y="40" width="50" height="110" rx="6" fill="var(--green)"/>
               <line x1="50" y1="150" x2="50" y2="190" stroke="var(--green)" strokeWidth="8" strokeLinecap="round"/>
             </svg>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '38px', letterSpacing: '-0.02em', color: '#f0f0f0', textShadow: '0 0 60px rgba(0,229,160,0.2)' }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '38px', letterSpacing: '-0.02em', color: '#f0f0f0', textShadow: '0 0 60px rgba(0,229,160,0.2)' }}>
               Tradaria
             </div>
           </div>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '26px', color: '#f0f0f0', lineHeight: 1.2, marginBottom: '10px', letterSpacing: '-0.01em' }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '26px', color: '#f0f0f0', lineHeight: 1.2, marginBottom: '10px', letterSpacing: '-0.01em' }}>
             Test Your Market Instinct
           </div>
           <div style={{ fontSize: '11px', color: '#5a6a7d', letterSpacing: '0.06em' }}>
@@ -188,7 +188,7 @@ export default function Landing({ onEnter }) {
             ].map(f => (
               <div key={f.title} style={{ background: 'var(--bg-surface)', border: '1px solid #1e2530', borderRadius: '10px', padding: '14px 10px', textAlign: 'center' }}>
                 <div style={{ fontSize: '20px', marginBottom: '8px' }}>{f.icon}</div>
-                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '10px', color: '#f0f0f0', marginBottom: '4px', lineHeight: 1.2 }}>{f.title}</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '10px', color: '#f0f0f0', marginBottom: '4px', lineHeight: 1.2 }}>{f.title}</div>
                 <div style={{ fontSize: '8px', color: '#3a4455', lineHeight: 1.4 }}>{f.sub}</div>
               </div>
             ))}
@@ -210,7 +210,7 @@ export default function Landing({ onEnter }) {
       <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, padding: '16px 28px calc(16px + env(safe-area-inset-bottom))', background: 'linear-gradient(to top, var(--bg-base) 70%, transparent)', zIndex: 50 }}>
         <div style={{ maxWidth: '420px', margin: '0 auto' }}>
           <button onClick={enter} className="landing-cta"
-            style={{ width: '100%', padding: '16px', background: 'var(--green)', border: 'none', borderRadius: '8px', color: 'var(--bg-base)', fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', letterSpacing: '0.02em', cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,229,160,0.2)' }}>
+            style={{ width: '100%', padding: '16px', background: 'var(--green)', border: 'none', borderRadius: '8px', color: 'var(--bg-base)', fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', letterSpacing: '0.02em', cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,229,160,0.2)' }}>
             Start Playing →
           </button>
           <div style={{ textAlign: 'center', marginTop: '8px', fontSize: '9px', color: '#3a4455', letterSpacing: '0.08em' }}>

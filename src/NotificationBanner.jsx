@@ -71,7 +71,7 @@ export default function NotificationBanner() {
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
         <div style={{ fontSize: '24px' }}>⚡</div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: 'var(--t1)', marginBottom: '4px' }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--t1)', marginBottom: '4px' }}>
             Daily Challenge notifications
           </div>
           <div style={{ fontSize: '10px', color: 'var(--t5)', lineHeight: 1.5 }}>
@@ -81,11 +81,11 @@ export default function NotificationBanner() {
       </div>
       <div style={{ display: 'flex', gap: '8px', marginTop: '14px' }}>
         <button onClick={() => { console.log('Allow clicked'); allow(); }}
-          style={{ flex: 1, padding: '10px', background: 'rgba(0,229,160,0.1)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>
+          style={{ flex: 1, padding: '10px', background: 'rgba(0,229,160,0.1)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>
              Allow
         </button>
         <button onClick={dismiss}
-          style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>
+          style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>
           Not now
         </button>
       </div>

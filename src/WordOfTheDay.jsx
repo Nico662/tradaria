@@ -62,7 +62,7 @@ function DetailScreen({ dayOffset, onOffsetChange, onClose }) {
 
   const navBtn = {
     background: 'transparent', border: 'none',
-    color: 'var(--t5)', fontFamily: "'Space Mono', monospace",
+    color: 'var(--t5)', fontFamily: 'var(--font-body)',
     fontSize: '14px', cursor: 'pointer', padding: '4px 8px', lineHeight: 1,
   };
 
@@ -73,7 +73,7 @@ function DetailScreen({ dayOffset, onOffsetChange, onClose }) {
         {/* Back */}
         <button
           onClick={onClose}
-          style={{ background: 'transparent', border: 'none', color: 'var(--t5)', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer', letterSpacing: '0.08em', padding: '8px 0', marginBottom: '24px', display: 'block' }}
+          style={{ background: 'transparent', border: 'none', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '10px', cursor: 'pointer', letterSpacing: '0.08em', padding: '8px 0', marginBottom: '24px', display: 'block' }}
           onMouseEnter={e => e.currentTarget.style.color = accent}
           onMouseLeave={e => e.currentTarget.style.color = 'var(--t5)'}
         >
@@ -88,7 +88,7 @@ function DetailScreen({ dayOffset, onOffsetChange, onClose }) {
             onMouseEnter={e => e.currentTarget.style.color = accent}
             onMouseLeave={e => e.currentTarget.style.color = 'var(--t5)'}
           >←</button>
-          <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'var(--t3)', letterSpacing: '0.12em' }}>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t3)', letterSpacing: '0.12em' }}>
             {dayLabel}
           </span>
           <button
@@ -101,7 +101,7 @@ function DetailScreen({ dayOffset, onOffsetChange, onClose }) {
         </div>
 
         {/* Label */}
-        <div style={{ fontSize: '8px', color: 'var(--bd2)', letterSpacing: '0.22em', textTransform: 'uppercase', fontFamily: "'Space Mono', monospace", marginBottom: '18px' }}>
+        <div style={{ fontSize: '8px', color: 'var(--bd2)', letterSpacing: '0.22em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '18px' }}>
           {LABELS.header[lang]}
         </div>
 
@@ -109,7 +109,7 @@ function DetailScreen({ dayOffset, onOffsetChange, onClose }) {
         <div style={{ fontSize: '48px', lineHeight: 1, marginBottom: '14px' }}>{entry.emoji}</div>
 
         {/* Word */}
-        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: accent, lineHeight: 1.1, marginBottom: '20px', letterSpacing: '-0.01em', overflowWrap: 'break-word', wordBreak: 'break-word' }}>
+        <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '22px', color: accent, lineHeight: 1.1, marginBottom: '20px', letterSpacing: '-0.01em', overflowWrap: 'break-word', wordBreak: 'break-word' }}>
           {word}
         </div>
 
@@ -124,7 +124,7 @@ function DetailScreen({ dayOffset, onOffsetChange, onClose }) {
         {/* Example */}
         {example && (
           <div style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accent}22`, borderLeft: `3px solid ${accent}`, borderRadius: '0 6px 6px 0', padding: '12px 16px', marginBottom: '24px' }}>
-            <div style={{ fontSize: '8px', color: accent, letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: "'Space Mono', monospace", marginBottom: '6px', opacity: 0.7 }}>
+            <div style={{ fontSize: '8px', color: accent, letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '6px', opacity: 0.7 }}>
               {LABELS.example[lang]}
             </div>
             <p style={{ fontSize: '11px', color: 'var(--t3)', fontStyle: 'italic', margin: 0, lineHeight: 1.6 }}>{example}</p>
@@ -134,7 +134,7 @@ function DetailScreen({ dayOffset, onOffsetChange, onClose }) {
         {/* Extra */}
         {extra && (
           <div style={{ marginBottom: '32px' }}>
-            <div style={{ fontSize: '8px', color: 'var(--bd2)', letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: "'Space Mono', monospace", marginBottom: '10px' }}>
+            <div style={{ fontSize: '8px', color: 'var(--bd2)', letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '10px' }}>
               {LABELS.context[lang]}
             </div>
             <p style={{ fontSize: '12px', color: '#5a6a7d', lineHeight: 1.75, margin: 0 }}>{extra}</p>
@@ -151,7 +151,7 @@ function DetailScreen({ dayOffset, onOffsetChange, onClose }) {
 
         {/* Previous words */}
         <div style={{ borderTop: '1px solid var(--bd)', paddingTop: '20px' }}>
-          <div style={{ fontSize: '8px', color: 'var(--bd2)', letterSpacing: '0.2em', textTransform: 'uppercase', fontFamily: "'Space Mono', monospace", marginBottom: '12px' }}>
+          <div style={{ fontSize: '8px', color: 'var(--bd2)', letterSpacing: '0.2em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '12px' }}>
             {LABELS.previous[lang]}
           </div>
           {[-1, -2, -3, -4, -5].map(offset => {
@@ -176,10 +176,10 @@ function DetailScreen({ dayOffset, onOffsetChange, onClose }) {
               >
                 <span style={{ fontSize: '18px', lineHeight: 1, flexShrink: 0 }}>{e.emoji}</span>
                 <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ fontSize: '11px', color: isSelected ? ac : 'var(--t2)', fontFamily: "'Syne', sans-serif", fontWeight: 800, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
+                  <div style={{ fontSize: '11px', color: isSelected ? ac : 'var(--t2)', fontFamily: 'var(--font-body)', fontWeight: 800, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
                     {e.word[lang] || e.word.en}
                   </div>
-                  <div style={{ fontSize: '8px', color: 'var(--t5)', marginTop: '2px', fontFamily: "'Space Mono', monospace" }}>{lbl}</div>
+                  <div style={{ fontSize: '8px', color: 'var(--t5)', marginTop: '2px', fontFamily: 'var(--font-body)' }}>{lbl}</div>
                 </div>
                 {isSelected && <span style={{ fontSize: '8px', color: ac, flexShrink: 0 }}>●</span>}
               </div>
@@ -246,7 +246,7 @@ export default function WordOfTheDay() {
             onMouseEnter={e => e.currentTarget.style.color = accent}
             onMouseLeave={e => e.currentTarget.style.color = 'var(--t5)'}
           >←</button>
-          <span style={{ fontSize: '6px', color: 'var(--bd2)', letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: "'Space Mono', monospace", textAlign: 'center', flex: 1 }}>
+          <span style={{ fontSize: '6px', color: 'var(--bd2)', letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', textAlign: 'center', flex: 1 }}>
             {dayLabel}
           </span>
           <button
@@ -261,7 +261,7 @@ export default function WordOfTheDay() {
         {/* Emoji + word */}
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', marginBottom: '7px' }}>
           <span style={{ fontSize: '20px', lineHeight: 1, flexShrink: 0, marginTop: '1px' }}>{entry.emoji}</span>
-          <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '9px', color: accent, lineHeight: 1.25, minWidth: 0, flex: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+          <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '9px', color: accent, lineHeight: 1.25, minWidth: 0, flex: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
             {word}
           </span>
         </div>
@@ -274,7 +274,7 @@ export default function WordOfTheDay() {
         {/* Button */}
         <button
           onClick={() => setShowDetail(true)}
-          style={{ marginTop: '9px', background: 'transparent', border: `1px solid ${accent}33`, borderRadius: '4px', padding: '3px 7px', color: accent, fontFamily: "'Space Mono', monospace", fontSize: '7px', cursor: 'pointer', letterSpacing: '0.06em', width: '100%', textAlign: 'center' }}
+          style={{ marginTop: '9px', background: 'transparent', border: `1px solid ${accent}33`, borderRadius: '4px', padding: '3px 7px', color: accent, fontFamily: 'var(--font-body)', fontSize: '7px', cursor: 'pointer', letterSpacing: '0.06em', width: '100%', textAlign: 'center' }}
           onMouseEnter={e => { e.currentTarget.style.borderColor = accent + '88'; e.currentTarget.style.background = accent + '11'; }}
           onMouseLeave={e => { e.currentTarget.style.borderColor = accent + '33'; e.currentTarget.style.background = 'transparent'; }}
         >

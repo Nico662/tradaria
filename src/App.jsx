@@ -476,7 +476,7 @@ export default function App() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontSize: '20px' }}>{level.icon}</span>
-                <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>{level.name}</span>
+                <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>{level.name}</span>
               </div>
               <span style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.1em' }}>{xp} XP</span>
             </div>
@@ -494,13 +494,13 @@ export default function App() {
 
           <div id="share-card" style={{ background: 'var(--bg-page)', border: '1px solid var(--bd)', borderRadius: '12px', padding: '28px 24px', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: 'var(--t1)' }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--t1)' }}>
                 GUESS <span style={{ color: 'var(--green)' }}>THE</span> MARKET
               </div>
               <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.1em' }}>tradaria.dev</div>
             </div>
             <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '52px', color: 'var(--color-neutral)', letterSpacing: '-0.02em', lineHeight: 1 }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '52px', color: 'var(--color-neutral)', letterSpacing: '-0.02em', lineHeight: 1 }}>
                 {score}
               </div>
               <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '4px' }}>
@@ -520,7 +520,7 @@ export default function App() {
                 { label: t.gameover.bestStreak, value: maxStreak+'x',  color: 'var(--color-neutral)' },
               ].map(s => (
                 <div key={s.label} className="game-stat-card">
-                  <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: s.color }}>{s.value}</div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '22px', color: s.color }}>{s.value}</div>
                   <div style={{ fontSize: '8px', color: 'var(--t5)', letterSpacing: '0.06em', textTransform: 'uppercase', marginTop: '2px' }}>{s.label}</div>
                 </div>
               ))}
@@ -534,7 +534,7 @@ export default function App() {
 
           {personalStats && (
             <div style={{ marginBottom: '12px', padding: '12px 16px', background: 'var(--bg-page)', border: '1px solid var(--bd)', borderRadius: '8px' }}>
-              <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px', fontFamily: "'Space Mono', monospace" }}>{t.stats.myHistory}</div>
+              <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px', fontFamily: 'var(--font-body)' }}>{t.stats.myHistory}</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
                 {[
                   { label: t.stats.games,      value: personalStats.totalGames },
@@ -542,7 +542,7 @@ export default function App() {
                   { label: t.stats.bestStreak,  value: `${personalStats.bestStreak}x` },
                 ].map(s => (
                   <div key={s.label} style={{ textAlign: 'center' }}>
-                    <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--green)' }}>{s.value}</div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--green)' }}>{s.value}</div>
                     <div style={{ fontSize: '8px', color: 'var(--t6)', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '2px' }}>{s.label}</div>
                   </div>
                 ))}
@@ -552,7 +552,7 @@ export default function App() {
 
           <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
             <button onClick={shareResult}
-              style={{ flex: 1, padding: '14px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.18s', boxShadow: '0 0 20px rgba(0,229,160,0.08)' }}
+              style={{ flex: 1, padding: '14px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.18s', boxShadow: '0 0 20px rgba(0,229,160,0.08)' }}
               onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,229,160,0.14)'; e.currentTarget.style.boxShadow = '0 0 28px rgba(0,229,160,0.18)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,229,160,0.08)'; e.currentTarget.style.boxShadow = '0 0 20px rgba(0,229,160,0.08)'; }}
             >
@@ -561,14 +561,14 @@ export default function App() {
           </div>
           <div style={{ display: 'flex', gap: '10px' }}>
             <button onClick={playAgain}
-              style={{ flex: 1, padding: '14px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '8px', color: 'var(--t3)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.18s' }}
+              style={{ flex: 1, padding: '14px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '8px', color: 'var(--t3)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.18s' }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--green)'; e.currentTarget.style.color = 'var(--green)'; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--bd2)'; e.currentTarget.style.color = 'var(--t3)'; }}
             >
               {t.gameover.playAgain}
             </button>
             <button onClick={goHome}
-              style={{ flex: 1, padding: '14px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '8px', color: 'var(--t3)', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.18s' }}
+              style={{ flex: 1, padding: '14px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '8px', color: 'var(--t3)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.18s' }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--t3)'; e.currentTarget.style.color = 'var(--t2)'; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--bd2)'; e.currentTarget.style.color = 'var(--t3)'; }}
             >
@@ -698,7 +698,7 @@ export default function App() {
       <div className="header" style={{ flexDirection: 'column', gap: '4px', alignItems: 'stretch' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <button onClick={goHome}
-            style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', padding: '4px 0', transition: 'color 0.15s' }}
+            style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', padding: '4px 0', transition: 'color 0.15s' }}
             onMouseEnter={e => e.target.style.color = 'var(--t2)'}
             onMouseLeave={e => e.target.style.color = 'var(--t6)'}
           >{t.game.menu}</button>
@@ -711,10 +711,10 @@ export default function App() {
           </div>
         </div>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: 'var(--green)', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(0,229,160,0.2)' }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--green)', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(0,229,160,0.2)' }}>
             GUESS <span style={{ color: 'var(--t1)' }}>THE</span> MARKET
           </div>
-          <div style={{ fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: "'Space Mono', monospace" }}>
+          <div style={{ fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: 'var(--font-body)' }}>
             CLASSIC MODE
           </div>
         </div>
@@ -845,7 +845,7 @@ export default function App() {
               : '—', color: 'var(--color-neutral)' },
         ].map(s => (
           <div key={s.label} className="game-stat-card">
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: s.color }}>{s.value}</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: s.color }}>{s.value}</div>
             <div style={{ fontSize: '8px', color: 'var(--t5)', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: '2px' }}>{s.label}</div>
           </div>
         ))}
@@ -858,7 +858,7 @@ export default function App() {
       {floatingXP && (
         <div key={floatingXPKeyRef.current} style={{
           position: 'fixed', top: '40%', left: '50%', transform: 'translateX(-50%)',
-          fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px',
+          fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '28px',
           color: 'var(--green)', zIndex: 9999, pointerEvents: 'none',
           animation: 'floatUp 2s ease forwards',
         }}>

@@ -117,16 +117,16 @@ export default function Historical({ onBack }) {
 
         <div className="header" style={{ display: 'grid', gridTemplateColumns: '80px 1fr 80px', alignItems: 'center', padding: '0 0 12px', borderBottom: '1px solid var(--bd)', marginBottom: '24px', background: 'none' }}>
           <button onClick={onBack}
-            style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', padding: 0, textAlign: 'left', transition: 'color 0.15s' }}
+            style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', padding: 0, textAlign: 'left', transition: 'color 0.15s' }}
             onMouseEnter={e => e.target.style.color = 'var(--t2)'}
             onMouseLeave={e => e.target.style.color = 'var(--t6)'}
           >{t.historical.back}</button>
 
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: 'var(--color-neutral)', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(232,184,75,0.2)' }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--color-neutral)', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(232,184,75,0.2)' }}>
               📜 {t.historical.title}
             </div>
-            <div style={{ fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: "'Space Mono', monospace" }}>
+            <div style={{ fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: 'var(--font-body)' }}>
               HISTORICAL MODE
             </div>
           </div>
@@ -152,7 +152,7 @@ export default function Historical({ onBack }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <span style={{ fontSize: '20px' }}>{ev.emoji}</span>
                 <div>
-                  <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '12px', color: 'var(--t1)' }}>{ev.title}</div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '12px', color: 'var(--t1)' }}>{ev.title}</div>
                   <div style={{ fontSize: '9px', color: 'var(--t5)', marginTop: '2px' }}>{ev.name} · {ev.from}</div>
                 </div>
                 <span style={{ marginLeft: 'auto', color: 'var(--green)', fontSize: '14px' }}>→</span>
@@ -170,7 +170,7 @@ export default function Historical({ onBack }) {
       <div className="scanlines" />
       <div style={{ padding: '48px 24px', position: 'relative', zIndex: 2, textAlign: 'center', marginTop: '60px' }}>
         <div style={{ fontSize: '32px', marginBottom: '16px' }}>{event?.emoji}</div>
-        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--t1)', marginBottom: '8px' }}>{event?.title}</div>
+        <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t1)', marginBottom: '8px' }}>{event?.title}</div>
         <div style={{ fontSize: '10px', color: 'var(--t6)', letterSpacing: '0.1em' }}>{t.historical.loading}</div>
       </div>
     </div>
@@ -184,16 +184,16 @@ export default function Historical({ onBack }) {
 
         <div className="header" style={{ display: 'grid', gridTemplateColumns: '80px 1fr 80px', alignItems: 'center', padding: '12px 20px 10px', marginBottom: '12px' }}>
           <button onClick={() => { setPhase('select'); setResult(null); setCandles(null); setFuture(null); }}
-            style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', padding: 0, textAlign: 'left', transition: 'color 0.15s' }}
+            style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', padding: 0, textAlign: 'left', transition: 'color 0.15s' }}
             onMouseEnter={e => e.target.style.color = 'var(--t2)'}
             onMouseLeave={e => e.target.style.color = 'var(--t6)'}
           >{t.historical.eventsBack}</button>
 
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: 'var(--color-neutral)', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(232,184,75,0.2)' }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--color-neutral)', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(232,184,75,0.2)' }}>
               📜 {t.historical.title}
             </div>
-            <div style={{ fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: "'Space Mono', monospace" }}>
+            <div style={{ fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: 'var(--font-body)' }}>
               HISTORICAL MODE
             </div>
           </div>
@@ -204,7 +204,7 @@ export default function Historical({ onBack }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', padding: '0 20px' }}>
           <span style={{ fontSize: '24px' }}>{event?.emoji}</span>
           <div>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: 'var(--t1)' }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t1)' }}>
               {phase === 'choose' ? '???' : event?.title}
             </div>
             <div style={{ fontSize: '9px', color: 'var(--t5)' }}>
@@ -254,7 +254,7 @@ export default function Historical({ onBack }) {
 
         {phase === 'reveal' && result && !revealing && (
           <div style={{ marginTop: '12px', background: result.win ? 'rgba(0,229,160,0.05)' : 'rgba(255,126,179,0.05)', border: `1px solid ${resultColor}`, borderRadius: '8px', padding: '20px' }}>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '24px', color: resultColor, marginBottom: '8px', textAlign: 'center' }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '24px', color: resultColor, marginBottom: '8px', textAlign: 'center' }}>
               {result.win ? t.historical.correct : t.historical.wrong}
             </div>
             <div style={{ fontSize: '11px', color: 'var(--t4)', textAlign: 'center', marginBottom: '16px' }}>
@@ -263,18 +263,18 @@ export default function Historical({ onBack }) {
             <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '14px', marginBottom: '14px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
                 <span style={{ fontSize: '18px' }}>{event?.emoji}</span>
-                <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>{event?.title}</span>
+                <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>{event?.title}</span>
               </div>
               <div style={{ fontSize: '10px', color: 'var(--t4)', lineHeight: 1.6 }}>{t.historical?.events?.[event?.id] ?? event?.desc}</div>
               <div style={{ fontSize: '9px', color: 'var(--t6)', marginTop: '8px' }}>{event?.from} → {event?.to}</div>
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
               <button onClick={shareResult}
-                style={{ flex: 1, padding: '12px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+                style={{ flex: 1, padding: '12px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
                 {copied ? t.historical.copied : t.historical.share}
               </button>
               <button onClick={() => { setPhase('select'); setResult(null); setCandles(null); setFuture(null); }}
-                style={{ flex: 1, padding: '12px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t3)', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+                style={{ flex: 1, padding: '12px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t3)', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
                 {t.historical.tryAnother}
               </button>
             </div>
@@ -285,7 +285,7 @@ export default function Historical({ onBack }) {
       {floatingXP && (
         <div key={floatingXPKeyRef.current} style={{
           position: 'fixed', top: '40%', left: '50%', transform: 'translateX(-50%)',
-          fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px',
+          fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '28px',
           color: 'var(--green)', zIndex: 9999, pointerEvents: 'none',
           animation: 'floatUp 2s ease forwards',
         }}>
