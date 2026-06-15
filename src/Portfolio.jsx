@@ -80,6 +80,8 @@ function getWeekStart() {
   return `${mon.getUTCDate().toString().padStart(2, '0')}/${(mon.getUTCMonth() + 1).toString().padStart(2, '0')}`;
 }
 
+const LB_MEDALS = ['🥇', '🥈', '🥉'];
+
 function LeaderboardList({ entries, userPosition, user, onViewProfile, t }) {
   const myId = String(user?._id || user?.id || '');
   return (
@@ -87,49 +89,60 @@ function LeaderboardList({ entries, userPosition, user, onViewProfile, t }) {
       {entries.map((entry, i) => {
         const isMe = myId && String(entry.userId) === myId;
         return (
-          <div key={i} onClick={() => !isMe && entry.username && onViewProfile && onViewProfile(entry.username)}
-            style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: isMe ? 'rgba(0,229,160,0.07)' : 'var(--bg-card)', border: `1px solid ${i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : isMe ? 'rgba(0,229,160,0.6)' : 'transparent'}`, borderLeft: `2px solid ${i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : isMe ? 'rgba(0,229,160,0.6)' : 'transparent'}`, borderRadius: '8px', marginBottom: '8px', cursor: !isMe && entry.username && onViewProfile ? 'pointer' : 'default', overflow: 'hidden', width: '100%' }}>
-            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: i === 0 ? 'var(--color-neutral)' : i === 1 ? 'var(--t3)' : i === 2 ? '#cd7f32' : 'var(--t6)', width: '40px', flexShrink: 0, textAlign: 'center' }}>
-              {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
+          <div key={i}
+            onClick={() => !isMe && entry.username && onViewProfile && onViewProfile(entry.username)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '10px',
+              background: isMe ? 'rgba(255,126,179,0.06)' : 'var(--bg-surface)',
+              border: `0.5px solid ${isMe ? 'var(--border-pink)' : 'var(--border-default)'}`,
+              borderRadius: 'var(--radius-md)',
+              padding: '10px 12px', marginBottom: '6px',
+              cursor: !isMe && entry.username && onViewProfile ? 'pointer' : 'default',
+              overflow: 'hidden', width: '100%',
+            }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '13px', color: isMe ? 'var(--pink)' : 'var(--text-muted)', width: '20px', textAlign: 'center', flexShrink: 0 }}>
+              {i < 3 ? LB_MEDALS[i] : i + 1}
             </div>
-            <UserAvatar user={entry} size={24} showBadge style={{ marginLeft: '8px' }} />
+            <UserAvatar user={entry} size={24} showBadge style={{ marginLeft: '4px' }} />
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: isMe ? 'var(--green)' : 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: isMe ? 'var(--pink)' : 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 {entry.username ? `@${entry.username}` : entry.name}
                 {isFounder(entry.username) && <FounderBadge size={11} />}
-                {isMe && <span style={{ fontFamily: 'var(--font-body)', fontSize: '8px', color: 'rgba(0,229,160,0.6)', marginLeft: '6px', flexShrink: 0 }}>YOU</span>}
+                {isMe && <span style={{ fontSize: '9px', color: 'var(--pink)', flexShrink: 0 }}>tú</span>}
               </div>
-              <div style={{ fontSize: '9px', color: 'var(--t5)' }}>{formatCash(entry.totalValue)}</div>
+              <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>{formatCash(entry.totalValue)}</div>
             </div>
-            <div style={{ textAlign: 'right', flexShrink: 0 }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: entry.returnPct >= 0 ? 'var(--green)' : 'var(--color-down)' }}>
-                {entry.returnPct >= 0 ? '+' : ''}{entry.returnPct.toFixed(2)}%
-              </div>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '13px', color: entry.returnPct >= 0 ? 'var(--green)' : 'var(--pink)', flexShrink: 0 }}>
+              {entry.returnPct >= 0 ? '+' : ''}{entry.returnPct.toFixed(2)}%
             </div>
           </div>
         );
       })}
       {userPosition && (
         <>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 0', margin: '4px 0' }}>
-            <div style={{ flex: 1, height: '1px', background: 'var(--bd)' }} />
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t6)' }}>···</span>
-            <div style={{ flex: 1, height: '1px', background: 'var(--bd)' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', margin: '4px 0' }}>
+            <div style={{ flex: 1, height: '1px', background: 'var(--border-default)' }} />
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--text-muted)' }}>···</span>
+            <div style={{ flex: 1, height: '1px', background: 'var(--border-default)' }} />
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: 'rgba(0,229,160,0.07)', border: '1px solid rgba(0,229,160,0.6)', borderLeft: '2px solid rgba(0,229,160,0.6)', borderRadius: '8px', marginBottom: '8px', overflow: 'hidden', width: '100%' }}>
-            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t6)', width: '40px', flexShrink: 0, textAlign: 'center' }}>#{userPosition.rank}</div>
-            <UserAvatar user={userPosition} size={24} showBadge style={{ marginLeft: '8px' }} />
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '10px',
+            background: 'rgba(255,126,179,0.06)',
+            border: '0.5px solid var(--border-pink)',
+            borderRadius: 'var(--radius-md)',
+            padding: '10px 12px', marginBottom: '6px', overflow: 'hidden', width: '100%',
+          }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '13px', color: 'var(--pink)', width: '20px', textAlign: 'center', flexShrink: 0 }}>#{userPosition.rank}</div>
+            <UserAvatar user={userPosition} size={24} showBadge style={{ marginLeft: '4px' }} />
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: 'var(--green)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--pink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 {userPosition.username ? `@${userPosition.username}` : userPosition.name}
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: '8px', color: 'rgba(0,229,160,0.6)', marginLeft: '6px', flexShrink: 0 }}>YOU</span>
+                <span style={{ fontSize: '9px', color: 'var(--pink)', flexShrink: 0 }}>tú</span>
               </div>
-              <div style={{ fontSize: '9px', color: 'var(--t5)' }}>{formatCash(userPosition.totalValue)}</div>
+              <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>{formatCash(userPosition.totalValue)}</div>
             </div>
-            <div style={{ textAlign: 'right', flexShrink: 0 }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: userPosition.returnPct >= 0 ? 'var(--green)' : 'var(--color-down)' }}>
-                {userPosition.returnPct >= 0 ? '+' : ''}{userPosition.returnPct.toFixed(2)}%
-              </div>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '13px', color: userPosition.returnPct >= 0 ? 'var(--green)' : 'var(--pink)', flexShrink: 0 }}>
+              {userPosition.returnPct >= 0 ? '+' : ''}{userPosition.returnPct.toFixed(2)}%
             </div>
           </div>
         </>
@@ -1206,13 +1219,13 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
       {tab === 'leaderboard' && (
         <div style={{ padding: '16px 20px 40px', position: 'relative', zIndex: 2 }}>
           {/* Global / Semanal subtabs */}
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-            {[['global', t.portfolio.global], ['weekly', t.portfolio.weekly]].map(([id, label]) => (
+          <div style={{ display: 'flex', gap: '6px', marginBottom: '12px' }}>
+            {[['global', 'Global'], ['weekly', 'Esta semana']].map(([id, label]) => (
               <button key={id} onClick={() => {
                 setLeaderboardTab(id);
                 if (id === 'weekly' && weeklyLeaderboard.length === 0 && !weeklyLoading) loadWeeklyLeaderboard();
               }}
-                style={{ padding: '5px 14px', borderRadius: '20px', border: `1px solid ${leaderboardTab === id ? 'var(--green)' : 'var(--bd2)'}`, background: leaderboardTab === id ? 'rgba(0,229,160,0.08)' : 'transparent', color: leaderboardTab === id ? 'var(--green)' : 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '9px', fontWeight: 700, cursor: 'pointer' }}>
+                style={{ flex: 1, background: leaderboardTab === id ? 'var(--green-dim)' : 'var(--bg-elevated)', border: `1.5px solid ${leaderboardTab === id ? 'var(--green)' : 'var(--border-default)'}`, borderRadius: 'var(--radius-full)', padding: '8px', fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '11px', color: leaderboardTab === id ? 'var(--green)' : 'var(--text-muted)', cursor: 'pointer', letterSpacing: '0.06em', transition: 'all 0.15s' }}>
                 {label}
               </button>
             ))}
