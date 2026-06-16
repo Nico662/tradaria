@@ -170,7 +170,6 @@ export default function MissionsCard() {
         borderTop: '2px solid var(--green)',
         borderRadius: '8px',
         padding: '10px 12px 12px',
-        marginBottom: '12px',
         display: 'flex',
         flexDirection: 'column',
       }}>

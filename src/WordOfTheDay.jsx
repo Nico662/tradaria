@@ -235,7 +235,6 @@ export default function WordOfTheDay() {
         borderTop: `2px solid ${accent}`,
         borderRadius: '8px',
         padding: '10px 12px 12px',
-        marginBottom: '12px',
         display: 'flex', flexDirection: 'column',
       }}>
 
