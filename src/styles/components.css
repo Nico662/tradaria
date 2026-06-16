@@ -214,6 +214,7 @@
   max-width: 480px;
   margin: 0 auto;
   background: var(--bg-base);
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
 .app-main {

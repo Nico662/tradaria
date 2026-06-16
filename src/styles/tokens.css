@@ -69,4 +69,5 @@ body {
   color: var(--text-primary);
   background: var(--bg-base);
   -webkit-font-smoothing: antialiased;
+  padding-top: env(safe-area-inset-top, 0px);
 }
