@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { getTodayMissions, getMissionProgress, getWeeklyMission, getWeeklyProgress } from './missions.js';
 import { useLang } from './LangContext.jsx';
 
@@ -22,7 +23,7 @@ function DetailScreen({ onClose }) {
   const weeklyCompleted = weeklyProgress >= weekly.target;
   const weeklyPct = Math.min(weeklyProgress / weekly.target * 100, 100);
 
-  return (
+  return createPortal(
     <div style={{
       position: 'fixed', inset: 0,
       background: 'var(--bg-base)',
@@ -137,7 +138,8 @@ function DetailScreen({ onClose }) {
         </div>
 
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { GLOSSARY } from './tradingGlossary.js';
 import { CHARTS } from './glossaryCharts.jsx';
 import { useLang } from './LangContext.jsx';
@@ -67,7 +68,7 @@ function DetailScreen({ dayOffset, onOffsetChange, onClose }) {
   };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'var(--bg-base)', zIndex: 9999, overflowY: 'auto' }}>
+    createPortal(<div style={{ position: 'fixed', inset: 0, background: 'var(--bg-base)', zIndex: 9999, overflowY: 'auto' }}>
       <div style={{ padding: 'max(20px, calc(env(safe-area-inset-top) + 12px)) 28px 48px', maxWidth: '480px', margin: '0 auto' }}>
 
         {/* Back */}
@@ -188,7 +189,7 @@ function DetailScreen({ dayOffset, onOffsetChange, onClose }) {
         </div>
 
       </div>
-    </div>
+    </div>, document.body)
   );
 }
 
