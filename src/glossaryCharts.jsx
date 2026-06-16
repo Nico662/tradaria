@@ -2787,6 +2787,107 @@ function MovingAverageChart() {
 
 // ─── exports ────────────────────────────────────────────────────────────────
 
+// ─── Divergence Chart ───────────────────────────────────────────────────────
+
+function DivergenceChart() {
+  // Top panel: price candles  y 12–92  (price 120–160, 80 px)
+  const py = p => 12 + (160 - p) * 2;
+
+  // Bottom panel: RSI  y 103–148  (RSI 0–100, 45 px)
+  const ry = r => 103 + (100 - r) * 0.4;
+
+  const candles = [
+    { x: 13,  O: 152, H: 153, L: 147, C: 148 },
+    { x: 29,  O: 148, H: 150, L: 143, C: 144 },
+    { x: 45,  O: 144, H: 148, L: 143, C: 147 },
+    { x: 61,  O: 147, H: 148, L: 142, C: 143 }, // LL1
+    { x: 77,  O: 143, H: 148, L: 142, C: 146 },
+    { x: 93,  O: 146, H: 147, L: 143, C: 144 },
+    { x: 109, O: 144, H: 145, L: 138, C: 140 }, // LL2 (lower low)
+    { x: 125, O: 140, H: 144, L: 139, C: 143 },
+    { x: 141, O: 143, H: 149, L: 142, C: 148 },
+    { x: 157, O: 148, H: 153, L: 147, C: 152 },
+    { x: 173, O: 152, H: 157, L: 151, C: 156 },
+  ];
+
+  // RSI 26 at LL1, RSI 40 at LL2 → bullish divergence (higher low while price lower low)
+  const rsiVals = [48, 38, 44, 26, 38, 34, 40, 50, 58, 65, 72];
+  const rsiPath = candles
+    .map((c, i) => `${i === 0 ? 'M' : 'L'}${c.x},${ry(rsiVals[i]).toFixed(1)}`)
+    .join(' ');
+
+  const d1x = 61,  d1py = py(142), d1ry = ry(26); // LL1 / HL1
+  const d2x = 109, d2py = py(138), d2ry = ry(40); // LL2 / HL2
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
+
+      {/* ── PRICE PANEL ── */}
+      {[30, 50, 70, 90].map(y => (
+        <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
+      ))}
+
+      {/* Price: lower-low diagonal */}
+      <line x1={d1x} y1={d1py} x2={d2x} y2={d2py}
+        stroke="var(--color-down)" strokeWidth="1.1" strokeDasharray="4 2" opacity="0.65" />
+      <circle cx={d1x} cy={d1py} r="2.5" fill="none" stroke="var(--color-down)" strokeWidth="1" opacity="0.85" />
+      <circle cx={d2x} cy={d2py} r="2.5" fill="none" stroke="var(--color-down)" strokeWidth="1" opacity="0.85" />
+
+      {/* Candles */}
+      {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
+        const bull  = C >= O;
+        const col   = bull ? 'var(--green)' : 'var(--color-down)';
+        const bodyY = py(Math.max(O, C));
+        const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="1" opacity="0.75" />
+            <rect x={x - bw / 2} y={bodyY} width={bw} height={bodyH} fill={col} rx="0.5" opacity="0.95" />
+          </g>
+        );
+      })}
+
+      <text x={d1x} y={d1py + 9} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fontWeight="bold" fill="var(--color-down)" opacity="0.85">LL1</text>
+      <text x={d2x} y={d2py + 9} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fontWeight="bold" fill="var(--color-down)" opacity="0.85">LL2</text>
+      <text x="9" y="11" fontFamily="var(--font-mono)" fontSize="5" fill="var(--color-down)" opacity="0.6">price ↓ LL</text>
+
+      {/* ── SEPARATOR ── */}
+      <line x1="6" y1="97" x2="182" y2="97" stroke="#1e2d3d" strokeWidth="0.8" />
+      <text x="8" y="101" fontFamily="var(--font-mono)" fontSize="4.5" fill="#2a3d52">RSI(14)</text>
+
+      {/* ── RSI PANEL ── */}
+
+      {/* Oversold zone */}
+      <rect x="6" y={ry(30)} width="176" height={ry(0) - ry(30)} fill="var(--green)08" />
+
+      <line x1="6" y1={ry(70)} x2="182" y2={ry(70)} stroke="var(--color-down)" strokeWidth="0.8" strokeDasharray="3 2" opacity="0.35" />
+      <text x="8" y={ry(70) - 1} fontFamily="var(--font-mono)" fontSize="4.5" fill="var(--color-down)" opacity="0.45">70</text>
+
+      <line x1="6" y1={ry(50)} x2="182" y2={ry(50)} stroke="#2a3d52" strokeWidth="0.6" opacity="0.35" />
+
+      <line x1="6" y1={ry(30)} x2="182" y2={ry(30)} stroke="var(--green)" strokeWidth="0.8" strokeDasharray="3 2" opacity="0.45" />
+      <text x="8" y={ry(30) + 5} fontFamily="var(--font-mono)" fontSize="4.5" fill="var(--green)" opacity="0.55">30</text>
+
+      {/* RSI line */}
+      <path d={rsiPath} fill="none" stroke="var(--color-neutral)" strokeWidth="1.5" opacity="0.9" />
+
+      {/* RSI: higher-low diagonal (the divergence) */}
+      <line x1={d1x} y1={d1ry} x2={d2x} y2={d2ry}
+        stroke="var(--green)" strokeWidth="1.2" strokeDasharray="4 2" opacity="0.7" />
+      <circle cx={d1x} cy={d1ry} r="2.5" fill="none" stroke="var(--green)" strokeWidth="1" opacity="0.85" />
+      <circle cx={d2x} cy={d2ry} r="2.5" fill="none" stroke="var(--green)" strokeWidth="1" opacity="0.85" />
+
+      <text x={d1x} y={d1ry - 4} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fontWeight="bold" fill="var(--green)" opacity="0.85">HL1</text>
+      <text x={d2x} y={d2ry - 4} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="5.5" fontWeight="bold" fill="var(--green)" opacity="0.85">HL2</text>
+      <text x="9" y={ry(100) + 8} fontFamily="var(--font-mono)" fontSize="5" fill="var(--green)" opacity="0.6">RSI ↑ HL</text>
+
+      {/* Watermark */}
+      <text x="6" y="154" fontFamily="var(--font-mono)" fontSize="5" fill="#172030" letterSpacing="0.1em">BULLISH DIVERGENCE</text>
+    </svg>
+  );
+}
+
 export const CHARTS = {
   fvg:                FVGChart,
   displacement:       DisplacementChart,
@@ -2818,4 +2919,5 @@ export const CHARTS = {
   bear_market:         BearMarketChart,
   fibonacci:           FibonacciChart,
   moving_average:      MovingAverageChart,
+  divergence:          DivergenceChart,
 };

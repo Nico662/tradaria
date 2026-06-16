@@ -619,6 +619,7 @@ export const GLOSSARY = [
     },
   },
   {
+    chartId: 'divergence',
     word: { en: 'Divergence', es: 'Divergencia', de: 'Divergenz' },
     definition: {
       en: 'When price and an indicator move in opposite directions. Signals a potential weakening of the current trend.',
