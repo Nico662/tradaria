@@ -346,7 +346,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
   if (phase === 'login') {
     return (
       <div style={{ padding: '48px 28px', textAlign: 'center' }}>
-        <button onClick={onBack} style={{ position: 'absolute', top: '20px', left: '16px', background: 'transparent', border: 'none', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer' }}>← menu</button>
+        <button onClick={onBack} style={{ position: 'absolute', top: '20px', left: '16px', background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>← menu</button>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏆</div>
         <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '24px', color: 'var(--text-primary)', marginBottom: '8px' }}>{t.home.mode3}</div>
         <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '32px' }}>{t.arena.searching}</div>
@@ -360,7 +360,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
   if (phase === 'loading') {
     return (
       <div style={{ padding: '48px 28px', textAlign: 'center' }}>
-        <button onClick={onBack} style={{ position: 'absolute', top: '20px', left: '16px', background: 'transparent', border: 'none', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer' }}>← menu</button>
+        <button onClick={onBack} style={{ position: 'absolute', top: '20px', left: '16px', background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>← menu</button>
         <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)' }}>{t.game.reading}</div>
       </div>
     );
@@ -371,25 +371,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
       <div style={{ position: 'relative', padding: '0 0 32px' }}>
         <button
           onClick={onBack}
-          style={{
-            position: 'absolute',
-            top: 'calc(16px + env(safe-area-inset-top))',
-            left: '16px',
-            background: 'transparent',
-            border: 'none',
-            color: 'var(--text-muted)',
-            fontFamily: 'var(--font-body)',
-            fontSize: '11px',
-            cursor: 'pointer',
-            zIndex: 10,
-            padding: '8px 8px 8px 0',
-            minHeight: '44px',
-            minWidth: '44px',
-            display: 'flex',
-            alignItems: 'center',
-          }}
-          onMouseEnter={e => e.currentTarget.style.color = 'var(--text-primary)'}
-          onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+          style={{ position: 'absolute', top: 'calc(16px + env(safe-area-inset-top))', left: '16px', background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '4px', zIndex: 10 }}
         >← {t.game.menu.replace('← ', '')}</button>
 
         <div style={{ paddingTop: 'calc(52px + env(safe-area-inset-top))', paddingLeft: '28px', paddingRight: '28px' }}>

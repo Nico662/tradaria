@@ -613,7 +613,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
       <div className="scanlines" />
       <div style={{ padding: '40px 28px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
         <button onClick={goBack}
-          style={{ position: 'absolute', top: '12px', left: '20px', background: 'transparent', border: 'none', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer' }}>
+          style={{ position: 'absolute', top: '12px', left: '20px', background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
           ← {t.arena.menu}
         </button>
         <div style={{ fontSize: '40px', marginBottom: '16px' }}>⚔️</div>
@@ -644,7 +644,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
     <div id="gtm-root" style={{ position: 'relative' }}>
       <div className="scanlines" />
       <div style={{ padding: '40px 28px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
-        <button onClick={goBack} style={{ position: 'absolute', top: '12px', left: '20px', background: 'transparent', border: 'none', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer' }}>← {t.arena.menu}</button>
+        <button onClick={goBack} style={{ position: 'absolute', top: '12px', left: '20px', background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>← {t.arena.menu}</button>
         <div style={{ fontSize: '40px', marginBottom: '16px' }}>⌛</div>
         <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: 'var(--color-down)' }}>{t.arena.asyncExpired}</div>
       </div>
@@ -665,7 +665,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
       <div id="gtm-root" style={{ position: 'relative' }}>
         <div className="scanlines" />
         <div style={{ padding: '40px 28px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
-          <button onClick={goBack} style={{ position: 'absolute', top: '12px', left: '20px', background: 'transparent', border: 'none', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer' }}>← {t.arena.menu}</button>
+          <button onClick={goBack} style={{ position: 'absolute', top: '12px', left: '20px', background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>← {t.arena.menu}</button>
           <div style={{ fontSize: '40px', marginBottom: '16px' }}>⏳</div>
           <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: 'var(--text-primary)', marginBottom: '20px' }}>{t.arena.asyncWaitingTitle}</div>
           <div style={{ padding: '20px', background: 'var(--bg-surface)', border: '1px solid var(--bd2)', borderRadius: '10px', marginBottom: '20px' }}>
@@ -702,7 +702,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
       <div id="gtm-root" style={{ position: 'relative' }}>
         <div className="scanlines" />
         <div style={{ padding: '40px 28px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
-          <button onClick={goBack} style={{ position: 'absolute', top: '12px', left: '20px', background: 'transparent', border: 'none', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer' }}>← {t.arena.menu}</button>
+          <button onClick={goBack} style={{ position: 'absolute', top: '12px', left: '20px', background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>← {t.arena.menu}</button>
           <div style={{ fontSize: '40px', marginBottom: '16px' }}>🎯</div>
           <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '22px', color: 'var(--color-neutral)', marginBottom: '8px' }}>{t.arena.asyncSentTitle}</div>
           <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '24px' }}>
@@ -760,7 +760,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
       <div id="gtm-root" style={{ position: 'relative' }}>
         <div className="scanlines" />
         <div style={{ padding: '40px 28px 36px', position: 'relative', zIndex: 2 }}>
-          <button onClick={goBack} style={{ position: 'absolute', top: '12px', left: '20px', background: 'transparent', border: 'none', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer' }}>← {t.arena.menu}</button>
+          <button onClick={goBack} style={{ position: 'absolute', top: '12px', left: '20px', background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>← {t.arena.menu}</button>
           <div style={{ textAlign: 'center', marginBottom: '24px' }}>
             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--color-neutral)', marginBottom: '16px', letterSpacing: '0.06em' }}>{t.arena.asyncCompleted}</div>
             <div style={{ display: 'flex', gap: '12px', marginBottom: '8px' }}>
@@ -881,16 +881,12 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
             ⚡ {t.arena.findMatch}
           </button>
           <button onClick={createRoom} disabled={!name.trim()}
-            style={{ width: '100%', padding: '14px', background: 'var(--bg-surface)', border: `1px solid ${name.trim() ? 'var(--bd2)' : 'var(--border-default)'}`, borderRadius: '8px', color: name.trim() ? 'var(--text-secondary)' : 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: name.trim() ? 'pointer' : 'not-allowed', transition: 'all 0.18s' }}
-            onMouseEnter={e => { if (name.trim()) { e.currentTarget.style.borderColor = 'var(--color-down)'; e.currentTarget.style.color = 'var(--color-down)'; } }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = name.trim() ? 'var(--bd2)' : 'var(--border-default)'; e.currentTarget.style.color = name.trim() ? 'var(--text-secondary)' : 'var(--text-muted)'; }}
+            style={{ width: '100%', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', padding: '14px', color: 'var(--text-secondary)', fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', transition: 'border-color 0.15s' }}
           >
             🔒 {t.arena.createRoom}
           </button>
           <button onClick={startAsyncChallenge} disabled={!name.trim() || !localStorage.getItem('tradaria_token') || isCreating}
-            style={{ width: '100%', padding: '14px', background: 'var(--bg-surface)', border: `1px solid ${name.trim() ? 'rgba(232,184,75,0.5)' : 'var(--border-default)'}`, borderRadius: '8px', color: name.trim() ? 'var(--color-neutral)' : 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: name.trim() ? 'pointer' : 'not-allowed', transition: 'all 0.18s' }}
-            onMouseEnter={e => { if (name.trim()) { e.currentTarget.style.borderColor = 'var(--color-neutral)'; e.currentTarget.style.background = 'rgba(232,184,75,0.08)'; } }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = name.trim() ? 'rgba(232,184,75,0.5)' : 'var(--border-default)'; e.currentTarget.style.background = 'var(--bg-surface)'; }}
+            style={{ width: '100%', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', padding: '14px', color: 'var(--text-secondary)', fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', transition: 'border-color 0.15s' }}
           >
             {t.arena.asyncBtn}
           </button>

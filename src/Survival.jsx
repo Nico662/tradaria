@@ -340,9 +340,7 @@ export default function Survival({ onBack }) {
       <div className="header" style={{ display: 'grid', gridTemplateColumns: '80px 1fr 80px', alignItems: 'center', padding: '12px 20px 10px' }}>
         {/* Back */}
         <button onClick={onBack}
-          style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', padding: 0, textAlign: 'left', transition: 'color 0.15s' }}
-          onMouseEnter={e => e.target.style.color = 'var(--text-primary)'}
-          onMouseLeave={e => e.target.style.color = 'var(--text-muted)'}
+          style={{ background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
         >{t.survival.back}</button>
 
         {/* Centered title */}
@@ -483,9 +481,6 @@ export default function Survival({ onBack }) {
         ))}
       </div>
 
-      <div className="ticker-tape">
-        BTC +3.2% · ETH -1.8% · SPX +0.4% · GOLD +0.9% · EUR/USD -0.2% · OIL -2.1% · TSLA +5.7%
-      </div>
 
       {floatingXP && (
         <div key={floatingXPKeyRef.current} style={{

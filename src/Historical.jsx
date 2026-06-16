@@ -117,9 +117,7 @@ export default function Historical({ onBack }) {
 
         <div className="header" style={{ display: 'grid', gridTemplateColumns: '80px 1fr 80px', alignItems: 'center', padding: '0 0 12px', borderBottom: '1px solid var(--bd)', marginBottom: '24px', background: 'none' }}>
           <button onClick={onBack}
-            style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', padding: 0, textAlign: 'left', transition: 'color 0.15s' }}
-            onMouseEnter={e => e.target.style.color = 'var(--t2)'}
-            onMouseLeave={e => e.target.style.color = 'var(--t6)'}
+            style={{ background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
           >{t.historical.back}</button>
 
           <div style={{ textAlign: 'center' }}>
@@ -184,9 +182,7 @@ export default function Historical({ onBack }) {
 
         <div className="header" style={{ display: 'grid', gridTemplateColumns: '80px 1fr 80px', alignItems: 'center', padding: '12px 20px 10px', marginBottom: '12px' }}>
           <button onClick={() => { setPhase('select'); setResult(null); setCandles(null); setFuture(null); }}
-            style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', padding: 0, textAlign: 'left', transition: 'color 0.15s' }}
-            onMouseEnter={e => e.target.style.color = 'var(--t2)'}
-            onMouseLeave={e => e.target.style.color = 'var(--t6)'}
+            style={{ background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
           >{t.historical.eventsBack}</button>
 
           <div style={{ textAlign: 'center' }}>

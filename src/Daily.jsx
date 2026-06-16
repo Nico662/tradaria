@@ -217,9 +217,7 @@ export default function Daily({ onBack }) {
         {/* Header row: back | lang */}
         <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr 80px', alignItems: 'center', marginBottom: '20px' }}>
           <button onClick={onBack}
-            style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', padding: 0, textAlign: 'left', transition: 'color 0.15s' }}
-            onMouseEnter={e => e.target.style.color = 'var(--text-primary)'}
-            onMouseLeave={e => e.target.style.color = 'var(--text-muted)'}
+            style={{ background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
           >{t.daily.back}</button>
 
           <div style={{ textAlign: 'center' }}>
@@ -318,6 +316,7 @@ export default function Daily({ onBack }) {
         )}
 
         {phase === 'already' && result && (
+          <>
           <div style={{ background: result.win ? 'rgba(0,229,160,0.05)' : 'rgba(255,126,179,0.05)', border: `1px solid ${result.win ? 'var(--green)' : 'var(--color-down)'}`, borderRadius: '8px', padding: '28px', textAlign: 'center' }}>
             <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{t.daily.result}</div>
             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '22px', color: result.win ? 'var(--green)' : 'var(--color-down)', marginBottom: '8px' }}>
@@ -343,6 +342,11 @@ export default function Daily({ onBack }) {
               </button>
             )}
           </div>
+          <div style={{ marginTop: '16px', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-lg)', padding: '16px', textAlign: 'center' }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '8px' }}>Vuelve mañana</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)', lineHeight: 1.5 }}>Un nuevo reto cada día a las 00:00. Mantén tu racha y sube en el ranking global.</div>
+          </div>
+          </>
         )}
 
         {floatingXP && (
