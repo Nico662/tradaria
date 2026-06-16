@@ -344,7 +344,7 @@ export default function Daily({ onBack }) {
           </div>
           <div style={{ marginTop: '16px', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-lg)', padding: '16px', textAlign: 'center' }}>
             <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '8px' }}>Vuelve mañana</div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)', lineHeight: 1.5 }}>Un nuevo reto cada día a las 00:00. Mantén tu racha y sube en el ranking global.</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)', lineHeight: 1.5 }}>Un nuevo reto cada día a las 00:00. Mantén tu racha activa.</div>
           </div>
           </>
         )}
