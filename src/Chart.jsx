@@ -76,9 +76,9 @@ function toChartData(candles, startIndex = 0) {
       const bull = c.close >= c.open;
       return {
         time, open: c.open, high: c.high, low: c.low, close: c.close,
-        color:       bull ? '#00e5a0' : '#ff7eb3',
-        borderColor: bull ? '#00e5a0' : '#ff7eb3',
-        wickColor:   bull ? '#00e5a0' : '#ff7eb3',
+        color:       bull ? '#00c087' : '#e05585',
+        borderColor: bull ? '#00c087' : '#e05585',
+        wickColor:   bull ? '#00c087' : '#e05585',
       };
     });
 }
@@ -97,9 +97,9 @@ function toChartDataForex(candles, startIndex = 0) {
       const bull = c.close >= c.open;
       return {
         time, open: c.open, high: c.high, low: c.low, close: c.close,
-        color:       bull ? '#00e5a0' : '#ff7eb3',
-        borderColor: bull ? '#00e5a0' : '#ff7eb3',
-        wickColor:   bull ? '#00e5a0' : '#ff7eb3',
+        color:       bull ? '#00c087' : '#e05585',
+        borderColor: bull ? '#00c087' : '#e05585',
+        wickColor:   bull ? '#00c087' : '#e05585',
       };
     });
 }
@@ -184,9 +184,9 @@ const Chart = forwardRef(function Chart({ asset, externalCandles, onReady }, ref
           ...existing,
           ...futureMapped.slice(0, i + 1).map(c => ({
             ...c,
-            color:       c.close >= c.open ? 'rgba(0,229,160,0.5)' : 'rgba(255,126,179,0.5)',
-            wickColor:   c.close >= c.open ? 'rgba(0,229,160,0.5)' : 'rgba(255,126,179,0.5)',
-            borderColor: c.close >= c.open ? 'rgba(0,229,160,0.5)' : 'rgba(255,126,179,0.5)',
+            color:       c.close >= c.open ? 'rgba(0,192,135,0.5)' : 'rgba(224,85,133,0.5)',
+            wickColor:   c.close >= c.open ? 'rgba(0,192,135,0.5)' : 'rgba(224,85,133,0.5)',
+            borderColor: c.close >= c.open ? 'rgba(0,192,135,0.5)' : 'rgba(224,85,133,0.5)',
           })),
         ]);
         i++;
@@ -232,32 +232,32 @@ const Chart = forwardRef(function Chart({ asset, externalCandles, onReady }, ref
         },
         crosshair: {
           mode: 0,
-          vertLine: { color: 'rgba(255,126,179,0.4)', labelBackgroundColor: '#ff7eb3' },
-          horzLine: { color: 'rgba(0,229,160,0.4)',   labelBackgroundColor: '#00e5a0' },
+          vertLine: { color: 'rgba(224,85,133,0.4)', labelBackgroundColor: '#e05585' },
+          horzLine: { color: 'rgba(0,192,135,0.4)',   labelBackgroundColor: '#00c087' },
         },
         handleScroll: true,
         handleScale:  true,
       });
 
       const series = chart.addSeries(CandlestickSeries, {
-        upColor:         '#00e5a0',
-        downColor:       '#ff7eb3',
-        borderUpColor:   '#00e5a0',
-        borderDownColor: '#ff7eb3',
-        wickUpColor:     '#00e5a0',
-        wickDownColor:   '#ff7eb3',
+        upColor:         '#00c087',
+        downColor:       '#e05585',
+        borderUpColor:   '#00c087',
+        borderDownColor: '#e05585',
+        wickUpColor:     '#00c087',
+        wickDownColor:   '#e05585',
         priceFormat: forex
           ? { type: 'price', precision: 4, minMove: 0.0001 }
           : { type: 'price', precision: 2, minMove: 0.01 },
       });
 
       series.applyOptions({
-        upColor:         '#00e5a0',
-        downColor:       '#ff7eb3',
-        borderUpColor:   '#00e5a0',
-        borderDownColor: '#ff7eb3',
-        wickUpColor:     '#00e5a0',
-        wickDownColor:   '#ff7eb3',
+        upColor:         '#00c087',
+        downColor:       '#e05585',
+        borderUpColor:   '#00c087',
+        borderDownColor: '#e05585',
+        wickUpColor:     '#00c087',
+        wickDownColor:   '#e05585',
       });
 
       chartRef.current  = chart;

@@ -8,25 +8,25 @@
   --bg-subtle:      #1a1a1a;
 
   /* Marca */
-  --green:          #00e5a0;
-  --green-dim:      rgba(0, 229, 160, 0.12);
-  --green-glow:     rgba(0, 229, 160, 0.08);
-  --pink:           #ff7eb3;
-  --pink-dim:       rgba(255, 126, 179, 0.12);
-  --pink-glow:      rgba(255, 126, 179, 0.08);
-  --pink-dark:      #d4547e;
+  --green:          #00c087;
+  --green-dim:      rgba(0, 192, 135, 0.10);
+  --green-glow:     rgba(0, 192, 135, 0.06);
+  --pink:           #e05585;
+  --pink-dim:       rgba(224, 85, 133, 0.10);
+  --pink-glow:      rgba(224, 85, 133, 0.06);
+  --pink-dark:      #b8426d;
 
   /* Gradientes */
-  --gradient-brand:   linear-gradient(135deg, #ff7eb3 0%, #00e5a0 100%);
-  --gradient-brand-v: linear-gradient(180deg, #ff7eb3 0%, #00e5a0 100%);
-  --gradient-surface: linear-gradient(135deg, #1a0d12, #0d1a12);
+  --gradient-brand:   linear-gradient(135deg, #e05585 0%, #00c087 100%);
+  --gradient-brand-v: linear-gradient(180deg, #e05585 0%, #00c087 100%);
+  --gradient-surface: linear-gradient(135deg, #15090e, #090f14);
 
   /* Semánticos */
-  --color-up:      #00e5a0;
-  --color-down:    #ff7eb3;
-  --color-neutral:        #e8b84b;
-  --color-neutral-dim:    rgba(232, 184, 75, 0.12);
-  --color-neutral-border: rgba(232, 184, 75, 0.22);
+  --color-up:      #00c087;
+  --color-down:    #e05585;
+  --color-neutral:        #c49a2a;
+  --color-neutral-dim:    rgba(196, 154, 42, 0.10);
+  --color-neutral-border: rgba(196, 154, 42, 0.20);
 
   /* Texto */
   --text-primary:   #ffffff;
@@ -37,8 +37,8 @@
   /* Bordes */
   --border-default: rgba(255, 255, 255, 0.07);
   --border-subtle:  rgba(255, 255, 255, 0.04);
-  --border-pink:    rgba(255, 126, 179, 0.22);
-  --border-green:   rgba(0, 229, 160, 0.22);
+  --border-pink:    rgba(224, 85, 133, 0.22);
+  --border-green:   rgba(0, 192, 135, 0.22);
 
   /* Espaciado */
   --space-xs:  4px;
