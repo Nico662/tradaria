@@ -245,7 +245,7 @@ export default function Home({ onSelect }) {
         </div>
 
         {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+        <div className="animate-fade-in-up" style={{ textAlign: 'center', marginBottom: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 200" width="22">
               <line x1="50" y1="10" x2="50" y2="40" stroke="#ff7eb3" strokeWidth="8" strokeLinecap="round"/>
@@ -280,8 +280,8 @@ export default function Home({ onSelect }) {
         </div>
 
         <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
-          <MissionsCard />
-          <WordOfTheDay />
+          <div className="animate-fade-in-up stagger-1" style={{ flex: 1 }}><MissionsCard /></div>
+          <div className="animate-fade-in-up stagger-2" style={{ flex: 1 }}><WordOfTheDay /></div>
         </div>
 
         {/* Mode cards */}

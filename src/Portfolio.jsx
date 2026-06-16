@@ -569,11 +569,8 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
   );
 
   if (screen === 'loading') return (
-    <div id="gtm-root" style={{ position: 'relative' }}>
-      <div className="scanlines" />
-      <div style={{ padding: '48px 28px', textAlign: 'center', position: 'relative', zIndex: 2 }}>
-        <div style={{ fontSize: '11px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>{t.portfolio.loading}</div>
-      </div>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
+      <div className="spinner" />
     </div>
   );
 

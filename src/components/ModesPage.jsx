@@ -74,6 +74,7 @@ export default function ModesPage({ onSelect }) {
         {MODES.map((mode, index) => (
           <button
             key={mode.id}
+            className={`animate-fade-in-up stagger-${index + 1}`}
             onClick={() => mode.available && onSelect(mode.id)}
             disabled={!mode.available}
             style={{

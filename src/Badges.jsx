@@ -22,7 +22,7 @@ export default function Badges({ onBack }) {
         {BADGES.map(badge => {
           const isUnlocked = unlocked.includes(badge.id);
           return (
-            <div key={badge.id} style={{
+            <div key={badge.id} className="animate-fade-in" style={{
               background: isUnlocked ? 'var(--bg-surface)' : 'var(--bg-elevated)',
               border: `0.5px solid ${isUnlocked ? 'var(--border-green)' : 'var(--border-default)'}`,
               borderRadius: 'var(--radius-md)',

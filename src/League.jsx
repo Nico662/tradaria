@@ -85,9 +85,8 @@ export default function League({ leagueId, onBack }) {
     : null;
 
   if (loading) return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: '12px', fontFamily: 'var(--font-body)' }}>
-      <div style={{ width: '40px', height: '40px', borderRadius: '50%', border: '3px solid var(--border-default)', borderTopColor: 'var(--pink)', animation: 'spin 0.8s linear infinite' }} />
-      <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 700 }}>Cargando liga...</span>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
+      <div className="spinner" />
     </div>
   );
 
@@ -102,7 +101,7 @@ export default function League({ leagueId, onBack }) {
     <div style={{ padding: '16px 16px 24px', fontFamily: 'var(--font-body)', background: 'var(--bg-base)', minHeight: '100vh' }}>
 
       {/* Header card */}
-      <div style={{ background: 'var(--gradient-surface)', border: '0.5px solid var(--border-pink)', borderRadius: 'var(--radius-lg)', padding: '16px', marginBottom: '16px', position: 'relative', overflow: 'hidden' }}>
+      <div className="animate-slide-in-up" style={{ background: 'var(--gradient-surface)', border: '0.5px solid var(--border-pink)', borderRadius: 'var(--radius-lg)', padding: '16px', marginBottom: '16px', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '80px', height: '80px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,126,179,0.15), transparent 70%)' }} />
         <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, padding: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '4px' }}>
           ← Volver
@@ -130,7 +129,7 @@ export default function League({ leagueId, onBack }) {
         const isMe = entry.isYou;
         const name = entry.username ? `@${entry.username}` : entry.name;
         return (
-          <div key={String(entry.userId)} style={{
+          <div key={String(entry.userId)} className={`animate-fade-in-up stagger-${Math.min(i + 1, 7)}`} style={{
             display: 'flex', alignItems: 'center', gap: '10px',
             background: isMe ? 'rgba(255,126,179,0.06)' : 'var(--bg-surface)',
             border: `0.5px solid ${isMe ? 'var(--border-pink)' : 'var(--border-default)'}`,

@@ -308,3 +308,122 @@
 .nav-item.nav-play.active {
   color: var(--text-primary);
 }
+
+
+/* ── Animations ── */
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-green {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.6; transform: scale(1.15); }
+}
+
+@keyframes pulse-pink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.55; }
+}
+
+@keyframes correctFlash {
+  0%   { background: transparent; }
+  25%  { background: rgba(0, 229, 160, 0.12); }
+  100% { background: transparent; }
+}
+
+@keyframes wrongFlash {
+  0%   { background: transparent; }
+  25%  { background: rgba(255, 126, 179, 0.12); }
+  100% { background: transparent; }
+}
+
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.3s ease both;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s ease both;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.animate-slide-in-up {
+  animation: slideInUp 0.3s ease both;
+}
+
+/* Stagger para listas de cards */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.10s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.20s; }
+.stagger-5 { animation-delay: 0.25s; }
+.stagger-6 { animation-delay: 0.30s; }
+.stagger-7 { animation-delay: 0.35s; }
+
+/* Flash de acierto/fallo */
+.flash-correct { animation: correctFlash 0.5s ease forwards; }
+.flash-wrong   { animation: wrongFlash  0.5s ease forwards; }
+
+/* Spinner de carga */
+.spinner {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 3px solid var(--border-default);
+  border-top-color: var(--pink);
+  animation: spin 0.8s linear infinite;
+}
+
+/* Punto pulsante */
+.pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  border: 1.5px solid var(--bg-base);
+  animation: pulse-green 2s ease-in-out infinite;
+}
+
+/* Badge live — override pulse-badge con pulse-pink */
+.badge-live {
+  animation: pulse-pink 2s ease-in-out infinite;
+}
+
+/* Número que aparece (XP, puntos) */
+.animate-count {
+  animation: countUp 0.3s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

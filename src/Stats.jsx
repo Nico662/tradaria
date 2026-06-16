@@ -70,7 +70,9 @@ export default function Stats({ onBack, onSelect }) {
       </div>
 
       {loading && (
-        <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '11px', marginTop: '60px' }}>loading...</div>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
+          <div className="spinner" />
+        </div>
       )}
 
       {error === 'login' && (
@@ -95,8 +97,8 @@ export default function Stats({ onBack, onSelect }) {
               { label: 'PRECISIÓN',   value: `${data.avgAccuracy}%`, color: data.avgAccuracy >= 50 ? 'var(--green)' : 'var(--pink)' },
               { label: 'MEJOR RACHA', value: data.bestStreak,   color: 'var(--pink)'  },
               { label: 'MEJOR SCORE', value: data.bestScore,    color: 'var(--green)' },
-            ].map(({ label, value, color }) => (
-              <div key={label} style={{ background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', padding: '14px 12px' }}>
+            ].map(({ label, value, color }, i) => (
+              <div key={label} className={`animate-fade-in-up stagger-${i + 1}`} style={{ background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', padding: '14px 12px' }}>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: '9px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '6px' }}>{label}</div>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: '26px', fontWeight: 900, color, letterSpacing: '-0.5px', lineHeight: 1 }}>{value ?? '—'}</div>
               </div>
