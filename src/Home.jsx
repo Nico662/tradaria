@@ -279,9 +279,9 @@ export default function Home({ onSelect }) {
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-          <div className="animate-fade-in-up stagger-1" style={{ flex: 1 }}><MissionsCard /></div>
-          <div className="animate-fade-in-up stagger-2" style={{ flex: 1 }}><WordOfTheDay /></div>
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', alignItems: 'flex-start' }}>
+          <MissionsCard />
+          <WordOfTheDay />
         </div>
 
         {/* Mode cards */}
