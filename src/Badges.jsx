@@ -1,12 +1,17 @@
 import { BADGES, getUnlocked } from './badges.js';
 import { useLang } from './LangContext.jsx';
 
-export default function Badges({ onBack }) {
+export default function Badges({ onBack, onSelect }) {
   const unlocked = getUnlocked();
   const { lang, t } = useLang();
 
   return (
     <div id="gtm-root" style={{ padding: '16px 16px 24px', fontFamily: 'var(--font-body)', background: 'var(--bg-base)', minHeight: '100vh' }}>
+
+      <button onClick={() => onSelect('stats')}
+        style={{ background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 10px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', marginBottom: '16px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+        ← Volver
+      </button>
 
       <div style={{ marginBottom: '20px' }}>
         <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '22px', color: 'var(--text-primary)', letterSpacing: '-0.5px', marginBottom: '4px' }}>Logros</div>
