@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { SERVER } from './config.js';
 import { getUnlocked, BADGES } from './badges.js';
 import { useLang } from './LangContext.jsx';
+import { useAuth } from './AuthContext';
 
 function AccuracyGraph({ trend }) {
   if (!trend || trend.length < 2) return null;
@@ -39,6 +40,7 @@ const MODE_ICONS  = { guess: '🎯', survival: '☠️', daily: '⚡', arena: '�
 
 export default function Stats({ onBack, onSelect }) {
   const { t } = useLang();
+  const { user, activeCosmetics } = useAuth();
   const [data,    setData]    = useState(null);
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState(false);
@@ -67,7 +69,28 @@ export default function Stats({ onBack, onSelect }) {
           <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '22px', color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>Tu perfil</div>
           <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', marginTop: '2px' }}>Estadísticas y logros</div>
         </div>
+
+        <div style={{ position: 'relative', flexShrink: 0 }}>
+          <div style={{ width: '56px', height: '56px', borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--pink)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-elevated)' }}>
+            {user?.customAvatar || user?.avatar ? (
+              <img
+                src={user.customAvatar || user.avatar}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                alt="foto de perfil"
+              />
+            ) : (
+              <span style={{ fontSize: '24px' }}>👤</span>
+            )}
+          </div>
+          {user?.username && (
+            <div style={{ position: 'absolute', bottom: '-16px', left: '50%', transform: 'translateX(-50%)', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 800, color: 'var(--text-muted)', whiteSpace: 'nowrap', letterSpacing: '0.04em' }}>
+              @{user.username}
+            </div>
+          )}
+        </div>
       </div>
+
+      <div style={{ height: '20px' }} />
 
       {loading && (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
