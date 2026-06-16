@@ -1155,7 +1155,7 @@ export const LANGS = {
       skip: 'Saltar', prev: '← Atrás', next: 'Siguiente →', start: 'Activar gratis →',
     },
     maintenance: {
-      banner: '🔧 Estamos haciendo cambios en la web. Puede que veas cosas raras durante un rato.',
+      banner: '⚙️ Estamos realizando mejoras en la plataforma. Es posible que experimentes algunas interrupciones temporales.',
     },
   },
 
