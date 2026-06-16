@@ -25,7 +25,7 @@ function DetailScreen({ onClose }) {
   return (
     <div style={{
       position: 'fixed', inset: 0,
-      background: 'var(--bg-page)',
+      background: 'var(--bg-base)',
       zIndex: 9999,
       overflowY: 'auto',
     }}>
@@ -34,20 +34,20 @@ function DetailScreen({ onClose }) {
         {/* Back */}
         <button
           onClick={onClose}
-          style={{ background: 'transparent', border: 'none', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '10px', cursor: 'pointer', letterSpacing: '0.08em', padding: '8px 0', marginBottom: '28px', display: 'block' }}
+          style={{ background: 'transparent', border: '0.5px solid var(--border-default)', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, cursor: 'pointer', borderRadius: 'var(--radius-sm)', padding: '5px 10px', marginBottom: '28px', display: 'block' }}
           onMouseEnter={e => e.currentTarget.style.color = 'var(--green)'}
-          onMouseLeave={e => e.currentTarget.style.color = 'var(--t5)'}
+          onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
         >
           {LABELS.back[lang]}
         </button>
 
         {/* Header */}
-        <div style={{ fontSize: '8px', color: 'var(--bd2)', letterSpacing: '0.22em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '20px' }}>
+        <div style={{ fontSize: '8px', color: 'var(--border-subtle)', letterSpacing: '0.22em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '20px' }}>
           {LABELS.header[lang]}
         </div>
 
         {/* ── Daily missions ── */}
-        <div style={{ fontSize: '7px', color: 'var(--bd2)', letterSpacing: '0.2em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '12px' }}>
+        <div style={{ fontSize: '7px', color: 'var(--border-subtle)', letterSpacing: '0.2em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '12px' }}>
           {LABELS.daily[lang]}
         </div>
 
@@ -59,12 +59,12 @@ function DetailScreen({ onClose }) {
             const title = m.title[lang] || m.title.en;
             const desc  = m.desc[lang]  || m.desc.en;
             return (
-              <div key={m.id} style={{ background: done ? 'rgba(0,229,160,0.04)' : 'var(--bg-card)', border: `1px solid ${done ? 'rgba(0,229,160,0.2)' : 'var(--bd)'}`, borderRadius: '8px', padding: '12px 14px' }}>
+              <div key={m.id} style={{ background: done ? 'rgba(0,229,160,0.04)' : 'var(--bg-surface)', border: `1px solid ${done ? 'rgba(0,229,160,0.2)' : 'var(--border-default)'}`, borderRadius: '8px', padding: '12px 14px' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1 }}>
                     {done
                       ? <span style={{ fontSize: '10px', color: 'var(--green)', flexShrink: 0 }}>✓</span>
-                      : <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--bd2)', display: 'inline-block', flexShrink: 0, marginTop: '2px' }} />
+                      : <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--border-subtle)', display: 'inline-block', flexShrink: 0, marginTop: '2px' }} />
                     }
                     <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, color: done ? 'var(--green)' : '#c8d4e0', letterSpacing: '0.02em', lineHeight: 1.3 }}>
                       {title}
@@ -78,10 +78,10 @@ function DetailScreen({ onClose }) {
                   {desc}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ flex: 1, height: '3px', background: 'var(--bg-card2)', borderRadius: '2px', overflow: 'hidden' }}>
+                  <div style={{ flex: 1, height: '3px', background: 'var(--bg-elevated)', borderRadius: '2px', overflow: 'hidden' }}>
                     <div style={{ width: `${pct}%`, height: '100%', background: done ? 'var(--green)' : 'rgba(0,229,160,0.45)', borderRadius: '2px', transition: 'width 0.3s ease' }} />
                   </div>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '8px', color: 'var(--bd2)', flexShrink: 0 }}>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '8px', color: 'var(--border-subtle)', flexShrink: 0 }}>
                     {progress}/{m.target}
                   </span>
                 </div>
@@ -91,14 +91,14 @@ function DetailScreen({ onClose }) {
         </div>
 
         {/* Divider */}
-        <div style={{ height: '1px', background: 'var(--bg-card2)', marginBottom: '20px' }} />
+        <div style={{ height: '1px', background: 'var(--bg-elevated)', marginBottom: '20px' }} />
 
         {/* ── Weekly mission ── */}
         <div style={{ fontSize: '7px', color: '#4a3a10', letterSpacing: '0.2em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '12px' }}>
           {LABELS.weekly[lang]}
         </div>
 
-        <div style={{ background: 'var(--bg-card)', border: `1px solid ${weeklyCompleted ? 'var(--green)44' : 'var(--color-neutral)33'}`, borderTop: `2px solid ${weeklyCompleted ? 'var(--green)' : 'var(--color-neutral)'}`, borderRadius: '8px', padding: '14px 16px', position: 'relative' }}>
+        <div style={{ background: 'var(--bg-surface)', border: `1px solid ${weeklyCompleted ? 'var(--green)44' : 'var(--color-neutral)33'}`, borderTop: `2px solid ${weeklyCompleted ? 'var(--green)' : 'var(--color-neutral)'}`, borderRadius: '8px', padding: '14px 16px', position: 'relative' }}>
           <div style={{ position: 'absolute', top: '10px', right: '12px', fontSize: '7px', color: weeklyCompleted ? 'var(--green)' : 'var(--color-neutral)', border: `1px solid ${weeklyCompleted ? 'var(--green)33' : 'var(--color-neutral)33'}`, borderRadius: '3px', padding: '2px 6px', letterSpacing: '0.08em', fontFamily: 'var(--font-body)' }}>
             {LABELS.weekly[lang]}
           </div>
@@ -163,8 +163,8 @@ export default function MissionsCard() {
         flex: 1,
         minWidth: 0,
         alignSelf: 'stretch',
-        background: 'var(--bg-card)',
-        border: '1px solid var(--bd)',
+        background: 'var(--bg-surface)',
+        border: '1px solid var(--border-default)',
         borderTop: '2px solid var(--green)',
         borderRadius: '8px',
         padding: '10px 12px 12px',
@@ -173,7 +173,7 @@ export default function MissionsCard() {
         flexDirection: 'column',
       }}>
         {/* Header */}
-        <div style={{ fontSize: '6px', color: 'var(--bd2)', letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '8px' }}>
+        <div style={{ fontSize: '6px', color: 'var(--border-subtle)', letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '8px' }}>
           {LABELS.header[lang]}
         </div>
 
@@ -189,7 +189,7 @@ export default function MissionsCard() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '3px' }}>
                   {done
                     ? <span style={{ fontSize: '8px', color: 'var(--green)', flexShrink: 0, lineHeight: 1 }}>✓</span>
-                    : <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--bd2)', display: 'inline-block', flexShrink: 0 }} />
+                    : <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--border-subtle)', display: 'inline-block', flexShrink: 0 }} />
                   }
                   <span style={{
                     fontFamily: 'var(--font-body)',
@@ -206,7 +206,7 @@ export default function MissionsCard() {
                     {title}
                   </span>
                 </div>
-                <div style={{ height: '2px', background: 'var(--bg-card2)', borderRadius: '1px', overflow: 'hidden', marginLeft: '10px' }}>
+                <div style={{ height: '2px', background: 'var(--bg-elevated)', borderRadius: '1px', overflow: 'hidden', marginLeft: '10px' }}>
                   <div style={{ width: `${pct}%`, height: '100%', background: done ? 'var(--green)' : 'rgba(0,229,160,0.35)', borderRadius: '1px', transition: 'width 0.3s ease' }} />
                 </div>
               </div>
@@ -215,7 +215,7 @@ export default function MissionsCard() {
         </div>
 
         {/* Weekly teaser */}
-        <div style={{ borderTop: '1px solid var(--bd)', paddingTop: '6px', marginBottom: '8px' }}>
+        <div style={{ borderTop: '1px solid var(--border-default)', paddingTop: '6px', marginBottom: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             {weeklyDone
               ? <span style={{ fontSize: '8px', color: 'var(--green)', flexShrink: 0, lineHeight: 1 }}>✓</span>

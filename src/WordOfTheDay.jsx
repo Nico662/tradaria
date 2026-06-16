@@ -3,7 +3,7 @@ import { GLOSSARY } from './tradingGlossary.js';
 import { CHARTS } from './glossaryCharts.jsx';
 import { useLang } from './LangContext.jsx';
 
-const ACCENTS = ['var(--green)', 'var(--color-neutral)', 'var(--t3)'];
+const ACCENTS = ['var(--green)', 'var(--color-neutral)', 'var(--text-secondary)'];
 
 function getUTCDoy(offset) {
   const now = new Date();
@@ -62,46 +62,46 @@ function DetailScreen({ dayOffset, onOffsetChange, onClose }) {
 
   const navBtn = {
     background: 'transparent', border: 'none',
-    color: 'var(--t5)', fontFamily: 'var(--font-body)',
+    color: 'var(--text-muted)', fontFamily: 'var(--font-body)',
     fontSize: '14px', cursor: 'pointer', padding: '4px 8px', lineHeight: 1,
   };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'var(--bg-page)', zIndex: 9999, overflowY: 'auto' }}>
+    <div style={{ position: 'fixed', inset: 0, background: 'var(--bg-base)', zIndex: 9999, overflowY: 'auto' }}>
       <div style={{ padding: 'max(20px, calc(env(safe-area-inset-top) + 12px)) 28px 48px', maxWidth: '480px', margin: '0 auto' }}>
 
         {/* Back */}
         <button
           onClick={onClose}
-          style={{ background: 'transparent', border: 'none', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '10px', cursor: 'pointer', letterSpacing: '0.08em', padding: '8px 0', marginBottom: '24px', display: 'block' }}
+          style={{ background: 'transparent', border: '0.5px solid var(--border-default)', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, cursor: 'pointer', borderRadius: 'var(--radius-sm)', padding: '5px 10px', marginBottom: '24px', display: 'block' }}
           onMouseEnter={e => e.currentTarget.style.color = accent}
-          onMouseLeave={e => e.currentTarget.style.color = 'var(--t5)'}
+          onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
         >
           {LABELS.back[lang]}
         </button>
 
         {/* Day navigation */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '6px 4px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', background: 'var(--bg-surface)', border: '1px solid var(--border-default)', borderRadius: '8px', padding: '6px 4px' }}>
           <button
             onClick={() => onOffsetChange(o => Math.max(o - 1, -30))}
             style={navBtn}
             onMouseEnter={e => e.currentTarget.style.color = accent}
-            onMouseLeave={e => e.currentTarget.style.color = 'var(--t5)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
           >←</button>
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t3)', letterSpacing: '0.12em' }}>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--text-secondary)', letterSpacing: '0.12em' }}>
             {dayLabel}
           </span>
           <button
             onClick={() => onOffsetChange(o => Math.min(o + 1, 0))}
             disabled={dayOffset === 0}
-            style={{ ...navBtn, color: dayOffset === 0 ? 'var(--bd2)' : 'var(--t5)', cursor: dayOffset === 0 ? 'default' : 'pointer' }}
+            style={{ ...navBtn, color: dayOffset === 0 ? 'var(--border-subtle)' : 'var(--text-muted)', cursor: dayOffset === 0 ? 'default' : 'pointer' }}
             onMouseEnter={e => { if (dayOffset < 0) e.currentTarget.style.color = accent; }}
-            onMouseLeave={e => { if (dayOffset < 0) e.currentTarget.style.color = 'var(--t5)'; }}
+            onMouseLeave={e => { if (dayOffset < 0) e.currentTarget.style.color = 'var(--text-muted)'; }}
           >→</button>
         </div>
 
         {/* Label */}
-        <div style={{ fontSize: '8px', color: 'var(--bd2)', letterSpacing: '0.22em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '18px' }}>
+        <div style={{ fontSize: '8px', color: 'var(--border-subtle)', letterSpacing: '0.22em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '18px' }}>
           {LABELS.header[lang]}
         </div>
 
@@ -114,7 +114,7 @@ function DetailScreen({ dayOffset, onOffsetChange, onClose }) {
         </div>
 
         {/* Divider */}
-        <div style={{ height: '1px', background: 'var(--bg-card2)', marginBottom: '20px' }} />
+        <div style={{ height: '1px', background: 'var(--bg-elevated)', marginBottom: '20px' }} />
 
         {/* Definition */}
         <p style={{ fontSize: '13px', color: '#c8d4e0', lineHeight: 1.7, margin: '0 0 24px' }}>
@@ -127,14 +127,14 @@ function DetailScreen({ dayOffset, onOffsetChange, onClose }) {
             <div style={{ fontSize: '8px', color: accent, letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '6px', opacity: 0.7 }}>
               {LABELS.example[lang]}
             </div>
-            <p style={{ fontSize: '11px', color: 'var(--t3)', fontStyle: 'italic', margin: 0, lineHeight: 1.6 }}>{example}</p>
+            <p style={{ fontSize: '11px', color: 'var(--text-secondary)', fontStyle: 'italic', margin: 0, lineHeight: 1.6 }}>{example}</p>
           </div>
         )}
 
         {/* Extra */}
         {extra && (
           <div style={{ marginBottom: '32px' }}>
-            <div style={{ fontSize: '8px', color: 'var(--bd2)', letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '10px' }}>
+            <div style={{ fontSize: '8px', color: 'var(--border-subtle)', letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '10px' }}>
               {LABELS.context[lang]}
             </div>
             <p style={{ fontSize: '12px', color: '#5a6a7d', lineHeight: 1.75, margin: 0 }}>{extra}</p>
@@ -150,8 +150,8 @@ function DetailScreen({ dayOffset, onOffsetChange, onClose }) {
         })()}
 
         {/* Previous words */}
-        <div style={{ borderTop: '1px solid var(--bd)', paddingTop: '20px' }}>
-          <div style={{ fontSize: '8px', color: 'var(--bd2)', letterSpacing: '0.2em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '12px' }}>
+        <div style={{ borderTop: '1px solid var(--border-default)', paddingTop: '20px' }}>
+          <div style={{ fontSize: '8px', color: 'var(--border-subtle)', letterSpacing: '0.2em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '12px' }}>
             {LABELS.previous[lang]}
           </div>
           {[-1, -2, -3, -4, -5].map(offset => {
@@ -165,21 +165,21 @@ function DetailScreen({ dayOffset, onOffsetChange, onClose }) {
                 onClick={() => onOffsetChange(offset)}
                 style={{
                   padding: '10px 12px', marginBottom: '6px',
-                  background: isSelected ? `${ac}0f` : 'var(--bg-page)',
-                  border: `1px solid ${isSelected ? ac + '55' : 'var(--bd)'}`,
+                  background: isSelected ? `${ac}0f` : 'var(--bg-base)',
+                  border: `1px solid ${isSelected ? ac + '55' : 'var(--border-default)'}`,
                   borderRadius: '8px', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', gap: '12px',
                   transition: 'border-color 0.15s',
                 }}
                 onMouseEnter={e => e.currentTarget.style.borderColor = ac + '55'}
-                onMouseLeave={e => e.currentTarget.style.borderColor = isSelected ? ac + '55' : 'var(--bd)'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = isSelected ? ac + '55' : 'var(--border-default)'}
               >
                 <span style={{ fontSize: '18px', lineHeight: 1, flexShrink: 0 }}>{e.emoji}</span>
                 <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ fontSize: '11px', color: isSelected ? ac : 'var(--t2)', fontFamily: 'var(--font-body)', fontWeight: 800, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
+                  <div style={{ fontSize: '11px', color: isSelected ? ac : 'var(--text-primary)', fontFamily: 'var(--font-body)', fontWeight: 800, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
                     {e.word[lang] || e.word.en}
                   </div>
-                  <div style={{ fontSize: '8px', color: 'var(--t5)', marginTop: '2px', fontFamily: 'var(--font-body)' }}>{lbl}</div>
+                  <div style={{ fontSize: '8px', color: 'var(--text-muted)', marginTop: '2px', fontFamily: 'var(--font-body)' }}>{lbl}</div>
                 </div>
                 {isSelected && <span style={{ fontSize: '8px', color: ac, flexShrink: 0 }}>●</span>}
               </div>
@@ -212,7 +212,7 @@ export default function WordOfTheDay() {
 
   const navBtn = (disabled) => ({
     background: 'transparent', border: 'none',
-    color: disabled ? 'var(--bd2)' : 'var(--t5)',
+    color: disabled ? 'var(--border-subtle)' : 'var(--text-muted)',
     fontSize: '10px', cursor: disabled ? 'default' : 'pointer',
     padding: '0 2px', lineHeight: 1, flexShrink: 0,
   });
@@ -229,8 +229,8 @@ export default function WordOfTheDay() {
 
       <div style={{
         flex: 1, minWidth: 0, alignSelf: 'stretch',
-        background: 'var(--bg-card)',
-        border: '1px solid var(--bd)',
+        background: 'var(--bg-surface)',
+        border: '1px solid var(--border-default)',
         borderTop: `2px solid ${accent}`,
         borderRadius: '8px',
         padding: '10px 12px 12px',
@@ -244,9 +244,9 @@ export default function WordOfTheDay() {
             onClick={() => setDayOffset(d => Math.max(d - 1, -30))}
             style={navBtn(false)}
             onMouseEnter={e => e.currentTarget.style.color = accent}
-            onMouseLeave={e => e.currentTarget.style.color = 'var(--t5)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
           >←</button>
-          <span style={{ fontSize: '6px', color: 'var(--bd2)', letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', textAlign: 'center', flex: 1 }}>
+          <span style={{ fontSize: '6px', color: 'var(--border-subtle)', letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', textAlign: 'center', flex: 1 }}>
             {dayLabel}
           </span>
           <button
@@ -254,7 +254,7 @@ export default function WordOfTheDay() {
             disabled={dayOffset === 0}
             style={navBtn(dayOffset === 0)}
             onMouseEnter={e => { if (dayOffset < 0) e.currentTarget.style.color = accent; }}
-            onMouseLeave={e => { if (dayOffset < 0) e.currentTarget.style.color = 'var(--t5)'; }}
+            onMouseLeave={e => { if (dayOffset < 0) e.currentTarget.style.color = 'var(--text-muted)'; }}
           >→</button>
         </div>
 
@@ -267,7 +267,7 @@ export default function WordOfTheDay() {
         </div>
 
         {/* Definition — truncated */}
-        <p style={{ fontSize: '8px', color: 'var(--t3)', margin: '0', lineHeight: 1.5, flex: 1, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical' }}>
+        <p style={{ fontSize: '8px', color: 'var(--text-secondary)', margin: '0', lineHeight: 1.5, flex: 1, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical' }}>
           {definition}
         </p>
 
