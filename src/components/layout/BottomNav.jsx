@@ -1,4 +1,5 @@
 import { Home, LayoutGrid, CandlestickChart, Trophy, User } from 'lucide-react';
+import { useAuth } from '../../AuthContext';
 
 const NAV_ITEMS = [
   { id: 'home',    label: 'Inicio',  Icon: Home,             screen: 'home'   },
@@ -9,6 +10,7 @@ const NAV_ITEMS = [
 ];
 
 export default function BottomNav({ currentScreen, onSelect }) {
+  const { user, activeCosmetics } = useAuth();
   const isActive = (screen) => {
     if (screen === 'home')   return currentScreen === 'home';
     if (screen === 'modes')  return currentScreen === 'modes';
@@ -47,7 +49,33 @@ export default function BottomNav({ currentScreen, onSelect }) {
             aria-current={active ? 'page' : undefined}
             aria-label={label}
           >
-            <Icon size={22} strokeWidth={active ? 2.5 : 1.8} aria-hidden="true" />
+            {id === 'profile' ? (
+              <div style={{
+                width: 26,
+                height: 26,
+                borderRadius: '50%',
+                overflow: 'hidden',
+                border: active ? '2px solid var(--pink)' : '2px solid var(--border-default)',
+                flexShrink: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'var(--bg-elevated)',
+                transition: 'border-color 0.15s',
+              }}>
+                {user?.customAvatar || user?.avatar ? (
+                  <img
+                    src={user.customAvatar || user.avatar}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    alt="perfil"
+                  />
+                ) : (
+                  <Icon size={14} strokeWidth={1.8} aria-hidden="true" />
+                )}
+              </div>
+            ) : (
+              <Icon size={22} strokeWidth={active ? 2.5 : 1.8} aria-hidden="true" />
+            )}
             <span>{label}</span>
           </button>
         );
