@@ -38,70 +38,82 @@
 
 /* Game trade buttons */
 .btn-long {
-  background: var(--green-dim);
-  color: var(--green);
-  border: 1.5px solid var(--green);
-  border-radius: var(--radius-md);
+  background: #0a1a14;
+  border: 1px solid #00c087;
+  border-top: 3px solid #00c087;
+  border-radius: 4px;
+  color: #00c087;
   font-family: var(--font-body);
-  font-weight: 900;
-  font-size: 14px;
-  min-height: 64px;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  min-height: 72px;
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 6px;
   cursor: pointer;
-  transition: transform 0.1s, background 0.15s;
+  transition: background 0.15s, transform 0.1s;
   -webkit-tap-highlight-color: transparent;
 }
-.btn-long:active { transform: scale(0.97); background: rgba(0,229,160,0.22); }
-.btn-long.selected { background: rgba(0,229,160,0.22); }
+.btn-long:hover  { background: #0d2219; }
+.btn-long:active { transform: scale(0.97); }
+.btn-long.selected { background: #00c087; color: #0a0a0a; }
 
 .btn-short {
-  background: var(--pink-dim);
-  color: var(--pink);
-  border: 1.5px solid var(--pink);
-  border-radius: var(--radius-md);
+  background: #1a0a10;
+  border: 1px solid #e05585;
+  border-top: 3px solid #e05585;
+  border-radius: 4px;
+  color: #e05585;
   font-family: var(--font-body);
-  font-weight: 900;
-  font-size: 14px;
-  min-height: 64px;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  min-height: 72px;
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 6px;
   cursor: pointer;
-  transition: transform 0.1s, background 0.15s;
+  transition: background 0.15s, transform 0.1s;
   -webkit-tap-highlight-color: transparent;
 }
-.btn-short:active { transform: scale(0.97); background: rgba(255,126,179,0.22); }
-.btn-short.selected { background: rgba(255,126,179,0.22); }
+.btn-short:hover  { background: #221018; }
+.btn-short:active { transform: scale(0.97); }
+.btn-short.selected { background: #e05585; color: #0a0a0a; }
 
 .btn-neutral {
-  background: rgba(232,184,75,0.12);
-  color: var(--color-neutral);
-  border: 1.5px solid var(--color-neutral-border);
-  border-radius: var(--radius-md);
+  background: #141208;
+  border: 1px solid #c49a2a;
+  border-top: 3px solid #c49a2a;
+  border-radius: 4px;
+  color: #c49a2a;
   font-family: var(--font-body);
-  font-weight: 900;
-  font-size: 14px;
-  min-height: 64px;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  min-height: 72px;
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 6px;
   cursor: pointer;
-  transition: transform 0.1s, background 0.15s;
+  transition: background 0.15s, transform 0.1s;
   -webkit-tap-highlight-color: transparent;
 }
+.btn-neutral:hover  { background: #1a1810; }
 .btn-neutral:active { transform: scale(0.97); }
-.btn-neutral.selected { background: rgba(232,184,75,0.22); }
+.btn-neutral.selected { background: #c49a2a; color: #0a0a0a; }
 
 
 /* ── Cards ── */
