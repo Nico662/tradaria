@@ -169,7 +169,7 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
 
   function copyInviteLink() {
     if (!user?.username) return;
-    navigator.clipboard.writeText(`https://tradaria.dev?ref=@${user.username}`);
+    navigator.clipboard.writeText(`https://tradiko.dev?ref=@${user.username}`);
     setCopiedInvite(true);
     setTimeout(() => setCopiedInvite(false), 2000);
   }

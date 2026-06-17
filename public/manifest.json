@@ -1,6 +1,6 @@
 {
-  "name": "Tradaria",
-  "short_name": "Tradaria",
+  "name": "Tradiko",
+  "short_name": "Tradiko",
   "description": "El juego de trading con datos reales",
   "start_url": "/",
   "display": "standalone",

@@ -194,7 +194,7 @@ export default function Daily({ onBack }) {
     const streak = localStorage.getItem('tradaria_daily_streak') || '1';
     const dir = result.direction === 'up' ? '▲' : result.direction === 'down' ? '▼' : '—';
     const pct = `${result.pctMove > 0 ? '+' : ''}${result.pctMove.toFixed(2)}%`;
-    const text = `⚡ Tradaria Daily Challenge\n${new Date().toISOString().split('T')[0]}\n\n${result.win ? '✅ CORRECT' : '❌ WRONG'} — ${dir} ${pct}\n🔥 ${streak} day streak\n\ntradaria.dev`;
+    const text = `⚡ Tradiko Daily Challenge\n${new Date().toISOString().split('T')[0]}\n\n${result.win ? '✅ CORRECT' : '❌ WRONG'} — ${dir} ${pct}\n🔥 ${streak} day streak\n\ntradiko.dev`;
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -301,7 +301,7 @@ export default function Daily({ onBack }) {
                 {user?.username && (
                   <button
                     onClick={() => {
-                      navigator.clipboard.writeText(`https://tradaria.dev?ref=@${user.username}`);
+                      navigator.clipboard.writeText(`https://tradiko.dev?ref=@${user.username}`);
                       setCopiedInvite(true);
                       setTimeout(() => setCopiedInvite(false), 2000);
                     }}
@@ -332,7 +332,7 @@ export default function Daily({ onBack }) {
             {user?.username && (
               <button
                 onClick={() => {
-                  navigator.clipboard.writeText(`https://tradaria.dev?ref=@${user.username}`);
+                  navigator.clipboard.writeText(`https://tradiko.dev?ref=@${user.username}`);
                   setCopiedInvite(true);
                   setTimeout(() => setCopiedInvite(false), 2000);
                 }}

@@ -12,7 +12,7 @@ const STRINGS = {
     notifications: 'Notifications',
     notifOn: '✓ Notifications enabled', notifOff: 'Enable notifications',
     account: 'Account', username: 'Username', edit: 'Edit', signOut: 'Sign out',
-    about: 'About Tradaria', builtBy: 'Built by Nicolás Vidal',
+    about: 'About Tradiko', builtBy: 'Built by Nicolás Vidal',
   },
   es: {
     title: 'Configuración', back: '← volver',
@@ -21,7 +21,7 @@ const STRINGS = {
     notifications: 'Notificaciones',
     notifOn: '✓ Notificaciones activadas', notifOff: 'Activar notificaciones',
     account: 'Cuenta', username: 'Nombre de usuario', edit: 'Editar', signOut: 'Cerrar sesión',
-    about: 'Sobre Tradaria', builtBy: 'Construido por Nicolás Vidal',
+    about: 'Sobre Tradiko', builtBy: 'Construido por Nicolás Vidal',
   },
   de: {
     title: 'Einstellungen', back: '← zurück',
@@ -30,7 +30,7 @@ const STRINGS = {
     notifications: 'Benachrichtigungen',
     notifOn: '✓ Benachrichtigungen aktiv', notifOff: 'Benachrichtigungen aktivieren',
     account: 'Konto', username: 'Benutzername', edit: 'Bearbeiten', signOut: 'Abmelden',
-    about: 'Über Tradaria', builtBy: 'Erstellt von Nicolás Vidal',
+    about: 'Über Tradiko', builtBy: 'Erstellt von Nicolás Vidal',
   },
 };
 
@@ -311,8 +311,8 @@ export default function Settings({ onBack }) {
           <Row label={s.builtBy}>
             <span style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t5)' }}>© 2025</span>
           </Row>
-          <Row label="tradaria.dev" last>
-            <a href="https://tradaria.dev" target="_blank" rel="noopener noreferrer"
+          <Row label="tradiko.dev" last>
+            <a href="https://tradiko.dev" target="_blank" rel="noopener noreferrer"
               style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--green)', textDecoration: 'none' }}>
               ↗
             </a>

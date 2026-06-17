@@ -465,7 +465,7 @@ export default function App() {
     if (!el) return;
     const canvas = await html2canvas(el, { backgroundColor: 'var(--bg-page)', scale: 2 });
     const link = document.createElement('a');
-    link.download = 'tradaria-result.png';
+    link.download = 'tradiko-result.png';
     link.href = canvas.toDataURL();
     link.click();
   };
@@ -515,7 +515,7 @@ export default function App() {
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--t1)' }}>
                 GUESS <span style={{ color: 'var(--green)' }}>THE</span> MARKET
               </div>
-              <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.1em' }}>tradaria.dev</div>
+              <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.1em' }}>tradiko.dev</div>
             </div>
             <div style={{ textAlign: 'center', marginBottom: '20px' }}>
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '52px', color: 'var(--color-neutral)', letterSpacing: '-0.02em', lineHeight: 1 }}>

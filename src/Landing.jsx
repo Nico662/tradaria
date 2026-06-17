@@ -162,7 +162,7 @@ export default function Landing({ onEnter }) {
               <line x1="50" y1="150" x2="50" y2="190" stroke="var(--green)" strokeWidth="8" strokeLinecap="round"/>
             </svg>
             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '38px', letterSpacing: '-0.02em', color: '#f0f0f0', textShadow: '0 0 60px rgba(0,229,160,0.2)' }}>
-              Tradaria
+              Tradiko
             </div>
           </div>
           <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '26px', color: '#f0f0f0', lineHeight: 1.2, marginBottom: '10px', letterSpacing: '-0.01em' }}>

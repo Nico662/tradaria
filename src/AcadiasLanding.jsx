@@ -187,7 +187,7 @@ export default function AcadiasLanding({ onEnter }) {
               <rect x="25" y="40" width="50" height="110" rx="6" fill="var(--green)"/>
               <line x1="50" y1="150" x2="50" y2="190" stroke="var(--green)" strokeWidth="10" strokeLinecap="round"/>
             </svg>
-            <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: 'var(--t1)', letterSpacing: '-0.01em' }}>Tradaria</span>
+            <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: 'var(--t1)', letterSpacing: '-0.01em' }}>Tradiko</span>
             <span style={{ fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Academias</span>
           </div>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tradaria-v3';
+const CACHE_NAME = 'tradiko-v3';
 
 const STATIC_ASSETS = [
   '/',
@@ -31,7 +31,7 @@ self.addEventListener('fetch', (event) => {
   // Solo interceptar GET
   if (event.request.method !== 'GET') return;
 
-  // No interceptar llamadas al servidor de Tradaria ni a APIs externas
+  // No interceptar llamadas al servidor de Tradiko ni a APIs externas
   const url = new URL(event.request.url);
   if (
     url.hostname === 'tradaria-production.up.railway.app' ||
@@ -66,11 +66,11 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('push', (event) => {
   const data = event.data?.json() ?? {};
   event.waitUntil(
-    self.registration.showNotification(data.title ?? '⚡ Tradaria', {
+    self.registration.showNotification(data.title ?? '⚡ Tradiko', {
       body:  data.body ?? 'Daily challenge is ready!',
       icon:  '/icon-192.png',
       badge: '/icon-192.png',
-      data:  { url: data.url ?? 'https://tradaria.dev' },
+      data:  { url: data.url ?? 'https://tradiko.dev' },
     })
   );
 });
@@ -78,6 +78,6 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   event.waitUntil(
-    clients.openWindow(event.notification.data?.url ?? 'https://tradaria.dev')
+    clients.openWindow(event.notification.data?.url ?? 'https://tradiko.dev')
   );
 });

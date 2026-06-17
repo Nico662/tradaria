@@ -133,7 +133,7 @@ function PreviewTheme({ item }) {
       margin: '4px 0',
     }}>
       <div style={{ padding: '3px 6px', borderBottom: `1px solid ${c.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-        <span style={{ fontSize: '6px', color: c.accent, fontFamily: 'var(--font-body)', fontWeight: 700, letterSpacing: '0.08em' }}>TRADARIA</span>
+        <span style={{ fontSize: '6px', color: c.accent, fontFamily: 'var(--font-body)', fontWeight: 700, letterSpacing: '0.08em' }}>TRADIKO</span>
         <div style={{ display: 'flex', gap: '6px' }}>
           <span style={{ fontSize: '5px', color: c.text, fontFamily: 'var(--font-body)' }}>RND 3/10</span>
           <span style={{ fontSize: '5px', color: c.accent, fontFamily: 'var(--font-body)' }}>300</span>

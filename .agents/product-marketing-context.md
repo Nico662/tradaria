@@ -1,8 +1,8 @@
-# Tradaria — Product & Marketing Context
+# Tradiko — Product & Marketing Context
 
 ## Producto
-Tradaria es un juego de trading con datos reales donde predices si el mercado sube o baja.
-URL: tradaria.dev
+Tradiko es un juego de trading con datos reales donde predices si el mercado sube o baja.
+URL: tradiko.dev
 
 ## Audiencia
 - Traders novatos/intermedios que quieren practicar sin arriesgar dinero

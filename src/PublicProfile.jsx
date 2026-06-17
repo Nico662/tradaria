@@ -181,7 +181,7 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
             )
           )}
 
-          <a href="https://tradaria.dev"
+          <a href="https://tradiko.dev"
             style={{ display: 'block', textAlign: 'center', padding: '14px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', textDecoration: 'none' }}>
             {t.profile.playOn}
           </a>

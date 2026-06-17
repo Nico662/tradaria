@@ -696,7 +696,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
             if (!el) return;
             const canvas = await html2canvas(el, { backgroundColor: 'var(--bg-page)', scale: 2 });
             const link = document.createElement('a');
-            link.download = 'tradaria-tournament.png';
+            link.download = 'tradiko-tournament.png';
             link.href = canvas.toDataURL();
             link.click();
             const tok = localStorage.getItem('tradaria_token');
@@ -708,13 +708,13 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
         </div>
 
         <div id="share-card-tournament" style={{ position: 'absolute', left: '-9999px', top: 0, width: '320px', background: 'var(--bg-page)', border: '1px solid var(--color-neutral)', borderRadius: '12px', padding: '28px 24px', fontFamily: 'var(--font-body)' }}>
-          <div style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: '16px' }}>🏆 TRADARIA TOURNAMENT</div>
+          <div style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: '16px' }}>🏆 TRADIKO TOURNAMENT</div>
           <div style={{ fontSize: '11px', color: '#5a6a7d', marginBottom: '16px' }}>{formatWeekId(weekId)}</div>
           <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '48px', color: 'var(--color-neutral)', letterSpacing: '-0.02em', lineHeight: 1, marginBottom: '4px' }}>
             {phase === 'finished' ? score : alreadyScore}
           </div>
           <div style={{ fontSize: '9px', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '16px' }}>{t.gameover.finalScore}</div>
-          <div style={{ fontSize: '9px', color: 'var(--color-neutral)', letterSpacing: '0.1em', marginTop: '8px' }}>tradaria.dev</div>
+          <div style={{ fontSize: '9px', color: 'var(--color-neutral)', letterSpacing: '0.1em', marginTop: '8px' }}>tradiko.dev</div>
         </div>
 
         {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}

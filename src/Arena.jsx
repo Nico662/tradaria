@@ -695,7 +695,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
     const handleCopy = () => { navigator.clipboard.writeText(link).catch(() => {}); setStatus(t.arena.asyncCopied); setTimeout(() => setStatus(''), 2000); };
     const handleShare = () => {
       if (navigator.share) {
-        navigator.share({ title: 'Tradaria Arena', text: `Reta mis ${correctCount}/10 en Tradaria`, url: link }).catch(() => {});
+        navigator.share({ title: 'Tradiko Arena', text: `Reta mis ${correctCount}/10 en Tradiko`, url: link }).catch(() => {});
       } else { handleCopy(); }
     };
     return (
@@ -741,7 +741,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
       if (!el) return;
       const canvas = await html2canvas(el, { backgroundColor: 'var(--bg-base)', scale: 2 });
       const link = document.createElement('a');
-      link.download = 'tradaria-duel.png';
+      link.download = 'tradiko-duel.png';
       link.href = canvas.toDataURL();
       link.click();
     };
@@ -820,7 +820,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
 
           {/* Hidden share card */}
           <div id="async-share-card" style={{ position: 'absolute', left: '-9999px', top: 0, width: '320px', background: 'var(--bg-base)', border: '1px solid var(--color-neutral)', borderRadius: '12px', padding: '28px 24px', fontFamily: 'var(--font-body)' }}>
-            <div style={{ fontSize: '10px', color: '#5a6a7d', letterSpacing: '0.1em', marginBottom: '16px' }}>⚔️ TRADARIA ASYNC DUEL</div>
+            <div style={{ fontSize: '10px', color: '#5a6a7d', letterSpacing: '0.1em', marginBottom: '16px' }}>⚔️ TRADIKO ASYNC DUEL</div>
             <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
               <div style={{ flex: 1, textAlign: 'center' }}>
                 <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '36px', color: 'var(--green)' }}>{chalCorrect}</div>
@@ -832,7 +832,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
                 <div style={{ fontSize: '9px', color: '#5a6a7d', marginTop: '2px' }}>{riv.name}</div>
               </div>
             </div>
-            <div style={{ fontSize: '9px', color: 'var(--color-neutral)', letterSpacing: '0.1em' }}>tradaria.dev</div>
+            <div style={{ fontSize: '9px', color: 'var(--color-neutral)', letterSpacing: '0.1em' }}>tradiko.dev</div>
           </div>
         </div>
         {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
@@ -1312,7 +1312,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
             if (!el) return;
             const canvas = await html2canvas(el, { backgroundColor: 'var(--bg-page)', scale: 2 });
             const link = document.createElement('a');
-            link.download = 'tradaria-arena.png';
+            link.download = 'tradiko-arena.png';
             link.href = canvas.toDataURL();
             link.click();
             const tok = localStorage.getItem('tradaria_token');
@@ -1322,7 +1322,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
           </button>
         </div>
         <div id="share-card-arena" style={{ position: 'absolute', left: '-9999px', top: 0, width: '320px', background: 'var(--bg-page)', border: `1px solid ${iWon ? 'var(--border-green)' : isDraw ? 'var(--color-neutral)' : 'var(--color-down)'}`, borderRadius: '12px', padding: '28px 24px', fontFamily: 'var(--font-body)' }}>
-          <div style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: '16px' }}>⚡ TRADARIA ARENA</div>
+          <div style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: '16px' }}>⚡ TRADIKO ARENA</div>
           <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '28px', color: iWon ? 'var(--green)' : isDraw ? 'var(--color-neutral)' : 'var(--color-down)', marginBottom: '20px' }}>
             {iWon ? t.arena.won : isDraw ? t.arena.draw : t.arena.lost}
           </div>
@@ -1337,7 +1337,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
               <div style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: '2px' }}>{opponent}</div>
             </div>
           </div>
-          <div style={{ fontSize: '9px', color: 'var(--green)', letterSpacing: '0.1em', marginTop: '8px' }}>tradaria.dev</div>
+          <div style={{ fontSize: '9px', color: 'var(--green)', letterSpacing: '0.1em', marginTop: '8px' }}>tradiko.dev</div>
         </div>
         {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
         {missionToast[0] && <MissionNotification data={missionToast[0]} onDone={() => setMissionToast(q => q.slice(1))} />}

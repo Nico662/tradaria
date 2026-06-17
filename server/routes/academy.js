@@ -277,8 +277,8 @@ router.post('/subscribe', requireAuth, async (req, res) => {
       payment_method_types: ['card'],
       mode: 'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: 'https://tradaria.dev/teacher-dashboard?payment=success',
-      cancel_url:  'https://tradaria.dev/teacher-dashboard?payment=cancelled',
+      success_url: 'https://tradiko.dev/teacher-dashboard?payment=success',
+      cancel_url:  'https://tradiko.dev/teacher-dashboard?payment=cancelled',
       metadata: { academyId: String(academy._id), plan },
     });
     res.json({ url: session.url });
