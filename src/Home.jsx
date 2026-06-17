@@ -259,7 +259,7 @@ export default function Home({ onSelect }) {
               </defs>
             </svg>
             <span style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '38px', letterSpacing: '-1px', color: 'var(--text-primary)', lineHeight: 1 }}>
-              Trad<span style={{ color: 'var(--pink)' }}>aria</span>
+              Tradi<span style={{ color: 'var(--pink)' }}>ko</span>
             </span>
           </div>
           <div style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: '6px', fontFamily: 'var(--font-body)', fontWeight: 700 }}>
