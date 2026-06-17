@@ -85,9 +85,6 @@ export default function Settings({ onBack }) {
   const { lang, setLang } = useLang();
   const s = STRINGS[lang] || STRINGS.en;
 
-  const [isDark, setIsDark] = useState(
-    () => (localStorage.getItem('tradaria_theme_mode') || 'dark') === 'dark'
-  );
   const [notifEnabled, setNotifEnabled] = useState(
     () => typeof Notification !== 'undefined' && Notification.permission === 'granted'
   );
@@ -111,15 +108,6 @@ export default function Settings({ onBack }) {
       }
     } catch {}
     setCancelLoading(false);
-  }
-
-  function toggleTheme() {
-    const newMode = isDark ? 'light' : 'dark';
-    setIsDark(!isDark);
-    localStorage.setItem('tradaria_theme_mode', newMode);
-    const root = document.getElementById('root');
-    if (newMode === 'light') root.classList.add('light-mode');
-    else root.classList.remove('light-mode');
   }
 
   async function enableNotifications() {
@@ -147,14 +135,6 @@ export default function Settings({ onBack }) {
         <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '24px', color: 'var(--t1)', marginBottom: '32px' }}>
           {s.title}
         </div>
-
-        {/* Appearance */}
-        <SectionLabel text={s.appearance} />
-        <Card>
-          <Row label={s.darkMode} last>
-            <Toggle on={isDark} onChange={toggleTheme} />
-          </Row>
-        </Card>
 
         {/* Language */}
         <SectionLabel text={s.language} />

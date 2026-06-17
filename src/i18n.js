@@ -577,6 +577,7 @@ export const LANGS = {
     maintenance: {
       banner: "🔧 We're making changes to the site. Things might look a bit off for a while.",
     },
+    nav: { home: 'Home', modes: 'Modes', play: 'Play', league: 'League', profile: 'Profile' },
   },
 
   es: {
@@ -1157,6 +1158,7 @@ export const LANGS = {
     maintenance: {
       banner: '⚙️ Estamos realizando mejoras en la plataforma. Es posible que experimentes algunas interrupciones temporales.',
     },
+    nav: { home: 'Inicio', modes: 'Modos', play: 'Jugar', league: 'Liga', profile: 'Perfil' },
   },
 
   de: {
@@ -1737,5 +1739,6 @@ export const LANGS = {
     maintenance: {
       banner: '🔧 Wir nehmen gerade Änderungen vor. Es kann kurzzeitig zu Darstellungsfehlern kommen.',
     },
+    nav: { home: 'Start', modes: 'Modi', play: 'Spielen', league: 'Liga', profile: 'Profil' },
   },
 };

@@ -166,13 +166,6 @@ export default function App() {
    }, [activeCosmetics?.theme]);
 
   useEffect(() => {
-    const mode = localStorage.getItem('tradaria_theme_mode') || 'dark';
-    const root = document.getElementById('root');
-    if (mode === 'light') root.classList.add('light-mode');
-    else root.classList.remove('light-mode');
-  }, []);
-
-  useEffect(() => {
     if (!user?.role) return;
     const params  = new URLSearchParams(window.location.search);
     const payment = params.get('payment');

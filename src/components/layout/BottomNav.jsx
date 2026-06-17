@@ -1,16 +1,20 @@
 import { Home, LayoutGrid, CandlestickChart, Trophy, User } from 'lucide-react';
 import { useAuth } from '../../AuthContext';
-
-const NAV_ITEMS = [
-  { id: 'home',    label: 'Inicio',  Icon: Home,             screen: 'home'   },
-  { id: 'modes',   label: 'Modos',   Icon: LayoutGrid,       screen: 'modes'  },
-  { id: 'play',    label: 'Jugar',   Icon: CandlestickChart, screen: 'game'   },
-  { id: 'ranking', label: 'Liga',    Icon: Trophy,           screen: 'league' },
-  { id: 'profile', label: 'Perfil',  Icon: User,             screen: 'stats'  },
-];
+import { useLang } from '../../LangContext';
 
 export default function BottomNav({ currentScreen, onSelect }) {
   const { user, activeCosmetics } = useAuth();
+  const { t } = useLang();
+  const n = t.nav;
+
+  const NAV_ITEMS = [
+    { id: 'home',    label: n.home,    Icon: Home,             screen: 'home'   },
+    { id: 'modes',   label: n.modes,   Icon: LayoutGrid,       screen: 'modes'  },
+    { id: 'play',    label: n.play,    Icon: CandlestickChart, screen: 'game'   },
+    { id: 'ranking', label: n.league,  Icon: Trophy,           screen: 'league' },
+    { id: 'profile', label: n.profile, Icon: User,             screen: 'stats'  },
+  ];
+
   const isActive = (screen) => {
     if (screen === 'home')   return currentScreen === 'home';
     if (screen === 'modes')  return currentScreen === 'modes';

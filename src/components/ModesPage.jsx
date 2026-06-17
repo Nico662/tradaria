@@ -1,61 +1,16 @@
+import { useLang } from '../LangContext';
+
 export default function ModesPage({ onSelect }) {
+  const { t } = useLang();
+
   const MODES = [
-    {
-      id: 'game',
-      title: 'Classic Mode',
-      description: 'Adivina si el precio sube o baja. Long, Short o Sin Trade.',
-      icon: '📈',
-      color: 'green',
-      available: true,
-    },
-    {
-      id: 'daily',
-      title: 'Daily Challenge',
-      description: 'Un reto nuevo cada día. Compite con todos los jugadores.',
-      icon: '⚡',
-      color: 'pink',
-      available: true,
-    },
-    {
-      id: 'survival',
-      title: 'Survival',
-      description: 'Sobrevive el máximo de rondas sin fallar.',
-      icon: '☠️',
-      color: 'green',
-      available: true,
-    },
-    {
-      id: 'historical',
-      title: 'Historical',
-      description: 'Practica con datos históricos reales de cualquier activo.',
-      icon: '📜',
-      color: 'green',
-      available: true,
-    },
-    {
-      id: 'arena',
-      title: 'Arena',
-      description: 'Compite en partidas rápidas contra otros jugadores.',
-      icon: '⚔️',
-      color: 'pink',
-      available: true,
-    },
-    {
-      id: 'tournament',
-      title: 'Tournament',
-      description: 'Torneos semanales con premios y ranking propio.',
-      icon: '🏆',
-      color: 'pink',
-      available: true,
-    },
-    {
-      id: 'portfolio',
-      title: 'Portfolio',
-      description: 'Gestiona un portfolio virtual y sigue tu rendimiento.',
-      icon: '💼',
-      color: 'green',
-      available: true,
-    },
+    { id: 'game',       title: 'Classic Mode',    description: 'Guess if the price goes up or down. Long, Short or No Trade.',        icon: '📈', color: 'green', available: true },
+    { id: 'daily',      title: 'Daily Challenge', description: 'A new challenge every day. Compete with all players.',                 icon: '⚡', color: 'pink',  available: true },
+    { id: 'survival',   title: 'Survival',        description: 'Survive as many rounds as possible without making a mistake.',         icon: '☠️', color: 'green', available: true },
+    { id: 'historical', title: 'Historical',      description: 'Practice with real historical data from any asset.',                   icon: '📜', color: 'green', available: true },
+    { id: 'arena',      title: 'Arena',           description: 'Compete in real-time matches against other players.',                  icon: '⚔️', color: 'pink',  available: true },
+    { id: 'tournament', title: 'Tournament',      description: 'Weekly tournaments with prizes and their own ranking.',                icon: '🏆', color: 'pink',  available: true },
+    { id: 'portfolio',  title: 'Portfolio',       description: 'Manage a virtual portfolio and track your performance.',               icon: '💼', color: 'green', available: true },
   ];
 
   return (
