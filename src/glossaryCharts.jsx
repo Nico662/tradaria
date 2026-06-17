@@ -2888,6 +2888,149 @@ function DivergenceChart() {
   );
 }
 
+// ─── Liquidity Chart ─────────────────────────────────────────────────────────
+
+function LiquidityChart() {
+  const py = p => 10 + (148 - p) * 138 / 48;
+
+  const liqLevel = 136;
+  const liqY = py(liqLevel);
+
+  const candles = [
+    { x: 10,  O: 107, H: 112, L: 105, C: 110 },
+    { x: 25,  O: 110, H: 116, L: 108, C: 114 },
+    { x: 40,  O: 114, H: 120, L: 112, C: 118 },
+    { x: 55,  O: 118, H: 127, L: 116, C: 125 },
+    { x: 70,  O: 125, H: 136, L: 123, C: 134 }, // swing high → pool
+    { x: 85,  O: 134, H: 137, L: 126, C: 128 }, // pullback
+    { x: 100, O: 128, H: 132, L: 125, C: 130 },
+    { x: 115, O: 130, H: 134, L: 128, C: 132 },
+    { x: 130, O: 132, H: 135, L: 130, C: 133 },
+    { x: 145, O: 133, H: 143, L: 132, C: 136, bw: 10 }, // SWEEP
+    { x: 160, O: 136, H: 137, L: 127, C: 128 }, // reversal
+  ];
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
+
+      {[35, 60, 85, 110, 135].map(y => (
+        <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
+      ))}
+
+      {/* Liquidity pool line */}
+      <line x1="6" y1={liqY} x2="182" y2={liqY}
+        stroke="var(--color-neutral)" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.5" />
+
+      {/* Stop order tick marks clustered above the level */}
+      {[88, 97, 106, 115, 124].map(x => (
+        <line key={x} x1={x} y1={liqY - 7} x2={x} y2={liqY - 2}
+          stroke="var(--color-neutral)" strokeWidth="1" opacity="0.4" />
+      ))}
+
+      {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
+        const bull  = C >= O;
+        const col   = bull ? 'var(--green)' : 'var(--color-down)';
+        const bodyY = py(Math.max(O, C));
+        const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="1" opacity="0.75" />
+            <rect x={x - bw / 2} y={bodyY} width={bw} height={bodyH} fill={col} rx="0.5" opacity="0.95" />
+          </g>
+        );
+      })}
+
+      <text x="8" y={liqY - 3}
+        fontFamily="var(--font-mono)" fontSize="5.5"
+        fill="var(--color-neutral)" opacity="0.7">LIQUIDITY POOL</text>
+
+      <text x="106" y={liqY - 10}
+        textAnchor="middle" fontFamily="var(--font-mono)"
+        fontSize="4.5" fill="var(--color-neutral)" opacity="0.5">stops ↑</text>
+
+      <text x="145" y={py(143) - 3}
+        textAnchor="middle" fontFamily="var(--font-mono)"
+        fontSize="6" fontWeight="bold" fill="var(--color-neutral)" opacity="0.85">SWEEP ↑</text>
+
+      <text x="6" y="154"
+        fontFamily="var(--font-mono)" fontSize="5"
+        fill="#172030" letterSpacing="0.1em">LIQUIDITY HUNT</text>
+    </svg>
+  );
+}
+
+// ─── Consolidation Chart ─────────────────────────────────────────────────────
+
+function ConsolidationChart() {
+  const py = p => 10 + (148 - p) * 138 / 48;
+
+  const rangeTop = 128;
+  const rangeBot = 117;
+  const topY = py(rangeTop);
+  const botY = py(rangeBot);
+
+  const candles = [
+    // Flagpole
+    { x: 12,  O: 107, H: 113, L: 105, C: 111 },
+    { x: 25,  O: 111, H: 118, L: 109, C: 116 },
+    { x: 38,  O: 116, H: 124, L: 114, C: 122 },
+    { x: 51,  O: 122, H: 130, L: 120, C: 128 },
+    // Consolidation
+    { x: 64,  O: 128, H: 130, L: 120, C: 122 },
+    { x: 77,  O: 122, H: 127, L: 118, C: 125 },
+    { x: 90,  O: 125, H: 128, L: 119, C: 121 },
+    { x: 103, O: 121, H: 126, L: 117, C: 124 },
+    { x: 116, O: 124, H: 128, L: 120, C: 122 },
+    { x: 129, O: 122, H: 127, L: 118, C: 125 },
+    // Breakout
+    { x: 142, O: 125, H: 138, L: 124, C: 136, bw: 10 },
+    { x: 157, O: 136, H: 142, L: 134, C: 140 },
+  ];
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
+
+      {[35, 60, 85, 110, 135].map(y => (
+        <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
+      ))}
+
+      {/* Consolidation zone */}
+      <rect x="57" y={topY} width="78" height={botY - topY} fill="var(--color-neutral)0d" />
+      <line x1="57" y1={topY} x2="135" y2={topY}
+        stroke="var(--color-neutral)" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.45" />
+      <line x1="57" y1={botY} x2="135" y2={botY}
+        stroke="var(--color-neutral)" strokeWidth="0.9" strokeDasharray="4 2.5" opacity="0.45" />
+
+      {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
+        const bull  = C >= O;
+        const col   = bull ? 'var(--green)' : 'var(--color-down)';
+        const bodyY = py(Math.max(O, C));
+        const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="1" opacity="0.75" />
+            <rect x={x - bw / 2} y={bodyY} width={bw} height={bodyH} fill={col} rx="0.5" opacity="0.95" />
+          </g>
+        );
+      })}
+
+      <text x="96" y={(topY + botY) / 2 + 3}
+        textAnchor="middle" fontFamily="var(--font-mono)"
+        fontSize="5.5" fill="var(--color-neutral)" opacity="0.5">CONSOLIDATION</text>
+
+      <text x="142" y={py(138) - 3}
+        textAnchor="middle" fontFamily="var(--font-mono)"
+        fontSize="6" fontWeight="bold" fill="var(--green)" opacity="0.9">BREAKOUT ↑</text>
+
+      <text x="6" y="154"
+        fontFamily="var(--font-mono)" fontSize="5"
+        fill="#172030" letterSpacing="0.1em">CONSOLIDATION BREAKOUT</text>
+    </svg>
+  );
+}
+
 // ─── Breakout Chart ─────────────────────────────────────────────────────────
 
 function BreakoutChart() {
@@ -2990,4 +3133,6 @@ export const CHARTS = {
   moving_average:      MovingAverageChart,
   divergence:          DivergenceChart,
   breakout:            BreakoutChart,
+  liquidity:           LiquidityChart,
+  consolidation:       ConsolidationChart,
 };

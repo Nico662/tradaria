@@ -17,6 +17,7 @@ export const GLOSSARY = [
       es: 'Los institucionales necesitan liquidez para llenar sus grandes posiciones. Saber dónde hay pools ayuda a predecir el precio.',
       de: 'Institutionelle Trader brauchen Liquidität, um große Positionen zu füllen.',
     },
+    chartId: 'liquidity',
   },
   {
     chartId: 'fvg',
@@ -676,5 +677,6 @@ export const GLOSSARY = [
       es: 'Los patrones de consolidación incluyen banderas, banderines, rectángulos y triángulos. Mide el mástil y proyéctalo desde el breakout para estimar objetivos.',
       de: 'Konsolidierungsmuster: Flaggen, Wimpel, Rechtecke, Dreiecke. Masthöhe messen und vom Ausbruch projizieren.',
     },
+    chartId: 'consolidation',
   },
 ];
