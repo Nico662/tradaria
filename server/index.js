@@ -2838,7 +2838,7 @@ app.post('/portfolio/snapshot', async (req, res) => {
       if (myRank < prevRank && myRank < ranking.length && isWeekday()) {
         const surpassedUser = ranking[myRank]; // the user now at the position we just took
         console.log(`[leaderboard-notif] surpassed user=${surpassedUser.userId} (${surpassedUser.name}) — checking sub`);
-        if (surpassedUser.userId) {
+        if (surpassedUser.userId && surpassedUser.userId.toString() !== decoded.id.toString()) {
           const cooldownKey    = `leaderboard_notif_sent:${surpassedUser.userId}`;
           const alreadyNotified = await redis.get(cooldownKey);
           const subRaw         = await redis.get(`push_user_sub:${surpassedUser.userId}`);
