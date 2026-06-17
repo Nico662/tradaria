@@ -656,6 +656,7 @@ export const GLOSSARY = [
       es: 'Las falsas rupturas son comunes. Espera el cierre de vela más allá del nivel. Un retest como nuevo soporte es una entrada más segura que perseguir la ruptura inicial.',
       de: 'Falsche Ausbrüche (Fakeouts) sind häufig. Warte auf den Kerzenschluss. Ein Retest des gebrochenen Niveaus ist ein sichererer Einstiegspunkt.',
     },
+    chartId: 'breakout',
   },
   {
     word: { en: 'Consolidation', es: 'Consolidación', de: 'Konsolidierung' },

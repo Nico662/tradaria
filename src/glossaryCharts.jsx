@@ -2888,6 +2888,75 @@ function DivergenceChart() {
   );
 }
 
+// ─── Breakout Chart ─────────────────────────────────────────────────────────
+
+function BreakoutChart() {
+  const py = p => 10 + (145 - p) * 138 / 45;
+
+  const resLevel = 132;
+  const resY = py(resLevel);
+  const brkX = 96;
+
+  const candles = [
+    { x: 12,  O: 114, H: 119, L: 112, C: 117 },
+    { x: 26,  O: 117, H: 123, L: 115, C: 120 },
+    { x: 40,  O: 120, H: 131, L: 118, C: 124 },
+    { x: 54,  O: 124, H: 132, L: 120, C: 121 },
+    { x: 68,  O: 121, H: 129, L: 118, C: 127 },
+    { x: 82,  O: 127, H: 132, L: 124, C: 128 },
+    { x: 96,  O: 128, H: 142, L: 127, C: 139, bw: 10 },
+    { x: 110, O: 139, H: 143, L: 131, C: 133 },
+    { x: 124, O: 133, H: 138, L: 130, C: 136 },
+    { x: 138, O: 136, H: 143, L: 134, C: 141 },
+    { x: 152, O: 141, H: 146, L: 139, C: 144 },
+  ];
+
+  return (
+    <svg viewBox="0 0 188 158" width="100%" style={{ display: 'block', borderRadius: '8px' }}>
+      <rect width="188" height="158" fill="var(--bg-base)" rx="8" />
+
+      {[35, 60, 85, 110, 135].map(y => (
+        <line key={y} x1="6" y1={y} x2="182" y2={y} stroke="#0c1520" strokeWidth="0.7" />
+      ))}
+
+      {/* Resistance line → becomes support after breakout */}
+      <line x1="6" y1={resY} x2={brkX - 6} y2={resY}
+        stroke="var(--color-down)" strokeWidth="1" strokeDasharray="4 2.5" opacity="0.7" />
+      <line x1={brkX + 6} y1={resY} x2="182" y2={resY}
+        stroke="var(--green)" strokeWidth="1" strokeDasharray="4 2.5" opacity="0.45" />
+
+      {candles.map(({ x, O, H, L, C, bw = 8 }, i) => {
+        const bull  = C >= O;
+        const col   = bull ? 'var(--green)' : 'var(--color-down)';
+        const bodyY = py(Math.max(O, C));
+        const bodyH = Math.max(py(Math.min(O, C)) - bodyY, 1.5);
+        return (
+          <g key={i}>
+            <line x1={x} y1={py(H)} x2={x} y2={py(L)} stroke={col} strokeWidth="1" opacity="0.75" />
+            <rect x={x - bw / 2} y={bodyY} width={bw} height={bodyH} fill={col} rx="0.5" opacity="0.95" />
+          </g>
+        );
+      })}
+
+      <text x="8" y={resY - 3}
+        fontFamily="var(--font-mono)" fontSize="5.5"
+        fill="var(--color-down)" opacity="0.7">RESISTANCE</text>
+
+      <text x={brkX} y={py(142) - 3}
+        textAnchor="middle" fontFamily="var(--font-mono)"
+        fontSize="6" fontWeight="bold" fill="var(--green)" opacity="0.9">BREAKOUT ↑</text>
+
+      <text x="117" y={resY + 13}
+        textAnchor="middle" fontFamily="var(--font-mono)"
+        fontSize="5" fill="var(--color-neutral)" opacity="0.6">retest</text>
+
+      <text x="6" y="154"
+        fontFamily="var(--font-mono)" fontSize="5"
+        fill="#172030" letterSpacing="0.1em">BULLISH BREAKOUT</text>
+    </svg>
+  );
+}
+
 export const CHARTS = {
   fvg:                FVGChart,
   displacement:       DisplacementChart,
@@ -2920,4 +2989,5 @@ export const CHARTS = {
   fibonacci:           FibonacciChart,
   moving_average:      MovingAverageChart,
   divergence:          DivergenceChart,
+  breakout:            BreakoutChart,
 };
