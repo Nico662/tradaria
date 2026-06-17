@@ -2834,14 +2834,16 @@ app.post('/portfolio/snapshot', async (req, res) => {
       const prevRank    = parseInt(await redis.get(prevRankKey) || '999');
       console.log(`[leaderboard-notif] user=${decoded.id} myRank=${myRank} prevRank=${prevRank} rankingSize=${ranking.length}`);
 
-      // Notify the person who was just displaced below us (now at myRank+1)
-      if (myRank < prevRank && myRank + 1 < ranking.length && isWeekday()) {
-        const surpassedUser = ranking[myRank + 1];
+      // Notify the person we just displaced (now at myRank, the position we took)
+      if (myRank < prevRank && myRank < ranking.length && isWeekday()) {
+        const surpassedUser = ranking[myRank]; // the user now at the position we just took
         console.log(`[leaderboard-notif] surpassed user=${surpassedUser.userId} (${surpassedUser.name}) — checking sub`);
         if (surpassedUser.userId) {
-          const subRaw = await redis.get(`push_user_sub:${surpassedUser.userId}`);
-          console.log(`[leaderboard-notif] surpassed user hasSub=${!!subRaw}`);
-          if (subRaw) {
+          const cooldownKey    = `leaderboard_notif_sent:${surpassedUser.userId}`;
+          const alreadyNotified = await redis.get(cooldownKey);
+          const subRaw         = await redis.get(`push_user_sub:${surpassedUser.userId}`);
+          console.log(`[leaderboard-notif] surpassed user hasSub=${!!subRaw} alreadyNotified=${!!alreadyNotified}`);
+          if (!alreadyNotified && subRaw) {
             const sub     = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
             const myName  = `@${myData.name}`;
             const payload = JSON.stringify({
@@ -2850,6 +2852,7 @@ app.post('/portfolio/snapshot', async (req, res) => {
               url:   'https://tradaria.dev',
             });
             await webpush.sendNotification(sub, payload).catch(() => {});
+            await redis.set(cooldownKey, '1', { ex: 21600 }); // 6 horas
             console.log(`[leaderboard-notif] notification sent to ${surpassedUser.userId}`);
           }
         }
