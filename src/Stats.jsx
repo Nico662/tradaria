@@ -66,8 +66,8 @@ export default function Stats({ onBack, onSelect }) {
       {/* Header */}
       <div style={{ padding: '16px 16px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '22px', color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>Tu perfil</div>
-          <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', marginTop: '2px' }}>Estadísticas y logros</div>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '22px', color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>{t.stats.title2}</div>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', marginTop: '2px' }}>{t.stats.subtitle}</div>
         </div>
 
         <div style={{ position: 'relative', flexShrink: 0 }}>
@@ -116,10 +116,10 @@ export default function Stats({ onBack, onSelect }) {
           {/* Stat cards */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', padding: '0 16px 16px' }}>
             {[
-              { label: 'PARTIDAS',    value: data.totalGames,    color: 'var(--text-primary)' },
-              { label: 'PRECISIÓN',   value: `${data.avgAccuracy}%`, color: data.avgAccuracy >= 50 ? 'var(--green)' : 'var(--pink)' },
-              { label: 'MEJOR RACHA', value: data.bestStreak,   color: 'var(--pink)'  },
-              { label: 'MEJOR SCORE', value: data.bestScore,    color: 'var(--green)' },
+              { label: t.stats.games,       value: data.totalGames,           color: 'var(--text-primary)' },
+              { label: t.stats.accuracy,    value: `${data.avgAccuracy}%`,    color: data.avgAccuracy >= 50 ? 'var(--green)' : 'var(--pink)' },
+              { label: t.stats.bestStreak,  value: data.bestStreak,           color: 'var(--pink)'  },
+              { label: t.stats.bestScore,   value: data.bestScore,            color: 'var(--green)' },
             ].map(({ label, value, color }, i) => (
               <div key={label} className={`animate-fade-in-up stagger-${i + 1}`} style={{ background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', padding: '14px 12px' }}>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: '9px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '6px' }}>{label}</div>
@@ -131,7 +131,7 @@ export default function Stats({ onBack, onSelect }) {
           {/* Accuracy trend */}
           {data.accuracyTrend?.length >= 2 && (
             <div style={{ margin: '0 16px 16px', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-lg)', padding: '14px' }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '10px' }}>Tendencia de precisión</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '10px' }}>{t.stats.trend}</div>
               <AccuracyGraph trend={data.accuracyTrend} />
             </div>
           )}
@@ -141,7 +141,7 @@ export default function Stats({ onBack, onSelect }) {
             const total = Object.values(data.modeCounts).reduce((s, v) => s + v, 0) || 1;
             return (
               <div style={{ margin: '0 16px 16px' }}>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '10px' }}>Por modo</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '10px' }}>{t.stats.byMode}</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {Object.entries(data.modeCounts).sort((a, b) => b[1] - a[1]).map(([mode, count]) => {
                     const pct = Math.round(count / total * 100);
@@ -167,10 +167,10 @@ export default function Stats({ onBack, onSelect }) {
           {recentBadges.length > 0 && (
             <div style={{ margin: '0 16px 16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Logros recientes</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>{t.stats.recentBadges}</div>
                 <button onClick={() => onSelect?.('badges')}
                   style={{ background: 'transparent', border: 'none', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, color: 'var(--green)', cursor: 'pointer', letterSpacing: '0.06em' }}>
-                  Ver todos →
+                  {t.stats.seeAll}
                 </button>
               </div>
               <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: '4px' }}>
@@ -186,7 +186,7 @@ export default function Stats({ onBack, onSelect }) {
 
           {/* Global comparison */}
           <div style={{ margin: '0 16px 16px', background: 'var(--bg-surface)', border: '0.5px solid var(--border-pink)', borderRadius: 'var(--radius-lg)', padding: '14px' }}>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '10px' }}>Vs media global</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '10px' }}>{t.stats.vsGlobal}</div>
             {data.totalGames > 0 ? (
               <>
                 <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '28px', color: 'var(--green)', letterSpacing: '-0.5px', lineHeight: 1 }}>

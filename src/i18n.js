@@ -29,6 +29,7 @@ export const LANGS = {
       correct: 'CORRECT', wrong: 'WRONG', flat: 'FLAT',
       next: 'NEXT →', menu: '← menu',
       up: '▲ UP', down: '▼ DOWN', flatDir: '— FLAT',
+      back: '← menu', mode: 'Classic Mode', points: 'Points', accuracy: 'Accuracy', newHighscore: '★ new highscore!', best: 'Best',
     },
     gameover: {
       title: 'game over — 25 rounds', finalScore: 'final score',
@@ -106,7 +107,7 @@ export const LANGS = {
       myDuelsExpiresIn: 'Expires in',
     },
     badges: {
-      title: 'Badges', unlocked: 'unlocked', back: '← back',
+      title: 'Achievements', unlocked: 'unlocked', back: '← Back', of: 'of',
       items: {
         sniper:          { name: 'Sniper',              desc: '5 correct in a row' },
         on_fire:         { name: 'On Fire',             desc: '10 correct in a row' },
@@ -166,6 +167,7 @@ export const LANGS = {
     },
     historical: {
       title: 'Historical Mode',
+      mode: 'Historical Mode',
       sub: '50 real events · can you call them?',
       back: '← back',
       eventsBack: '← events',
@@ -232,6 +234,9 @@ export const LANGS = {
     },
     daily: {
       title: 'Daily Challenge',
+      mode: 'Daily Challenge',
+      loading: 'Loading...', error: 'Error loading challenge. Try again later.',
+      comeBack: 'Come back tomorrow', comeBackSub: 'A new challenge every day at 00:00. Keep your streak alive.',
       back: '← back',
       next: 'next challenge in',
       oneShot: 'one shot — what happens next?',
@@ -255,6 +260,7 @@ export const LANGS = {
       menu: '← menu',
       newHighscore: '★ new highscore!', best: 'best', streakLabel: 'streak',
       livesLeft: 'left', gameOverMsg: 'game over',
+      mode: 'Survival Mode', lives: 'Lives', rounds: 'Rounds',
     },
     portfolio: {
       title: 'Portfolio Mode',
@@ -428,14 +434,16 @@ export const LANGS = {
     },
     stats: {
       title: 'My Stats', back: '← back',
+      title2: 'Your profile', subtitle: 'Statistics and achievements',
       signIn: 'Sign in to track your stats',
       signInSub: 'Your progress is saved automatically once you log in',
       error: 'Error loading stats. Try again later.',
-      games: 'Games', avgAccuracy: 'Avg accuracy',
+      games: 'Games', avgAccuracy: 'Avg accuracy', accuracy: 'Accuracy',
       bestStreak: 'Best streak', bestScore: 'Best score',
       lastGames: 'Last', lastGamesSuffix: 'games — accuracy',
       byMode: 'By mode', plays: 'plays',
-      recentBadges: 'Recent badges',
+      recentBadges: 'Recent badges', seeAll: 'See all →',
+      trend: 'Accuracy trend', vsGlobal: 'Vs global average',
       globalComparison: 'Global comparison',
       betterThan: 'Your accuracy beats',
       betterThanSuffix: '% of players',
@@ -610,6 +618,7 @@ export const LANGS = {
       correct: 'CORRECTO', wrong: 'INCORRECTO', flat: 'LATERAL',
       next: 'SIGUIENTE →', menu: '← menú',
       up: '▲ SUBE', down: '▼ BAJA', flatDir: '— LATERAL',
+      back: '← menú', mode: 'Classic Mode', points: 'Puntos', accuracy: 'Precisión', newHighscore: '★ ¡nuevo récord!', best: 'Mejor',
     },
     gameover: {
       title: 'fin — 25 rondas', finalScore: 'puntuación final',
@@ -687,7 +696,7 @@ export const LANGS = {
       myDuelsExpiresIn: 'Expira en',
     },
     badges: {
-      title: 'Medallas', unlocked: 'desbloqueadas', back: '← volver',
+      title: 'Logros', unlocked: 'desbloqueados', back: '← Volver', of: 'de',
       items: {
         sniper:          { name: 'Francotirador',       desc: '5 aciertos seguidos' },
         on_fire:         { name: 'En llamas',           desc: '10 aciertos seguidos' },
@@ -747,6 +756,7 @@ export const LANGS = {
     },
     historical: {
       title: 'Modo Histórico',
+      mode: 'Modo Histórico',
       sub: '50 eventos reales · ¿puedes acertarlos?',
       back: '← volver',
       eventsBack: '← eventos',
@@ -813,6 +823,9 @@ export const LANGS = {
     },
     daily: {
       title: 'Desafío Diario',
+      mode: 'Desafío Diario',
+      loading: 'Cargando...', error: 'Error al cargar el reto. Inténtalo más tarde.',
+      comeBack: 'Vuelve mañana', comeBackSub: 'Un nuevo reto cada día a las 00:00. Mantén tu racha activa.',
       back: '← volver',
       next: 'próximo desafío en',
       oneShot: 'un intento — ¿qué pasa después?',
@@ -836,6 +849,7 @@ export const LANGS = {
       menu: '← menú',
       newHighscore: '★ nuevo récord!', best: 'mejor', streakLabel: 'racha',
       livesLeft: 'restantes', gameOverMsg: 'fin del juego',
+      mode: 'Survival Mode', lives: 'Vidas', rounds: 'Rondas',
     },
     portfolio: {
       title: 'Portfolio Mode',
@@ -1009,14 +1023,16 @@ export const LANGS = {
     },
     stats: {
       title: 'Mis Stats', back: '← volver',
+      title2: 'Tu perfil', subtitle: 'Estadísticas y logros',
       signIn: 'Inicia sesión para guardar tus stats',
       signInSub: 'Tu progreso se guarda automáticamente al iniciar sesión',
       error: 'Error cargando stats. Inténtalo más tarde.',
-      games: 'Partidas', avgAccuracy: 'Precisión media',
+      games: 'Partidas', avgAccuracy: 'Precisión media', accuracy: 'Precisión',
       bestStreak: 'Mejor racha', bestScore: 'Mejor score',
       lastGames: 'Últimas', lastGamesSuffix: 'partidas — precisión',
       byMode: 'Por modo', plays: 'partidas',
-      recentBadges: 'Logros recientes',
+      recentBadges: 'Logros recientes', seeAll: 'Ver todos →',
+      trend: 'Tendencia de precisión', vsGlobal: 'Vs media global',
       globalComparison: 'Comparativa global',
       betterThan: 'Tu precisión supera al',
       betterThanSuffix: '% de jugadores',
@@ -1191,6 +1207,7 @@ export const LANGS = {
       correct: 'RICHTIG', wrong: 'FALSCH', flat: 'SEITWÄRTS',
       next: 'WEITER →', menu: '← Menü',
       up: '▲ HOCH', down: '▼ RUNTER', flatDir: '— SEITWÄRTS',
+      back: '← Menü', mode: 'Classic Mode', points: 'Punkte', accuracy: 'Genauigkeit', newHighscore: '★ neuer Rekord!', best: 'Beste',
     },
     gameover: {
       title: 'spiel vorbei — 25 runden', finalScore: 'endpunktzahl',
@@ -1268,7 +1285,7 @@ export const LANGS = {
       myDuelsExpiresIn: 'Läuft ab in',
     },
     badges: {
-      title: 'Abzeichen', unlocked: 'freigeschaltet', back: '← zurück',
+      title: 'Erfolge', unlocked: 'freigeschaltet', back: '← Zurück', of: 'von',
       items: {
         sniper:          { name: 'Scharfschütze',       desc: '5 richtige in Folge' },
         on_fire:         { name: 'In Flammen',          desc: '10 richtige in Folge' },
@@ -1328,6 +1345,7 @@ export const LANGS = {
     },
     historical: {
       title: 'Historischer Modus',
+      mode: 'Historischer Modus',
       sub: '50 echte Ereignisse · kannst du sie erraten?',
       back: '← zurück',
       eventsBack: '← Ereignisse',
@@ -1394,6 +1412,9 @@ export const LANGS = {
     },
     daily: {
       title: 'Tägliche Challenge',
+      mode: 'Tägliche Herausforderung',
+      loading: 'Laden...', error: 'Fehler beim Laden. Bitte erneut versuchen.',
+      comeBack: 'Komm morgen wieder', comeBackSub: 'Eine neue Herausforderung jeden Tag um 00:00.',
       back: '← zurück',
       next: 'nächste Challenge in',
       oneShot: 'ein Versuch — was passiert als nächstes?',
@@ -1417,6 +1438,7 @@ export const LANGS = {
       menu: '← Menü',
       newHighscore: '★ neuer Highscore!', best: 'Bestes', streakLabel: 'Serie',
       livesLeft: 'übrig', gameOverMsg: 'Spiel vorbei',
+      mode: 'Survival Mode', lives: 'Leben', rounds: 'Runden',
     },
     portfolio: {
       title: 'Portfolio Mode',
@@ -1590,14 +1612,16 @@ export const LANGS = {
     },
     stats: {
       title: 'Meine Stats', back: '← zurück',
+      title2: 'Dein Profil', subtitle: 'Statistiken und Erfolge',
       signIn: 'Anmelden um Stats zu speichern',
       signInSub: 'Dein Fortschritt wird automatisch beim Anmelden gespeichert',
       error: 'Fehler beim Laden der Stats. Später erneut versuchen.',
-      games: 'Spiele', avgAccuracy: 'Ø Genauigkeit',
+      games: 'Spiele', avgAccuracy: 'Ø Genauigkeit', accuracy: 'Genauigkeit',
       bestStreak: 'Beste Serie', bestScore: 'Bestes Ergebnis',
       lastGames: 'Letzte', lastGamesSuffix: 'Spiele — Genauigkeit',
       byMode: 'Nach Modus', plays: 'Spiele',
-      recentBadges: 'Aktuelle Abzeichen',
+      recentBadges: 'Aktuelle Abzeichen', seeAll: 'Alle anzeigen →',
+      trend: 'Genauigkeitstrend', vsGlobal: 'Vs. globaler Durchschnitt',
       globalComparison: 'Globaler Vergleich',
       betterThan: 'Deine Genauigkeit schlägt',
       betterThanSuffix: '% der Spieler',

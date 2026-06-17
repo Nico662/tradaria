@@ -265,7 +265,7 @@ export default function Survival({ onBack }) {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginTop: '20px', marginBottom: '16px' }}>
               {[
-                { label: 'rounds',   value: round - 1,      color: 'var(--text-primary)' },
+                { label: t.survival.rounds,   value: round - 1,      color: 'var(--text-primary)' },
                 { label: 'correct',  value: wins,           color: 'var(--green)' },
                 { label: 'accuracy', value: accuracy + '%', color: 'var(--color-neutral)' },
               ].map(s => (
@@ -321,7 +321,7 @@ export default function Survival({ onBack }) {
           <div style={{ fontSize: '9px', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '16px' }}>{t.survival.finalScore}</div>
           {isNewHS && <div style={{ fontSize: '10px', color: 'var(--green)', marginBottom: '8px' }}>{t.survival.newHighscore}</div>}
           <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
-            <div><span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)' }}>{round - 1}</span><div style={{ fontSize: '8px', color: 'var(--text-muted)' }}>rounds</div></div>
+            <div><span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)' }}>{round - 1}</span><div style={{ fontSize: '8px', color: 'var(--text-muted)' }}>{t.survival.rounds}</div></div>
             <div><span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--green)' }}>{wins}</span><div style={{ fontSize: '8px', color: 'var(--text-muted)' }}>correct</div></div>
             <div><span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--color-neutral)' }}>{accuracy}%</span><div style={{ fontSize: '8px', color: 'var(--text-muted)' }}>accuracy</div></div>
           </div>
@@ -349,7 +349,7 @@ export default function Survival({ onBack }) {
             ☠️ {t.survival.title}
           </div>
           <div style={{ fontSize: '8px', color: 'var(--text-muted)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: 'var(--font-body)' }}>
-            SURVIVAL MODE
+            {t.survival.mode}
           </div>
         </div>
 
@@ -381,11 +381,11 @@ export default function Survival({ onBack }) {
         {Array.from({ length: 12 }, (_, i) => (
           <div key={i} className={`streak-dot${recent[i] ? ' ' + recent[i] : ''}`} />
         ))}
-        {streak > 1 && <span className="streak-label">{streak}x streak</span>}
+        {streak > 1 && <span className="streak-label">{streak}x {t.survival.streakLabel}</span>}
       </div>
       {/* Lives below chart */}
       <div style={{ padding: '8px 20px 4px', position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px' }}>
-        <span style={{ fontSize: '8px', color: 'var(--text-muted)', letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: 'var(--font-body)' }}>LIVES</span>
+        <span style={{ fontSize: '8px', color: 'var(--text-muted)', letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: 'var(--font-body)' }}>{t.survival.lives}</span>
         <div style={{ display: 'flex', gap: '10px' }}>
           {Array.from({ length: MAX_LIVES }, (_, i) => (
             <span key={i} style={{

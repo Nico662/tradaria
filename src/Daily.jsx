@@ -225,7 +225,7 @@ export default function Daily({ onBack }) {
               📅 {t.daily.title}
             </div>
             <div style={{ fontSize: '8px', color: 'var(--text-muted)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: 'var(--font-body)' }}>
-              DAILY CHALLENGE
+              {t.daily.mode}
             </div>
           </div>
 
@@ -246,10 +246,10 @@ export default function Daily({ onBack }) {
         </div>
 
         {phase === 'loading' && (
-          <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '11px', marginTop: '60px' }}>loading...</div>
+          <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '11px', marginTop: '60px' }}>{t.daily.loading}</div>
         )}
         {phase === 'error' && (
-          <div style={{ textAlign: 'center', color: 'var(--color-down)', fontSize: '11px', marginTop: '60px' }}>error loading challenge. try again later.</div>
+          <div style={{ textAlign: 'center', color: 'var(--color-down)', fontSize: '11px', marginTop: '60px' }}>{t.daily.error}</div>
         )}
 
         {(phase === 'choose' || phase === 'reveal') && dailyAsset && (
@@ -343,8 +343,8 @@ export default function Daily({ onBack }) {
             )}
           </div>
           <div style={{ marginTop: '16px', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-lg)', padding: '16px', textAlign: 'center' }}>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '8px' }}>Vuelve mañana</div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)', lineHeight: 1.5 }}>Un nuevo reto cada día a las 00:00. Mantén tu racha activa.</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '8px' }}>{t.daily.comeBack}</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{t.daily.comeBackSub}</div>
           </div>
           </>
         )}

@@ -125,7 +125,7 @@ export default function Historical({ onBack }) {
               📜 {t.historical.title}
             </div>
             <div style={{ fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: 'var(--font-body)' }}>
-              HISTORICAL MODE
+              {t.historical.mode}
             </div>
           </div>
 
@@ -190,7 +190,7 @@ export default function Historical({ onBack }) {
               📜 {t.historical.title}
             </div>
             <div style={{ fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: 'var(--font-body)' }}>
-              HISTORICAL MODE
+              {t.historical.mode}
             </div>
           </div>
 

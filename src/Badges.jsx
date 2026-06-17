@@ -10,13 +10,13 @@ export default function Badges({ onBack, onSelect }) {
 
       <button onClick={() => onSelect('stats')}
         style={{ background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 10px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', marginBottom: '16px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-        ← Volver
+        {t.badges.back}
       </button>
 
       <div style={{ marginBottom: '20px' }}>
-        <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '22px', color: 'var(--text-primary)', letterSpacing: '-0.5px', marginBottom: '4px' }}>Logros</div>
+        <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '22px', color: 'var(--text-primary)', letterSpacing: '-0.5px', marginBottom: '4px' }}>{t.badges.title}</div>
         <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)' }}>
-          {unlocked.length} de {BADGES.length} desbloqueados
+          {unlocked.length} {t.badges.of} {BADGES.length} {t.badges.unlocked}
         </div>
         <div style={{ marginTop: '8px', height: '4px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>
           <div style={{ height: '100%', width: `${(unlocked.length / BADGES.length) * 100}%`, background: 'linear-gradient(90deg, var(--pink), var(--green))', borderRadius: 'var(--radius-full)', transition: 'width 0.6s ease' }} />

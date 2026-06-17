@@ -519,10 +519,10 @@ export default function App() {
               </div>
               {score >= highscore && score > 0 && (
                 <div style={{ marginTop: '8px', fontSize: '10px', color: 'var(--green)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                  ★ new highscore!
+                  {t.game.newHighscore}
                 </div>
               )}
-              <div style={{ fontSize: '11px', color: 'var(--t6)', marginTop: '4px' }}>best: {highscore}</div>
+              <div style={{ fontSize: '11px', color: 'var(--t6)', marginTop: '4px' }}>{t.game.best}: {highscore}</div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '20px' }}>
               {[
@@ -717,10 +717,10 @@ export default function App() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
           <button onClick={goHome}
             style={{ background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 10px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em' }}>
-            ← menú
+            {t.game.back}
           </button>
           <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '11px', color: 'var(--text-muted)', letterSpacing: '0.16em', textTransform: 'uppercase' }}>
-            Classic Mode
+            {t.game.mode}
           </div>
           <div style={{ display: 'flex', gap: '4px' }}>
             {['en', 'es', 'de'].map(l => (
@@ -733,9 +733,9 @@ export default function App() {
         </div>
         <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
           {[
-            { label: 'RONDA',  value: `${round}/25`, color: 'var(--text-primary)' },
-            { label: 'PUNTOS', value: score,          color: 'var(--green)'        },
-            { label: 'RACHA',  value: streak,         color: streak > 0 ? 'var(--pink)' : 'var(--text-muted)' },
+            { label: t.game.round,  value: `${round}/25`, color: 'var(--text-primary)' },
+            { label: t.game.points, value: score,          color: 'var(--green)'        },
+            { label: t.game.streak, value: streak,         color: streak > 0 ? 'var(--pink)' : 'var(--text-muted)' },
           ].map(({ label, value, color }) => (
             <div key={label} style={{ flex: 1, background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', padding: '6px 8px', textAlign: 'center', border: '0.5px solid var(--border-default)' }}>
               <div style={{ fontFamily: 'var(--font-body)', fontSize: '8px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', marginBottom: '2px' }}>{label}</div>
@@ -866,9 +866,9 @@ export default function App() {
       {/* Stat cards */}
       <div style={{ padding: '10px 16px 16px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
         {[
-          { label: 'CORRECT',  value: history.filter(h => h === 'win').length,  color: 'var(--green)' },
-          { label: 'WRONG',    value: history.filter(h => h === 'lose').length, color: 'var(--pink)' },
-          { label: 'ACCURACY', value: history.filter(h => h !== 'skip').length > 0
+          { label: t.game.correct,  value: history.filter(h => h === 'win').length,  color: 'var(--green)' },
+          { label: t.game.wrong,    value: history.filter(h => h === 'lose').length, color: 'var(--pink)' },
+          { label: t.game.accuracy, value: history.filter(h => h !== 'skip').length > 0
               ? Math.round(history.filter(h => h === 'win').length / history.filter(h => h !== 'skip').length * 100) + '%'
               : '—', color: 'var(--color-neutral)' },
         ].map(s => (
