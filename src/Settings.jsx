@@ -13,6 +13,10 @@ const STRINGS = {
     notifOn: '✓ Notifications enabled', notifOff: 'Enable notifications',
     account: 'Account', username: 'Username', edit: 'Edit', signOut: 'Sign out',
     about: 'About Tradiko', builtBy: 'Built by Nicolás Vidal',
+    subscription: 'Subscription', planLabel: 'Pro Plan · €3.99/mo', planActive: '⚡ ACTIVE',
+    cancelDoneMsg: 'Subscription cancelled. You will keep Pro access until the end of the current period.',
+    cancelConfirmMsg: 'Are you sure? You will lose Pro access at the end of the current period.',
+    cancelling: 'Cancelling...', confirmCancel: 'Yes, cancel', goBack: 'Back', cancelSub: 'Cancel subscription',
   },
   es: {
     title: 'Configuración', back: '← volver',
@@ -22,6 +26,10 @@ const STRINGS = {
     notifOn: '✓ Notificaciones activadas', notifOff: 'Activar notificaciones',
     account: 'Cuenta', username: 'Nombre de usuario', edit: 'Editar', signOut: 'Cerrar sesión',
     about: 'Sobre Tradiko', builtBy: 'Construido por Nicolás Vidal',
+    subscription: 'Suscripción', planLabel: 'Plan Pro · €3.99/mes', planActive: '⚡ ACTIVO',
+    cancelDoneMsg: 'Suscripción cancelada. Seguirás teniendo acceso Pro hasta el fin del período.',
+    cancelConfirmMsg: '¿Estás seguro? Perderás el acceso Pro al finalizar el período actual.',
+    cancelling: 'Cancelando...', confirmCancel: 'Sí, cancelar', goBack: 'Volver', cancelSub: 'Cancelar suscripción',
   },
   de: {
     title: 'Einstellungen', back: '← zurück',
@@ -31,6 +39,10 @@ const STRINGS = {
     notifOn: '✓ Benachrichtigungen aktiv', notifOff: 'Benachrichtigungen aktivieren',
     account: 'Konto', username: 'Benutzername', edit: 'Bearbeiten', signOut: 'Abmelden',
     about: 'Über Tradiko', builtBy: 'Erstellt von Nicolás Vidal',
+    subscription: 'Abonnement', planLabel: 'Pro Plan · €3.99/Monat', planActive: '⚡ AKTIV',
+    cancelDoneMsg: 'Abonnement gekündigt. Du behältst den Pro-Zugang bis zum Ende des aktuellen Zeitraums.',
+    cancelConfirmMsg: 'Bist du sicher? Du verlierst den Pro-Zugang am Ende des aktuellen Zeitraums.',
+    cancelling: 'Wird gekündigt...', confirmCancel: 'Ja, kündigen', goBack: 'Zurück', cancelSub: 'Abonnement kündigen',
   },
 };
 
@@ -182,21 +194,21 @@ export default function Settings({ onBack }) {
         {/* Pro subscription */}
         {isPro && (
           <>
-            <SectionLabel text="Suscripción" />
+            <SectionLabel text={s.subscription} />
             <Card>
-              <Row label="Plan Pro · €3.99/mes" last={!cancelConfirm && !cancelDone}>
+              <Row label={s.planLabel} last={!cancelConfirm && !cancelDone}>
                 <span style={{ fontSize: '9px', color: 'var(--green)', background: 'rgba(0,229,160,0.1)', padding: '2px 8px', borderRadius: '4px', fontFamily: 'var(--font-body)', letterSpacing: '0.06em' }}>
-                  ⚡ ACTIVO
+                  {s.planActive}
                 </span>
               </Row>
               {cancelDone ? (
                 <div style={{ padding: '12px 16px', fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--t4)' }}>
-                  Suscripción cancelada. Seguirás teniendo acceso Pro hasta el fin del período.
+                  {s.cancelDoneMsg}
                 </div>
               ) : cancelConfirm ? (
                 <div style={{ padding: '12px 16px', borderTop: '1px solid var(--bd)' }}>
                   <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--t3)', marginBottom: '12px', lineHeight: 1.5 }}>
-                    ¿Estás seguro? Perderás el acceso Pro al finalizar el período actual.
+                    {s.cancelConfirmMsg}
                   </div>
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <button
@@ -212,7 +224,7 @@ export default function Settings({ onBack }) {
                         textTransform: 'uppercase', cursor: cancelLoading ? 'default' : 'pointer',
                       }}
                     >
-                      {cancelLoading ? 'Cancelando...' : 'Sí, cancelar'}
+                      {cancelLoading ? s.cancelling : s.confirmCancel}
                     </button>
                     <button
                       onClick={() => setCancelConfirm(false)}
@@ -226,7 +238,7 @@ export default function Settings({ onBack }) {
                         textTransform: 'uppercase', cursor: 'pointer',
                       }}
                     >
-                      Volver
+                      {s.goBack}
                     </button>
                   </div>
                 </div>
@@ -243,7 +255,7 @@ export default function Settings({ onBack }) {
                       textTransform: 'uppercase', cursor: 'pointer',
                     }}
                   >
-                    Cancelar suscripción
+                    {s.cancelSub}
                   </button>
                 </div>
               )}

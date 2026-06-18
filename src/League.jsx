@@ -180,7 +180,7 @@ export default function League({ leagueId, onBack }) {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--pink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px' }}>
                   {name}
-                  <span style={{ fontSize: '9px', color: 'var(--pink)' }}>tú</span>
+                  <span style={{ fontSize: '9px', color: 'var(--pink)' }}>{t.league.you}</span>
                 </div>
                 <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>{formatCash(up.totalValue)}</div>
               </div>
