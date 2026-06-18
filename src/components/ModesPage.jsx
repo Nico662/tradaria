@@ -4,13 +4,13 @@ export default function ModesPage({ onSelect }) {
   const { t } = useLang();
 
   const MODES = [
-    { id: 'game',       title: 'Classic Mode',    description: 'Guess if the price goes up or down. Long, Short or No Trade.',        icon: '📈', color: 'green', available: true },
-    { id: 'daily',      title: 'Daily Challenge', description: 'A new challenge every day. Compete with all players.',                 icon: '⚡', color: 'pink',  available: true },
-    { id: 'survival',   title: 'Survival',        description: 'Survive as many rounds as possible without making a mistake.',         icon: '☠️', color: 'green', available: true },
-    { id: 'historical', title: 'Historical',      description: 'Practice with real historical data from any asset.',                   icon: '📜', color: 'green', available: true },
-    { id: 'arena',      title: 'Arena',           description: 'Compete in real-time matches against other players.',                  icon: '⚔️', color: 'pink',  available: true },
-    { id: 'tournament', title: 'Tournament',      description: 'Weekly tournaments with prizes and their own ranking.',                icon: '🏆', color: 'pink',  available: true },
-    { id: 'portfolio',  title: 'Portfolio',       description: 'Manage a virtual portfolio and track your performance.',               icon: '💼', color: 'green', available: true },
+    { id: 'game',       icon: '📈', color: 'green', available: true },
+    { id: 'daily',      icon: '⚡', color: 'pink',  available: true },
+    { id: 'survival',   icon: '☠️', color: 'green', available: true },
+    { id: 'historical', icon: '📜', color: 'green', available: true },
+    { id: 'arena',      icon: '⚔️', color: 'pink',  available: true },
+    { id: 'tournament', icon: '🏆', color: 'pink',  available: true },
+    { id: 'portfolio',  icon: '💼', color: 'green', available: true },
   ];
 
   return (
@@ -68,10 +68,10 @@ export default function ModesPage({ onSelect }) {
 
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontWeight: 900, fontSize: 14, color: 'var(--text-primary)', marginBottom: 3 }}>
-                {mode.title}
+                {t.modes.items[mode.id].title}
               </div>
               <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', lineHeight: 1.4 }}>
-                {mode.description}
+                {t.modes.items[mode.id].description}
               </div>
             </div>
 

@@ -597,7 +597,18 @@ export const LANGS = {
       back: '← back', daysLeft: 'days left', finished: 'Finished', players: 'players',
       you: 'you', copied: '✓ Copied', shareCode: '🔗 Share code', delete: 'Delete', leave: 'Leave',
     },
-    modes: { title: 'Game Modes', subtitle: 'Choose how you want to practice' },
+    modes: {
+      title: 'Game Modes', subtitle: 'Choose how you want to practice',
+      items: {
+        game:       { title: 'Classic Mode',     description: 'Guess if the price goes up or down. Long, Short or No Trade.' },
+        daily:      { title: 'Daily Challenge',  description: 'A new challenge every day. Compete with all players.' },
+        survival:   { title: 'Survival',         description: 'Survive as many rounds as possible without making a mistake.' },
+        historical: { title: 'Historical',       description: 'Practice with real historical data from any asset.' },
+        arena:      { title: 'Arena',            description: 'Compete in real-time matches against other players.' },
+        tournament: { title: 'Tournament',       description: 'Weekly tournaments with prizes and their own ranking.' },
+        portfolio:  { title: 'Portfolio',        description: 'Manage a virtual portfolio and track your performance.' },
+      },
+    },
     nav: { home: 'Home', modes: 'Modes', play: 'Play', league: 'League', profile: 'Profile' },
   },
 
@@ -1199,7 +1210,18 @@ export const LANGS = {
       back: '← Volver', daysLeft: 'días restantes', finished: 'Finalizada', players: 'jugadores',
       you: 'tú', copied: '✓ Copiado', shareCode: '🔗 Compartir código', delete: 'Eliminar', leave: 'Salir',
     },
-    modes: { title: 'Modos de juego', subtitle: 'Elige cómo quieres practicar' },
+    modes: {
+      title: 'Modos de juego', subtitle: 'Elige cómo quieres practicar',
+      items: {
+        game:       { title: 'Modo Clásico',      description: 'Adivina si el precio sube o baja. Long, Short o Sin Trade.' },
+        daily:      { title: 'Desafío Diario',    description: 'Un nuevo reto cada día. Compite con todos los jugadores.' },
+        survival:   { title: 'Survival',          description: 'Sobrevive el mayor número de rondas sin cometer un error.' },
+        historical: { title: 'Histórico',         description: 'Practica con datos históricos reales de cualquier activo.' },
+        arena:      { title: 'Arena',             description: 'Compite en partidas en tiempo real contra otros jugadores.' },
+        tournament: { title: 'Torneos',           description: 'Torneos semanales con premios y clasificación propia.' },
+        portfolio:  { title: 'Portfolio',         description: 'Gestiona un portfolio virtual y sigue tu rendimiento.' },
+      },
+    },
     nav: { home: 'Inicio', modes: 'Modos', play: 'Jugar', league: 'Liga', profile: 'Perfil' },
   },
 
@@ -1801,7 +1823,18 @@ export const LANGS = {
       back: '← zurück', daysLeft: 'Tage übrig', finished: 'Beendet', players: 'Spieler',
       you: 'du', copied: '✓ Kopiert', shareCode: '🔗 Code teilen', delete: 'Löschen', leave: 'Verlassen',
     },
-    modes: { title: 'Spielmodi', subtitle: 'Wähle, wie du üben möchtest' },
+    modes: {
+      title: 'Spielmodi', subtitle: 'Wähle, wie du üben möchtest',
+      items: {
+        game:       { title: 'Classic Mode',         description: 'Rate ob der Kurs steigt oder fällt. Long, Short oder kein Trade.' },
+        daily:      { title: 'Tägliche Challenge',   description: 'Jeden Tag eine neue Herausforderung. Tritt gegen alle Spieler an.' },
+        survival:   { title: 'Survival',             description: 'Überlebe so viele Runden wie möglich ohne einen Fehler zu machen.' },
+        historical: { title: 'Historisch',           description: 'Übe mit echten historischen Daten eines beliebigen Assets.' },
+        arena:      { title: 'Arena',                description: 'Tritt in Echtzeit-Matches gegen andere Spieler an.' },
+        tournament: { title: 'Turniere',             description: 'Wöchentliche Turniere mit Preisen und eigener Rangliste.' },
+        portfolio:  { title: 'Portfolio',            description: 'Verwalte ein virtuelles Portfolio und verfolge deine Performance.' },
+      },
+    },
     nav: { home: 'Start', modes: 'Modi', play: 'Spielen', league: 'Liga', profile: 'Profil' },
   },
 };
