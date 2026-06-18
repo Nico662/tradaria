@@ -108,7 +108,7 @@ function LeaderboardList({ entries, userPosition, user, onViewProfile, t }) {
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: isMe ? 'var(--pink)' : 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 {entry.username ? `@${entry.username}` : entry.name}
                 {isFounder(entry.username) && <FounderBadge size={11} />}
-                {isMe && <span style={{ fontSize: '9px', color: 'var(--pink)', flexShrink: 0 }}>tú</span>}
+                {isMe && <span style={{ fontSize: '9px', color: 'var(--pink)', flexShrink: 0 }}>{t.common.you}</span>}
               </div>
               <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>{formatCash(entry.totalValue)}</div>
             </div>
@@ -137,7 +137,7 @@ function LeaderboardList({ entries, userPosition, user, onViewProfile, t }) {
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--pink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 {userPosition.username ? `@${userPosition.username}` : userPosition.name}
-                <span style={{ fontSize: '9px', color: 'var(--pink)', flexShrink: 0 }}>tú</span>
+                <span style={{ fontSize: '9px', color: 'var(--pink)', flexShrink: 0 }}>{t.common.you}</span>
               </div>
               <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>{formatCash(userPosition.totalValue)}</div>
             </div>
@@ -425,7 +425,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
         setDuelMsg(data.error || t.portfolio.duelError);
       }
     } catch {
-      setDuelMsg('Error de conexión');
+      setDuelMsg(t.common.error);
     }
     setDuelLoading(false);
     setTimeout(() => setDuelMsg(''), 3000);

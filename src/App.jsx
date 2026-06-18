@@ -506,7 +506,7 @@ export default function App() {
           <div id="share-card" style={{ background: 'var(--bg-page)', border: '1px solid var(--bd)', borderRadius: '12px', padding: '28px 24px', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--t1)' }}>
-                GUESS <span style={{ color: 'var(--green)' }}>THE</span> MARKET
+                {t.game.guessTheMarket}
               </div>
               <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.1em' }}>tradiko.dev</div>
             </div>
@@ -779,7 +779,7 @@ export default function App() {
           const bg = !h ? 'var(--border-default)' : h === 'win' ? 'var(--green)' : h === 'lose' ? 'var(--pink)' : 'var(--color-neutral)';
           return <div key={i} style={{ width: '8px', height: '8px', borderRadius: '50%', background: bg, flexShrink: 0 }} />;
         })}
-        {streak > 1 && <span style={{ fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 800, color: 'var(--pink)', marginLeft: '6px' }}>{streak}× racha</span>}
+        {streak > 1 && <span style={{ fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 800, color: 'var(--pink)', marginLeft: '6px' }}>{streak}× {t.common.streak}</span>}
       </div>
       {/* Analysis cards */}
       {phase === 'choose' && chartReady && (() => {
@@ -789,15 +789,15 @@ export default function App() {
         const trendColor = analysis.trend === 'bullish' ? 'var(--green)' : analysis.trend === 'bearish' ? 'var(--pink)' : 'var(--color-neutral)';
         const trendLabel = analysis.trend === 'bullish' ? t.game.bullish : analysis.trend === 'bearish' ? t.game.bearish : t.game.ranging;
         const volColor   = analysis.vol === 'low' ? 'var(--green)' : analysis.vol === 'medium' ? 'var(--color-neutral)' : 'var(--pink)';
-        const volLabel   = analysis.vol === 'low' ? 'low' : analysis.vol === 'medium' ? 'medium' : 'high';
+        const volLabel   = analysis.vol === 'low' ? t.game.low : analysis.vol === 'medium' ? t.game.medium : t.game.high;
         return (
           <div style={{ padding: '6px 16px 0' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
               {[
-                { label: 'trend',      value: trendLabel,                                                          color: trendColor },
-                { label: 'last 5',     value: `${analysis.green}▲ ${analysis.red}▼`,                              color: analysis.green > analysis.red ? 'var(--green)' : 'var(--pink)' },
-                { label: 'change',     value: `${analysis.change >= 0 ? '+' : ''}${analysis.change.toFixed(1)}%`, color: analysis.change >= 0 ? 'var(--green)' : 'var(--pink)' },
-                { label: 'volatility', value: volLabel,                                                            color: volColor },
+                { label: t.game.trend,      value: trendLabel,                                                          color: trendColor },
+                { label: t.game.last5,      value: `${analysis.green}▲ ${analysis.red}▼`,                              color: analysis.green > analysis.red ? 'var(--green)' : 'var(--pink)' },
+                { label: t.game.change,     value: `${analysis.change >= 0 ? '+' : ''}${analysis.change.toFixed(1)}%`, color: analysis.change >= 0 ? 'var(--green)' : 'var(--pink)' },
+                { label: t.game.volatility, value: volLabel,                                                            color: volColor },
               ].map(s => (
                 <div key={s.label} style={{ background: 'var(--bg-elevated)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', padding: '7px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontFamily: 'var(--font-body)', fontSize: '8px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.10em' }}>{s.label}</span>
@@ -846,7 +846,7 @@ export default function App() {
                 {result.win && !result.neutral ? t.game.correct : !result.win && !result.neutral ? t.game.wrong : t.game.flat}
               </div>
               <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)' }}>
-                precio {dirLabel} {result.pctMove > 0 ? '+' : ''}{result.pctMove.toFixed(2)}% · {result.choice.toUpperCase()}
+                {t.game.price} {dirLabel} {result.pctMove > 0 ? '+' : ''}{result.pctMove.toFixed(2)}% · {result.choice.toUpperCase()}
               </div>
             </div>
             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '18px', color: result.pts > 0 ? 'var(--green)' : result.pts < 0 ? 'var(--pink)' : 'var(--color-neutral)', flexShrink: 0 }}>

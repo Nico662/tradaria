@@ -92,7 +92,7 @@ export default function League({ leagueId, onBack }) {
 
   if (!data || data.error) return (
     <div style={{ padding: '16px 16px 24px', fontFamily: 'var(--font-body)', background: 'var(--bg-base)', minHeight: '100vh' }}>
-      <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, padding: '0 0 12px 0' }}>← Volver</button>
+      <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, padding: '0 0 12px 0' }}>{t.league.back}</button>
       <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px' }}>{tl.notFound}</div>
     </div>
   );
@@ -104,17 +104,17 @@ export default function League({ leagueId, onBack }) {
       <div className="animate-slide-in-up" style={{ background: 'var(--gradient-surface)', border: '0.5px solid var(--border-pink)', borderRadius: 'var(--radius-lg)', padding: '16px', marginBottom: '16px', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '80px', height: '80px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,126,179,0.15), transparent 70%)' }} />
         <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, padding: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '4px' }}>
-          ← Volver
+          {t.league.back}
         </button>
         <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '20px', color: 'var(--text-primary)', marginBottom: '8px' }}>{data.name}</div>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {daysLeft !== null && (
             <span style={{ background: 'var(--pink-dim)', color: 'var(--pink)', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 800, padding: '3px 10px', borderRadius: 'var(--radius-full)', letterSpacing: '0.08em' }}>
-              {daysLeft > 0 ? `${daysLeft} días restantes` : 'Finalizada'}
+              {daysLeft > 0 ? `${daysLeft} ${t.league.daysLeft}` : t.league.finished}
             </span>
           )}
           <span style={{ background: 'var(--green-dim)', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 800, padding: '3px 10px', borderRadius: 'var(--radius-full)', letterSpacing: '0.08em' }}>
-            {data.ranking?.length ?? 0} jugadores
+            {data.ranking?.length ?? 0} {t.league.players}
           </span>
         </div>
       </div>
@@ -144,7 +144,7 @@ export default function League({ leagueId, onBack }) {
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: isMe ? 'var(--pink)' : 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 {name}
                 {isFounder(entry.username) && <FounderBadge size={10} />}
-                {isMe && <span style={{ fontSize: '9px', color: 'var(--pink)' }}>tú</span>}
+                {isMe && <span style={{ fontSize: '9px', color: 'var(--pink)' }}>{t.league.you}</span>}
               </div>
               <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>{formatCash(entry.totalValue)}</div>
             </div>
@@ -199,17 +199,17 @@ export default function League({ leagueId, onBack }) {
           onMouseDown={e => e.currentTarget.style.transform = 'scale(0.97)'}
           onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
         >
-          {copied ? '✓ Copiado' : '🔗 Compartir código'}
+          {copied ? t.league.copied : t.league.shareCode}
         </button>
         {data.isOwner ? (
           <button onClick={deleteLeague} disabled={busy}
             style={{ background: 'var(--pink-dim)', border: '1.5px solid var(--border-pink)', borderRadius: 'var(--radius-full)', padding: '12px 16px', fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '12px', color: 'var(--pink)', cursor: 'pointer', opacity: busy ? 0.5 : 1 }}>
-            Eliminar
+            {t.league.delete}
           </button>
         ) : (
           <button onClick={leave} disabled={busy}
             style={{ background: 'var(--bg-elevated)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-full)', padding: '12px 16px', fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '12px', color: 'var(--text-muted)', cursor: 'pointer', opacity: busy ? 0.5 : 1 }}>
-            Salir
+            {t.league.leave}
           </button>
         )}
       </div>

@@ -17,6 +17,7 @@ export const LANGS = {
       mode5sub: '50 real events · can you call them?',
       moreModes: 'More Modes',
       shop: 'Shop',
+      academy: '🏫 Academy', myAcademy: 'MY ACADEMY', joinAcademy: '+ Academy', goPro: '⚡ Go Pro', student: 'STUDENT',
     },
     game: {
       round: 'ROUND', score: 'SCORE', streak: 'STREAK',
@@ -30,6 +31,7 @@ export const LANGS = {
       next: 'NEXT →', menu: '← menu',
       up: '▲ UP', down: '▼ DOWN', flatDir: '— FLAT',
       back: '← menu', mode: 'Classic Mode', points: 'Points', accuracy: 'Accuracy', newHighscore: '★ new highscore!', best: 'Best',
+      guessTheMarket: 'GUESS THE MARKET', trend: 'trend', last5: 'last 5', change: 'change', volatility: 'volatility', low: 'low', medium: 'medium', high: 'high', price: 'price',
     },
     gameover: {
       title: 'game over — 25 rounds', finalScore: 'final score',
@@ -516,6 +518,11 @@ export const LANGS = {
       leaderboard: 'Leaderboard', weeklyReset: 'New tournament every Monday',
       potLinePrefix: '{n} players × €2 entry = ', potLineSuffix: ' in the pot',
       prizeLinePrefix: 'Prize for the winner: €',
+      you: 'YOU', entry: 'Entry', prize: 'Prize', players: 'players',
+      leaveBtn: 'Leave tournament', leaveTitle: 'Leave tournament?',
+      leaveText: 'The €2 will be refunded automatically to your payment method.',
+      leaveCancel: 'Close', leaveConfirm: 'Yes, leave',
+      errorLeave: 'Error leaving tournament', errorNetwork: 'Network error', mode: 'TOURNAMENT MODE',
     },
     pricing: {
       title: 'Plans', back: '← Back',
@@ -585,6 +592,12 @@ export const LANGS = {
     maintenance: {
       banner: "🔧 We're making changes to the site. Things might look a bit off for a while.",
     },
+    common: { back: '← back', menu: '← menu', you: 'YOU', streak: 'streak', days: 'days', logout: 'logout', signIn: 'Sign in with Google', legal: 'Legal', error: 'Connection error' },
+    league: {
+      back: '← back', daysLeft: 'days left', finished: 'Finished', players: 'players',
+      you: 'you', copied: '✓ Copied', shareCode: '🔗 Share code', delete: 'Delete', leave: 'Leave',
+    },
+    modes: { title: 'Game Modes', subtitle: 'Choose how you want to practice' },
     nav: { home: 'Home', modes: 'Modes', play: 'Play', league: 'League', profile: 'Profile' },
   },
 
@@ -606,6 +619,7 @@ export const LANGS = {
       mode5sub: '50 eventos reales · ¿puedes acertarlos?',
       moreModes: 'Más Modos',
       shop: 'Tienda',
+      academy: '🏫 Academia', myAcademy: 'MI ACADEMIA', joinAcademy: '+ Academia', goPro: '⚡ Hazte Pro', student: 'ALUMNO',
     },
     game: {
       round: 'RONDA', score: 'PUNTOS', streak: 'RACHA',
@@ -619,6 +633,7 @@ export const LANGS = {
       next: 'SIGUIENTE →', menu: '← menú',
       up: '▲ SUBE', down: '▼ BAJA', flatDir: '— LATERAL',
       back: '← menú', mode: 'Classic Mode', points: 'Puntos', accuracy: 'Precisión', newHighscore: '★ ¡nuevo récord!', best: 'Mejor',
+      guessTheMarket: 'ADIVINA EL MERCADO', trend: 'tendencia', last5: 'últimas 5', change: 'cambio', volatility: 'volatilidad', low: 'baja', medium: 'media', high: 'alta', price: 'precio',
     },
     gameover: {
       title: 'fin — 25 rondas', finalScore: 'puntuación final',
@@ -1105,6 +1120,11 @@ export const LANGS = {
       leaderboard: 'Clasificación', weeklyReset: 'Nuevo torneo cada lunes',
       potLinePrefix: '{n} jugadores × €2 entrada = ', potLineSuffix: ' en el bote',
       prizeLinePrefix: 'Premio para el ganador: €',
+      you: 'TÚ', entry: 'Entrada', prize: 'Premio', players: 'jugadores',
+      leaveBtn: 'Salir del torneo', leaveTitle: '¿Salir del torneo?',
+      leaveText: 'Se te devolverán los €2 automáticamente a tu método de pago.',
+      leaveCancel: 'Cerrar', leaveConfirm: 'Sí, salir',
+      errorLeave: 'Error al salir del torneo', errorNetwork: 'Error de red', mode: 'MODO TORNEO',
     },
     pricing: {
       title: 'Planes', back: '← Volver',
@@ -1174,6 +1194,12 @@ export const LANGS = {
     maintenance: {
       banner: '⚙️ Estamos realizando mejoras en la plataforma. Es posible que experimentes algunas interrupciones temporales.',
     },
+    common: { back: '← volver', menu: '← menú', you: 'TÚ', streak: 'racha', days: 'días', logout: 'logout', signIn: 'Iniciar sesión con Google', legal: 'Legal', error: 'Error de conexión' },
+    league: {
+      back: '← Volver', daysLeft: 'días restantes', finished: 'Finalizada', players: 'jugadores',
+      you: 'tú', copied: '✓ Copiado', shareCode: '🔗 Compartir código', delete: 'Eliminar', leave: 'Salir',
+    },
+    modes: { title: 'Modos de juego', subtitle: 'Elige cómo quieres practicar' },
     nav: { home: 'Inicio', modes: 'Modos', play: 'Jugar', league: 'Liga', profile: 'Perfil' },
   },
 
@@ -1195,6 +1221,7 @@ export const LANGS = {
       mode5sub: '50 echte Ereignisse · kannst du sie erraten?',
       moreModes: 'Mehr Modi',
       shop: 'Shop',
+      academy: '🏫 Akademie', myAcademy: 'MEINE AKADEMIE', joinAcademy: '+ Akademie', goPro: '⚡ Pro werden', student: 'SCHÜLER',
     },
     game: {
       round: 'RUNDE', score: 'PUNKTE', streak: 'SERIE',
@@ -1208,6 +1235,7 @@ export const LANGS = {
       next: 'WEITER →', menu: '← Menü',
       up: '▲ HOCH', down: '▼ RUNTER', flatDir: '— SEITWÄRTS',
       back: '← Menü', mode: 'Classic Mode', points: 'Punkte', accuracy: 'Genauigkeit', newHighscore: '★ neuer Rekord!', best: 'Beste',
+      guessTheMarket: 'MARKT RATEN', trend: 'Trend', last5: 'letzte 5', change: 'Änderung', volatility: 'Volatilität', low: 'niedrig', medium: 'mittel', high: 'hoch', price: 'Preis',
     },
     gameover: {
       title: 'spiel vorbei — 25 runden', finalScore: 'endpunktzahl',
@@ -1694,6 +1722,11 @@ export const LANGS = {
       leaderboard: 'Rangliste', weeklyReset: 'Neues Turnier jeden Montag',
       potLinePrefix: '{n} Teilnehmer × €2 Eintritt = ', potLineSuffix: ' im Topf',
       prizeLinePrefix: 'Preis für den Gewinner: €',
+      you: 'DU', entry: 'Eintritt', prize: 'Preis', players: 'Spieler',
+      leaveBtn: 'Turnier verlassen', leaveTitle: 'Turnier verlassen?',
+      leaveText: 'Die €2 werden automatisch an deine Zahlungsmethode zurückerstattet.',
+      leaveCancel: 'Schließen', leaveConfirm: 'Ja, verlassen',
+      errorLeave: 'Fehler beim Verlassen des Turniers', errorNetwork: 'Netzwerkfehler', mode: 'TURNIERMODUS',
     },
     pricing: {
       title: 'Pläne', back: '← Zurück',
@@ -1763,6 +1796,12 @@ export const LANGS = {
     maintenance: {
       banner: '🔧 Wir nehmen gerade Änderungen vor. Es kann kurzzeitig zu Darstellungsfehlern kommen.',
     },
+    common: { back: '← zurück', menu: '← Menü', you: 'DU', streak: 'Serie', days: 'Tage', logout: 'Abmelden', signIn: 'Mit Google anmelden', legal: 'Impressum', error: 'Verbindungsfehler' },
+    league: {
+      back: '← zurück', daysLeft: 'Tage übrig', finished: 'Beendet', players: 'Spieler',
+      you: 'du', copied: '✓ Kopiert', shareCode: '🔗 Code teilen', delete: 'Löschen', leave: 'Verlassen',
+    },
+    modes: { title: 'Spielmodi', subtitle: 'Wähle, wie du üben möchtest' },
     nav: { home: 'Start', modes: 'Modi', play: 'Spielen', league: 'Liga', profile: 'Profil' },
   },
 };

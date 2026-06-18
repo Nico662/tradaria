@@ -18,10 +18,10 @@ export default function ModesPage({ onSelect }) {
 
       <div style={{ marginBottom: 20 }}>
         <h1 style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 22, color: 'var(--text-primary)', letterSpacing: '-0.5px', marginBottom: 4 }}>
-          Modos de juego
+          {t.modes.title}
         </h1>
         <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-muted)' }}>
-          Elige cómo quieres practicar
+          {t.modes.subtitle}
         </p>
       </div>
 

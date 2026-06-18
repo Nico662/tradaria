@@ -151,7 +151,7 @@ export default function Home({ onSelect }) {
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,229,160,0.14)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,229,160,0.07)'}
               >
-                🏫 Academia
+                {t.home.academy}
               </button>
             )}
             {user && user.role !== 'teacher' && (
@@ -161,7 +161,7 @@ export default function Home({ onSelect }) {
                   onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,229,160,0.14)'}
                   onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,229,160,0.07)'}
                 >
-                  MI ACADEMIA
+                  {t.home.myAcademy}
                 </button>
               ) : (
                 <button onClick={() => onSelect('join_academy')}
@@ -169,7 +169,7 @@ export default function Home({ onSelect }) {
                   onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,229,160,0.14)'}
                   onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,229,160,0.07)'}
                 >
-                  + Academia
+                  {t.home.joinAcademy}
                 </button>
               )
             )}
@@ -182,7 +182,7 @@ export default function Home({ onSelect }) {
           ) : (
             <button onClick={() => onSelect('pricing')}
               style={{ background: 'var(--gradient-brand)', border: 'none', borderRadius: 'var(--radius-full)', padding: '6px 16px', color: '#0d0d0d', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 900, cursor: 'pointer', letterSpacing: '0.06em' }}>
-              ⚡ Hazte Pro
+              {t.home.goPro}
             </button>
           )}
         </div>
@@ -223,7 +223,7 @@ export default function Home({ onSelect }) {
                 )}
                 {user.academyId && user.isAcademyPro && academyName && (
                   <span style={{ fontSize: '7px', color: 'var(--green)', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', background: 'rgba(0,229,160,0.08)', border: '1px solid rgba(0,229,160,0.2)', borderRadius: '4px', padding: '2px 6px', alignSelf: 'flex-start' }}>
-                    ALUMNO — {academyName}
+                    {t.home.student} — {academyName}
                   </span>
                 )}
               </div>
@@ -234,12 +234,12 @@ export default function Home({ onSelect }) {
                 </button>
               )}
               <button onClick={logout} style={{ background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '6px', padding: '4px 10px', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '9px', cursor: 'pointer', letterSpacing: '0.06em' }}>
-                logout
+                {t.common.logout}
               </button>
             </div>
           ) : (
             <button onClick={login} style={{ background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', padding: '8px 20px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '10px', cursor: 'pointer', letterSpacing: '0.08em', fontWeight: 700 }}>
-              Sign in with Google
+              {t.common.signIn}
             </button>
           )}
         </div>
@@ -269,7 +269,7 @@ export default function Home({ onSelect }) {
             {dailyStreak > 0 && (
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'var(--pink-dim)', border: '0.5px solid var(--border-pink)', borderRadius: 'var(--radius-full)', padding: '4px 10px' }}>
                 <span style={{ fontSize: '12px' }}>🔥</span>
-                <span style={{ fontSize: '10px', color: 'var(--pink)', fontFamily: 'var(--font-body)', fontWeight: 800, letterSpacing: '0.06em' }}>{dailyStreak} días</span>
+                <span style={{ fontSize: '10px', color: 'var(--pink)', fontFamily: 'var(--font-body)', fontWeight: 800, letterSpacing: '0.06em' }}>{dailyStreak} {t.common.days}</span>
               </div>
             )}
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'var(--green-dim)', border: '0.5px solid var(--border-green)', borderRadius: 'var(--radius-full)', padding: '4px 10px' }}>
@@ -364,7 +364,7 @@ export default function Home({ onSelect }) {
             </span>
             <button onClick={() => onSelect('legal')}
               style={{ background: 'transparent', border: 'none', color: 'var(--text-hint)', fontFamily: 'var(--font-body)', fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'underline' }}>
-              Legal
+              {t.common.legal}
             </button>
           </div>
         </div>

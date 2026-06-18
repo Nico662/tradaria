@@ -171,10 +171,10 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
           setConfirmLeaveId(null);
         }
       } else {
-        setLeaveError(data.error || 'Error al salir del torneo');
+        setLeaveError(data.error || t.tournament.errorLeave);
       }
     } catch {
-      setLeaveError('Error de red');
+      setLeaveError(t.tournament.errorNetwork);
     }
     setLeavingId(null);
   }
@@ -346,7 +346,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
   if (phase === 'login') {
     return (
       <div style={{ padding: '48px 28px', textAlign: 'center' }}>
-        <button onClick={onBack} style={{ position: 'absolute', top: '20px', left: '16px', background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>← menu</button>
+        <button onClick={onBack} style={{ position: 'absolute', top: '20px', left: '16px', background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>{t.common.menu}</button>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏆</div>
         <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '24px', color: 'var(--text-primary)', marginBottom: '8px' }}>{t.home.mode3}</div>
         <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '32px' }}>{t.arena.searching}</div>
@@ -360,7 +360,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
   if (phase === 'loading') {
     return (
       <div style={{ padding: '48px 28px', textAlign: 'center' }}>
-        <button onClick={onBack} style={{ position: 'absolute', top: '20px', left: '16px', background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>← menu</button>
+        <button onClick={onBack} style={{ position: 'absolute', top: '20px', left: '16px', background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>{t.common.menu}</button>
         <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)' }}>{t.game.reading}</div>
       </div>
     );
@@ -415,7 +415,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                             </div>
                             <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
                               <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: isMe ? 'var(--green)' : 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{name}</span>
-                              {isMe && <span style={{ fontFamily: 'var(--font-body)', fontSize: '8px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>}
+                              {isMe && <span style={{ fontFamily: 'var(--font-body)', fontSize: '8px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>{t.tournament.you}</span>}
                             </div>
                             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--green)' }}>{p.score}</div>
                           </div>
@@ -506,10 +506,10 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                       <div>
                         <div style={{ fontSize: '11px', color: 'var(--text-primary)', fontFamily: 'var(--font-body)', fontWeight: 700 }}>
-                          Entrada €{pt.entryFee} · Premio €{pt.prize}
+                          {t.tournament.entry} €{pt.entryFee} · {t.tournament.prize} €{pt.prize}
                         </div>
                         <div style={{ fontSize: '9px', color: isFull ? 'var(--green)' : 'var(--text-muted)', marginTop: '3px' }}>
-                          {isFull ? t.tournament.activeStatus : `${pt.players.length}/${pt.maxPlayers} jugadores`}
+                          {isFull ? t.tournament.activeStatus : `${pt.players.length}/${pt.maxPlayers} ${t.tournament.players}`}
                         </div>
                       </div>
                       <div style={{ width: '80px', height: '6px', background: 'var(--border-default)', borderRadius: '3px', overflow: 'hidden' }}>
@@ -530,7 +530,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                         onClick={() => { setConfirmLeaveId(String(pt._id)); setLeaveError(''); }}
                         style={{ width: '100%', padding: '10px', background: 'transparent', border: '1px solid rgba(255,126,179,0.4)', borderRadius: '6px', color: 'rgba(255,126,179,0.85)', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
                       >
-                        {t.tournament.leaveBtn || 'Salir del torneo'}
+                        {t.tournament.leaveBtn}
                       </button>
                     )}
                     {alreadyIn && pt.status !== 'waiting' && (
@@ -566,11 +566,11 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
             <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,12,15,0.88)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: '20px' }}>
               <div style={{ width: '100%', maxWidth: '320px', background: 'var(--bg-surface)', border: '1px solid rgba(255,126,179,0.4)', borderRadius: '12px', padding: '24px' }}>
                 <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: 'var(--text-primary)', marginBottom: '12px' }}>
-                  ¿Salir del torneo?
+                  {t.tournament.leaveTitle}
                 </div>
                 {!leaveMessage && (
                   <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '20px', lineHeight: 1.6 }}>
-                    Se te devolverán los €2 automáticamente a tu método de pago.
+                    {t.tournament.leaveText}
                   </div>
                 )}
                 {leaveMessage && (
@@ -588,7 +588,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                     onClick={() => { setConfirmLeaveId(null); setLeaveError(''); setLeaveMessage(''); }}
                     style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid var(--border-default)', borderRadius: '6px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '10px', cursor: 'pointer' }}
                   >
-                    {leaveMessage ? 'Cerrar' : t.tournament.cancel}
+                    {leaveMessage ? t.tournament.leaveCancel : t.tournament.cancel}
                   </button>
                   {!leaveMessage && (
                     <button
@@ -596,7 +596,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                       disabled={!!leavingId}
                       style={{ flex: 1, padding: '10px', background: 'rgba(255,126,179,0.1)', border: '1px solid var(--color-down)', borderRadius: '6px', color: 'var(--color-down)', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', cursor: leavingId ? 'default' : 'pointer', opacity: leavingId ? 0.5 : 1 }}
                     >
-                      {leavingId ? '...' : 'Sí, salir'}
+                      {leavingId ? '...' : t.tournament.leaveConfirm}
                     </button>
                   )}
                 </div>
@@ -743,7 +743,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
             🏆 {t.home.mode3.toUpperCase()}
           </div>
           <div style={{ fontSize: '8px', color: 'var(--text-muted)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: 'var(--font-body)' }}>
-            TOURNAMENT MODE
+            {t.tournament.mode}
           </div>
         </div>
 
@@ -795,7 +795,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                 {result.win ? t.game.correct : t.game.wrong}
               </div>
               <div className="result-detail">
-                price {dirLabel} {result.pctMove > 0 ? '+' : ''}{result.pctMove.toFixed(2)}%
+                {t.game.price} {dirLabel} {result.pctMove > 0 ? '+' : ''}{result.pctMove.toFixed(2)}%
               </div>
             </div>
             <div className={`result-pnl ${result.pts > 0 ? 'pos' : 'neg'}`}>
