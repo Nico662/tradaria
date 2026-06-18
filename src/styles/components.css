@@ -40,7 +40,7 @@
 .btn-long {
   background: #0a1a14;
   border: 2px solid #00c087;
-  border-radius: 50px;
+  border-radius: 12px;
   color: #00c087;
   font-family: var(--font-body);
   font-weight: 800;
@@ -73,7 +73,7 @@
 .btn-short {
   background: #1a0a10;
   border: 2px solid #e05585;
-  border-radius: 50px;
+  border-radius: 12px;
   color: #e05585;
   font-family: var(--font-body);
   font-weight: 800;
@@ -106,7 +106,7 @@
 .btn-neutral {
   background: #141208;
   border: 2px solid #c49a2a;
-  border-radius: 50px;
+  border-radius: 12px;
   color: #c49a2a;
   font-family: var(--font-body);
   font-weight: 800;
