@@ -199,6 +199,21 @@ export function AuthProvider({ children }) {
     window.location.href = `${SERVER}/auth/google`;
   }
 
+  function loginWithApple(identityToken, fullName) {
+    return fetch(`${SERVER}/auth/apple`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identityToken, fullName }),
+    })
+      .then(r => r.json())
+      .then(({ token }) => {
+        if (!token) throw new Error('No token');
+        localStorage.setItem('tradaria_token', token);
+        fetchUser(token);
+        fetchPurchases(token);
+      });
+  }
+
   function logout() {
     const token = localStorage.getItem('tradaria_token');
     if (token) {
@@ -221,7 +236,7 @@ export function AuthProvider({ children }) {
   const isPro = user?.isPro || false;
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, syncProgress, purchases, activeCosmetics, equipCosmetic, unequipCosmetic, updateUser, checkLevelUp, isPro }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithApple, logout, syncProgress, purchases, activeCosmetics, equipCosmetic, unequipCosmetic, updateUser, checkLevelUp, isPro }}>
       {children}
       {levelUpData && <LevelUpOverlay {...levelUpData} onClose={() => setLevelUpData(null)} />}
     </AuthContext.Provider>

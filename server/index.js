@@ -9,6 +9,7 @@ const webpush        = require('web-push');
 const mongoose       = require('mongoose');
 const passport       = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const appleSignin    = require('apple-signin-auth');
 const session        = require('express-session');
 const jwt            = require('jsonwebtoken');
 const Stripe         = require('stripe');
@@ -77,7 +78,8 @@ mongoose.connect(MONGODB_URI, { autoIndex: false })
   .catch(err => console.error('MongoDB error:', err));
 
 const UserSchema = new mongoose.Schema({
-  googleId:  { type: String, required: true, unique: true },
+  googleId:  { type: String, required: false, unique: true, sparse: true },
+  appleId:   { type: String, required: false, unique: true, sparse: true },
   email:     { type: String, required: true },
   name:      { type: String, required: true },
   avatar:    { type: String },
@@ -570,6 +572,51 @@ app.post('/auth/exchange', async (req, res) => {
     res.json({ token });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/auth/apple', async (req, res) => {
+  try {
+    const { identityToken, fullName } = req.body;
+    if (!identityToken) return res.status(400).json({ error: 'Missing identityToken' });
+
+    const payload = await appleSignin.verifyIdToken(identityToken, {
+      audience: 'dev.tradiko',
+      ignoreExpiration: false,
+    });
+
+    const appleId = payload.sub;
+    const email   = payload.email;
+    const name    = fullName?.givenName
+      ? `${fullName.givenName} ${fullName.familyName || ''}`.trim()
+      : email?.split('@')[0] || 'User';
+
+    let user = await User.findOne({ appleId });
+    if (!user && email) user = await User.findOne({ email });
+
+    if (!user) {
+      user = await User.create({
+        appleId,
+        email: email || `${appleId}@privaterelay.appleid.com`,
+        name,
+      });
+    } else if (!user.appleId) {
+      user.appleId = appleId;
+      await user.save();
+    }
+
+    user.lastLogin = new Date();
+    await user.save();
+
+    const token = jwt.sign(
+      { id: user._id, email: user.email, name: user.name },
+      JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+    res.json({ token });
+  } catch (err) {
+    console.error('Apple auth error:', err);
+    res.status(401).json({ error: 'Invalid Apple token' });
   }
 });
 
