@@ -398,6 +398,10 @@ export default function Home({ onSelect }) {
               style={{ background: 'transparent', border: 'none', color: 'var(--text-hint)', fontFamily: 'var(--font-body)', fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'underline' }}>
               {t.common.legal}
             </button>
+            <button onClick={() => onSelect('privacy')}
+              style={{ background: 'transparent', border: 'none', color: 'var(--text-hint)', fontFamily: 'var(--font-body)', fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'underline' }}>
+              Privacy
+            </button>
           </div>
         </div>
 

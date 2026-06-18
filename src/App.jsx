@@ -10,6 +10,7 @@ import Arena from './Arena.jsx';
 import html2canvas from 'html2canvas';
 import { playWin, playLose, playClick, playStreak } from './sounds.js';
 import Legal from './Legal.jsx';
+import Privacy from './Privacy.jsx';
 import { BADGES, unlockBadge } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
 import Badges from './Badges.jsx';
@@ -59,6 +60,7 @@ export default function App() {
     const p = window.location.pathname;
     if (p.startsWith('/u/')) return 'public_profile';
     if (p === '/academias') return 'academias_landing';
+    if (p === '/privacy') return 'privacy';
     return 'home';
   });
   const [publicProfileUsername, setPublicProfileUsername] = useState(() => {
@@ -656,6 +658,7 @@ export default function App() {
   );
   if (screen === 'pricing')    return <><Pricing    onBack={() => { setScreen('home'); setPricingFromTournament(false); }} fromTournament={pricingFromTournament} />{challengeOverlay}</>;
   if (screen === 'legal')      return <><Legal      onBack={() => setScreen('home')} />{challengeOverlay}</>;
+  if (screen === 'privacy')    return <><Privacy    onSelect={setScreen} />{challengeOverlay}</>;
   if (screen === 'badges')     return <><Badges     onBack={() => setScreen('home')} onSelect={handleSelect} />{challengeOverlay}</>;
   if (screen === 'stats')      return <AppLayout currentScreen={screen} onSelect={handleSelect}><Stats      onBack={() => setScreen('home')} onSelect={handleSelect} />{challengeOverlay}</AppLayout>;
   if (screen === 'daily')      return <><Daily      onBack={() => setScreen('home')} />{challengeOverlay}</>;
