@@ -60,12 +60,13 @@ export default function NotificationBanner() {
 
   return (
     <div style={{
-      position: 'fixed', bottom: '20px', left: '50%',
-      transform: 'translateX(-50%)',
-      width: 'calc(100% - 40px)', maxWidth: '400px',
+      position: 'fixed',
+      bottom: 'calc(env(safe-area-inset-bottom, 0px) + 90px)',
+      left: '12px',
+      right: '12px',
       background: 'var(--bg-card)', border: '1px solid var(--green)',
       borderRadius: '12px', padding: '16px 20px',
-      zIndex: 9998, boxShadow: '0 0 24px rgba(0,229,160,0.15)',
+      zIndex: 150, boxShadow: '0 0 24px rgba(0,229,160,0.15)',
       animation: 'slideUp 0.3s ease',
     }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
