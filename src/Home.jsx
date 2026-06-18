@@ -242,17 +242,35 @@ export default function Home({ onSelect }) {
               <button onClick={login} style={{ background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', padding: '8px 20px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '10px', cursor: 'pointer', letterSpacing: '0.08em', fontWeight: 700 }}>
                 {t.common.signIn}
               </button>
+              {typeof window !== 'undefined' && window.webkit?.messageHandlers?.appleSignIn && (
+                <button
+                  onClick={() => window.triggerAppleSignIn?.()}
+                  style={{
+                    background: '#000000',
+                    border: '1px solid #333',
+                    borderRadius: '8px',
+                    padding: '8px 20px',
+                    color: '#ffffff',
+                    fontFamily: 'var(--font-body)',
+                    fontSize: '10px',
+                    cursor: 'pointer',
+                    letterSpacing: '0.08em',
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}>
+                   {t.common.signInApple ?? 'Sign in with Apple'}
+                </button>
+              )}
               <button
                 id="appleid-signin"
                 onClick={() => {
                   if (window.__appleToken) {
                     loginWithApple(window.__appleToken, window.__appleFullName);
-                  } else {
-                    window.triggerAppleSignIn?.();
                   }
                 }}
-                style={{ display: 'none', background: '#000', border: '1px solid #333', borderRadius: '8px', padding: '8px 20px', color: '#fff', fontFamily: 'var(--font-body)', fontSize: '10px', cursor: 'pointer', letterSpacing: '0.08em', fontWeight: 700 }}>
-                 Sign in with Apple
+                style={{ display: 'none' }}>
               </button>
             </div>
           )}

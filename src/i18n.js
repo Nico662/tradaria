@@ -592,7 +592,7 @@ export const LANGS = {
     maintenance: {
       banner: "🔧 We're making changes to the site. Things might look a bit off for a while.",
     },
-    common: { back: '← back', menu: '← menu', you: 'YOU', streak: 'streak', days: 'days', logout: 'logout', signIn: 'Sign in with Google', legal: 'Legal', error: 'Connection error' },
+    common: { back: '← back', menu: '← menu', you: 'YOU', streak: 'streak', days: 'days', logout: 'logout', signIn: 'Sign in with Google', signInApple: 'Sign in with Apple', legal: 'Legal', error: 'Connection error' },
     league: {
       back: '← back', daysLeft: 'days left', finished: 'Finished', players: 'players',
       you: 'you', copied: '✓ Copied', shareCode: '🔗 Share code', delete: 'Delete', leave: 'Leave',
@@ -1205,7 +1205,7 @@ export const LANGS = {
     maintenance: {
       banner: '⚙️ Estamos realizando mejoras en la plataforma. Es posible que experimentes algunas interrupciones temporales.',
     },
-    common: { back: '← volver', menu: '← menú', you: 'TÚ', streak: 'racha', days: 'días', logout: 'logout', signIn: 'Iniciar sesión con Google', legal: 'Legal', error: 'Error de conexión' },
+    common: { back: '← volver', menu: '← menú', you: 'TÚ', streak: 'racha', days: 'días', logout: 'logout', signIn: 'Iniciar sesión con Google', signInApple: 'Iniciar sesión con Apple', legal: 'Legal', error: 'Error de conexión' },
     league: {
       back: '← Volver', daysLeft: 'días restantes', finished: 'Finalizada', players: 'jugadores',
       you: 'tú', copied: '✓ Copiado', shareCode: '🔗 Compartir código', delete: 'Eliminar', leave: 'Salir',
@@ -1818,7 +1818,7 @@ export const LANGS = {
     maintenance: {
       banner: '🔧 Wir nehmen gerade Änderungen vor. Es kann kurzzeitig zu Darstellungsfehlern kommen.',
     },
-    common: { back: '← zurück', menu: '← Menü', you: 'DU', streak: 'Serie', days: 'Tage', logout: 'Abmelden', signIn: 'Mit Google anmelden', legal: 'Impressum', error: 'Verbindungsfehler' },
+    common: { back: '← zurück', menu: '← Menü', you: 'DU', streak: 'Serie', days: 'Tage', logout: 'Abmelden', signIn: 'Mit Google anmelden', signInApple: 'Mit Apple anmelden', legal: 'Impressum', error: 'Verbindungsfehler' },
     league: {
       back: '← zurück', daysLeft: 'Tage übrig', finished: 'Beendet', players: 'Spieler',
       you: 'du', copied: '✓ Kopiert', shareCode: '🔗 Code teilen', delete: 'Löschen', leave: 'Verlassen',
