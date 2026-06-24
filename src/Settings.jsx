@@ -104,6 +104,8 @@ export default function Settings({ onBack }) {
   const [cancelConfirm, setCancelConfirm] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
   const [cancelDone, setCancelDone] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   async function handleCancelSubscription() {
     setCancelLoading(true);
@@ -120,6 +122,28 @@ export default function Settings({ onBack }) {
       }
     } catch {}
     setCancelLoading(false);
+  }
+
+  async function handleDeleteAccount() {
+    if (!showDeleteConfirm) {
+      setShowDeleteConfirm(true);
+      return;
+    }
+    setDeleting(true);
+    try {
+      const token = localStorage.getItem('tradaria_token');
+      const res = await fetch(`${SERVER}/auth/account`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        localStorage.clear();
+        logout();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+    setDeleting(false);
   }
 
   async function enableNotifications() {
@@ -292,6 +316,30 @@ export default function Settings({ onBack }) {
                 }}>
                   {s.signOut}
                 </button>
+                <div style={{ marginTop: '12px' }}>
+                  {!showDeleteConfirm ? (
+                    <button onClick={handleDeleteAccount}
+                      style={{ width: '100%', background: 'transparent', border: '1px solid #ff4444', borderRadius: 'var(--radius-md)', padding: '12px', color: '#ff4444', fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em' }}>
+                      Eliminar cuenta
+                    </button>
+                  ) : (
+                    <div style={{ background: 'rgba(255,68,68,0.08)', border: '1px solid #ff4444', borderRadius: 'var(--radius-md)', padding: '16px' }}>
+                      <p style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: '#ff4444', marginBottom: '12px', fontWeight: 700 }}>
+                        ¿Seguro? Esta acción eliminará tu cuenta y todos tus datos permanentemente.
+                      </p>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button onClick={() => setShowDeleteConfirm(false)}
+                          style={{ flex: 1, background: 'var(--bg-elevated)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-full)', padding: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer' }}>
+                          Cancelar
+                        </button>
+                        <button onClick={handleDeleteAccount} disabled={deleting}
+                          style={{ flex: 1, background: '#ff4444', border: 'none', borderRadius: 'var(--radius-full)', padding: '10px', color: '#fff', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer', opacity: deleting ? 0.6 : 1 }}>
+                          {deleting ? 'Eliminando...' : 'Sí, eliminar'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </Card>
           </>

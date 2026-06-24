@@ -787,6 +787,18 @@ app.post('/auth/username/set', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+app.delete('/auth/account', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    await User.findByIdAndDelete(userId);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Delete account error:', err);
+    res.status(500).json({ error: 'Error deleting account' });
+  }
+});
+
 const SHOP_ITEMS = {
   frame_gold:    { name: 'Gold Frame',    price: 299 },
   frame_neon:    { name: 'Neon Frame',    price: 199 },
