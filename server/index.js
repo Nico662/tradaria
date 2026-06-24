@@ -983,18 +983,23 @@ app.post('/pro/cancel', async (req, res) => {
   try {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
     const user = await User.findById(decoded.id);
-    if (!user || !user.isPro) return res.status(400).json({ error: 'No active subscription' });
-    if (!user.stripeSubscriptionId) return res.status(400).json({ error: 'No subscription ID on file' });
-    await stripe.subscriptions.cancel(user.stripeSubscriptionId);
-    await User.findByIdAndUpdate(decoded.id, {
-      isPro: false,
-      stripeSubscriptionId: null,
-    });
+    if (!user || !user.isPro) return res.status(400).json({ error: 'No tienes una suscripción activa.' });
+    if (!user.stripeSubscriptionId) {
+      console.error(`Pro cancel: user ${decoded.id} has isPro=true but no stripeSubscriptionId`);
+      return res.status(400).json({ error: 'No se encontró el ID de suscripción. Contacta con soporte.' });
+    }
+    try {
+      await stripe.subscriptions.cancel(user.stripeSubscriptionId);
+    } catch (stripeErr) {
+      console.error(`Pro cancel Stripe error for user ${decoded.id}:`, stripeErr.message);
+      return res.status(502).json({ error: `Error de Stripe: ${stripeErr.message}` });
+    }
+    await User.findByIdAndUpdate(decoded.id, { isPro: false, stripeSubscriptionId: null });
     console.log(`Pro cancelled for user ${decoded.id}`);
-    res.json({ ok: true });
+    res.json({ ok: true, message: 'Suscripción cancelada. Seguirás teniendo acceso Pro hasta el fin del período.' });
   } catch (err) {
     console.error('Pro cancel error:', err.message);
-    res.status(500).json({ error: 'Cancellation failed' });
+    res.status(500).json({ error: 'Error interno al cancelar. Inténtalo de nuevo.' });
   }
 });
 

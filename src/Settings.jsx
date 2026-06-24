@@ -104,24 +104,36 @@ export default function Settings({ onBack }) {
   const [cancelConfirm, setCancelConfirm] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
   const [cancelDone, setCancelDone] = useState(false);
+  const [leaveMessage, setLeaveMessage] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   async function handleCancelSubscription() {
-    setCancelLoading(true);
     try {
+      setCancelLoading(true);
       const token = localStorage.getItem('tradaria_token');
-      const res   = await fetch(`${SERVER}/pro/cancel`, {
+      const res = await fetch(`${SERVER}/pro/cancel`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       });
+      const data = await res.json();
       if (res.ok) {
+        setLeaveMessage(data.message || s.cancelDoneMsg);
         updateUser({ isPro: false });
         setCancelDone(true);
         setCancelConfirm(false);
+      } else {
+        setLeaveMessage(data.error || 'Error al cancelar. Contacta con tradikonicolasvidal@gmail.com');
+        setCancelConfirm(false);
+        setCancelDone(true);
       }
-    } catch {}
-    setCancelLoading(false);
+    } catch (err) {
+      setLeaveMessage('Error de conexión. Inténtalo de nuevo.');
+      setCancelConfirm(false);
+      setCancelDone(true);
+    } finally {
+      setCancelLoading(false);
+    }
   }
 
   async function handleDeleteAccount() {
@@ -227,7 +239,7 @@ export default function Settings({ onBack }) {
               </Row>
               {cancelDone ? (
                 <div style={{ padding: '12px 16px', fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--t4)' }}>
-                  {s.cancelDoneMsg}
+                  {leaveMessage || s.cancelDoneMsg}
                 </div>
               ) : cancelConfirm ? (
                 <div style={{ padding: '12px 16px', borderTop: '1px solid var(--bd)' }}>
