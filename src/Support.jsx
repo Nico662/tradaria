@@ -27,7 +27,7 @@ export default function Support({ onSelect }) {
         },
         {
           title: 'How do I cancel my Pro subscription?',
-          text: 'You can cancel your Pro subscription at any time from your account settings on tradiko.dev. Your access will continue until the end of the current billing period.'
+          text: 'To cancel your Pro subscription, contact us at tradikonicolasvidal@gmail.com with the subject "Cancel Pro subscription" and we will process it within 24 hours. Your access will continue until the end of the current billing period.'
         },
         {
           title: 'The app is not loading',
