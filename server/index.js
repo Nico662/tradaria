@@ -788,10 +788,11 @@ app.post('/auth/username/set', async (req, res) => {
   }
 });
 
-app.delete('/auth/account', authenticateToken, async (req, res) => {
+app.delete('/auth/account', async (req, res) => {
   try {
-    const userId = req.user.id;
-    await User.findByIdAndDelete(userId);
+    const decoded = verifyToken(req);
+    if (!decoded) return res.status(401).json({ error: 'No token' });
+    await User.findByIdAndDelete(decoded.id);
     res.json({ success: true });
   } catch (err) {
     console.error('Delete account error:', err);
