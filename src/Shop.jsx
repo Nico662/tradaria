@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useLang } from './LangContext.jsx';
-import { useAuth } from './AuthContext.jsx';
+import { useAuth, isIOSApp } from './AuthContext.jsx';
 import { SERVER } from './config.js';
 
 const SHOP_ITEMS = {
@@ -347,6 +347,14 @@ export default function Shop({ onBack }) {
     } else {
       equipCosmetic(cosmeticType, item.id);
     }
+  }
+
+  if (isIOSApp()) {
+    return (
+      <div style={{ padding: '24px', fontFamily: 'var(--font-body)', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '14px', lineHeight: 1.6 }}>
+        The shop is available at tradiko.dev
+      </div>
+    );
   }
 
   return (

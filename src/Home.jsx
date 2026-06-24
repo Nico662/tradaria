@@ -130,7 +130,7 @@ export default function Home({ onSelect }) {
         {/* Top bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            {TOP_BUTTONS.map(({ id, Icon, hover }) => (
+            {TOP_BUTTONS.filter(({ id }) => !(id === 'shop' && isIOSApp())).map(({ id, Icon, hover }) => (
               <div key={id} style={{ position: 'relative', flexShrink: 0 }}>
                 <button
                   onClick={() => { if (id === 'friends') setHasPendingFriends(false); onSelect(id); }}
