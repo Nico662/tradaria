@@ -17,6 +17,9 @@ const STRINGS = {
     cancelDoneMsg: 'Subscription cancelled. You will keep Pro access until the end of the current period.',
     cancelConfirmMsg: 'Are you sure? You will lose Pro access at the end of the current period.',
     cancelling: 'Cancelling...', confirmCancel: 'Yes, cancel', goBack: 'Back', cancelSub: 'Cancel subscription',
+    deleteAccount: 'Delete account', deleteConfirmMsg: 'Are you sure? This will permanently delete your account and all your data.',
+    cancel: 'Cancel', yesDelete: 'Yes, delete', deleting: 'Deleting...',
+    cancelError: 'Error cancelling. Contact tradikonicolasvidal@gmail.com', connectionError: 'Connection error. Please try again.',
   },
   es: {
     title: 'Configuración', back: '← volver',
@@ -30,6 +33,9 @@ const STRINGS = {
     cancelDoneMsg: 'Suscripción cancelada. Seguirás teniendo acceso Pro hasta el fin del período.',
     cancelConfirmMsg: '¿Estás seguro? Perderás el acceso Pro al finalizar el período actual.',
     cancelling: 'Cancelando...', confirmCancel: 'Sí, cancelar', goBack: 'Volver', cancelSub: 'Cancelar suscripción',
+    deleteAccount: 'Eliminar cuenta', deleteConfirmMsg: '¿Seguro? Esta acción eliminará tu cuenta y todos tus datos permanentemente.',
+    cancel: 'Cancelar', yesDelete: 'Sí, eliminar', deleting: 'Eliminando...',
+    cancelError: 'Error al cancelar. Contacta con tradikonicolasvidal@gmail.com', connectionError: 'Error de conexión. Inténtalo de nuevo.',
   },
   de: {
     title: 'Einstellungen', back: '← zurück',
@@ -43,6 +49,9 @@ const STRINGS = {
     cancelDoneMsg: 'Abonnement gekündigt. Du behältst den Pro-Zugang bis zum Ende des aktuellen Zeitraums.',
     cancelConfirmMsg: 'Bist du sicher? Du verlierst den Pro-Zugang am Ende des aktuellen Zeitraums.',
     cancelling: 'Wird gekündigt...', confirmCancel: 'Ja, kündigen', goBack: 'Zurück', cancelSub: 'Abonnement kündigen',
+    deleteAccount: 'Konto löschen', deleteConfirmMsg: 'Bist du sicher? Diese Aktion löscht dein Konto und alle deine Daten dauerhaft.',
+    cancel: 'Abbrechen', yesDelete: 'Ja, löschen', deleting: 'Wird gelöscht...',
+    cancelError: 'Fehler beim Kündigen. Kontaktiere tradikonicolasvidal@gmail.com', connectionError: 'Verbindungsfehler. Bitte versuche es erneut.',
   },
 };
 
@@ -123,12 +132,12 @@ export default function Settings({ onBack }) {
         setCancelDone(true);
         setCancelConfirm(false);
       } else {
-        setLeaveMessage(data.error || 'Error al cancelar. Contacta con tradikonicolasvidal@gmail.com');
+        setLeaveMessage(data.error || s.cancelError);
         setCancelConfirm(false);
         setCancelDone(true);
       }
     } catch (err) {
-      setLeaveMessage('Error de conexión. Inténtalo de nuevo.');
+      setLeaveMessage(s.connectionError);
       setCancelConfirm(false);
       setCancelDone(true);
     } finally {
@@ -332,21 +341,21 @@ export default function Settings({ onBack }) {
                   {!showDeleteConfirm ? (
                     <button onClick={handleDeleteAccount}
                       style={{ width: '100%', background: 'transparent', border: '1px solid #ff4444', borderRadius: 'var(--radius-md)', padding: '12px', color: '#ff4444', fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em' }}>
-                      Eliminar cuenta
+                      {s.deleteAccount}
                     </button>
                   ) : (
                     <div style={{ background: 'rgba(255,68,68,0.08)', border: '1px solid #ff4444', borderRadius: 'var(--radius-md)', padding: '16px' }}>
                       <p style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: '#ff4444', marginBottom: '12px', fontWeight: 700 }}>
-                        ¿Seguro? Esta acción eliminará tu cuenta y todos tus datos permanentemente.
+                        {s.deleteConfirmMsg}
                       </p>
                       <div style={{ display: 'flex', gap: '8px' }}>
                         <button onClick={() => setShowDeleteConfirm(false)}
                           style={{ flex: 1, background: 'var(--bg-elevated)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-full)', padding: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer' }}>
-                          Cancelar
+                          {s.cancel}
                         </button>
                         <button onClick={handleDeleteAccount} disabled={deleting}
                           style={{ flex: 1, background: '#ff4444', border: 'none', borderRadius: 'var(--radius-full)', padding: '10px', color: '#fff', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer', opacity: deleting ? 0.6 : 1 }}>
-                          {deleting ? 'Eliminando...' : 'Sí, eliminar'}
+                          {deleting ? s.deleting : s.yesDelete}
                         </button>
                       </div>
                     </div>

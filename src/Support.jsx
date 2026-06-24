@@ -1,10 +1,13 @@
+import { useLang } from './LangContext.jsx';
+
 export default function Support({ onSelect }) {
+  const { t } = useLang();
   return (
     <div style={{ padding: '24px 20px', fontFamily: 'var(--font-body)', background: 'var(--bg-base)', minHeight: '100vh', maxWidth: '680px', margin: '0 auto' }}>
 
       <button onClick={() => onSelect && onSelect('home')}
         style={{ background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, cursor: 'pointer', marginBottom: '24px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-        ← Back
+        {t.common.back}
       </button>
 
       <h1 style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '28px', color: 'var(--text-primary)', marginBottom: '8px', letterSpacing: '-0.5px' }}>Support</h1>
