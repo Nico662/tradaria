@@ -6,7 +6,7 @@ import WordOfTheDay from './WordOfTheDay.jsx';
 import { SERVER } from './config.js';
 import { getUnlocked } from './badges.js';
 import { getXP, getLevel } from './levels.js';
-import { useAuth } from './AuthContext';
+import { useAuth, isIOSApp } from './AuthContext';
 import UsernameModal from './UsernameModal.jsx';
 import { FRAME_STYLES, AVATAR_EMOJIS } from './UserAvatar.jsx';
 import FounderBadge, { isFounder } from './FounderBadge.jsx';
@@ -175,7 +175,7 @@ export default function Home({ onSelect }) {
             )}
           </div>
 
-          {isPro ? (
+          {!isIOSApp() && (isPro ? (
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '5px 12px', background: 'var(--green-dim)', border: '0.5px solid var(--border-green)', borderRadius: 'var(--radius-full)', fontSize: '10px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontWeight: 800, letterSpacing: '0.06em' }}>
               ⚡ Pro
             </div>
@@ -184,7 +184,7 @@ export default function Home({ onSelect }) {
               style={{ background: 'var(--gradient-brand)', border: 'none', borderRadius: 'var(--radius-full)', padding: '6px 16px', color: '#0d0d0d', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 900, cursor: 'pointer', letterSpacing: '0.06em' }}>
               {t.home.goPro}
             </button>
-          )}
+          ))}
         </div>
 
         {/* User */}

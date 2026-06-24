@@ -246,3 +246,7 @@ export function AuthProvider({ children }) {
 export function useAuth() {
   return useContext(AuthContext);
 }
+
+export function isIOSApp() {
+  return document.cookie.split(';').some(c => c.trim() === 'app-platform=iOS App Store');
+}

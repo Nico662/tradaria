@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuth } from './AuthContext';
+import { useAuth, isIOSApp } from './AuthContext';
 import { SERVER } from './config.js';
 import { useLang } from './LangContext.jsx';
 
@@ -35,6 +35,14 @@ export default function Pricing({ onBack, fromTournament }) {
       setMsg(t.pricing.networkError);
       setLoading(false);
     }
+  }
+
+  if (isIOSApp()) {
+    return (
+      <div style={{ padding: '24px', fontFamily: 'var(--font-body)', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '14px', lineHeight: 1.6 }}>
+        Pro subscriptions are available at tradiko.dev
+      </div>
+    );
   }
 
   return (

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuth } from './AuthContext';
+import { useAuth, isIOSApp } from './AuthContext';
 import { useLang } from './LangContext.jsx';
 import UsernameModal from './UsernameModal.jsx';
 import { SERVER } from './config.js';
@@ -237,7 +237,7 @@ export default function Settings({ onBack }) {
         </Card>
 
         {/* Pro subscription */}
-        {isPro && (
+        {isPro && !isIOSApp() && (
           <>
             <SectionLabel text={s.subscription} />
             <Card>
