@@ -13,7 +13,7 @@ export default function Support({ onSelect }) {
       <div style={{ marginBottom: '24px', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-lg)', padding: '20px' }}>
         <h2 style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--text-primary)', marginBottom: '8px' }}>Contact us</h2>
         <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.7', marginBottom: '12px' }}>For any questions, issues or feedback, reach us at:</p>
-        <a href="mailto:hello@tradiko.dev" style={{ color: 'var(--green)', fontWeight: 700, fontSize: '14px', textDecoration: 'none' }}>hello@tradiko.dev</a>
+        <a href="mailto:tradikonicolasvidal@gmail.com" style={{ color: 'var(--green)', fontWeight: 700, fontSize: '14px', textDecoration: 'none' }}>tradikonicolasvidal@gmail.com</a>
       </div>
 
       {[
@@ -31,11 +31,11 @@ export default function Support({ onSelect }) {
         },
         {
           title: 'The app is not loading',
-          text: 'Make sure you have an active internet connection. Try closing and reopening the app. If the issue persists, contact us at hello@tradiko.dev.'
+          text: 'Make sure you have an active internet connection. Try closing and reopening the app. If the issue persists, contact us at tradikonicolasvidal@gmail.com.'
         },
         {
           title: 'I found a bug',
-          text: 'Please report bugs to hello@tradiko.dev with a description of what happened and what device and OS version you are using. We appreciate your help!'
+          text: 'Please report bugs to tradikonicolasvidal@gmail.com with a description of what happened and what device and OS version you are using. We appreciate your help!'
         },
       ].map(({ title, text }) => (
         <div key={title} style={{ marginBottom: '16px', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-lg)', padding: '16px' }}>

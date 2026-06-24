@@ -641,6 +641,8 @@ export default function App() {
           else if (mode === 'join_academy')      setScreen('join_academy');
           else if (mode === 'teacher_dashboard') setScreen('teacher_dashboard');
           else if (mode === 'student_dashboard') setScreen('student_dashboard');
+          else if (mode === 'privacy')           setScreen('privacy');
+          else if (mode === 'support')           setScreen('support');
           else {
             setScreen('game');
             if (!localStorage.getItem('tradaria_tutorial_done')) setShowTutorial(true);
