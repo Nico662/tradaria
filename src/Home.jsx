@@ -233,7 +233,7 @@ export default function Home({ onSelect }) {
                   + username
                 </button>
               )}
-              <button onClick={logout} style={{ background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '6px', padding: '4px 10px', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '9px', cursor: 'pointer', letterSpacing: '0.06em' }}>
+              <button onClick={logout} style={{ background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '6px', padding: '4px 10px', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em' }}>
                 {t.common.logout}
               </button>
             </div>
@@ -396,19 +396,19 @@ export default function Home({ onSelect }) {
         {/* Footer */}
         <div style={{ textAlign: 'center', marginTop: '32px', paddingBottom: '8px' }}>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', alignItems: 'center' }}>
-            <span style={{ fontSize: '9px', color: 'var(--text-hint)', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'var(--font-body)' }}>
+            <span style={{ fontSize: '11px', color: 'var(--text-hint)', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'var(--font-body)' }}>
               {t.home.version}
             </span>
             <button onClick={() => onSelect('legal')}
-              style={{ background: 'transparent', border: 'none', color: 'var(--text-hint)', fontFamily: 'var(--font-body)', fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'underline' }}>
+              style={{ background: 'transparent', border: 'none', color: 'var(--text-hint)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'underline' }}>
               {t.common.legal}
             </button>
             <button onClick={() => onSelect('privacy')}
-              style={{ background: 'transparent', border: 'none', color: 'var(--text-hint)', fontFamily: 'var(--font-body)', fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'underline' }}>
+              style={{ background: 'transparent', border: 'none', color: 'var(--text-hint)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'underline' }}>
               Privacy
             </button>
             <button onClick={() => onSelect('support')}
-              style={{ background: 'transparent', border: 'none', color: 'var(--text-hint)', fontFamily: 'var(--font-body)', fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'underline' }}>
+              style={{ background: 'transparent', border: 'none', color: 'var(--text-hint)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'underline' }}>
               Support
             </button>
           </div>
