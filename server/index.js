@@ -544,9 +544,12 @@ passport.deserializeUser(async (id, done) => {
 });
 
 // ── Auth routes ───────────────────────────────────────────────────
-app.get('/auth/google',
-  passport.authenticate('google', { scope: ['profile', 'email'] })
-);
+app.get('/auth/google', (req, res, next) => {
+  if (req.query.platform === 'ios') {
+    req.session.platform = 'ios';
+  }
+  passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+});
 
 app.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: `${CLIENT_URL}?auth=error` }),
@@ -558,7 +561,13 @@ app.get('/auth/google/callback',
     );
     const oauthCode = require('crypto').randomBytes(32).toString('hex');
     await redis.set(`oauth_code:${oauthCode}`, token, { ex: 60 });
-    res.redirect(`${CLIENT_URL}?code=${oauthCode}`);
+    const platform = req.session.platform;
+    if (platform === 'ios') {
+      req.session.platform = null;
+      res.redirect(`tradiko://?code=${oauthCode}`);
+    } else {
+      res.redirect(`${CLIENT_URL}?code=${oauthCode}`);
+    }
   }
 );
 
