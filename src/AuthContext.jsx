@@ -199,6 +199,13 @@ export function AuthProvider({ children }) {
     window.location.href = `${SERVER}/auth/google`;
   }
 
+  useEffect(() => {
+    window.__loginWithApple = (identityToken, givenName, familyName) => {
+      loginWithApple(identityToken, { givenName, familyName });
+    };
+    return () => { delete window.__loginWithApple; };
+  }, []);
+
   function loginWithApple(identityToken, fullName) {
     return fetch(`${SERVER}/auth/apple`, {
       method: 'POST',
