@@ -85,18 +85,30 @@ export function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
+    if (window.__appleAuthData) {
+      console.log('IMMEDIATE __appleAuthData found on mount!');
+      const { tokenB64, givenName } = window.__appleAuthData;
+      window.__appleAuthData = null;
+      try {
+        const base64 = tokenB64.replace(/-/g, '+').replace(/_/g, '/');
+        const token = atob(base64);
+        loginWithApple(token, { givenName: givenName || '', familyName: '' });
+      } catch (e) {
+        console.error('Error:', e);
+      }
+      return;
+    }
     const interval = setInterval(() => {
       if (window.__appleAuthData) {
-        console.log('__appleAuthData detected!');
+        console.log('POLLING __appleAuthData found!');
         const { tokenB64, givenName } = window.__appleAuthData;
         window.__appleAuthData = null;
         try {
           const base64 = tokenB64.replace(/-/g, '+').replace(/_/g, '/');
           const token = atob(base64);
-          console.log('decoded token length:', token.length);
-          loginWithApple(token, { givenName, familyName: '' });
+          loginWithApple(token, { givenName: givenName || '', familyName: '' });
         } catch (e) {
-          console.error('Error decoding apple token:', e);
+          console.error('Error:', e);
         }
       }
     }, 300);
