@@ -29,18 +29,29 @@ export function AuthProvider({ children }) {
     console.log('apple_token param:', params.get('apple_token') ? 'EXISTS' : 'null');
     console.log('code param:', params.get('code') ? 'EXISTS' : 'null');
 
-    const appleToken = params.get('apple_token');
-    if (appleToken) {
+    const appleAuth = params.get('apple_auth');
+    if (appleAuth === '1') {
       window.history.replaceState({}, '', '/');
-      try {
-        const base64 = appleToken.replace(/-/g, '+').replace(/_/g, '/');
-        const token = atob(base64);
-        const givenName = params.get('given') || '';
-        const familyName = params.get('family') || '';
-        console.log('Apple token from URL, length:', token.length);
-        loginWithApple(token, { givenName, familyName });
-      } catch (e) {
-        console.error('Error decoding apple token:', e);
+      console.log('apple_auth=1 detected, reading cookie');
+      console.log('all cookies:', document.cookie);
+      const getCookie = (name) => {
+        const match = document.cookie.split(';').find(c => c.trim().startsWith(name + '='));
+        return match ? match.trim().substring(name.length + 1) : null;
+      };
+      const tokenB64 = getCookie('apple_auth_token');
+      const givenName = getCookie('apple_auth_given') || '';
+      console.log('tokenB64 from cookie:', tokenB64 ? 'EXISTS length=' + tokenB64.length : 'null');
+      if (tokenB64) {
+        try {
+          const base64 = tokenB64.replace(/-/g, '+').replace(/_/g, '/');
+          const token = atob(base64);
+          console.log('decoded token length:', token.length);
+          loginWithApple(token, { givenName, familyName: '' });
+        } catch (e) {
+          console.error('Error decoding apple token from cookie:', e);
+          setLoading(false);
+        }
+      } else {
         setLoading(false);
       }
       return;
