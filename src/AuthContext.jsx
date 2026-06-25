@@ -201,23 +201,33 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     window.__loginWithApple = (identityToken, givenName, familyName) => {
+      console.log('__loginWithApple called, token length:', identityToken?.length);
+      console.log('givenName:', givenName, 'familyName:', familyName);
       loginWithApple(identityToken, { givenName, familyName });
     };
     return () => { delete window.__loginWithApple; };
   }, []);
 
   function loginWithApple(identityToken, fullName) {
+    console.log('loginWithApple called, posting to /auth/apple');
     return fetch(`${SERVER}/auth/apple`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ identityToken, fullName }),
     })
-      .then(r => r.json())
+      .then(r => {
+        console.log('auth/apple response status:', r.status);
+        return r.json();
+      })
       .then(({ token }) => {
+        console.log('token received:', token ? 'yes' : 'no');
         if (!token) throw new Error('No token');
         localStorage.setItem('tradaria_token', token);
         fetchUser(token);
         fetchPurchases(token);
+      })
+      .catch(err => {
+        console.error('loginWithApple error:', err);
       });
   }
 
