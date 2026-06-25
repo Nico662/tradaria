@@ -25,6 +25,24 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+
+    const appleToken = params.get('apple_token');
+    if (appleToken) {
+      window.history.replaceState({}, '', '/');
+      try {
+        const base64 = appleToken.replace(/-/g, '+').replace(/_/g, '/');
+        const token = atob(base64);
+        const givenName = params.get('given') || '';
+        const familyName = params.get('family') || '';
+        console.log('Apple token from URL, length:', token.length);
+        loginWithApple(token, { givenName, familyName });
+      } catch (e) {
+        console.error('Error decoding apple token:', e);
+        setLoading(false);
+      }
+      return;
+    }
+
     const oauthCode = params.get('code');
     if (oauthCode) {
       window.history.replaceState({}, '', '/');
@@ -42,6 +60,7 @@ export function AuthProvider({ children }) {
         .catch(() => setLoading(false));
       return;
     }
+
     const saved = localStorage.getItem('tradaria_token');
     if (saved) {
       fetchUser(saved);
@@ -198,17 +217,6 @@ export function AuthProvider({ children }) {
   function login() {
     window.location.href = `${SERVER}/auth/google`;
   }
-
-  useEffect(() => {
-    console.log('Registering __appleAuthHandler');
-    window.__appleAuthHandler = (token, givenName, familyName) => {
-      console.log('__appleAuthHandler called, token length:', token?.length);
-      loginWithApple(token, { givenName, familyName });
-    };
-    return () => {
-      delete window.__appleAuthHandler;
-    };
-  }, [loginWithApple]);
 
   function loginWithApple(identityToken, fullName) {
     console.log('loginWithApple START, token length:', identityToken?.length);
