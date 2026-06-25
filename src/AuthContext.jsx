@@ -200,16 +200,16 @@ export function AuthProvider({ children }) {
   }
 
   useEffect(() => {
-    console.log('Registering appleSignInComplete listener');
+    console.log('Starting Apple Sign In polling');
 
-    function handleAppleSignIn(event) {
-      console.log('appleSignInComplete EVENT RECEIVED');
-      console.log('event.detail:', JSON.stringify(event.detail));
-      const { token, givenName, familyName } = event.detail;
-      console.log('token length:', token?.length);
-      loginWithApple(token, { givenName, familyName });
-    }
-    window.addEventListener('appleSignInComplete', handleAppleSignIn);
+    const interval = setInterval(() => {
+      if (window.__appleSignInPending) {
+        console.log('__appleSignInPending detected:', window.__appleSignInPending);
+        const { token, givenName, familyName } = window.__appleSignInPending;
+        window.__appleSignInPending = null;
+        loginWithApple(token, { givenName, familyName });
+      }
+    }, 500);
 
     window.__loginWithApple = (token, givenName, familyName) => {
       console.log('__loginWithApple called directly');
@@ -217,7 +217,7 @@ export function AuthProvider({ children }) {
     };
 
     return () => {
-      window.removeEventListener('appleSignInComplete', handleAppleSignIn);
+      clearInterval(interval);
       delete window.__loginWithApple;
     };
   }, []);
