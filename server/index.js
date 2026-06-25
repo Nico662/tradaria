@@ -583,12 +583,15 @@ app.post('/auth/exchange', async (req, res) => {
 app.post('/auth/apple', async (req, res) => {
   try {
     const { identityToken, fullName } = req.body;
+    console.log('Apple auth: identityToken length:', identityToken?.length);
+    console.log('Apple auth: identityToken first 50 chars:', identityToken?.substring(0, 50));
     if (!identityToken) return res.status(400).json({ error: 'Missing identityToken' });
 
     const payload = await appleSignin.verifyIdToken(identityToken, {
       audience: 'dev.tradiko',
       ignoreExpiration: false,
     });
+    console.log('Apple auth: payload sub:', payload.sub);
 
     const appleId = payload.sub;
     const email   = payload.email;
@@ -620,7 +623,8 @@ app.post('/auth/apple', async (req, res) => {
     );
     res.json({ token });
   } catch (err) {
-    console.error('Apple auth error:', err);
+    console.error('Apple auth error details:', err.message);
+    console.error('Apple auth error name:', err.name);
     res.status(401).json({ error: 'Invalid Apple token' });
   }
 });
