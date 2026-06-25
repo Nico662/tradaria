@@ -69,7 +69,10 @@ export function AuthProvider({ children }) {
     const interval = setInterval(() => {
       if (window.__appleAuthData) {
         console.log('=== POLLING APPLE DATA FOUND ===');
+        console.log('__appleAuthData keys:', Object.keys(window.__appleAuthData));
+        console.log('__appleAuthData full:', JSON.stringify(window.__appleAuthData));
         const { tokenB64, givenName } = window.__appleAuthData;
+        console.log('tokenB64:', tokenB64 ? 'EXISTS length=' + tokenB64.length : 'UNDEFINED');
         window.__appleAuthData = null;
         try {
           const base64 = tokenB64.replace(/-/g, '+').replace(/_/g, '/');
