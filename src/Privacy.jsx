@@ -36,7 +36,7 @@ export default function Privacy({ onSelect }) {
         },
         {
           title: 'Your rights',
-          text: 'You have the right to access, correct, or delete your personal data. To exercise these rights or to delete your account, contact us at hello@tradiko.dev.'
+          text: 'You have the right to access, correct, or delete your personal data. To exercise these rights or to delete your account, contact us at tradikonicolasvidal@gmail.com.'
         },
         {
           title: 'Children',
@@ -48,7 +48,7 @@ export default function Privacy({ onSelect }) {
         },
         {
           title: 'Contact',
-          text: 'For privacy questions or data deletion requests: hello@tradiko.dev'
+          text: 'For privacy questions or data deletion requests: tradikonicolasvidal@gmail.com'
         },
       ].map(({ title, text }) => (
         <div key={title} style={{ marginBottom: '24px' }}>
