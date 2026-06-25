@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from './AuthContext';
+import { useAuth, isIOSApp } from './AuthContext';
 import { SERVER } from './config.js';
 import { useLang } from './LangContext.jsx';
 import AcadiasLanding from './AcadiasLanding.jsx';
@@ -369,6 +369,7 @@ function AcademyDashboard({ academyId, onBack }) {
               <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-neutral)' }}>
                 {t.academy.trialLeft.replace('{days}', daysLeft).replace('{unit}', daysLeft === 1 ? t.academy.day : t.academy.days)}
               </span>
+              {!isIOSApp() && (
               <button
                 onClick={() => setPlanModal(true)}
                 style={{
@@ -381,6 +382,7 @@ function AcademyDashboard({ academyId, onBack }) {
               >
                 {t.academy.activatePlan}
               </button>
+              )}
             </div>
           )}
 
@@ -395,6 +397,7 @@ function AcademyDashboard({ academyId, onBack }) {
               <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-down)', lineHeight: 1.5 }}>
                 {t.academy.trialExpired}
               </span>
+              {!isIOSApp() && (
               <button
                 onClick={() => setPlanModal(true)}
                 style={{
@@ -408,6 +411,7 @@ function AcademyDashboard({ academyId, onBack }) {
               >
                 {t.academy.activateNow}
               </button>
+              )}
             </div>
           )}
 
@@ -716,7 +720,7 @@ function AcademyDashboard({ academyId, onBack }) {
       </div>
 
       {/* ── Plan selection modal ── */}
-      {planModal && (
+      {!isIOSApp() && planModal && (
         <div
           onClick={e => e.target === e.currentTarget && setPlanModal(false)}
           style={{

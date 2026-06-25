@@ -130,6 +130,7 @@ export default function Pricing({ onBack, fromTournament }) {
         </div>
 
         {/* Paid tournaments info */}
+        {!isIOSApp() && (
         <div style={{ padding: '16px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '10px' }}>
           <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--t2)', marginBottom: '8px' }}>
             {t.pricing.paidSection}
@@ -138,6 +139,7 @@ export default function Pricing({ onBack, fromTournament }) {
             {t.pricing.paidDescPart1} <strong style={{ color: 'var(--t3)' }}>€2</strong> {t.pricing.paidDescPart2} <strong style={{ color: 'var(--color-neutral)' }}>{t.pricing.paidDescPart3}</strong>{t.pricing.paidDescPart4}
           </div>
         </div>
+        )}
 
       </div>
     </div>

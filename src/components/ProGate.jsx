@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuth } from '../AuthContext';
+import { useAuth, isIOSApp } from '../AuthContext';
 import { SERVER } from '../config.js';
 
 export default function ProGate({ children, feature = '' }) {
@@ -7,6 +7,14 @@ export default function ProGate({ children, feature = '' }) {
   const [loading, setLoading] = useState(false);
 
   if (isPro) return children;
+
+  if (isIOSApp()) {
+    return (
+      <div style={{ padding: '24px', textAlign: 'center', fontFamily: 'var(--font-body)', color: 'var(--text-secondary)', fontSize: '14px' }}>
+        This feature is available at tradiko.dev
+      </div>
+    );
+  }
 
   async function handleUpgrade() {
     if (!user) return;

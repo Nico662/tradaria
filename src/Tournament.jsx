@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import html2canvas from 'html2canvas';
-import { useAuth } from './AuthContext';
+import { useAuth, isIOSApp } from './AuthContext';
 import { useLang } from './LangContext.jsx';
 import Chart from './Chart';
 import { addXP } from './levels.js';
@@ -492,7 +492,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
           )}
 
           {/* Torneos de pago */}
-          {!academyTournamentId && paidTournaments.length > 0 && (
+          {!isIOSApp() && !academyTournamentId && paidTournaments.length > 0 && (
             <div style={{ marginTop: '28px' }}>
               <div style={{ fontSize: '12px', color: 'var(--color-neutral)', letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '12px' }}>
                 {t.tournament.paidSection}

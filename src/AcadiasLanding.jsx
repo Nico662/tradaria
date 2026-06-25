@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLang } from './LangContext.jsx';
 import { SERVER } from './config.js';
+import { isIOSApp } from './AuthContext';
 
 // ── Visual sub-components (same pattern as PortfolioTutorial) ─────────────────
 
@@ -274,7 +275,7 @@ export default function AcadiasLanding({ onEnter }) {
         </section>
 
         {/* ── 5. PRICING ── */}
-        <section className="aca-reveal" style={{ paddingBottom: '64px' }}>
+        {!isIOSApp() && <section className="aca-reveal" style={{ paddingBottom: '64px' }}>
           <div style={{ fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.12em', textTransform: 'uppercase', textAlign: 'center', marginBottom: '10px', fontFamily: 'var(--font-body)' }}>{a.pricingLabel}</div>
           <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: 'var(--t1)', textAlign: 'center', marginBottom: '6px', letterSpacing: '-0.01em' }}>{a.pricingTitle}</div>
           <div style={{ fontSize: '12px', color: 'var(--t4)', textAlign: 'center', marginBottom: '28px' }}>{a.pricingSub}</div>
@@ -346,7 +347,7 @@ export default function AcadiasLanding({ onEnter }) {
             </div>
 
           </div>
-        </section>
+        </section>}
 
         {/* ── 6. COMPARATIVA ── */}
         <section className="aca-reveal" style={{ paddingBottom: '64px' }}>
