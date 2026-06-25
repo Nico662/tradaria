@@ -73,13 +73,13 @@ export default function Leagues({ onOpenLeague, onBack }) {
   if (!tok || !user) return (
     <div style={{ padding: '60px 20px', textAlign: 'center' }}>
       <div style={{ fontSize: '32px', marginBottom: '12px' }}>🏆</div>
-      <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--t5)' }}>{tl.signIn}</div>
+      <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)' }}>{tl.signIn}</div>
     </div>
   );
 
   const viewBtn = (v, label) => (
     <button key={v} onClick={() => { setView(v); setMsg(null); }}
-      style={{ flex: 1, padding: '8px 4px', background: view === v ? 'rgba(0,229,160,0.08)' : 'transparent', border: `1px solid ${view === v ? 'var(--green)' : 'var(--bd2)'}`, borderRadius: '6px', color: view === v ? 'var(--green)' : 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '9px', fontWeight: 700, letterSpacing: '0.04em', cursor: 'pointer' }}>
+      style={{ flex: 1, padding: '8px 4px', background: view === v ? 'rgba(0,229,160,0.08)' : 'transparent', border: `1px solid ${view === v ? 'var(--green)' : 'var(--bd2)'}`, borderRadius: '6px', color: view === v ? 'var(--green)' : 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.04em', cursor: 'pointer' }}>
       {label}
     </button>
   );
@@ -95,12 +95,12 @@ export default function Leagues({ onOpenLeague, onBack }) {
       {/* ── My leagues ── */}
       {view === 'list' && (
         loading ? (
-          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '10px' }}>...</div>
+          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '12px' }}>...</div>
         ) : leagues.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px 20px' }}>
             <div style={{ fontSize: '32px', marginBottom: '12px' }}>🏆</div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--t5)' }}>{tl.empty}</div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t6)', marginTop: '6px' }}>{tl.emptySub}</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)' }}>{tl.empty}</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', marginTop: '6px' }}>{tl.emptySub}</div>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -113,13 +113,13 @@ export default function Leagues({ onOpenLeague, onBack }) {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
                   <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>{l.name}</div>
                   {l.isOwner && (
-                    <span style={{ fontSize: '8px', fontFamily: 'var(--font-body)', color: 'var(--color-neutral)', letterSpacing: '0.06em', padding: '2px 6px', background: 'rgba(232,184,75,0.08)', border: '1px solid rgba(232,184,75,0.2)', borderRadius: '4px' }}>{tl.owner}</span>
+                    <span style={{ fontSize: '12px', fontFamily: 'var(--font-body)', color: 'var(--color-neutral)', letterSpacing: '0.06em', padding: '2px 6px', background: 'rgba(232,184,75,0.08)', border: '1px solid rgba(232,184,75,0.2)', borderRadius: '4px' }}>{tl.owner}</span>
                   )}
                 </div>
                 <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t5)' }}>{l.memberCount} {l.memberCount === 1 ? tl.member : tl.members}</span>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--green)60', letterSpacing: '0.12em' }}>{l.code}</span>
-                  {l.endDate && <span style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t5)' }}>{tl.until} {new Date(l.endDate + 'T00:00:00').toLocaleDateString()}</span>}
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)' }}>{l.memberCount} {l.memberCount === 1 ? tl.member : tl.members}</span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--green)60', letterSpacing: '0.12em' }}>{l.code}</span>
+                  {l.endDate && <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)' }}>{tl.until} {new Date(l.endDate + 'T00:00:00').toLocaleDateString()}</span>}
                 </div>
               </div>
             ))}
@@ -131,18 +131,18 @@ export default function Leagues({ onOpenLeague, onBack }) {
       {view === 'create' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t4)', letterSpacing: '0.1em', marginBottom: '6px', textTransform: 'uppercase' }}>{tl.nameLabel}</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)', letterSpacing: '0.1em', marginBottom: '6px', textTransform: 'uppercase' }}>{tl.nameLabel}</div>
             <input value={name} onChange={e => setName(e.target.value)} maxLength={30} placeholder={tl.namePlaceholder}
               style={{ width: '100%', padding: '12px', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '6px', color: 'var(--t1)', fontFamily: 'var(--font-body)', fontSize: '12px', boxSizing: 'border-box', outline: 'none' }} />
           </div>
           <div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t4)', letterSpacing: '0.1em', marginBottom: '6px', textTransform: 'uppercase' }}>{tl.endDateLabel}</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)', letterSpacing: '0.1em', marginBottom: '6px', textTransform: 'uppercase' }}>{tl.endDateLabel}</div>
             <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
               style={{ width: '100%', padding: '12px', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '6px', color: 'var(--t1)', fontFamily: 'var(--font-body)', fontSize: '12px', boxSizing: 'border-box', outline: 'none', colorScheme: 'dark' }} />
           </div>
-          {msg && <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: msg.ok ? 'var(--green)' : 'var(--color-down)' }}>{msg.text}</div>}
+          {msg && <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: msg.ok ? 'var(--green)' : 'var(--color-down)' }}>{msg.text}</div>}
           <button onClick={createLeague} disabled={submitting}
-            style={{ width: '100%', padding: '13px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: submitting ? 'default' : 'pointer', opacity: submitting ? 0.6 : 1 }}>
+            style={{ width: '100%', padding: '13px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: submitting ? 'default' : 'pointer', opacity: submitting ? 0.6 : 1 }}>
             {submitting ? '...' : tl.createBtn}
           </button>
         </div>
@@ -152,13 +152,13 @@ export default function Leagues({ onOpenLeague, onBack }) {
       {view === 'join' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t4)', letterSpacing: '0.1em', marginBottom: '6px', textTransform: 'uppercase' }}>{tl.codeLabel}</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)', letterSpacing: '0.1em', marginBottom: '6px', textTransform: 'uppercase' }}>{tl.codeLabel}</div>
             <input value={joinCode} onChange={e => setJoinCode(e.target.value.toUpperCase())} maxLength={6} placeholder="XXXXXX"
               style={{ width: '100%', padding: '14px', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '22px', fontWeight: 700, letterSpacing: '0.22em', textAlign: 'center', boxSizing: 'border-box', outline: 'none' }} />
           </div>
-          {msg && <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: msg.ok ? 'var(--green)' : 'var(--color-down)' }}>{msg.text}</div>}
+          {msg && <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: msg.ok ? 'var(--green)' : 'var(--color-down)' }}>{msg.text}</div>}
           <button onClick={joinLeague} disabled={submitting}
-            style={{ width: '100%', padding: '13px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: submitting ? 'default' : 'pointer', opacity: submitting ? 0.6 : 1 }}>
+            style={{ width: '100%', padding: '13px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: submitting ? 'default' : 'pointer', opacity: submitting ? 0.6 : 1 }}>
             {submitting ? '...' : tl.joinBtn}
           </button>
         </div>

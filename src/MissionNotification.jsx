@@ -39,13 +39,13 @@ export default function MissionNotification({ data, onDone }) {
     }}>
       <div style={{ fontSize: '26px', lineHeight: 1 }}>🎯</div>
       <div>
-        <div style={{ fontSize: '8px', color: 'var(--green)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '2px' }}>
+        <div style={{ fontSize: '12px', color: 'var(--green)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '2px' }}>
           {subtext}
         </div>
         <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>
           {title}
         </div>
-        <div style={{ fontSize: '9px', color: 'var(--green)', marginTop: '2px', fontFamily: 'var(--font-body)' }}>
+        <div style={{ fontSize: '12px', color: 'var(--green)', marginTop: '2px', fontFamily: 'var(--font-body)' }}>
           +{data.xpEarned} XP
         </div>
       </div>

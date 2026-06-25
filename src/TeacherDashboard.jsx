@@ -30,7 +30,7 @@ const PLAN_STYLE = {
 // ── Sub-components ────────────────────────────────────────────────
 function Label({ children }) {
   return (
-    <div style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '10px' }}>
+    <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '10px' }}>
       {children}
     </div>
   );
@@ -44,7 +44,7 @@ function Btn({ onClick, disabled, children, style = {} }) {
       style={{
         background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)',
         borderRadius: '7px', color: 'var(--green)',
-        fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700,
+        fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700,
         letterSpacing: '0.06em', textTransform: 'uppercase',
         padding: '9px 14px', cursor: disabled ? 'default' : 'pointer',
         opacity: disabled ? 0.5 : 1, transition: 'opacity 0.15s',
@@ -59,7 +59,7 @@ function Btn({ onClick, disabled, children, style = {} }) {
 function FieldInput({ label, type = 'text', value, onChange, placeholder }) {
   return (
     <div>
-      <div style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t4)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px' }}>
+      <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px' }}>
         {label}
       </div>
       <input
@@ -114,12 +114,12 @@ function CreateAcademyScreen({ onBack, onCreated }) {
         <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '22px', color: 'var(--t1)', marginBottom: '6px' }}>
           {t.academy.createTitle}
         </div>
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--t5)', marginBottom: '32px' }}>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', marginBottom: '32px' }}>
           {t.academy.createSub}
         </div>
 
         <div style={{ marginBottom: '14px' }}>
-          <div style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t4)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
             {t.academy.nameLabel}
           </div>
           <input
@@ -139,7 +139,7 @@ function CreateAcademyScreen({ onBack, onCreated }) {
         </div>
 
         {err && (
-          <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--color-down)', marginBottom: '12px' }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-down)', marginBottom: '12px' }}>
             {err}
           </div>
         )}
@@ -151,7 +151,7 @@ function CreateAcademyScreen({ onBack, onCreated }) {
             width: '100%', padding: '13px',
             background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)',
             borderRadius: '8px', color: 'var(--green)',
-            fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700,
+            fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700,
             letterSpacing: '0.06em', textTransform: 'uppercase',
             cursor: submitting ? 'default' : 'pointer', opacity: submitting ? 0.6 : 1,
           }}
@@ -281,7 +281,7 @@ function AcademyDashboard({ academyId, onBack }) {
   // ── Render: loading / error ──
   if (loading) return (
     <div id="gtm-root" style={{ background: 'var(--bg-page)' }}>
-      <div style={{ padding: '80px 20px', textAlign: 'center', fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--t6)' }}>
+      <div style={{ padding: '80px 20px', textAlign: 'center', fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)' }}>
         {t.academy.loading}
       </div>
     </div>
@@ -291,7 +291,7 @@ function AcademyDashboard({ academyId, onBack }) {
     <div id="gtm-root" style={{ background: 'var(--bg-page)' }}>
       <div style={{ padding: '48px 20px', position: 'relative', zIndex: 2 }}>
         <button onClick={onBack} style={backBtnStyle}>{t.academy.back}</button>
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--color-down)', marginTop: '16px' }}>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-down)', marginTop: '16px' }}>
           {error || t.academy.notFound}
         </div>
       </div>
@@ -323,7 +323,7 @@ function AcademyDashboard({ academyId, onBack }) {
               {academy.name}
             </h1>
             <span style={{
-              fontFamily: 'var(--font-body)', fontSize: '8px', fontWeight: 700,
+              fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700,
               letterSpacing: '0.1em', padding: '3px 8px', borderRadius: '4px',
               color: plan.color, background: plan.bg,
               border: `1px solid ${plan.color}40`,
@@ -340,7 +340,7 @@ function AcademyDashboard({ academyId, onBack }) {
               background: 'rgba(0,229,160,0.06)', border: '1px solid rgba(0,229,160,0.25)',
               borderRadius: '8px',
             }}>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--green)' }}>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--green)' }}>
                 {`✓ ${t.academy.planActive.replace('{plan}', plan.label)}`}
               </span>
               <button
@@ -348,7 +348,7 @@ function AcademyDashboard({ academyId, onBack }) {
                 style={{
                   background: 'transparent', border: '1px solid rgba(0,229,160,0.4)',
                   borderRadius: '5px', color: 'var(--green)',
-                  fontFamily: 'var(--font-body)', fontSize: '9px', fontWeight: 700,
+                  fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700,
                   letterSpacing: '0.06em', textTransform: 'uppercase',
                   padding: '5px 10px', cursor: 'pointer',
                 }}
@@ -366,7 +366,7 @@ function AcademyDashboard({ academyId, onBack }) {
               background: 'rgba(232,184,75,0.06)', border: '1px solid rgba(232,184,75,0.25)',
               borderRadius: '8px',
             }}>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--color-neutral)' }}>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-neutral)' }}>
                 {t.academy.trialLeft.replace('{days}', daysLeft).replace('{unit}', daysLeft === 1 ? t.academy.day : t.academy.days)}
               </span>
               <button
@@ -374,7 +374,7 @@ function AcademyDashboard({ academyId, onBack }) {
                 style={{
                   background: 'rgba(232,184,75,0.1)', border: '1px solid rgba(232,184,75,0.4)',
                   borderRadius: '5px', color: 'var(--color-neutral)',
-                  fontFamily: 'var(--font-body)', fontSize: '9px', fontWeight: 700,
+                  fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700,
                   letterSpacing: '0.06em', textTransform: 'uppercase',
                   padding: '5px 10px', cursor: 'pointer',
                 }}
@@ -392,7 +392,7 @@ function AcademyDashboard({ academyId, onBack }) {
               background: 'rgba(255,126,179,0.08)', border: '1px solid rgba(255,126,179,0.35)',
               borderRadius: '8px',
             }}>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--color-down)', lineHeight: 1.5 }}>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-down)', lineHeight: 1.5 }}>
                 {t.academy.trialExpired}
               </span>
               <button
@@ -401,7 +401,7 @@ function AcademyDashboard({ academyId, onBack }) {
                   flexShrink: 0,
                   background: 'rgba(255,126,179,0.12)', border: '1px solid rgba(255,126,179,0.5)',
                   borderRadius: '5px', color: 'var(--color-down)',
-                  fontFamily: 'var(--font-body)', fontSize: '9px', fontWeight: 700,
+                  fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700,
                   letterSpacing: '0.06em', textTransform: 'uppercase',
                   padding: '7px 12px', cursor: 'pointer',
                 }}
@@ -413,7 +413,7 @@ function AcademyDashboard({ academyId, onBack }) {
 
           {/* Join code */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
               {t.academy.accessCode}
             </span>
             <span style={{
@@ -455,7 +455,7 @@ function AcademyDashboard({ academyId, onBack }) {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
             <Label>{t.academy.studentsSection.replace('{n}', students.length)}</Label>
             {students.length > 0 && (
-              <Btn onClick={handleExport} disabled={exporting} style={{ padding: '6px 11px', fontSize: '9px', marginBottom: '10px' }}>
+              <Btn onClick={handleExport} disabled={exporting} style={{ padding: '6px 11px', fontSize: '12px', marginBottom: '10px' }}>
                 {exporting ? '...' : t.academy.exportCsv}
               </Btn>
             )}
@@ -468,7 +468,7 @@ function AcademyDashboard({ academyId, onBack }) {
                 <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '13px', color: 'var(--t3)', marginBottom: '6px' }}>
                   {t.academy.noStudents}
                 </div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--t5)', lineHeight: 1.6 }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', lineHeight: 1.6 }}>
                   {t.academy.noStudentsSub}
                 </div>
               </div>
@@ -482,7 +482,7 @@ function AcademyDashboard({ academyId, onBack }) {
                   alignItems: 'center',
                 }}>
                   {['', t.academy.colName, t.academy.colGames, t.academy.colAccuracy, t.academy.colStreak, t.academy.colLast].map((h, i) => (
-                    <div key={i} style={{ fontFamily: 'var(--font-body)', fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.08em', textAlign: i >= 2 ? 'center' : 'left' }}>
+                    <div key={i} style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.08em', textAlign: i >= 2 ? 'center' : 'left' }}>
                       {h}
                     </div>
                   ))}
@@ -504,7 +504,7 @@ function AcademyDashboard({ academyId, onBack }) {
                       width: '28px', height: '28px', borderRadius: '50%',
                       background: 'rgba(0,229,160,0.12)', border: '1px solid rgba(0,229,160,0.25)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '11px', color: 'var(--green)',
+                      fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '12px', color: 'var(--green)',
                       flexShrink: 0,
                     }}>
                       {(s.name || '?')[0].toUpperCase()}
@@ -512,32 +512,32 @@ function AcademyDashboard({ academyId, onBack }) {
 
                     {/* Name */}
                     <div style={{
-                      fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--t1)',
+                      fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t1)',
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>
                       {s.name}
                     </div>
 
                     {/* Games */}
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--t3)', textAlign: 'center' }}>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t3)', textAlign: 'center' }}>
                       {s.gamesPlayed}
                     </div>
 
                     {/* Accuracy */}
                     <div style={{
-                      fontFamily: 'var(--font-body)', fontSize: '10px', textAlign: 'center',
+                      fontFamily: 'var(--font-body)', fontSize: '12px', textAlign: 'center',
                       color: s.avgAccuracy >= 70 ? 'var(--green)' : s.avgAccuracy >= 50 ? 'var(--color-neutral)' : 'var(--t4)',
                     }}>
                       {s.gamesPlayed > 0 ? `${s.avgAccuracy}%` : '—'}
                     </div>
 
                     {/* Streak */}
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--t4)', textAlign: 'center' }}>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)', textAlign: 'center' }}>
                       {s.currentStreak > 0 ? `⚡${s.currentStreak}` : '—'}
                     </div>
 
                     {/* Last seen */}
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t5)', textAlign: 'center' }}>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', textAlign: 'center' }}>
                       {relativeDate(s.lastSeen, t)}
                     </div>
                   </div>
@@ -551,7 +551,7 @@ function AcademyDashboard({ academyId, onBack }) {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
             <Label>{t.academy.privateTournaments}</Label>
-            <Btn onClick={() => { setModal(true); setFormErr(null); }} style={{ padding: '6px 11px', fontSize: '9px', marginBottom: '10px' }}>
+            <Btn onClick={() => { setModal(true); setFormErr(null); }} style={{ padding: '6px 11px', fontSize: '12px', marginBottom: '10px' }}>
               {t.academy.createTournamentBtn}
             </Btn>
           </div>
@@ -561,7 +561,7 @@ function AcademyDashboard({ academyId, onBack }) {
               background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px',
               padding: '32px 20px', textAlign: 'center',
             }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--t5)' }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)' }}>
                 {t.academy.noTournaments}
               </div>
             </div>
@@ -594,7 +594,7 @@ function AcademyDashboard({ academyId, onBack }) {
                           {trn.name}
                         </span>
                         <span style={{
-                          fontFamily: 'var(--font-body)', fontSize: '8px', fontWeight: 700,
+                          fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700,
                           letterSpacing: '0.08em', padding: '3px 7px', borderRadius: '4px',
                           color: status.color, background: `${status.color}18`,
                           border: `1px solid ${status.color}40`, flexShrink: 0,
@@ -602,12 +602,12 @@ function AcademyDashboard({ academyId, onBack }) {
                           {badgeLabel}
                         </span>
                         {isFinished && (
-                          <span style={{ fontFamily: 'var(--font-body)', fontSize: '8px', color: 'var(--t5)', flexShrink: 0 }}>
+                          <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', flexShrink: 0 }}>
                             {new Date(trn.endsAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </span>
                         )}
                       </div>
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t5)' }}>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)' }}>
                         {new Date(trn.startsAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
                         {' — '}
                         {new Date(trn.endsAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
@@ -618,7 +618,7 @@ function AcademyDashboard({ academyId, onBack }) {
                     {/* Podium — finished only */}
                     {isFinished && entries.length > 0 && (
                       <div style={{ borderTop: '1px solid var(--bd)', padding: '12px 14px 10px' }}>
-                        <div style={{ fontFamily: 'var(--font-body)', fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px' }}>
+                        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px' }}>
                           {t.academy.podium}
                         </div>
                         <div style={{ display: 'flex', gap: '6px' }}>
@@ -630,7 +630,7 @@ function AcademyDashboard({ academyId, onBack }) {
                               borderRadius: '6px',
                             }}>
                               <div style={{
-                                fontFamily: 'var(--font-body)', fontSize: '9px', fontWeight: 700,
+                                fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700,
                                 color: i === 0 ? 'var(--t2)' : i === 1 ? 'var(--t3)' : 'var(--t4)',
                                 marginBottom: '4px',
                               }}>
@@ -638,12 +638,12 @@ function AcademyDashboard({ academyId, onBack }) {
                               </div>
                               <div style={{
                                 fontFamily: 'var(--font-body)', fontWeight: 700,
-                                fontSize: '11px', color: i === 0 ? 'var(--t1)' : 'var(--t3)',
+                                fontSize: '12px', color: i === 0 ? 'var(--t1)' : 'var(--t3)',
                                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                               }}>
                                 {e.name}
                               </div>
-                              <div style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t5)', marginTop: '3px' }}>
+                              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', marginTop: '3px' }}>
                                 {e.score} pts
                               </div>
                             </div>
@@ -662,7 +662,7 @@ function AcademyDashboard({ academyId, onBack }) {
                         }}>
                           {['#', t.academy.colName, t.academy.colScore, t.academy.colPart].map((h, i) => (
                             <div key={i} style={{
-                              fontFamily: 'var(--font-body)', fontSize: '8px',
+                              fontFamily: 'var(--font-body)', fontSize: '12px',
                               color: 'var(--t6)', letterSpacing: '0.08em',
                               textAlign: i === 0 || i >= 2 ? 'center' : 'left',
                             }}>
@@ -678,26 +678,26 @@ function AcademyDashboard({ academyId, onBack }) {
                             background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.012)',
                           }}>
                             <div style={{
-                              fontFamily: 'var(--font-body)', fontSize: '10px',
+                              fontFamily: 'var(--font-body)', fontSize: '12px',
                               color: i === 0 ? 'var(--t2)' : 'var(--t5)',
                               textAlign: 'center', fontWeight: i === 0 ? 700 : 400,
                             }}>
                               {i + 1}
                             </div>
                             <div style={{
-                              fontFamily: 'var(--font-body)', fontSize: '11px',
+                              fontFamily: 'var(--font-body)', fontSize: '12px',
                               color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                             }}>
                               {e.name}
                             </div>
                             <div style={{
-                              fontFamily: 'var(--font-body)', fontSize: '10px',
+                              fontFamily: 'var(--font-body)', fontSize: '12px',
                               color: 'var(--green)', textAlign: 'center', fontWeight: 700,
                             }}>
                               {e.score}
                             </div>
                             <div style={{
-                              fontFamily: 'var(--font-body)', fontSize: '10px',
+                              fontFamily: 'var(--font-body)', fontSize: '12px',
                               color: 'var(--t4)', textAlign: 'center',
                             }}>
                               {e.gamesPlayed}
@@ -733,7 +733,7 @@ function AcademyDashboard({ academyId, onBack }) {
             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--t1)', marginBottom: '4px' }}>
               {t.academy.activatePlanTitle}
             </div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t5)', marginBottom: '20px' }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', marginBottom: '20px' }}>
               {t.academy.activatePlanSub}
             </div>
 
@@ -754,7 +754,7 @@ function AcademyDashboard({ academyId, onBack }) {
                     {p.price}
                   </span>
                 </div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t5)', marginBottom: '12px' }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', marginBottom: '12px' }}>
                   {p.desc}
                 </div>
                 <button
@@ -764,7 +764,7 @@ function AcademyDashboard({ academyId, onBack }) {
                     width: '100%', padding: '9px',
                     background: p.bg, border: `1px solid ${p.color}`,
                     borderRadius: '6px', color: p.color,
-                    fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700,
+                    fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700,
                     letterSpacing: '0.06em', textTransform: 'uppercase',
                     cursor: activating ? 'default' : 'pointer', opacity: activating === p.id ? 0.6 : 1,
                   }}
@@ -775,7 +775,7 @@ function AcademyDashboard({ academyId, onBack }) {
             ))}
 
             {formErr && (
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--color-down)', marginTop: '8px' }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-down)', marginTop: '8px' }}>
                 {formErr}
               </div>
             )}
@@ -786,7 +786,7 @@ function AcademyDashboard({ academyId, onBack }) {
                 width: '100%', marginTop: '10px', padding: '10px',
                 background: 'transparent', border: '1px solid var(--bd2)',
                 borderRadius: '6px', color: 'var(--t5)',
-                fontFamily: 'var(--font-body)', fontSize: '10px', cursor: 'pointer',
+                fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer',
               }}
             >
               {t.academy.cancel}
@@ -844,7 +844,7 @@ function AcademyDashboard({ academyId, onBack }) {
             </div>
 
             {formErr && (
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--color-down)', marginTop: '12px' }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-down)', marginTop: '12px' }}>
                 {formErr}
               </div>
             )}
@@ -856,7 +856,7 @@ function AcademyDashboard({ academyId, onBack }) {
                   flex: 1, padding: '11px', background: 'transparent',
                   border: '1px solid var(--bd2)', borderRadius: '7px',
                   color: 'var(--t5)', fontFamily: 'var(--font-body)',
-                  fontSize: '10px', cursor: 'pointer',
+                  fontSize: '12px', cursor: 'pointer',
                 }}
               >
                 {t.academy.cancel}
@@ -875,7 +875,7 @@ function AcademyDashboard({ academyId, onBack }) {
           position: 'fixed', bottom: '28px', left: '50%', transform: 'translateX(-50%)',
           background: 'var(--green)', color: '#0a0a0a',
           padding: '12px 22px', borderRadius: '8px',
-          fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700,
+          fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700,
           zIndex: 400, whiteSpace: 'nowrap', boxShadow: '0 4px 20px rgba(0,229,160,0.3)',
         }}>
           ✓ {toast}
@@ -936,6 +936,6 @@ export default function TeacherDashboard({ academyId: academyIdProp, onBack }) {
 const backBtnStyle = {
   background: 'transparent', border: 'none',
   color: 'var(--t6)', fontFamily: 'var(--font-body)',
-  fontSize: '11px', cursor: 'pointer',
+  fontSize: '12px', cursor: 'pointer',
   marginBottom: '28px', display: 'block', padding: 0,
 };

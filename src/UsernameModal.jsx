@@ -56,7 +56,7 @@ export default function UsernameModal({ onDone }) {
         <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '22px', color: 'var(--t1)', marginBottom: '8px' }}>
           {t.username.title}
         </div>
-        <div style={{ fontSize: '10px', color: 'var(--t5)', letterSpacing: '0.06em', marginBottom: '24px' }}>
+        <div style={{ fontSize: '12px', color: 'var(--t5)', letterSpacing: '0.06em', marginBottom: '24px' }}>
           {t.username.hint}
         </div>
 
@@ -70,7 +70,7 @@ export default function UsernameModal({ onDone }) {
         />
 
         {status && (
-          <div style={{ fontSize: '10px', color: available ? 'var(--green)' : 'var(--color-down)', marginBottom: '16px', fontFamily: 'var(--font-body)' }}>
+          <div style={{ fontSize: '12px', color: available ? 'var(--green)' : 'var(--color-down)', marginBottom: '16px', fontFamily: 'var(--font-body)' }}>
             {checking ? t.username.checking : status}
           </div>
         )}
@@ -78,7 +78,7 @@ export default function UsernameModal({ onDone }) {
         <button
           onClick={save}
           disabled={!available || saving}
-          style={{ width: '100%', padding: '14px', background: available ? 'rgba(0,229,160,0.08)' : 'var(--bg-page)', border: `1px solid ${available ? 'var(--green)' : 'var(--bd2)'}`, borderRadius: '6px', color: available ? 'var(--green)' : 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: available ? 'pointer' : 'not-allowed' }}>
+          style={{ width: '100%', padding: '14px', background: available ? 'rgba(0,229,160,0.08)' : 'var(--bg-page)', border: `1px solid ${available ? 'var(--green)' : 'var(--bd2)'}`, borderRadius: '6px', color: available ? 'var(--green)' : 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: available ? 'pointer' : 'not-allowed' }}>
           {saving ? '...' : t.username.confirm}
         </button>
       </div>

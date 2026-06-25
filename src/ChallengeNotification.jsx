@@ -53,7 +53,7 @@ export default function ChallengeNotification({ challenge, onAccept, onReject })
           <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t1)', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             @{challenge.challengerUsername}
           </div>
-          <div style={{ fontSize: '10px', color: 'var(--t5)', fontFamily: 'var(--font-body)', marginTop: '2px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)', marginTop: '2px' }}>
             {t.challenge.challenges}
           </div>
         </div>
@@ -69,7 +69,7 @@ export default function ChallengeNotification({ challenge, onAccept, onReject })
       <div style={{ display: 'flex', gap: '8px' }}>
         <button
           onClick={onAccept}
-          style={{ flex: 1, padding: '10px', background: 'rgba(0,229,160,0.1)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase' }}
+          style={{ flex: 1, padding: '10px', background: 'rgba(0,229,160,0.1)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase' }}
           onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,229,160,0.2)'}
           onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,229,160,0.1)'}
         >
@@ -77,7 +77,7 @@ export default function ChallengeNotification({ challenge, onAccept, onReject })
         </button>
         <button
           onClick={onReject}
-          style={{ flex: 1, padding: '10px', background: 'rgba(255,126,179,0.08)', border: '1px solid var(--color-down)', borderRadius: '8px', color: 'var(--color-down)', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase' }}
+          style={{ flex: 1, padding: '10px', background: 'rgba(255,126,179,0.08)', border: '1px solid var(--color-down)', borderRadius: '8px', color: 'var(--color-down)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase' }}
           onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,126,179,0.15)'}
           onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,126,179,0.08)'}
         >

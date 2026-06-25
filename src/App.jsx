@@ -493,14 +493,14 @@ export default function App() {
                 <span style={{ fontSize: '20px' }}>{level.icon}</span>
                 <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>{level.name}</span>
               </div>
-              <span style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.1em' }}>{xp} XP</span>
+              <span style={{ fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.1em' }}>{xp} XP</span>
             </div>
             {next && (
               <>
                 <div style={{ height: '4px', background: 'var(--bd)', borderRadius: '2px', overflow: 'hidden' }}>
                   <div style={{ height: '100%', width: `${progress}%`, background: 'var(--green)', borderRadius: '2px', transition: 'width 0.5s ease' }} />
                 </div>
-                <div style={{ fontSize: '8px', color: 'var(--t6)', marginTop: '4px', textAlign: 'right' }}>
+                <div style={{ fontSize: '12px', color: 'var(--t6)', marginTop: '4px', textAlign: 'right' }}>
                   {next.icon} {next.name} en {next.xp - xp} XP
                 </div>
               </>
@@ -512,21 +512,21 @@ export default function App() {
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--t1)' }}>
                 {t.game.guessTheMarket}
               </div>
-              <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.1em' }}>tradiko.dev</div>
+              <div style={{ fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.1em' }}>tradiko.dev</div>
             </div>
             <div style={{ textAlign: 'center', marginBottom: '20px' }}>
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '52px', color: 'var(--color-neutral)', letterSpacing: '-0.02em', lineHeight: 1 }}>
                 {score}
               </div>
-              <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '4px' }}>
+              <div style={{ fontSize: '12px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '4px' }}>
                 {t.gameover.finalScore}
               </div>
               {score >= highscore && score > 0 && (
-                <div style={{ marginTop: '8px', fontSize: '10px', color: 'var(--green)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--green)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                   {t.game.newHighscore}
                 </div>
               )}
-              <div style={{ fontSize: '11px', color: 'var(--t6)', marginTop: '4px' }}>{t.game.best}: {highscore}</div>
+              <div style={{ fontSize: '12px', color: 'var(--t6)', marginTop: '4px' }}>{t.game.best}: {highscore}</div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '20px' }}>
               {[
@@ -536,7 +536,7 @@ export default function App() {
               ].map(s => (
                 <div key={s.label} className="game-stat-card">
                   <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '22px', color: s.color }}>{s.value}</div>
-                  <div style={{ fontSize: '8px', color: 'var(--t5)', letterSpacing: '0.06em', textTransform: 'uppercase', marginTop: '2px' }}>{s.label}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--t5)', letterSpacing: '0.06em', textTransform: 'uppercase', marginTop: '2px' }}>{s.label}</div>
                 </div>
               ))}
             </div>
@@ -549,7 +549,7 @@ export default function App() {
 
           {personalStats && (
             <div style={{ marginBottom: '12px', padding: '12px 16px', background: 'var(--bg-page)', border: '1px solid var(--bd)', borderRadius: '8px' }}>
-              <div style={{ fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px', fontFamily: 'var(--font-body)' }}>{t.stats.myHistory}</div>
+              <div style={{ fontSize: '12px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px', fontFamily: 'var(--font-body)' }}>{t.stats.myHistory}</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
                 {[
                   { label: t.stats.games,      value: personalStats.totalGames },
@@ -558,7 +558,7 @@ export default function App() {
                 ].map(s => (
                   <div key={s.label} style={{ textAlign: 'center' }}>
                     <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--green)' }}>{s.value}</div>
-                    <div style={{ fontSize: '8px', color: 'var(--t6)', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '2px' }}>{s.label}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--t6)', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '2px' }}>{s.label}</div>
                   </div>
                 ))}
               </div>
@@ -567,7 +567,7 @@ export default function App() {
 
           <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
             <button onClick={shareResult}
-              style={{ flex: 1, padding: '14px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.18s', boxShadow: '0 0 20px rgba(0,229,160,0.08)' }}
+              style={{ flex: 1, padding: '14px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.18s', boxShadow: '0 0 20px rgba(0,229,160,0.08)' }}
               onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,229,160,0.14)'; e.currentTarget.style.boxShadow = '0 0 28px rgba(0,229,160,0.18)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,229,160,0.08)'; e.currentTarget.style.boxShadow = '0 0 20px rgba(0,229,160,0.08)'; }}
             >
@@ -576,14 +576,14 @@ export default function App() {
           </div>
           <div style={{ display: 'flex', gap: '10px' }}>
             <button onClick={playAgain}
-              style={{ flex: 1, padding: '14px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '8px', color: 'var(--t3)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.18s' }}
+              style={{ flex: 1, padding: '14px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '8px', color: 'var(--t3)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.18s' }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--green)'; e.currentTarget.style.color = 'var(--green)'; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--bd2)'; e.currentTarget.style.color = 'var(--t3)'; }}
             >
               {t.gameover.playAgain}
             </button>
             <button onClick={goHome}
-              style={{ flex: 1, padding: '14px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '8px', color: 'var(--t3)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.18s' }}
+              style={{ flex: 1, padding: '14px', background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '8px', color: 'var(--t3)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.18s' }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--t3)'; e.currentTarget.style.color = 'var(--t2)'; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--bd2)'; e.currentTarget.style.color = 'var(--t3)'; }}
             >
@@ -724,16 +724,16 @@ export default function App() {
       <div style={{ padding: '10px 16px 8px', background: 'var(--bg-surface)', borderBottom: '0.5px solid var(--border-default)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
           <button onClick={goHome}
-            style={{ background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 10px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em' }}>
+            style={{ background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 10px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em' }}>
             {t.game.back}
           </button>
-          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '11px', color: 'var(--text-muted)', letterSpacing: '0.16em', textTransform: 'uppercase' }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.16em', textTransform: 'uppercase' }}>
             {t.game.mode}
           </div>
           <div style={{ display: 'flex', gap: '4px' }}>
             {['en', 'es', 'de'].map(l => (
               <button key={l} onClick={() => setLang(l)}
-                style={{ background: lang === l ? 'var(--green-dim)' : 'transparent', color: lang === l ? 'var(--green)' : 'var(--text-muted)', border: `1px solid ${lang === l ? 'var(--border-green)' : 'var(--border-default)'}`, borderRadius: 'var(--radius-sm)', padding: '3px 7px', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 800, cursor: 'pointer' }}>
+                style={{ background: lang === l ? 'var(--green-dim)' : 'transparent', color: lang === l ? 'var(--green)' : 'var(--text-muted)', border: `1px solid ${lang === l ? 'var(--border-green)' : 'var(--border-default)'}`, borderRadius: 'var(--radius-sm)', padding: '3px 7px', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer' }}>
                 {l.toUpperCase()}
               </button>
             ))}
@@ -746,7 +746,7 @@ export default function App() {
             { label: t.game.streak, value: streak,         color: streak > 0 ? 'var(--pink)' : 'var(--text-muted)' },
           ].map(({ label, value, color }) => (
             <div key={label} style={{ flex: 1, background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', padding: '6px 8px', textAlign: 'center', border: '0.5px solid var(--border-default)' }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '8px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', marginBottom: '2px' }}>{label}</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', marginBottom: '2px' }}>{label}</div>
               <div style={{ fontFamily: 'var(--font-body)', fontSize: '16px', fontWeight: 900, color, letterSpacing: '-0.5px', lineHeight: 1 }}>{value}</div>
             </div>
           ))}
@@ -757,7 +757,7 @@ export default function App() {
       <div style={{ display: 'flex', gap: '6px', padding: '10px 16px', overflowX: 'auto', scrollbarWidth: 'none' }}>
         {CATEGORIES.map(c => (
           <button key={c.id} onClick={() => changeCategory(c.id)}
-            style={{ flexShrink: 0, background: category === c.id ? 'var(--green-dim)' : 'var(--bg-elevated)', border: `1.5px solid ${category === c.id ? 'var(--border-green)' : 'var(--border-default)'}`, borderRadius: 'var(--radius-full)', padding: '5px 12px', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 800, color: category === c.id ? 'var(--green)' : 'var(--text-muted)', cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap', transition: 'all 0.15s' }}>
+            style={{ flexShrink: 0, background: category === c.id ? 'var(--green-dim)' : 'var(--bg-elevated)', border: `1.5px solid ${category === c.id ? 'var(--border-green)' : 'var(--border-default)'}`, borderRadius: 'var(--radius-full)', padding: '5px 12px', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: category === c.id ? 'var(--green)' : 'var(--text-muted)', cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap', transition: 'all 0.15s' }}>
             {t.cats[c.labelKey]}
           </button>
         ))}
@@ -766,7 +766,7 @@ export default function App() {
       {/* Asset bar */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 16px 8px', background: 'var(--bg-surface)' }}>
         <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '16px', color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>{asset.name}</div>
-        <span style={{ background: 'var(--pink-dim)', color: 'var(--pink)', border: '1px solid var(--border-pink)', borderRadius: 'var(--radius-full)', padding: '3px 10px', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em' }}>{asset.tf}</span>
+        <span style={{ background: 'var(--pink-dim)', color: 'var(--pink)', border: '1px solid var(--border-pink)', borderRadius: 'var(--radius-full)', padding: '3px 10px', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, letterSpacing: '0.08em' }}>{asset.tf}</span>
       </div>
 
       <div className="chart-area">
@@ -787,7 +787,7 @@ export default function App() {
           const bg = !h ? 'var(--border-default)' : h === 'win' ? 'var(--green)' : h === 'lose' ? 'var(--pink)' : 'var(--color-neutral)';
           return <div key={i} style={{ width: '8px', height: '8px', borderRadius: '50%', background: bg, flexShrink: 0 }} />;
         })}
-        {streak > 1 && <span style={{ fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 800, color: 'var(--pink)', marginLeft: '6px' }}>{streak}× {t.common.streak}</span>}
+        {streak > 1 && <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--pink)', marginLeft: '6px' }}>{streak}× {t.common.streak}</span>}
       </div>
       {/* Analysis cards */}
       {phase === 'choose' && chartReady && (() => {
@@ -808,8 +808,8 @@ export default function App() {
                 { label: t.game.volatility, value: volLabel,                                                            color: volColor },
               ].map(s => (
                 <div key={s.label} style={{ background: 'var(--bg-elevated)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', padding: '7px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '8px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.10em' }}>{s.label}</span>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 900, color: s.color }}>{s.value}</span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.10em' }}>{s.label}</span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 900, color: s.color }}>{s.value}</span>
                 </div>
               ))}
             </div>
@@ -819,22 +819,22 @@ export default function App() {
       {/* Action zone */}
       {phase === 'choose' && (
         <div style={{ padding: '10px 16px 0' }}>
-          <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', textAlign: 'center', marginBottom: '8px' }}>{t.game.whatNext}</div>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', textAlign: 'center', marginBottom: '8px' }}>{t.game.whatNext}</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
             <button className={`btn-long${selected === 'long' ? ' selected' : ''}`} onClick={() => makeChoice('long')}>
               <span style={{ fontSize: '18px', lineHeight: 1 }}>↑</span>
               <span>Long</span>
-              <span style={{ fontSize: '9px', opacity: 0.7, fontWeight: 700 }}>{t.game.longSub}</span>
+              <span style={{ fontSize: '12px', opacity: 0.7, fontWeight: 700 }}>{t.game.longSub}</span>
             </button>
             <button className={`btn-neutral${selected === 'skip' ? ' selected' : ''}`} onClick={() => makeChoice('skip')}>
               <span style={{ fontSize: '18px', lineHeight: 1 }}>—</span>
               <span>{t.game.noTrade}</span>
-              <span style={{ fontSize: '9px', opacity: 0.7, fontWeight: 700 }}>{t.game.noTradeSub}</span>
+              <span style={{ fontSize: '12px', opacity: 0.7, fontWeight: 700 }}>{t.game.noTradeSub}</span>
             </button>
             <button className={`btn-short${selected === 'short' ? ' selected' : ''}`} onClick={() => makeChoice('short')}>
               <span style={{ fontSize: '18px', lineHeight: 1 }}>↓</span>
               <span>Short</span>
-              <span style={{ fontSize: '9px', opacity: 0.7, fontWeight: 700 }}>{t.game.shortSub}</span>
+              <span style={{ fontSize: '12px', opacity: 0.7, fontWeight: 700 }}>{t.game.shortSub}</span>
             </button>
           </div>
         </div>
@@ -853,7 +853,7 @@ export default function App() {
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '14px', marginBottom: '2px', color: cls === 'win' ? 'var(--green)' : cls === 'lose' ? 'var(--pink)' : 'var(--color-neutral)' }}>
                 {result.win && !result.neutral ? t.game.correct : !result.win && !result.neutral ? t.game.wrong : t.game.flat}
               </div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)' }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)' }}>
                 {t.game.price} {dirLabel} {result.pctMove > 0 ? '+' : ''}{result.pctMove.toFixed(2)}% · {result.choice.toUpperCase()}
               </div>
             </div>
@@ -882,7 +882,7 @@ export default function App() {
         ].map(s => (
           <div key={s.label} style={{ background: 'var(--bg-elevated)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', padding: '8px 10px', textAlign: 'center' }}>
             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '20px', color: s.color, letterSpacing: '-0.5px', lineHeight: 1 }}>{s.value}</div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: '8px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.10em', textTransform: 'uppercase', marginTop: '3px' }}>{s.label}</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.10em', textTransform: 'uppercase', marginTop: '3px' }}>{s.label}</div>
           </div>
         ))}
       </div>

@@ -147,7 +147,7 @@ export default function Home({ onSelect }) {
             ))}
             {user?.role === 'teacher' && (
               <button onClick={() => onSelect('teacher_dashboard')}
-                style={{ background: 'rgba(0,229,160,0.07)', border: '1px solid rgba(0,229,160,0.35)', borderRadius: '6px', padding: '4px 9px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '8px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}
+                style={{ background: 'rgba(0,229,160,0.07)', border: '1px solid rgba(0,229,160,0.35)', borderRadius: '6px', padding: '4px 9px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,229,160,0.14)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,229,160,0.07)'}
               >
@@ -157,7 +157,7 @@ export default function Home({ onSelect }) {
             {user && user.role !== 'teacher' && (
               user.academyId ? (
                 <button onClick={() => onSelect('student_dashboard')}
-                  style={{ background: 'rgba(0,229,160,0.07)', border: '1px solid rgba(0,229,160,0.35)', borderRadius: '6px', padding: '4px 9px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '8px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}
+                  style={{ background: 'rgba(0,229,160,0.07)', border: '1px solid rgba(0,229,160,0.35)', borderRadius: '6px', padding: '4px 9px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}
                   onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,229,160,0.14)'}
                   onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,229,160,0.07)'}
                 >
@@ -165,7 +165,7 @@ export default function Home({ onSelect }) {
                 </button>
               ) : (
                 <button onClick={() => onSelect('join_academy')}
-                  style={{ background: 'rgba(0,229,160,0.07)', border: '1px solid rgba(0,229,160,0.35)', borderRadius: '6px', padding: '4px 9px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '8px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}
+                  style={{ background: 'rgba(0,229,160,0.07)', border: '1px solid rgba(0,229,160,0.35)', borderRadius: '6px', padding: '4px 9px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}
                   onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,229,160,0.14)'}
                   onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,229,160,0.07)'}
                 >
@@ -176,12 +176,12 @@ export default function Home({ onSelect }) {
           </div>
 
           {!isIOSApp() && (isPro ? (
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '5px 12px', background: 'var(--green-dim)', border: '0.5px solid var(--border-green)', borderRadius: 'var(--radius-full)', fontSize: '10px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontWeight: 800, letterSpacing: '0.06em' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '5px 12px', background: 'var(--green-dim)', border: '0.5px solid var(--border-green)', borderRadius: 'var(--radius-full)', fontSize: '12px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontWeight: 800, letterSpacing: '0.06em' }}>
               ⚡ Pro
             </div>
           ) : (
             <button onClick={() => onSelect('pricing')}
-              style={{ background: 'var(--gradient-brand)', border: 'none', borderRadius: 'var(--radius-full)', padding: '6px 16px', color: '#0d0d0d', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 900, cursor: 'pointer', letterSpacing: '0.06em' }}>
+              style={{ background: 'var(--gradient-brand)', border: 'none', borderRadius: 'var(--radius-full)', padding: '6px 16px', color: '#0d0d0d', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 900, cursor: 'pointer', letterSpacing: '0.06em' }}>
               {t.home.goPro}
             </button>
           ))}
@@ -200,7 +200,7 @@ export default function Home({ onSelect }) {
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={avatarLoading}
-                  style={{ position: 'absolute', top: '-5px', right: '-5px', width: '13px', height: '13px', borderRadius: '50%', background: 'var(--bg-card)', border: '1px solid var(--t6)', fontSize: '7px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, lineHeight: 1 }}
+                  style={{ position: 'absolute', top: '-5px', right: '-5px', width: '13px', height: '13px', borderRadius: '50%', background: 'var(--bg-card)', border: '1px solid var(--t6)', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, lineHeight: 1 }}
                 >
                   📷
                 </button>
@@ -208,7 +208,7 @@ export default function Home({ onSelect }) {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <span style={{ fontSize: '10px', color: 'var(--t3)', fontFamily: 'var(--font-body)', display: 'inline-flex', alignItems: 'center' }}>
+                  <span style={{ fontSize: '12px', color: 'var(--t3)', fontFamily: 'var(--font-body)', display: 'inline-flex', alignItems: 'center' }}>
                     {user.username ? `@${user.username}` : user.name}
                     {isFounder(user.username) && <FounderBadge size={12} />}
                   </span>
@@ -217,23 +217,23 @@ export default function Home({ onSelect }) {
                   )}
                 </div>
                 {user.username && (
-                  <span style={{ fontSize: '8px', color: 'var(--t6)', fontFamily: 'var(--font-body)' }}>
+                  <span style={{ fontSize: '12px', color: 'var(--t6)', fontFamily: 'var(--font-body)' }}>
                     {user.name}
                   </span>
                 )}
                 {user.academyId && user.isAcademyPro && academyName && (
-                  <span style={{ fontSize: '7px', color: 'var(--green)', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', background: 'rgba(0,229,160,0.08)', border: '1px solid rgba(0,229,160,0.2)', borderRadius: '4px', padding: '2px 6px', alignSelf: 'flex-start' }}>
+                  <span style={{ fontSize: '12px', color: 'var(--green)', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', background: 'rgba(0,229,160,0.08)', border: '1px solid rgba(0,229,160,0.2)', borderRadius: '4px', padding: '2px 6px', alignSelf: 'flex-start' }}>
                     {t.home.student} — {academyName}
                   </span>
                 )}
               </div>
               {!user.username && (
                 <button onClick={() => setShowUsernameModal(true)}
-                  style={{ background: 'rgba(55,138,221,0.08)', border: '1px solid #378ADD', borderRadius: '6px', padding: '3px 8px', color: '#378ADD', fontFamily: 'var(--font-body)', fontSize: '8px', cursor: 'pointer', letterSpacing: '0.06em' }}>
+                  style={{ background: 'rgba(55,138,221,0.08)', border: '1px solid #378ADD', borderRadius: '6px', padding: '3px 8px', color: '#378ADD', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', letterSpacing: '0.06em' }}>
                   + username
                 </button>
               )}
-              <button onClick={logout} style={{ background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '6px', padding: '4px 10px', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em' }}>
+              <button onClick={logout} style={{ background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '6px', padding: '4px 10px', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', letterSpacing: '0.06em' }}>
                 {t.common.logout}
               </button>
             </div>
@@ -318,19 +318,19 @@ export default function Home({ onSelect }) {
               Tradi<span style={{ color: 'var(--pink)' }}>ko</span>
             </span>
           </div>
-          <div style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: '6px', fontFamily: 'var(--font-body)', fontWeight: 700 }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: '6px', fontFamily: 'var(--font-body)', fontWeight: 700 }}>
             {t.home.tagline}
           </div>
           <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px' }}>
             {dailyStreak > 0 && (
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'var(--pink-dim)', border: '0.5px solid var(--border-pink)', borderRadius: 'var(--radius-full)', padding: '4px 10px' }}>
                 <span style={{ fontSize: '12px' }}>🔥</span>
-                <span style={{ fontSize: '10px', color: 'var(--pink)', fontFamily: 'var(--font-body)', fontWeight: 800, letterSpacing: '0.06em' }}>{dailyStreak} {t.common.days}</span>
+                <span style={{ fontSize: '12px', color: 'var(--pink)', fontFamily: 'var(--font-body)', fontWeight: 800, letterSpacing: '0.06em' }}>{dailyStreak} {t.common.days}</span>
               </div>
             )}
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'var(--green-dim)', border: '0.5px solid var(--border-green)', borderRadius: 'var(--radius-full)', padding: '4px 10px' }}>
-              <span style={{ fontSize: '11px' }}>{level.icon}</span>
-              <span style={{ fontSize: '10px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontWeight: 800, letterSpacing: '0.06em' }}>{level.name} · {xp} XP</span>
+              <span style={{ fontSize: '12px' }}>{level.icon}</span>
+              <span style={{ fontSize: '12px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontWeight: 800, letterSpacing: '0.06em' }}>{level.name} · {xp} XP</span>
             </div>
           </div>
         </div>
@@ -380,7 +380,7 @@ export default function Home({ onSelect }) {
           {/* Divider */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '2px 0' }}>
             <div style={{ flex: 1, height: '1px', background: 'var(--border-default)' }} />
-            <span style={{ fontSize: '8px', color: 'var(--text-hint)', letterSpacing: '0.18em', fontFamily: 'var(--font-body)', fontWeight: 700 }}>{t.home.moreModes.toUpperCase()}</span>
+            <span style={{ fontSize: '12px', color: 'var(--text-hint)', letterSpacing: '0.18em', fontFamily: 'var(--font-body)', fontWeight: 700 }}>{t.home.moreModes.toUpperCase()}</span>
             <div style={{ flex: 1, height: '1px', background: 'var(--border-default)' }} />
           </div>
 
@@ -415,19 +415,19 @@ export default function Home({ onSelect }) {
         {/* Footer */}
         <div style={{ textAlign: 'center', marginTop: '32px', paddingBottom: '8px' }}>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', alignItems: 'center' }}>
-            <span style={{ fontSize: '11px', color: 'var(--text-hint)', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'var(--font-body)' }}>
+            <span style={{ fontSize: '12px', color: 'var(--text-hint)', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'var(--font-body)' }}>
               {t.home.version}
             </span>
             <button onClick={() => onSelect('legal')}
-              style={{ background: 'transparent', border: 'none', color: 'var(--text-hint)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'underline' }}>
+              style={{ background: 'transparent', border: 'none', color: 'var(--text-hint)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'underline' }}>
               {t.common.legal}
             </button>
             <button onClick={() => onSelect('privacy')}
-              style={{ background: 'transparent', border: 'none', color: 'var(--text-hint)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'underline' }}>
+              style={{ background: 'transparent', border: 'none', color: 'var(--text-hint)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'underline' }}>
               Privacy
             </button>
             <button onClick={() => onSelect('support')}
-              style={{ background: 'transparent', border: 'none', color: 'var(--text-hint)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'underline' }}>
+              style={{ background: 'transparent', border: 'none', color: 'var(--text-hint)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'underline' }}>
               Support
             </button>
           </div>

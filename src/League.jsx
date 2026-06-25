@@ -93,7 +93,7 @@ export default function League({ leagueId, onBack }) {
   if (!data || data.error) return (
     <div style={{ padding: '16px 16px 24px', fontFamily: 'var(--font-body)', background: 'var(--bg-base)', minHeight: '100vh' }}>
       <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, padding: '0 0 12px 0' }}>{t.league.back}</button>
-      <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px' }}>{tl.notFound}</div>
+      <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px' }}>{tl.notFound}</div>
     </div>
   );
 
@@ -109,18 +109,18 @@ export default function League({ leagueId, onBack }) {
         <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '20px', color: 'var(--text-primary)', marginBottom: '8px' }}>{data.name}</div>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {daysLeft !== null && (
-            <span style={{ background: 'var(--pink-dim)', color: 'var(--pink)', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 800, padding: '3px 10px', borderRadius: 'var(--radius-full)', letterSpacing: '0.08em' }}>
+            <span style={{ background: 'var(--pink-dim)', color: 'var(--pink)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, padding: '3px 10px', borderRadius: 'var(--radius-full)', letterSpacing: '0.08em' }}>
               {daysLeft > 0 ? `${daysLeft} ${t.league.daysLeft}` : t.league.finished}
             </span>
           )}
-          <span style={{ background: 'var(--green-dim)', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 800, padding: '3px 10px', borderRadius: 'var(--radius-full)', letterSpacing: '0.08em' }}>
+          <span style={{ background: 'var(--green-dim)', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, padding: '3px 10px', borderRadius: 'var(--radius-full)', letterSpacing: '0.08em' }}>
             {data.ranking?.length ?? 0} {t.league.players}
           </span>
         </div>
       </div>
 
       {/* Ranking label */}
-      <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--text-muted)', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '10px' }}>
+      <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '10px' }}>
         {tl.rankingLabel} · {data.ranking.length} {tl.participants}
       </div>
 
@@ -144,9 +144,9 @@ export default function League({ leagueId, onBack }) {
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: isMe ? 'var(--pink)' : 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 {name}
                 {isFounder(entry.username) && <FounderBadge size={10} />}
-                {isMe && <span style={{ fontSize: '9px', color: 'var(--pink)' }}>{t.league.you}</span>}
+                {isMe && <span style={{ fontSize: '12px', color: 'var(--pink)' }}>{t.league.you}</span>}
               </div>
-              <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>{formatCash(entry.totalValue)}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{formatCash(entry.totalValue)}</div>
             </div>
             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '13px', color: entry.returnPct >= 0 ? 'var(--green)' : 'var(--pink)', flexShrink: 0 }}>
               {entry.returnPct >= 0 ? '+' : ''}{entry.returnPct.toFixed(2)}%
@@ -163,7 +163,7 @@ export default function League({ leagueId, onBack }) {
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', margin: '4px 0' }}>
               <div style={{ flex: 1, height: '1px', background: 'var(--border-default)' }} />
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--text-muted)' }}>···</span>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)' }}>···</span>
               <div style={{ flex: 1, height: '1px', background: 'var(--border-default)' }} />
             </div>
             <div style={{
@@ -180,9 +180,9 @@ export default function League({ leagueId, onBack }) {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--pink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px' }}>
                   {name}
-                  <span style={{ fontSize: '9px', color: 'var(--pink)' }}>{t.league.you}</span>
+                  <span style={{ fontSize: '12px', color: 'var(--pink)' }}>{t.league.you}</span>
                 </div>
-                <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>{formatCash(up.totalValue)}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{formatCash(up.totalValue)}</div>
               </div>
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '13px', color: up.returnPct >= 0 ? 'var(--green)' : 'var(--pink)', flexShrink: 0 }}>
                 {up.returnPct >= 0 ? '+' : ''}{up.returnPct.toFixed(2)}%

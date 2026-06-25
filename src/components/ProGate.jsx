@@ -40,7 +40,7 @@ export default function ProGate({ children, feature = '' }) {
           Función Pro
         </div>
         {feature && (
-          <div style={{ fontSize: '11px', color: 'var(--t5)', textAlign: 'center', lineHeight: 1.5 }}>{feature}</div>
+          <div style={{ fontSize: '12px', color: 'var(--t5)', textAlign: 'center', lineHeight: 1.5 }}>{feature}</div>
         )}
         <button
           onClick={handleUpgrade}
@@ -48,7 +48,7 @@ export default function ProGate({ children, feature = '' }) {
           style={{
             padding: '12px 28px', background: 'linear-gradient(135deg, var(--green), #1aaa84)',
             border: 'none', borderRadius: '8px', color: 'var(--bg-base)',
-            fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700,
+            fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700,
             letterSpacing: '0.06em', textTransform: 'uppercase', cursor: loading ? 'default' : 'pointer',
             opacity: loading ? 0.7 : 1,
           }}

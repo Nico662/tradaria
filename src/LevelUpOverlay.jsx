@@ -63,7 +63,7 @@ export default function LevelUpOverlay({ newLevel, prevLevel, onClose }) {
         {/* LEVEL UP text */}
         <div style={{
           fontFamily: 'var(--font-body)',
-          fontSize: '11px',
+          fontSize: '12px',
           letterSpacing: '0.25em',
           color: 'var(--color-neutral)',
           textTransform: 'uppercase',
@@ -103,11 +103,11 @@ export default function LevelUpOverlay({ newLevel, prevLevel, onClose }) {
           margin: '12px 0 20px',
           animation: 'luSlideUp 0.4s 0.6s both',
         }}>
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--t6)', textDecoration: 'line-through' }}>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', textDecoration: 'line-through' }}>
             {prevLevel.icon} {prevLevel.name}
           </span>
           <span style={{ color: 'var(--color-neutral)', fontSize: '14px' }}>→</span>
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--color-neutral)', fontWeight: 700 }}>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-neutral)', fontWeight: 700 }}>
             {newLevel.icon} {newLevel.name}
           </span>
         </div>
@@ -115,8 +115,8 @@ export default function LevelUpOverlay({ newLevel, prevLevel, onClose }) {
         {/* XP bar */}
         <div style={{ animation: 'luSlideUp 0.4s 0.7s both' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: '#5a6a7d' }}>{xp} XP</span>
-            {next && <span style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t6)' }}>{next.xp} XP → {next.icon} {next.name}</span>}
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: '#5a6a7d' }}>{xp} XP</span>
+            {next && <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)' }}>{next.xp} XP → {next.icon} {next.name}</span>}
           </div>
           <div style={{ height: '4px', background: 'var(--bd)', borderRadius: '2px', overflow: 'hidden' }}>
             <div style={{ height: '100%', width: `${prog}%`, background: 'linear-gradient(90deg, var(--green), var(--color-neutral))', borderRadius: '2px', transition: 'width 1s ease 0.8s' }} />
@@ -133,7 +133,7 @@ export default function LevelUpOverlay({ newLevel, prevLevel, onClose }) {
           borderRadius: '8px',
           color: 'var(--color-neutral)',
           fontFamily: 'var(--font-body)',
-          fontSize: '11px',
+          fontSize: '12px',
           fontWeight: 700,
           letterSpacing: '0.1em',
           textTransform: 'uppercase',

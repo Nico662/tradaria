@@ -83,7 +83,7 @@ export default function Stats({ onBack, onSelect }) {
             )}
           </div>
           {user?.username && (
-            <div style={{ position: 'absolute', bottom: '-16px', left: '50%', transform: 'translateX(-50%)', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 800, color: 'var(--text-muted)', whiteSpace: 'nowrap', letterSpacing: '0.04em' }}>
+            <div style={{ position: 'absolute', bottom: '-16px', left: '50%', transform: 'translateX(-50%)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--text-muted)', whiteSpace: 'nowrap', letterSpacing: '0.04em' }}>
               @{user.username}
             </div>
           )}
@@ -99,14 +99,14 @@ export default function Stats({ onBack, onSelect }) {
       )}
 
       {error === 'login' && (
-        <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '11px', marginTop: '60px', padding: '0 24px' }}>
+        <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '12px', marginTop: '60px', padding: '0 24px' }}>
           <div style={{ marginBottom: '8px' }}>{t.stats.signIn}</div>
-          <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>{t.stats.signInSub}</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{t.stats.signInSub}</div>
         </div>
       )}
 
       {error === true && (
-        <div style={{ textAlign: 'center', color: 'var(--pink)', fontSize: '11px', marginTop: '60px' }}>
+        <div style={{ textAlign: 'center', color: 'var(--pink)', fontSize: '12px', marginTop: '60px' }}>
           {t.stats.error}
         </div>
       )}
@@ -122,7 +122,7 @@ export default function Stats({ onBack, onSelect }) {
               { label: t.stats.bestScore,   value: data.bestScore,            color: 'var(--green)' },
             ].map(({ label, value, color }, i) => (
               <div key={label} className={`animate-fade-in-up stagger-${i + 1}`} style={{ background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', padding: '14px 12px' }}>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '9px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '6px' }}>{label}</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '6px' }}>{label}</div>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: '26px', fontWeight: 900, color, letterSpacing: '-0.5px', lineHeight: 1 }}>{value ?? '—'}</div>
               </div>
             ))}
@@ -131,7 +131,7 @@ export default function Stats({ onBack, onSelect }) {
           {/* Accuracy trend */}
           {data.accuracyTrend?.length >= 2 && (
             <div style={{ margin: '0 16px 16px', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-lg)', padding: '14px' }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '10px' }}>{t.stats.trend}</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '10px' }}>{t.stats.trend}</div>
               <AccuracyGraph trend={data.accuracyTrend} />
             </div>
           )}
@@ -141,7 +141,7 @@ export default function Stats({ onBack, onSelect }) {
             const total = Object.values(data.modeCounts).reduce((s, v) => s + v, 0) || 1;
             return (
               <div style={{ margin: '0 16px 16px' }}>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '10px' }}>{t.stats.byMode}</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '10px' }}>{t.stats.byMode}</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {Object.entries(data.modeCounts).sort((a, b) => b[1] - a[1]).map(([mode, count]) => {
                     const pct = Math.round(count / total * 100);
@@ -154,7 +154,7 @@ export default function Stats({ onBack, onSelect }) {
                             <div style={{ height: '100%', width: `${pct}%`, background: 'var(--green)', borderRadius: 'var(--radius-full)', transition: 'width 0.6s ease' }} />
                           </div>
                         </div>
-                        <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-muted)', flexShrink: 0 }}>{count}p</div>
+                        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', flexShrink: 0 }}>{count}p</div>
                       </div>
                     );
                   })}
@@ -167,9 +167,9 @@ export default function Stats({ onBack, onSelect }) {
           {recentBadges.length > 0 && (
             <div style={{ margin: '0 16px 16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>{t.stats.recentBadges}</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>{t.stats.recentBadges}</div>
                 <button onClick={() => onSelect?.('badges')}
-                  style={{ background: 'transparent', border: 'none', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, color: 'var(--green)', cursor: 'pointer', letterSpacing: '0.06em' }}>
+                  style={{ background: 'transparent', border: 'none', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--green)', cursor: 'pointer', letterSpacing: '0.06em' }}>
                   {t.stats.seeAll}
                 </button>
               </div>
@@ -177,7 +177,7 @@ export default function Stats({ onBack, onSelect }) {
                 {recentBadges.map(badge => (
                   <div key={badge.id} style={{ flexShrink: 0, background: 'var(--bg-surface)', border: '0.5px solid var(--border-green)', borderRadius: 'var(--radius-md)', padding: '10px', textAlign: 'center', minWidth: '72px' }}>
                     <div style={{ fontSize: '24px', marginBottom: '4px' }}>{badge.icon}</div>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: '9px', fontWeight: 800, color: 'var(--green)', letterSpacing: '0.06em', lineHeight: 1.3 }}>{badge.name}</div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--green)', letterSpacing: '0.06em', lineHeight: 1.3 }}>{badge.name}</div>
                   </div>
                 ))}
               </div>
@@ -186,23 +186,23 @@ export default function Stats({ onBack, onSelect }) {
 
           {/* Global comparison */}
           <div style={{ margin: '0 16px 16px', background: 'var(--bg-surface)', border: '0.5px solid var(--border-pink)', borderRadius: 'var(--radius-lg)', padding: '14px' }}>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '10px' }}>{t.stats.vsGlobal}</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '10px' }}>{t.stats.vsGlobal}</div>
             {data.totalGames > 0 ? (
               <>
                 <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '28px', color: 'var(--green)', letterSpacing: '-0.5px', lineHeight: 1 }}>
                   Top {100 - (data.betterThan || 50)}%
                 </div>
-                <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px', fontFamily: 'var(--font-body)' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px', fontFamily: 'var(--font-body)' }}>
                   {t.stats.betterThan} {data.betterThan}{t.stats.betterThanSuffix}
                 </div>
                 {data.winRate > 0 && (
-                  <div style={{ marginTop: '8px', fontSize: '9px', color: 'var(--text-muted)' }}>
+                  <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--text-muted)' }}>
                     {t.stats.arenaWinRate}: <span style={{ color: data.winRate >= 50 ? 'var(--green)' : 'var(--pink)', fontWeight: 900 }}>{data.winRate}%</span>
                   </div>
                 )}
               </>
             ) : (
-              <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)' }}>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)' }}>
                 {t.stats.playMore}
               </div>
             )}

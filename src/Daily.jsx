@@ -13,7 +13,7 @@ import MissionNotification from './MissionNotification.jsx';
 function ShareButton({ onShare, copied, t }) {
   return (
     <button onClick={onShare}
-      style={{ marginTop: '12px', width: '100%', padding: '12px', background: 'var(--green-dim)', border: '1px solid var(--border-green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+      style={{ marginTop: '12px', width: '100%', padding: '12px', background: 'var(--green-dim)', border: '1px solid var(--border-green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
       {copied ? t.daily.copied : t.daily.share}
     </button>
   );
@@ -217,20 +217,20 @@ export default function Daily({ onBack }) {
         {/* Header row: back | lang */}
         <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr 80px', alignItems: 'center', marginBottom: '20px' }}>
           <button onClick={onBack}
-            style={{ background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+            style={{ background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
           >{t.daily.back}</button>
 
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--text-primary)', letterSpacing: '0.08em', lineHeight: 1 }}>
               📅 {t.daily.title}
             </div>
-            <div style={{ fontSize: '8px', color: 'var(--text-muted)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: 'var(--font-body)' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: 'var(--font-body)' }}>
               {t.daily.mode}
             </div>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
-            <span style={{ fontSize: '8px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', letterSpacing: '0.06em' }}>{new Date().toISOString().split('T')[0]}</span>
+            <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', letterSpacing: '0.06em' }}>{new Date().toISOString().split('T')[0]}</span>
             <div className="lang-selector" style={{ marginTop: '2px' }}>
               {['en', 'es', 'de'].map(l => (
                 <button key={l} className={`lang-btn${lang === l ? ' active' : ''}`} onClick={() => setLang(l)}>
@@ -241,15 +241,15 @@ export default function Daily({ onBack }) {
           </div>
         </div>
 
-        <div style={{ fontSize: '9px', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '24px', textAlign: 'center' }}>
+        <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '24px', textAlign: 'center' }}>
           {t.daily.next} {timeLeft}
         </div>
 
         {phase === 'loading' && (
-          <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '11px', marginTop: '60px' }}>{t.daily.loading}</div>
+          <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '12px', marginTop: '60px' }}>{t.daily.loading}</div>
         )}
         {phase === 'error' && (
-          <div style={{ textAlign: 'center', color: 'var(--color-down)', fontSize: '11px', marginTop: '60px' }}>{t.daily.error}</div>
+          <div style={{ textAlign: 'center', color: 'var(--color-down)', fontSize: '12px', marginTop: '60px' }}>{t.daily.error}</div>
         )}
 
         {(phase === 'choose' || phase === 'reveal') && dailyAsset && (
@@ -266,7 +266,7 @@ export default function Daily({ onBack }) {
 
             {phase === 'choose' && (
               <>
-                <div style={{ fontSize: '10px', color: '#5a6a7d', letterSpacing: '0.06em', textTransform: 'uppercase', margin: '12px 0 10px', textAlign: 'center' }}>
+                <div style={{ fontSize: '12px', color: '#5a6a7d', letterSpacing: '0.06em', textTransform: 'uppercase', margin: '12px 0 10px', textAlign: 'center' }}>
                   {t.daily.oneShot}
                 </div>
                 <div className="buttons-row" style={{ padding: '0 20px' }}>
@@ -291,10 +291,10 @@ export default function Daily({ onBack }) {
                 <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '22px', color: resultColor, marginBottom: '8px' }}>
                   {result.win ? t.daily.correct : t.daily.wrong}
                 </div>
-                <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
                   {result.direction === 'up' ? t.daily.priceUp : result.direction === 'down' ? t.daily.priceDown : t.daily.priceFlat} · {result.pctMove > 0 ? '+' : ''}{result.pctMove.toFixed(2)}%
                 </div>
-                <div style={{ marginTop: '16px', fontSize: '9px', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                <div style={{ marginTop: '16px', fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                   {t.daily.comeback}
                 </div>
                 <ShareButton onShare={shareResult} copied={copied} t={t} />
@@ -305,7 +305,7 @@ export default function Daily({ onBack }) {
                       setCopiedInvite(true);
                       setTimeout(() => setCopiedInvite(false), 2000);
                     }}
-                    style={{ marginTop: '8px', width: '100%', padding: '10px', background: 'transparent', border: '1px dashed var(--bd2)', borderRadius: '6px', color: copiedInvite ? 'var(--green)' : 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '10px', cursor: 'pointer', letterSpacing: '0.06em', transition: 'all 0.15s' }}
+                    style={{ marginTop: '8px', width: '100%', padding: '10px', background: 'transparent', border: '1px dashed var(--bd2)', borderRadius: '6px', color: copiedInvite ? 'var(--green)' : 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', letterSpacing: '0.06em', transition: 'all 0.15s' }}
                   >
                     {copiedInvite ? t.friends.inviteCopied : t.friends.inviteDaily}
                   </button>
@@ -322,10 +322,10 @@ export default function Daily({ onBack }) {
             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '22px', color: result.win ? 'var(--green)' : 'var(--color-down)', marginBottom: '8px' }}>
               {result.win ? t.daily.correct : t.daily.wrong}
             </div>
-            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
               {t.daily.youPlayed} {result.choice.toUpperCase()} · {result.direction === 'up' ? t.daily.priceUp : result.direction === 'down' ? t.daily.priceDown : t.daily.priceFlat}
             </div>
-            <div style={{ fontSize: '9px', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
               {t.daily.next} {timeLeft}
             </div>
             <ShareButton onShare={shareResult} copied={copied} t={t} />
@@ -336,14 +336,14 @@ export default function Daily({ onBack }) {
                   setCopiedInvite(true);
                   setTimeout(() => setCopiedInvite(false), 2000);
                 }}
-                style={{ marginTop: '8px', width: '100%', padding: '10px', background: 'transparent', border: '1px dashed var(--bd2)', borderRadius: '6px', color: copiedInvite ? 'var(--green)' : 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '10px', cursor: 'pointer', letterSpacing: '0.06em', transition: 'all 0.15s' }}
+                style={{ marginTop: '8px', width: '100%', padding: '10px', background: 'transparent', border: '1px dashed var(--bd2)', borderRadius: '6px', color: copiedInvite ? 'var(--green)' : 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', letterSpacing: '0.06em', transition: 'all 0.15s' }}
               >
                 {copiedInvite ? t.friends.inviteCopied : t.friends.inviteDaily}
               </button>
             )}
           </div>
           <div style={{ marginTop: '16px', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-lg)', padding: '16px', textAlign: 'center' }}>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '8px' }}>{t.daily.comeBack}</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '8px' }}>{t.daily.comeBack}</div>
             <div style={{ fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{t.daily.comeBackSub}</div>
           </div>
           </>

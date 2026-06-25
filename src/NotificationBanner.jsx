@@ -75,18 +75,18 @@ export default function NotificationBanner() {
           <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--t1)', marginBottom: '4px' }}>
             Daily Challenge notifications
           </div>
-          <div style={{ fontSize: '10px', color: 'var(--t5)', lineHeight: 1.5 }}>
+          <div style={{ fontSize: '12px', color: 'var(--t5)', lineHeight: 1.5 }}>
             Get notified every day when the new chart drops.
           </div>
         </div>
       </div>
       <div style={{ display: 'flex', gap: '8px', marginTop: '14px' }}>
         <button onClick={() => { console.log('Allow clicked'); allow(); }}
-          style={{ flex: 1, padding: '10px', background: 'rgba(0,229,160,0.1)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>
+          style={{ flex: 1, padding: '10px', background: 'rgba(0,229,160,0.1)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>
              Allow
         </button>
         <button onClick={dismiss}
-          style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>
+          style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>
           Not now
         </button>
       </div>

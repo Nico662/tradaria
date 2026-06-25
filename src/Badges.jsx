@@ -9,7 +9,7 @@ export default function Badges({ onBack, onSelect }) {
     <div id="gtm-root" style={{ padding: '16px 16px 24px', fontFamily: 'var(--font-body)', background: 'var(--bg-base)', minHeight: '100vh' }}>
 
       <button onClick={() => onSelect('stats')}
-        style={{ background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 10px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', marginBottom: '16px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+        style={{ background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 10px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', marginBottom: '16px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
         {t.badges.back}
       </button>
 
@@ -45,7 +45,7 @@ export default function Badges({ onBack, onSelect }) {
                 <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '12px', color: isUnlocked ? 'var(--green)' : 'var(--text-muted)', marginBottom: '2px', lineHeight: 1.2 }}>
                   {t.badges.items?.[badge.id]?.name ?? badge.name}
                 </div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 600, color: 'var(--text-muted)', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                   {t.badges.items?.[badge.id]?.desc ?? badge.desc}
                 </div>
               </div>

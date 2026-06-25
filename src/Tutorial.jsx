@@ -33,8 +33,8 @@ function ButtonPreview() {
       ].map(b => (
         <div key={b.label} style={{ flex: 1, padding: '10px 6px', background: b.bg, border: `1px solid ${b.color}`, borderRadius: '8px', textAlign: 'center', opacity: 0.9 }}>
           <div style={{ fontSize: '14px', color: b.color, marginBottom: '3px' }}>{b.icon}</div>
-          <div style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: b.color, fontWeight: 700 }}>{b.label}</div>
-          <div style={{ fontSize: '8px', color: 'var(--t5)', marginTop: '2px' }}>{b.sub}</div>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: b.color, fontWeight: 700 }}>{b.label}</div>
+          <div style={{ fontSize: '12px', color: 'var(--t5)', marginTop: '2px' }}>{b.sub}</div>
         </div>
       ))}
     </div>
@@ -83,7 +83,7 @@ export default function Tutorial({ onDone }) {
         {/* Skip button */}
         {!current.final && (
           <button onClick={dismiss}
-            style={{ position: 'absolute', top: '16px', right: '16px', background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '10px', cursor: 'pointer', letterSpacing: '0.04em' }}>
+            style={{ position: 'absolute', top: '16px', right: '16px', background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', letterSpacing: '0.04em' }}>
             {t.tutorial.skip}
           </button>
         )}
@@ -118,12 +118,12 @@ export default function Tutorial({ onDone }) {
         <div style={{ display: 'flex', gap: '8px' }}>
           {step > 0 && (
             <button onClick={prev}
-              style={{ flex: 1, padding: '12px', background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '8px', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em' }}>
+              style={{ flex: 1, padding: '12px', background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '8px', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em' }}>
               {t.tutorial.prev}
             </button>
           )}
           <button onClick={next}
-            style={{ flex: 1, padding: '12px', background: current.final ? 'rgba(0,229,160,0.12)' : 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em' }}>
+            style={{ flex: 1, padding: '12px', background: current.final ? 'rgba(0,229,160,0.12)' : 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em' }}>
             {current.final ? t.tutorial.start : t.tutorial.next}
           </button>
         </div>

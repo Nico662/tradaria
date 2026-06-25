@@ -31,16 +31,16 @@ function FriendCard({ f, onChallenge, isChallenging, challengeStatus, onViewProf
     <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
       <UserAvatar user={f} size={38} showBadge />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--t1)', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t1)', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
           {f.username ? `@${f.username}` : f.name}
           {isFounder(f.username) && <FounderBadge size={11} />}
         </div>
-        <div style={{ fontSize: '9px', color: 'var(--t5)', fontFamily: 'var(--font-body)', marginTop: '2px' }}>
+        <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)', marginTop: '2px' }}>
           {level.icon} {level.name} · {f.xp || 0} XP
         </div>
         {f.username && onViewProfile && (
           <button onClick={() => onViewProfile(f.username)}
-            style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '9px', cursor: 'pointer', padding: '2px 0', letterSpacing: '0.04em' }}
+            style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', padding: '2px 0', letterSpacing: '0.04em' }}
             onMouseEnter={e => e.currentTarget.style.color = 'var(--t3)'}
             onMouseLeave={e => e.currentTarget.style.color = 'var(--t6)'}
           >
@@ -51,7 +51,7 @@ function FriendCard({ f, onChallenge, isChallenging, challengeStatus, onViewProf
       <button
         onClick={() => !isChallenging && onChallenge && onChallenge(f.username || f.name)}
         disabled={isChallenging}
-        style={{ flexShrink: 0, padding: '7px 11px', background: btnBg, border: `1px solid ${btnColor}`, borderRadius: '6px', color: btnColor, fontFamily: 'var(--font-body)', fontSize: '9px', cursor: isChallenging ? 'default' : 'pointer', letterSpacing: '0.04em', whiteSpace: 'nowrap', transition: 'all 0.2s', minWidth: '90px', textAlign: 'center' }}
+        style={{ flexShrink: 0, padding: '7px 11px', background: btnBg, border: `1px solid ${btnColor}`, borderRadius: '6px', color: btnColor, fontFamily: 'var(--font-body)', fontSize: '12px', cursor: isChallenging ? 'default' : 'pointer', letterSpacing: '0.04em', whiteSpace: 'nowrap', transition: 'all 0.2s', minWidth: '90px', textAlign: 'center' }}
         onMouseEnter={e => { if (!isChallenging) e.currentTarget.style.background = 'rgba(0,229,160,0.18)'; }}
         onMouseLeave={e => { if (!isChallenging) e.currentTarget.style.background = btnBg; }}
       >
@@ -68,18 +68,18 @@ function PendingCard({ req, onAccept, onReject }) {
     <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
       <UserAvatar user={req} size={38} />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--t1)', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t1)', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
           {req.username ? `@${req.username}` : req.name}
           {isFounder(req.username) && <FounderBadge size={11} />}
         </div>
-        <div style={{ fontSize: '9px', color: 'var(--t5)', fontFamily: 'var(--font-body)', marginTop: '2px' }}>
+        <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)', marginTop: '2px' }}>
           {level.icon} {level.name}
         </div>
       </div>
       <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
         <button
           onClick={() => onAccept(req.friendshipId)}
-          style={{ padding: '6px 12px', background: 'rgba(0,229,160,0.1)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '9px', cursor: 'pointer', letterSpacing: '0.04em' }}
+          style={{ padding: '6px 12px', background: 'rgba(0,229,160,0.1)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', letterSpacing: '0.04em' }}
           onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,229,160,0.2)'}
           onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,229,160,0.1)'}
         >
@@ -87,7 +87,7 @@ function PendingCard({ req, onAccept, onReject }) {
         </button>
         <button
           onClick={() => onReject(req.friendshipId)}
-          style={{ padding: '6px 10px', background: 'rgba(255,126,179,0.1)', border: '1px solid var(--color-down)', borderRadius: '6px', color: 'var(--color-down)', fontFamily: 'var(--font-body)', fontSize: '9px', cursor: 'pointer' }}
+          style={{ padding: '6px 10px', background: 'rgba(255,126,179,0.1)', border: '1px solid var(--color-down)', borderRadius: '6px', color: 'var(--color-down)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer' }}
           onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,126,179,0.2)'}
           onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,126,179,0.1)'}
         >
@@ -113,24 +113,24 @@ function SearchResultCard({ profile, onSendRequest }) {
             @{profile.username}
             {isFounder(profile.username) && <FounderBadge size={12} />}
           </div>
-          <div style={{ fontSize: '9px', color: 'var(--t5)', fontFamily: 'var(--font-body)', marginTop: '2px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)', marginTop: '2px' }}>
             {level.icon} {level.name} · {profile.xp || 0} XP
           </div>
           {profile.portfolioReturn !== null && profile.portfolioReturn !== undefined && (
-            <div style={{ fontSize: '9px', fontFamily: 'var(--font-body)', marginTop: '2px', color: profile.portfolioReturn >= 0 ? 'var(--green)' : 'var(--color-down)' }}>
+            <div style={{ fontSize: '12px', fontFamily: 'var(--font-body)', marginTop: '2px', color: profile.portfolioReturn >= 0 ? 'var(--green)' : 'var(--color-down)' }}>
               portfolio {profile.portfolioReturn >= 0 ? '+' : ''}{profile.portfolioReturn.toFixed(1)}%
             </div>
           )}
         </div>
         <div style={{ flexShrink: 0 }}>
           {alreadyFriends ? (
-            <span style={{ fontSize: '9px', color: 'var(--green)', fontFamily: 'var(--font-body)' }}>{t.friends.alreadyFriends}</span>
+            <span style={{ fontSize: '12px', color: 'var(--green)', fontFamily: 'var(--font-body)' }}>{t.friends.alreadyFriends}</span>
           ) : sentRequest ? (
-            <span style={{ fontSize: '9px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>{t.friends.pending}</span>
+            <span style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>{t.friends.pending}</span>
           ) : (
             <button
               onClick={() => onSendRequest(profile.username)}
-              style={{ padding: '7px 14px', background: 'rgba(0,229,160,0.1)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '10px', cursor: 'pointer', letterSpacing: '0.04em' }}
+              style={{ padding: '7px 14px', background: 'rgba(0,229,160,0.1)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', letterSpacing: '0.04em' }}
               onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,229,160,0.2)'}
               onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,229,160,0.1)'}
             >
@@ -280,7 +280,7 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
   }
 
   const sectionLabel = {
-    fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.14em',
+    fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.14em',
     textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '8px',
   };
 
@@ -293,7 +293,7 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
           <button
             onClick={onBack}
-            style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', padding: 0 }}
+            style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', letterSpacing: '0.06em', padding: 0 }}
             onMouseEnter={e => e.currentTarget.style.color = 'var(--t2)'}
             onMouseLeave={e => e.currentTarget.style.color = 'var(--t6)'}
           >
@@ -303,7 +303,7 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
             {t.friends.title}
           </div>
           {pending.length > 0 && (
-            <div style={{ background: 'var(--color-down)', borderRadius: '10px', padding: '2px 8px', fontSize: '9px', color: '#fff', fontFamily: 'var(--font-body)', fontWeight: 700 }}>
+            <div style={{ background: 'var(--color-down)', borderRadius: '10px', padding: '2px 8px', fontSize: '12px', color: '#fff', fontFamily: 'var(--font-body)', fontWeight: 700 }}>
               {pending.length}
             </div>
           )}
@@ -311,13 +311,13 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
 
         {/* Flash message */}
         {msg && (
-          <div style={{ marginBottom: '14px', padding: '10px 14px', background: msg.type === 'ok' ? 'rgba(0,229,160,0.1)' : 'rgba(255,126,179,0.1)', border: `1px solid ${msg.type === 'ok' ? 'var(--green)' : 'var(--color-down)'}`, borderRadius: '8px', fontSize: '11px', color: msg.type === 'ok' ? 'var(--green)' : 'var(--color-down)', fontFamily: 'var(--font-body)' }}>
+          <div style={{ marginBottom: '14px', padding: '10px 14px', background: msg.type === 'ok' ? 'rgba(0,229,160,0.1)' : 'rgba(255,126,179,0.1)', border: `1px solid ${msg.type === 'ok' ? 'var(--green)' : 'var(--color-down)'}`, borderRadius: '8px', fontSize: '12px', color: msg.type === 'ok' ? 'var(--green)' : 'var(--color-down)', fontFamily: 'var(--font-body)' }}>
             {msg.text}
           </div>
         )}
 
         {!user ? (
-          <div style={{ textAlign: 'center', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '11px', padding: '60px 0' }}>
+          <div style={{ textAlign: 'center', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '12px', padding: '60px 0' }}>
             {t.friends.signIn}
           </div>
         ) : (
@@ -325,11 +325,11 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
             {/* Invite link */}
             {user?.username && (
               <div style={{ marginBottom: '24px', padding: '14px 16px', background: 'rgba(0,229,160,0.03)', border: '1px dashed var(--bd2)', borderRadius: '10px' }}>
-                <div style={{ fontSize: '8px', color: 'var(--t6)', fontFamily: 'var(--font-body)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '6px' }}>{t.friends.inviteTitle}</div>
-                <div style={{ fontSize: '10px', color: 'var(--t5)', fontFamily: 'var(--font-body)', marginBottom: '10px', lineHeight: 1.6 }}>{t.friends.inviteSub}</div>
+                <div style={{ fontSize: '12px', color: 'var(--t6)', fontFamily: 'var(--font-body)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '6px' }}>{t.friends.inviteTitle}</div>
+                <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)', marginBottom: '10px', lineHeight: 1.6 }}>{t.friends.inviteSub}</div>
                 <button
                   onClick={copyInviteLink}
-                  style={{ width: '100%', padding: '9px', background: copiedInvite ? 'rgba(0,229,160,0.12)' : 'rgba(0,229,160,0.06)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', transition: 'background 0.15s' }}
+                  style={{ width: '100%', padding: '9px', background: copiedInvite ? 'rgba(0,229,160,0.12)' : 'rgba(0,229,160,0.06)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', transition: 'background 0.15s' }}
                 >
                   {copiedInvite ? t.friends.inviteCopied : t.friends.inviteCopy}
                 </button>
@@ -349,14 +349,14 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
                 onBlur={e => e.currentTarget.style.borderColor = 'var(--bd)'}
               />
               {searchLoading && (
-                <div style={{ marginTop: '8px', fontSize: '9px', color: 'var(--t6)', fontFamily: 'var(--font-body)' }}>{t.friends.searching}</div>
+                <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--t6)', fontFamily: 'var(--font-body)' }}>{t.friends.searching}</div>
               )}
               {searchResult && !searchLoading && (
                 <div style={{ marginTop: '8px' }}>
                   {searchResult.found ? (
                     <SearchResultCard profile={searchResult.user} onSendRequest={sendRequest} />
                   ) : (
-                    <div style={{ padding: '12px 14px', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', fontSize: '11px', color: 'var(--t6)', fontFamily: 'var(--font-body)' }}>
+                    <div style={{ padding: '12px 14px', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', fontSize: '12px', color: 'var(--t6)', fontFamily: 'var(--font-body)' }}>
                       {t.friends.notFound}
                     </div>
                   )}
@@ -382,17 +382,17 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
                 {t.friends.myFriends}{friends.length > 0 ? ` · ${friends.length}` : ''}
               </div>
               {loading ? (
-                <div style={{ fontSize: '10px', color: 'var(--t6)', fontFamily: 'var(--font-body)' }}>{t.friends.loading}</div>
+                <div style={{ fontSize: '12px', color: 'var(--t6)', fontFamily: 'var(--font-body)' }}>{t.friends.loading}</div>
               ) : friends.length === 0 ? (
                 <div style={{ padding: '20px', textAlign: 'center', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px' }}>
                   <div style={{ fontSize: '24px', marginBottom: '8px' }}>🤝</div>
-                  <div style={{ fontSize: '10px', color: 'var(--t6)', fontFamily: 'var(--font-body)', lineHeight: 1.6, marginBottom: '12px' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--t6)', fontFamily: 'var(--font-body)', lineHeight: 1.6, marginBottom: '12px' }}>
                     {t.friends.noFriends}<br />{t.friends.noFriendsSub}
                   </div>
                   {user?.username && (
                     <button
                       onClick={copyInviteLink}
-                      style={{ padding: '8px 16px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}
+                      style={{ padding: '8px 16px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}
                     >
                       {copiedInvite ? t.friends.inviteCopied : t.friends.inviteCopy}
                     </button>

@@ -6,7 +6,7 @@ export default function Privacy({ onSelect }) {
     <div style={{ padding: '24px 20px', fontFamily: 'var(--font-body)', background: 'var(--bg-base)', minHeight: '100vh', maxWidth: '680px', margin: '0 auto' }}>
 
       <button onClick={() => onSelect && onSelect('home')}
-        style={{ background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, cursor: 'pointer', marginBottom: '24px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+        style={{ background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer', marginBottom: '24px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
         {t.common.back}
       </button>
 

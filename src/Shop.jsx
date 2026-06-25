@@ -133,15 +133,15 @@ function PreviewTheme({ item }) {
       margin: '4px 0',
     }}>
       <div style={{ padding: '3px 6px', borderBottom: `1px solid ${c.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-        <span style={{ fontSize: '6px', color: c.accent, fontFamily: 'var(--font-body)', fontWeight: 700, letterSpacing: '0.08em' }}>TRADIKO</span>
+        <span style={{ fontSize: '12px', color: c.accent, fontFamily: 'var(--font-body)', fontWeight: 700, letterSpacing: '0.08em' }}>TRADIKO</span>
         <div style={{ display: 'flex', gap: '6px' }}>
-          <span style={{ fontSize: '5px', color: c.text, fontFamily: 'var(--font-body)' }}>RND 3/10</span>
-          <span style={{ fontSize: '5px', color: c.accent, fontFamily: 'var(--font-body)' }}>300</span>
+          <span style={{ fontSize: '12px', color: c.text, fontFamily: 'var(--font-body)' }}>RND 3/10</span>
+          <span style={{ fontSize: '12px', color: c.accent, fontFamily: 'var(--font-body)' }}>300</span>
         </div>
       </div>
       <div style={{ padding: '2px 6px', borderBottom: `1px solid ${c.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-        <span style={{ fontSize: '5px', color: c.text, fontFamily: 'var(--font-body)' }}>BTC/USDT</span>
-        <span style={{ fontSize: '5px', color: c.text, fontFamily: 'var(--font-body)' }}>1H</span>
+        <span style={{ fontSize: '12px', color: c.text, fontFamily: 'var(--font-body)' }}>BTC/USDT</span>
+        <span style={{ fontSize: '12px', color: c.text, fontFamily: 'var(--font-body)' }}>1H</span>
       </div>
       <div style={{ flex: 1, padding: '3px 4px', minHeight: 0 }}>
         <svg width="100%" height="100%" viewBox="0 0 88 42" preserveAspectRatio="none">
@@ -161,13 +161,13 @@ function PreviewTheme({ item }) {
       </div>
       <div style={{ padding: '3px 4px', display: 'flex', gap: '3px', borderTop: `1px solid ${c.border}`, flexShrink: 0 }}>
         <div style={{ flex: 1, background: `${c.accent}22`, border: `1px solid ${c.accent}`, borderRadius: '2px', padding: '2px 0', textAlign: 'center' }}>
-          <span style={{ fontSize: '5px', color: c.accent, fontFamily: 'var(--font-body)', fontWeight: 700 }}>▲ LONG</span>
+          <span style={{ fontSize: '12px', color: c.accent, fontFamily: 'var(--font-body)', fontWeight: 700 }}>▲ LONG</span>
         </div>
         <div style={{ flex: 1, border: `1px solid ${c.border}`, borderRadius: '2px', padding: '2px 0', textAlign: 'center' }}>
-          <span style={{ fontSize: '5px', color: c.text, fontFamily: 'var(--font-body)', fontWeight: 700 }}>— SKIP</span>
+          <span style={{ fontSize: '12px', color: c.text, fontFamily: 'var(--font-body)', fontWeight: 700 }}>— SKIP</span>
         </div>
         <div style={{ flex: 1, background: `${c.down}22`, border: `1px solid ${c.down}`, borderRadius: '2px', padding: '2px 0', textAlign: 'center' }}>
-          <span style={{ fontSize: '5px', color: c.down, fontFamily: 'var(--font-body)', fontWeight: 700 }}>▼ SHORT</span>
+          <span style={{ fontSize: '12px', color: c.down, fontFamily: 'var(--font-body)', fontWeight: 700 }}>▼ SHORT</span>
         </div>
       </div>
     </div>
@@ -364,7 +364,7 @@ export default function Shop({ onBack }) {
 
         <div style={{ padding: '14px 20px 13px', borderBottom: '1px solid var(--bd)', display: 'flex', alignItems: 'center', gap: '12px', background: 'linear-gradient(180deg, rgba(232,184,75,0.025) 0%, transparent 100%)' }}>
           <button onClick={onBack}
-            style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', transition: 'color 0.15s' }}
+            style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', letterSpacing: '0.06em', transition: 'color 0.15s' }}
             onMouseEnter={e => e.target.style.color = 'var(--t2)'}
             onMouseLeave={e => e.target.style.color = 'var(--t6)'}
           >{t.shop.back}</button>
@@ -381,7 +381,7 @@ export default function Shop({ onBack }) {
                 border: `1px solid ${activeCategory === cat.id ? 'var(--green)' : 'var(--bd2)'}`,
                 background: activeCategory === cat.id ? 'rgba(0,229,160,0.08)' : 'transparent',
                 color: activeCategory === cat.id ? 'var(--green)' : 'var(--t5)',
-                fontFamily: 'var(--font-body)', fontSize: '9px', fontWeight: 700,
+                fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700,
                 letterSpacing: '0.08em', cursor: 'pointer', textTransform: 'uppercase',
               }}>
               {cat.emoji} {cat.label}
@@ -414,7 +414,7 @@ export default function Shop({ onBack }) {
                 <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '12px', color: item.color, textAlign: 'center' }}>
                   {item.name}
                 </div>
-                <div style={{ fontSize: '9px', color: 'var(--t5)', textAlign: 'center', letterSpacing: '0.04em' }}>
+                <div style={{ fontSize: '12px', color: 'var(--t5)', textAlign: 'center', letterSpacing: '0.04em' }}>
                   {item.desc[lang] || item.desc.en}
                 </div>
 
@@ -425,7 +425,7 @@ export default function Shop({ onBack }) {
                     border: `1px solid ${item.color}`,
                     borderRadius: '6px',
                     color: equipped ? 'var(--bg-page)' : item.color,
-                    fontFamily: 'var(--font-body)', fontSize: '10px',
+                    fontFamily: 'var(--font-body)', fontSize: '12px',
                     fontWeight: 700, letterSpacing: '0.06em', cursor: 'pointer',
                     transition: 'all 0.15s',
                   }}>
@@ -438,7 +438,7 @@ export default function Shop({ onBack }) {
                     border: `1px solid ${loading === item.id ? 'var(--bd2)' : item.color}`,
                     borderRadius: '6px',
                     color: loading === item.id ? 'var(--t5)' : item.color,
-                    fontFamily: 'var(--font-body)', fontSize: '10px',
+                    fontFamily: 'var(--font-body)', fontSize: '12px',
                     fontWeight: 700, letterSpacing: '0.06em', cursor: loading === item.id ? 'not-allowed' : 'pointer',
                     transition: 'all 0.15s',
                   }}>

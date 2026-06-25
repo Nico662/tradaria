@@ -14,15 +14,15 @@ function DashboardVisual() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 44px 52px 52px', padding: '0 4px 4px', gap: '4px' }}>
         {['Alumno', 'Acc.', 'Racha', 'Última'].map(h => (
-          <div key={h} style={{ fontSize: '8px', color: 'var(--t6)', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{h}</div>
+          <div key={h} style={{ fontSize: '12px', color: 'var(--t6)', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{h}</div>
         ))}
       </div>
       {rows.map((r, i) => (
         <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 44px 52px 52px', gap: '4px', padding: '8px 10px', background: 'var(--bg-page)', border: '1px solid var(--bd)', borderRadius: '8px', alignItems: 'center' }}>
-          <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '11px', color: 'var(--t1)' }}>{r.name}</span>
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--green)', fontWeight: 700 }}>{r.acc}</span>
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--t3)' }}>{r.streak}</span>
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t5)' }}>{r.last}</span>
+          <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: 'var(--t1)' }}>{r.name}</span>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--green)', fontWeight: 700 }}>{r.acc}</span>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t3)' }}>{r.streak}</span>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)' }}>{r.last}</span>
         </div>
       ))}
     </div>
@@ -39,14 +39,14 @@ function TournamentVisual() {
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
         <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '12px', color: 'var(--t1)' }}>Torneo — Semana 1</span>
-        <span style={{ fontSize: '8px', color: 'var(--green)', fontFamily: 'var(--font-body)', padding: '3px 8px', background: 'rgba(0,229,160,0.08)', border: '1px solid rgba(0,229,160,0.3)', borderRadius: '4px', letterSpacing: '0.08em' }}>⚡ ACTIVO</span>
+        <span style={{ fontSize: '12px', color: 'var(--green)', fontFamily: 'var(--font-body)', padding: '3px 8px', background: 'rgba(0,229,160,0.08)', border: '1px solid rgba(0,229,160,0.3)', borderRadius: '4px', letterSpacing: '0.08em' }}>⚡ ACTIVO</span>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         {rows.map((r, i) => (
           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', background: 'var(--bg-page)', border: `1px solid ${r.gold ? 'rgba(232,184,75,0.3)' : 'var(--bd)'}`, borderRadius: '8px' }}>
             <span style={{ fontSize: '14px' }}>{r.pos}</span>
-            <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '11px', color: 'var(--t1)' }}>{r.name}</span>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--green)', fontWeight: 700 }}>{r.pts} pts</span>
+            <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: 'var(--t1)' }}>{r.name}</span>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--green)', fontWeight: 700 }}>{r.pts} pts</span>
           </div>
         ))}
       </div>
@@ -58,12 +58,12 @@ function ClassCodeVisual() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center' }}>
       <div style={{ padding: '14px 32px', background: 'rgba(0,229,160,0.06)', border: '1px solid rgba(0,229,160,0.3)', borderRadius: '10px', textAlign: 'center' }}>
-        <div style={{ fontSize: '8px', color: 'var(--t6)', fontFamily: 'var(--font-body)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px' }}>Código de acceso</div>
+        <div style={{ fontSize: '12px', color: 'var(--t6)', fontFamily: 'var(--font-body)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px' }}>Código de acceso</div>
         <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '26px', color: 'var(--green)', letterSpacing: '0.12em' }}>ABCD-1234</div>
       </div>
       <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
-        <div style={{ flex: 1, padding: '9px', background: 'var(--bg-page)', border: '1px solid var(--bd)', borderRadius: '8px', textAlign: 'center', fontSize: '9px', color: 'var(--t4)', fontFamily: 'var(--font-body)' }}>Copiar código</div>
-        <div style={{ flex: 1, padding: '9px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', textAlign: 'center', fontSize: '9px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontWeight: 700 }}>Unirse →</div>
+        <div style={{ flex: 1, padding: '9px', background: 'var(--bg-page)', border: '1px solid var(--bd)', borderRadius: '8px', textAlign: 'center', fontSize: '12px', color: 'var(--t4)', fontFamily: 'var(--font-body)' }}>Copiar código</div>
+        <div style={{ flex: 1, padding: '9px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', textAlign: 'center', fontSize: '12px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontWeight: 700 }}>Unirse →</div>
       </div>
     </div>
   );
@@ -79,9 +79,9 @@ function PricingCardVisual() {
     <div style={{ display: 'flex', gap: '8px' }}>
       {plans.map(p => (
         <div key={p.name} style={{ flex: 1, padding: '12px 6px', background: p.hi ? 'rgba(0,229,160,0.06)' : 'var(--bg-page)', border: `1px solid ${p.hi ? 'rgba(0,229,160,0.35)' : 'var(--bd)'}`, borderRadius: '10px', textAlign: 'center' }}>
-          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '10px', color: p.color, marginBottom: '4px' }}>{p.name}</div>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '12px', color: p.color, marginBottom: '4px' }}>{p.name}</div>
           <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t1)', marginBottom: '3px' }}>{p.price}</div>
-          <div style={{ fontSize: '8px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>{p.limit}</div>
+          <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>{p.limit}</div>
         </div>
       ))}
     </div>
@@ -188,15 +188,15 @@ export default function AcadiasLanding({ onEnter }) {
               <line x1="50" y1="150" x2="50" y2="190" stroke="var(--green)" strokeWidth="10" strokeLinecap="round"/>
             </svg>
             <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: 'var(--t1)', letterSpacing: '-0.01em' }}>Tradiko</span>
-            <span style={{ fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Academias</span>
+            <span style={{ fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Academias</span>
           </div>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <button onClick={goApp} className="aca-btn-ghost"
-              style={{ background: 'transparent', border: 'none', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '10px', cursor: 'pointer', letterSpacing: '0.04em', padding: '6px' }}>
+              style={{ background: 'transparent', border: 'none', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', letterSpacing: '0.04em', padding: '6px' }}>
               {a.navBack}
             </button>
             <button onClick={goApp} className="aca-btn-primary"
-              style={{ background: 'var(--green)', border: 'none', borderRadius: '6px', color: 'var(--bg-page)', fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '10px', cursor: 'pointer', padding: '8px 14px', letterSpacing: '0.02em' }}>
+              style={{ background: 'var(--green)', border: 'none', borderRadius: '6px', color: 'var(--bg-page)', fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '12px', cursor: 'pointer', padding: '8px 14px', letterSpacing: '0.02em' }}>
               {a.heroCta}
             </button>
           </div>
@@ -209,12 +209,12 @@ export default function AcadiasLanding({ onEnter }) {
         <section style={{ textAlign: 'center', padding: '72px 0 64px', animation: 'acaUp 0.5s both' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(0,229,160,0.08)', border: '1px solid rgba(0,229,160,0.2)', borderRadius: '20px', padding: '5px 14px', marginBottom: '24px' }}>
             <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--green)', display: 'inline-block' }} />
-            <span style={{ fontSize: '9px', color: 'var(--green)', letterSpacing: '0.08em', fontFamily: 'var(--font-body)' }}>{a.heroBadge}</span>
+            <span style={{ fontSize: '12px', color: 'var(--green)', letterSpacing: '0.08em', fontFamily: 'var(--font-body)' }}>{a.heroBadge}</span>
           </div>
           <div className="aca-hero-title" style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '26px', color: 'var(--t1)', lineHeight: 1.18, marginBottom: '16px', letterSpacing: '-0.02em' }}>
             {a.heroTitle}
           </div>
-          <div style={{ fontSize: '11px', color: 'var(--t4)', lineHeight: 1.8, marginBottom: '32px', maxWidth: '460px', margin: '0 auto 32px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--t4)', lineHeight: 1.8, marginBottom: '32px', maxWidth: '460px', margin: '0 auto 32px' }}>
             {a.heroSub}
           </div>
           <button onClick={goApp} className="aca-btn-primary"
@@ -225,14 +225,14 @@ export default function AcadiasLanding({ onEnter }) {
 
         {/* ── 2. PROBLEMA ── */}
         <section className="aca-reveal" style={{ paddingBottom: '64px' }}>
-          <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.12em', textTransform: 'uppercase', textAlign: 'center', marginBottom: '10px', fontFamily: 'var(--font-body)' }}>{a.probLabel}</div>
+          <div style={{ fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.12em', textTransform: 'uppercase', textAlign: 'center', marginBottom: '10px', fontFamily: 'var(--font-body)' }}>{a.probLabel}</div>
           <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: 'var(--t1)', textAlign: 'center', marginBottom: '28px', letterSpacing: '-0.01em', lineHeight: 1.2 }}>{a.probTitle}</div>
           <div className="aca-prob-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
             {PROB_ITEMS.map((item, i) => (
               <div key={i} style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '12px', padding: '20px' }}>
                 <div style={{ fontSize: '22px', marginBottom: '10px' }}>{item.icon}</div>
                 <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '13px', color: 'var(--t1)', marginBottom: '6px' }}>{item.title}</div>
-                <div style={{ fontSize: '10px', color: 'var(--t4)', lineHeight: 1.7 }}>{item.text}</div>
+                <div style={{ fontSize: '12px', color: 'var(--t4)', lineHeight: 1.7 }}>{item.text}</div>
               </div>
             ))}
           </div>
@@ -240,18 +240,18 @@ export default function AcadiasLanding({ onEnter }) {
 
         {/* ── 3. CÓMO FUNCIONA ── */}
         <section className="aca-reveal" style={{ paddingBottom: '64px' }}>
-          <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.12em', textTransform: 'uppercase', textAlign: 'center', marginBottom: '10px', fontFamily: 'var(--font-body)' }}>{a.howLabel}</div>
+          <div style={{ fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.12em', textTransform: 'uppercase', textAlign: 'center', marginBottom: '10px', fontFamily: 'var(--font-body)' }}>{a.howLabel}</div>
           <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: 'var(--t1)', textAlign: 'center', marginBottom: '36px', letterSpacing: '-0.01em' }}>{a.howTitle}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
             {STEPS.map((step, i) => (
               <div key={i} style={{ display: 'flex', gap: '18px', position: 'relative', paddingBottom: i < 2 ? '28px' : '0' }}>
                 {i < 2 && <div style={{ position: 'absolute', left: '18px', top: '38px', bottom: 0, width: '2px', background: 'linear-gradient(to bottom, rgba(0,229,160,0.35), transparent)' }} />}
                 <div style={{ flexShrink: 0, width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(0,229,160,0.08)', border: '1px solid rgba(0,229,160,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '10px', color: 'var(--green)' }}>{step.num}</span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '12px', color: 'var(--green)' }}>{step.num}</span>
                 </div>
                 <div style={{ paddingTop: '8px' }}>
                   <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '13px', color: 'var(--t1)', marginBottom: '5px' }}>{step.title}</div>
-                  <div style={{ fontSize: '10px', color: 'var(--t4)', lineHeight: 1.7 }}>{step.text}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--t4)', lineHeight: 1.7 }}>{step.text}</div>
                 </div>
               </div>
             ))}
@@ -260,14 +260,14 @@ export default function AcadiasLanding({ onEnter }) {
 
         {/* ── 4. FEATURES ── */}
         <section className="aca-reveal" style={{ paddingBottom: '64px' }}>
-          <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.12em', textTransform: 'uppercase', textAlign: 'center', marginBottom: '10px', fontFamily: 'var(--font-body)' }}>{a.featLabel}</div>
+          <div style={{ fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.12em', textTransform: 'uppercase', textAlign: 'center', marginBottom: '10px', fontFamily: 'var(--font-body)' }}>{a.featLabel}</div>
           <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: 'var(--t1)', textAlign: 'center', marginBottom: '28px', letterSpacing: '-0.01em' }}>{a.featTitle}</div>
           <div className="aca-feat-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
             {FEATS.map((f, i) => (
               <div key={i} className="aca-feat-card" style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '12px', padding: '18px 14px' }}>
                 <div style={{ fontSize: '20px', marginBottom: '10px' }}>{f.icon}</div>
                 <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: 'var(--t1)', marginBottom: '6px', lineHeight: 1.3 }}>{f.title}</div>
-                <div style={{ fontSize: '9px', color: 'var(--t4)', lineHeight: 1.7 }}>{f.text}</div>
+                <div style={{ fontSize: '12px', color: 'var(--t4)', lineHeight: 1.7 }}>{f.text}</div>
               </div>
             ))}
           </div>
@@ -275,28 +275,28 @@ export default function AcadiasLanding({ onEnter }) {
 
         {/* ── 5. PRICING ── */}
         <section className="aca-reveal" style={{ paddingBottom: '64px' }}>
-          <div style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.12em', textTransform: 'uppercase', textAlign: 'center', marginBottom: '10px', fontFamily: 'var(--font-body)' }}>{a.pricingLabel}</div>
+          <div style={{ fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.12em', textTransform: 'uppercase', textAlign: 'center', marginBottom: '10px', fontFamily: 'var(--font-body)' }}>{a.pricingLabel}</div>
           <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: 'var(--t1)', textAlign: 'center', marginBottom: '6px', letterSpacing: '-0.01em' }}>{a.pricingTitle}</div>
-          <div style={{ fontSize: '10px', color: 'var(--t4)', textAlign: 'center', marginBottom: '28px' }}>{a.pricingSub}</div>
+          <div style={{ fontSize: '12px', color: 'var(--t4)', textAlign: 'center', marginBottom: '28px' }}>{a.pricingSub}</div>
           <div className="aca-plan-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}>
 
             {/* Starter */}
             <div className="aca-plan-card" style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '14px', padding: '24px', display: 'flex', flexDirection: 'column' }}>
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: 'var(--t1)', marginBottom: '3px' }}>{a.plan1Name}</div>
-              <div style={{ fontSize: '9px', color: 'var(--t5)', marginBottom: '16px', letterSpacing: '0.04em' }}>{a.plan1Limit}</div>
+              <div style={{ fontSize: '12px', color: 'var(--t5)', marginBottom: '16px', letterSpacing: '0.04em' }}>{a.plan1Limit}</div>
               <div style={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: '2px', marginBottom: '18px' }}>
                 <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '30px', color: 'var(--t1)', letterSpacing: '-0.02em', wordBreak: 'break-word' }}>{a.plan1Price}</span>
-                <span style={{ fontSize: '10px', color: 'var(--t5)' }}>{a.plan1Period}</span>
+                <span style={{ fontSize: '12px', color: 'var(--t5)' }}>{a.plan1Period}</span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', flex: 1 }}>
                 {PLAN1_FEATS.map((f, i) => (
-                  <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '10px', color: 'var(--t3)' }}>
-                    <span style={{ color: 'var(--green)', fontSize: '11px', flexShrink: 0 }}>✓</span><span style={{ wordBreak: 'break-word' }}>{f}</span>
+                  <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '12px', color: 'var(--t3)' }}>
+                    <span style={{ color: 'var(--green)', fontSize: '12px', flexShrink: 0 }}>✓</span><span style={{ wordBreak: 'break-word' }}>{f}</span>
                   </div>
                 ))}
               </div>
               <button onClick={goApp}
-                style={{ width: '100%', padding: '11px', background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '8px', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em', marginTop: 'auto' }}>
+                style={{ width: '100%', padding: '11px', background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '8px', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em', marginTop: 'auto' }}>
                 {a.ctaPlan}
               </button>
             </div>
@@ -304,23 +304,23 @@ export default function AcadiasLanding({ onEnter }) {
             {/* Pro — highlighted */}
             <div className="aca-plan-card" style={{ background: 'var(--bg-card)', border: '1px solid rgba(0,229,160,0.4)', borderRadius: '14px', padding: '24px', position: 'relative', boxShadow: '0 0 32px rgba(0,229,160,0.07)', display: 'flex', flexDirection: 'column' }}>
               <div style={{ position: 'absolute', top: '-1px', left: '50%', transform: 'translateX(-50%)', background: 'var(--green)', borderRadius: '0 0 6px 6px', padding: '3px 12px' }}>
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: '8px', fontWeight: 700, color: 'var(--bg-page)', letterSpacing: '0.08em' }}>{a.plan2Badge}</span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, color: 'var(--bg-page)', letterSpacing: '0.08em' }}>{a.plan2Badge}</span>
               </div>
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: 'var(--green)', marginBottom: '3px' }}>{a.plan2Name}</div>
-              <div style={{ fontSize: '9px', color: 'var(--t5)', marginBottom: '16px', letterSpacing: '0.04em' }}>{a.plan2Limit}</div>
+              <div style={{ fontSize: '12px', color: 'var(--t5)', marginBottom: '16px', letterSpacing: '0.04em' }}>{a.plan2Limit}</div>
               <div style={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: '2px', marginBottom: '18px' }}>
                 <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '30px', color: 'var(--t1)', letterSpacing: '-0.02em', wordBreak: 'break-word' }}>{a.plan2Price}</span>
-                <span style={{ fontSize: '10px', color: 'var(--t5)' }}>{a.plan2Period}</span>
+                <span style={{ fontSize: '12px', color: 'var(--t5)' }}>{a.plan2Period}</span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', flex: 1 }}>
                 {PLAN2_FEATS.map((f, i) => (
-                  <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '10px', color: 'var(--t3)' }}>
-                    <span style={{ color: 'var(--green)', fontSize: '11px', flexShrink: 0 }}>✓</span><span style={{ wordBreak: 'break-word' }}>{f}</span>
+                  <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '12px', color: 'var(--t3)' }}>
+                    <span style={{ color: 'var(--green)', fontSize: '12px', flexShrink: 0 }}>✓</span><span style={{ wordBreak: 'break-word' }}>{f}</span>
                   </div>
                 ))}
               </div>
               <button onClick={goApp} className="aca-btn-primary"
-                style={{ width: '100%', padding: '12px', background: 'var(--green)', border: 'none', borderRadius: '8px', color: 'var(--bg-page)', fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '11px', cursor: 'pointer', letterSpacing: '0.02em', marginTop: 'auto' }}>
+                style={{ width: '100%', padding: '12px', background: 'var(--green)', border: 'none', borderRadius: '8px', color: 'var(--bg-page)', fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '12px', cursor: 'pointer', letterSpacing: '0.02em', marginTop: 'auto' }}>
                 {a.ctaPlan}
               </button>
             </div>
@@ -328,19 +328,19 @@ export default function AcadiasLanding({ onEnter }) {
             {/* Enterprise */}
             <div className="aca-plan-card" style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '14px', padding: '24px', display: 'flex', flexDirection: 'column' }}>
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: 'var(--t1)', marginBottom: '3px' }}>{a.plan3Name}</div>
-              <div style={{ fontSize: '9px', color: 'var(--t5)', marginBottom: '16px', letterSpacing: '0.04em' }}>{a.plan3Limit}</div>
+              <div style={{ fontSize: '12px', color: 'var(--t5)', marginBottom: '16px', letterSpacing: '0.04em' }}>{a.plan3Limit}</div>
               <div style={{ marginBottom: '18px' }}>
                 <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: 'var(--color-neutral)', wordBreak: 'break-word' }}>{a.plan3Price}</span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', flex: 1 }}>
                 {PLAN3_FEATS.map((f, i) => (
-                  <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '10px', color: 'var(--t3)' }}>
-                    <span style={{ color: 'var(--color-neutral)', fontSize: '11px', flexShrink: 0 }}>✓</span><span style={{ wordBreak: 'break-word' }}>{f}</span>
+                  <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '12px', color: 'var(--t3)' }}>
+                    <span style={{ color: 'var(--color-neutral)', fontSize: '12px', flexShrink: 0 }}>✓</span><span style={{ wordBreak: 'break-word' }}>{f}</span>
                   </div>
                 ))}
               </div>
               <button onClick={goApp}
-                style={{ width: '100%', padding: '11px', background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '8px', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em', marginTop: 'auto' }}>
+                style={{ width: '100%', padding: '11px', background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '8px', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em', marginTop: 'auto' }}>
                 {a.ctaContact}
               </button>
             </div>
@@ -353,13 +353,13 @@ export default function AcadiasLanding({ onEnter }) {
           <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: 'var(--t1)', textAlign: 'center', marginBottom: '24px', letterSpacing: '-0.01em' }}>{a.compTitle}</div>
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '12px', overflow: 'hidden' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 80px', background: 'var(--bg-card2)', borderBottom: '1px solid var(--bd)' }}>
-              <div style={{ padding: '11px 16px', fontSize: '8px', color: 'var(--t6)', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'var(--font-body)' }}>{a.compFeature}</div>
-              <div style={{ padding: '11px 8px', textAlign: 'center', fontSize: '9px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontWeight: 700 }}>{a.compTradara}</div>
-              <div style={{ padding: '11px 8px', textAlign: 'center', fontSize: '9px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>{a.compMeta}</div>
+              <div style={{ padding: '11px 16px', fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'var(--font-body)' }}>{a.compFeature}</div>
+              <div style={{ padding: '11px 8px', textAlign: 'center', fontSize: '12px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontWeight: 700 }}>{a.compTradara}</div>
+              <div style={{ padding: '11px 8px', textAlign: 'center', fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>{a.compMeta}</div>
             </div>
             {COMP_ROWS.map((row, i) => (
               <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 80px 80px', borderBottom: i < COMP_ROWS.length - 1 ? '1px solid var(--bd)' : 'none' }}>
-                <div style={{ padding: '12px 16px', fontSize: '10px', color: 'var(--t3)', fontFamily: 'var(--font-body)' }}>{row.label}</div>
+                <div style={{ padding: '12px 16px', fontSize: '12px', color: 'var(--t3)', fontFamily: 'var(--font-body)' }}>{row.label}</div>
                 <div style={{ padding: '12px 8px', textAlign: 'center', fontSize: '14px', color: 'var(--green)' }}>✓</div>
                 <div style={{ padding: '12px 8px', textAlign: 'center', fontSize: '14px', color: 'var(--t6)' }}>✗</div>
               </div>
@@ -380,7 +380,7 @@ export default function AcadiasLanding({ onEnter }) {
                   <span style={{ flexShrink: 0, color: 'var(--green)', fontSize: '16px', fontWeight: 300, transform: openFaq === i ? 'rotate(45deg)' : 'none', transition: 'transform 0.2s', display: 'inline-block' }}>+</span>
                 </button>
                 {openFaq === i && (
-                  <div style={{ padding: '0 16px 16px', fontSize: '10px', color: 'var(--t4)', lineHeight: 1.8, borderTop: '1px solid var(--bd)', paddingTop: '12px' }}>
+                  <div style={{ padding: '0 16px 16px', fontSize: '12px', color: 'var(--t4)', lineHeight: 1.8, borderTop: '1px solid var(--bd)', paddingTop: '12px' }}>
                     {faq.ans}
                   </div>
                 )}
@@ -401,7 +401,7 @@ export default function AcadiasLanding({ onEnter }) {
             </button>
             <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', flexWrap: 'wrap' }}>
               {[a.finalSub1, a.finalSub2, a.finalSub3].map((s, i) => (
-                <span key={i} style={{ fontSize: '9px', color: 'var(--t6)', letterSpacing: '0.06em', fontFamily: 'var(--font-body)' }}>· {s}</span>
+                <span key={i} style={{ fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.06em', fontFamily: 'var(--font-body)' }}>· {s}</span>
               ))}
             </div>
           </div>

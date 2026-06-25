@@ -11,7 +11,7 @@ function AssetTypesPill() {
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
       {types.map(t => (
-        <div key={t.label} style={{ padding: '6px 14px', background: t.bg, border: `1px solid ${t.color}`, borderRadius: '20px', fontFamily: 'var(--font-body)', fontSize: '10px', color: t.color, fontWeight: 700, letterSpacing: '0.06em' }}>
+        <div key={t.label} style={{ padding: '6px 14px', background: t.bg, border: `1px solid ${t.color}`, borderRadius: '20px', fontFamily: 'var(--font-body)', fontSize: '12px', color: t.color, fontWeight: 700, letterSpacing: '0.06em' }}>
           {t.label}
         </div>
       ))}
@@ -24,13 +24,13 @@ function BuySellVisual() {
     <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
       <div style={{ flex: 1, padding: '14px 10px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '10px', textAlign: 'center' }}>
         <div style={{ fontSize: '18px', marginBottom: '4px' }}>▲</div>
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--green)', fontWeight: 700 }}>BUY</div>
-        <div style={{ fontSize: '8px', color: 'var(--t5)', marginTop: '3px' }}>Open long</div>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--green)', fontWeight: 700 }}>BUY</div>
+        <div style={{ fontSize: '12px', color: 'var(--t5)', marginTop: '3px' }}>Open long</div>
       </div>
       <div style={{ flex: 1, padding: '14px 10px', background: 'rgba(255,126,179,0.08)', border: '1px solid var(--color-down)', borderRadius: '10px', textAlign: 'center' }}>
         <div style={{ fontSize: '18px', marginBottom: '4px' }}>▼</div>
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--color-down)', fontWeight: 700 }}>SELL</div>
-        <div style={{ fontSize: '8px', color: 'var(--t5)', marginTop: '3px' }}>Close / short</div>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-down)', fontWeight: 700 }}>SELL</div>
+        <div style={{ fontSize: '12px', color: 'var(--t5)', marginTop: '3px' }}>Close / short</div>
       </div>
     </div>
   );
@@ -69,8 +69,8 @@ function RankingVisual() {
       {rows.map(r => (
         <div key={r.pos} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', background: 'var(--bg-page)', border: `1px solid ${r.color}30`, borderRadius: '8px' }}>
           <span style={{ fontSize: '14px' }}>{r.pos}</span>
-          <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '11px', color: 'var(--t1)' }}>{r.name}</span>
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--green)', fontWeight: 700 }}>{r.val}</span>
+          <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: 'var(--t1)' }}>{r.name}</span>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--green)', fontWeight: 700 }}>{r.val}</span>
         </div>
       ))}
     </div>
@@ -87,14 +87,14 @@ function LeagueVisual() {
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
         <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>Liga de Amigos</span>
-        <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--green)', fontWeight: 700, letterSpacing: '0.16em', padding: '3px 8px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)30', borderRadius: '4px' }}>AB3KX2</span>
+        <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--green)', fontWeight: 700, letterSpacing: '0.16em', padding: '3px 8px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)30', borderRadius: '4px' }}>AB3KX2</span>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         {rows.map((r, i) => (
           <div key={r.name} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 10px', background: 'var(--bg-page)', border: `1px solid ${r.you ? 'var(--green)40' : 'var(--bd)'}`, borderRadius: '6px' }}>
             <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '12px', color: i === 0 ? 'var(--color-neutral)' : 'var(--t6)', width: '16px' }}>{i === 0 ? '🥇' : `#${i + 1}`}</span>
-            <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '11px', color: r.you ? 'var(--green)' : 'var(--t1)' }}>{r.name}</span>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--green)', fontWeight: 700 }}>{r.val}</span>
+            <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: r.you ? 'var(--green)' : 'var(--t1)' }}>{r.name}</span>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--green)', fontWeight: 700 }}>{r.val}</span>
           </div>
         ))}
       </div>
@@ -129,7 +129,7 @@ export default function PortfolioTutorial({ onDone }) {
       <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '16px', padding: '28px 24px', maxWidth: '360px', width: '100%', position: 'relative', boxShadow: '0 0 40px rgba(55,138,221,0.12)' }}>
 
         {!current.final && (
-          <button onClick={dismiss} style={{ position: 'absolute', top: '16px', right: '16px', background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '10px', cursor: 'pointer', letterSpacing: '0.04em' }}>
+          <button onClick={dismiss} style={{ position: 'absolute', top: '16px', right: '16px', background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', letterSpacing: '0.04em' }}>
             {p.tutSkip}
           </button>
         )}
@@ -160,13 +160,13 @@ export default function PortfolioTutorial({ onDone }) {
 
         <div style={{ display: 'flex', gap: '8px' }}>
           {step > 0 && (
-            <button onClick={() => setStep(s => s - 1)} style={{ flex: 1, padding: '12px', background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '8px', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em' }}>
+            <button onClick={() => setStep(s => s - 1)} style={{ flex: 1, padding: '12px', background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '8px', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em' }}>
               {p.tutPrev}
             </button>
           )}
           <button
             onClick={() => step < STEPS.length - 1 ? setStep(s => s + 1) : dismiss()}
-            style={{ flex: 1, padding: '12px', background: current.final ? 'rgba(55,138,221,0.15)' : 'rgba(55,138,221,0.08)', border: '1px solid #378ADD', borderRadius: '8px', color: '#378ADD', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em' }}
+            style={{ flex: 1, padding: '12px', background: current.final ? 'rgba(55,138,221,0.15)' : 'rgba(55,138,221,0.08)', border: '1px solid #378ADD', borderRadius: '8px', color: '#378ADD', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em' }}
           >
             {current.final ? p.tutStart : p.tutNext}
           </button>

@@ -78,7 +78,7 @@ function Toggle({ on, onChange }) {
 
 function SectionLabel({ text }) {
   return (
-    <div style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t5)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '10px' }}>
+    <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '10px' }}>
       {text}
     </div>
   );
@@ -95,7 +95,7 @@ function Card({ children }) {
 function Row({ label, children, last }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: last ? 'none' : '1px solid var(--bd)', gap: '12px' }}>
-      <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--t2)' }}>{label}</span>
+      <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t2)' }}>{label}</span>
       {children}
     </div>
   );
@@ -185,7 +185,7 @@ export default function Settings({ onBack }) {
           }} />
         )}
 
-        <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer', marginBottom: '28px', display: 'block' }}>
+        <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', marginBottom: '28px', display: 'block' }}>
           {s.back}
         </button>
 
@@ -204,7 +204,7 @@ export default function Settings({ onBack }) {
                   background: lang === l ? 'rgba(0,229,160,0.12)' : 'transparent',
                   border: `1px solid ${lang === l ? 'var(--green)' : 'var(--bd2)'}`,
                   color: lang === l ? 'var(--green)' : 'var(--t5)',
-                  fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700,
+                  fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700,
                   letterSpacing: '0.08em', cursor: 'pointer',
                 }}>
                   {l.toUpperCase()}
@@ -219,7 +219,7 @@ export default function Settings({ onBack }) {
         <Card>
           <div style={{ padding: '14px 16px' }}>
             {notifEnabled ? (
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--green)' }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--green)' }}>
                 {s.notifOn}
               </div>
             ) : (
@@ -227,7 +227,7 @@ export default function Settings({ onBack }) {
                 width: '100%', padding: '11px',
                 background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)',
                 borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)',
-                fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em',
+                fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em',
                 textTransform: 'uppercase', cursor: 'pointer',
               }}>
                 {s.notifOff}
@@ -242,17 +242,17 @@ export default function Settings({ onBack }) {
             <SectionLabel text={s.subscription} />
             <Card>
               <Row label={s.planLabel} last={!cancelConfirm && !cancelDone}>
-                <span style={{ fontSize: '9px', color: 'var(--green)', background: 'rgba(0,229,160,0.1)', padding: '2px 8px', borderRadius: '4px', fontFamily: 'var(--font-body)', letterSpacing: '0.06em' }}>
+                <span style={{ fontSize: '12px', color: 'var(--green)', background: 'rgba(0,229,160,0.1)', padding: '2px 8px', borderRadius: '4px', fontFamily: 'var(--font-body)', letterSpacing: '0.06em' }}>
                   {s.planActive}
                 </span>
               </Row>
               {cancelDone ? (
-                <div style={{ padding: '12px 16px', fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--t4)' }}>
+                <div style={{ padding: '12px 16px', fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)' }}>
                   {leaveMessage || s.cancelDoneMsg}
                 </div>
               ) : cancelConfirm ? (
                 <div style={{ padding: '12px 16px', borderTop: '1px solid var(--bd)' }}>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--t3)', marginBottom: '12px', lineHeight: 1.5 }}>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t3)', marginBottom: '12px', lineHeight: 1.5 }}>
                     {s.cancelConfirmMsg}
                   </div>
                   <div style={{ display: 'flex', gap: '8px' }}>
@@ -264,7 +264,7 @@ export default function Settings({ onBack }) {
                         background: cancelLoading ? 'rgba(255,126,179,0.04)' : 'rgba(255,126,179,0.08)',
                         border: '1px solid rgba(255,126,179,0.4)',
                         borderRadius: '6px', color: 'var(--color-down)',
-                        fontFamily: 'var(--font-body)', fontSize: '9px',
+                        fontFamily: 'var(--font-body)', fontSize: '12px',
                         fontWeight: 700, letterSpacing: '0.06em',
                         textTransform: 'uppercase', cursor: cancelLoading ? 'default' : 'pointer',
                       }}
@@ -278,7 +278,7 @@ export default function Settings({ onBack }) {
                         flex: 1, padding: '10px',
                         background: 'transparent', border: '1px solid var(--bd2)',
                         borderRadius: '6px', color: 'var(--t4)',
-                        fontFamily: 'var(--font-body)', fontSize: '9px',
+                        fontFamily: 'var(--font-body)', fontSize: '12px',
                         fontWeight: 700, letterSpacing: '0.06em',
                         textTransform: 'uppercase', cursor: 'pointer',
                       }}
@@ -295,7 +295,7 @@ export default function Settings({ onBack }) {
                       width: '100%', padding: '10px',
                       background: 'transparent', border: '1px solid var(--bd2)',
                       borderRadius: '6px', color: 'var(--t5)',
-                      fontFamily: 'var(--font-body)', fontSize: '9px',
+                      fontFamily: 'var(--font-body)', fontSize: '12px',
                       fontWeight: 700, letterSpacing: '0.06em',
                       textTransform: 'uppercase', cursor: 'pointer',
                     }}
@@ -315,13 +315,13 @@ export default function Settings({ onBack }) {
             <Card>
               <Row label={s.username}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--green)' }}>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--green)' }}>
                     {user.username ? `@${user.username}` : '—'}
                   </span>
                   <button onClick={() => setShowUsernameModal(true)} style={{
                     padding: '4px 10px', background: 'transparent', border: '1px solid var(--bd2)',
                     borderRadius: '5px', color: 'var(--t5)', fontFamily: 'var(--font-body)',
-                    fontSize: '9px', cursor: 'pointer', letterSpacing: '0.06em',
+                    fontSize: '12px', cursor: 'pointer', letterSpacing: '0.06em',
                   }}>
                     {s.edit}
                   </button>
@@ -332,7 +332,7 @@ export default function Settings({ onBack }) {
                   width: '100%', padding: '11px',
                   background: 'rgba(255,126,179,0.06)', border: '1px solid rgba(255,126,179,0.3)',
                   borderRadius: '6px', color: 'var(--color-down)', fontFamily: 'var(--font-body)',
-                  fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em',
+                  fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em',
                   textTransform: 'uppercase', cursor: 'pointer',
                 }}>
                   {s.signOut}
@@ -370,11 +370,11 @@ export default function Settings({ onBack }) {
         <SectionLabel text={s.about} />
         <Card>
           <Row label={s.builtBy}>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'var(--t5)' }}>© 2025</span>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)' }}>© 2025</span>
           </Row>
           <Row label="tradiko.dev" last>
             <a href="https://tradiko.dev" target="_blank" rel="noopener noreferrer"
-              style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--green)', textDecoration: 'none' }}>
+              style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--green)', textDecoration: 'none' }}>
               ↗
             </a>
           </Row>
