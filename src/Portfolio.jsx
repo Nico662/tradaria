@@ -152,7 +152,7 @@ function LeaderboardList({ entries, userPosition, user, onViewProfile, t }) {
 }
 
 export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPricing }) {
-  const { user } = useAuth();
+  const { user, login } = useAuth();
   const { t, lang } = useLang();
   const [screen, setScreen]                 = useState('main');
   const [prices, setPrices]                 = useState([]);
@@ -561,9 +561,9 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>💼</div>
         <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '24px', color: 'var(--t1)', marginBottom: '8px' }}>{t.portfolio.title}</div>
         <div style={{ fontSize: '12px', color: 'var(--t5)', marginBottom: '32px' }}>{t.portfolio.signIn}</div>
-        <a href={`${SERVER}/auth/google`} style={{ display: 'inline-block', padding: '12px 24px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', textDecoration: 'none', fontWeight: 700 }}>
+        <button onClick={login} style={{ display: 'inline-block', padding: '12px 24px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', textDecoration: 'none', fontWeight: 700, cursor: 'pointer' }}>
           {t.portfolio.signInGoogle}
-        </a>
+        </button>
       </div>
     </div>
   );

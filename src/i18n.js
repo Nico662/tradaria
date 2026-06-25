@@ -328,7 +328,7 @@ export const LANGS = {
       challengeFriend: 'Challenge a friend',
       duelSent: 'Challenge sent ✓', duelError: 'Error sending challenge',
       chooseFriend: 'Choose a friend', noFriendsYet: 'You have no friends added yet',
-      challengeBtn: 'Challenge', signInGoogle: 'Sign in with Google',
+      challengeBtn: 'Challenge', signInGoogle: 'Sign in to continue',
       back: '← back',
       tutStep1title: 'Portfolio Mode',
       tutStep1body: 'Start with $50,000 in virtual capital. Buy and sell real stocks, crypto, indices and commodities at live market prices.',
@@ -592,7 +592,7 @@ export const LANGS = {
     maintenance: {
       banner: "🔧 We're making changes to the site. Things might look a bit off for a while.",
     },
-    common: { back: '← back', menu: '← menu', you: 'YOU', streak: 'streak', days: 'days', logout: 'logout', signIn: 'Sign in with Google', signInApple: 'Sign in with Apple', legal: 'Legal', error: 'Connection error' },
+    common: { back: '← back', menu: '← menu', you: 'YOU', streak: 'streak', days: 'days', logout: 'logout', signIn: 'Sign in', signInApple: 'Sign in with Apple', legal: 'Legal', error: 'Connection error' },
     league: {
       back: '← back', daysLeft: 'days left', finished: 'Finished', players: 'players',
       you: 'you', copied: '✓ Copied', shareCode: '🔗 Share code', delete: 'Delete', leave: 'Leave',
@@ -941,7 +941,7 @@ export const LANGS = {
       challengeFriend: 'Retar a un amigo',
       duelSent: 'Reto enviado ✓', duelError: 'Error al enviar el reto',
       chooseFriend: 'Elige un amigo', noFriendsYet: 'No tienes amigos añadidos aún',
-      challengeBtn: 'Retar', signInGoogle: 'Iniciar sesión con Google',
+      challengeBtn: 'Retar', signInGoogle: 'Inicia sesión para continuar',
       back: '← volver',
       tutStep1title: 'Modo Portfolio',
       tutStep1body: 'Empieza con $50.000 de capital virtual. Compra y vende acciones, cripto, índices y materias primas a precios reales.',
@@ -1205,7 +1205,7 @@ export const LANGS = {
     maintenance: {
       banner: '⚙️ Estamos realizando mejoras en la plataforma. Es posible que experimentes algunas interrupciones temporales.',
     },
-    common: { back: '← volver', menu: '← menú', you: 'TÚ', streak: 'racha', days: 'días', logout: 'logout', signIn: 'Iniciar sesión con Google', signInApple: 'Iniciar sesión con Apple', legal: 'Legal', error: 'Error de conexión' },
+    common: { back: '← volver', menu: '← menú', you: 'TÚ', streak: 'racha', days: 'días', logout: 'logout', signIn: 'Iniciar sesión', signInApple: 'Iniciar sesión con Apple', legal: 'Legal', error: 'Error de conexión' },
     league: {
       back: '← Volver', daysLeft: 'días restantes', finished: 'Finalizada', players: 'jugadores',
       you: 'tú', copied: '✓ Copiado', shareCode: '🔗 Compartir código', delete: 'Eliminar', leave: 'Salir',
@@ -1554,7 +1554,7 @@ export const LANGS = {
       challengeFriend: 'Freund herausfordern',
       duelSent: 'Herausforderung gesendet ✓', duelError: 'Fehler beim Senden der Herausforderung',
       chooseFriend: 'Wähle einen Freund', noFriendsYet: 'Du hast noch keine Freunde hinzugefügt',
-      challengeBtn: 'Herausfordern', signInGoogle: 'Mit Google anmelden',
+      challengeBtn: 'Herausfordern', signInGoogle: 'Anmelden um fortzufahren',
       back: '← zurück',
       tutStep1title: 'Portfolio-Modus',
       tutStep1body: 'Starte mit $50.000 virtuellem Kapital. Kaufe und verkaufe Aktien, Krypto, Indizes und Rohstoffe zu Live-Preisen.',
@@ -1818,7 +1818,7 @@ export const LANGS = {
     maintenance: {
       banner: '🔧 Wir nehmen gerade Änderungen vor. Es kann kurzzeitig zu Darstellungsfehlern kommen.',
     },
-    common: { back: '← zurück', menu: '← Menü', you: 'DU', streak: 'Serie', days: 'Tage', logout: 'Abmelden', signIn: 'Mit Google anmelden', signInApple: 'Mit Apple anmelden', legal: 'Impressum', error: 'Verbindungsfehler' },
+    common: { back: '← zurück', menu: '← Menü', you: 'DU', streak: 'Serie', days: 'Tage', logout: 'Abmelden', signIn: 'Anmelden', signInApple: 'Mit Apple anmelden', legal: 'Impressum', error: 'Verbindungsfehler' },
     league: {
       back: '← zurück', daysLeft: 'Tage übrig', finished: 'Beendet', players: 'Spieler',
       you: 'du', copied: '✓ Kopiert', shareCode: '🔗 Code teilen', delete: 'Löschen', leave: 'Verlassen',
