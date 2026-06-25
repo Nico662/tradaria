@@ -200,28 +200,15 @@ export function AuthProvider({ children }) {
   }
 
   useEffect(() => {
-    console.log('Starting Apple Sign In polling');
-
-    const interval = setInterval(() => {
-      console.log('polling tick, __appleSignInPending:', window.__appleSignInPending);
-      if (window.__appleSignInPending) {
-        console.log('FOUND pending Apple token!');
-        const { token, givenName, familyName } = window.__appleSignInPending;
-        window.__appleSignInPending = null;
-        loginWithApple(token, { givenName, familyName });
-      }
-    }, 500);
-
-    window.__loginWithApple = (token, givenName, familyName) => {
-      console.log('__loginWithApple called directly');
+    console.log('Registering __appleAuthHandler');
+    window.__appleAuthHandler = (token, givenName, familyName) => {
+      console.log('__appleAuthHandler called, token length:', token?.length);
       loginWithApple(token, { givenName, familyName });
     };
-
     return () => {
-      clearInterval(interval);
-      delete window.__loginWithApple;
+      delete window.__appleAuthHandler;
     };
-  }, []);
+  }, [loginWithApple]);
 
   function loginWithApple(identityToken, fullName) {
     console.log('loginWithApple called, posting to /auth/apple');
