@@ -200,12 +200,22 @@ export function AuthProvider({ children }) {
   }
 
   useEffect(() => {
+    function handleAppleSignIn(event) {
+      console.log('appleSignInComplete event received:', event.detail);
+      const { token, givenName, familyName } = event.detail;
+      loginWithApple(token, { givenName, familyName });
+    }
+    window.addEventListener('appleSignInComplete', handleAppleSignIn);
+
     window.__loginWithApple = (identityToken, givenName, familyName) => {
-      console.log('__loginWithApple called, token length:', identityToken?.length);
-      console.log('givenName:', givenName, 'familyName:', familyName);
+      console.log('__loginWithApple called directly, token length:', identityToken?.length);
       loginWithApple(identityToken, { givenName, familyName });
     };
-    return () => { delete window.__loginWithApple; };
+
+    return () => {
+      window.removeEventListener('appleSignInComplete', handleAppleSignIn);
+      delete window.__loginWithApple;
+    };
   }, []);
 
   function loginWithApple(identityToken, fullName) {
