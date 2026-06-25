@@ -84,6 +84,25 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (window.__appleAuthData) {
+        console.log('__appleAuthData detected!');
+        const { tokenB64, givenName } = window.__appleAuthData;
+        window.__appleAuthData = null;
+        try {
+          const base64 = tokenB64.replace(/-/g, '+').replace(/_/g, '/');
+          const token = atob(base64);
+          console.log('decoded token length:', token.length);
+          loginWithApple(token, { givenName, familyName: '' });
+        } catch (e) {
+          console.error('Error decoding apple token:', e);
+        }
+      }
+    }, 300);
+    return () => clearInterval(interval);
+  }, []);
+
   async function fetchPurchases(token) {
     try {
       const res = await fetch(`${SERVER}/shop/purchases`, {
