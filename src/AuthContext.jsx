@@ -24,39 +24,7 @@ export function AuthProvider({ children }) {
   }
 
   useEffect(() => {
-    console.log('AuthContext mount URL:', window.location.href);
     const params = new URLSearchParams(window.location.search);
-    console.log('apple_token param:', params.get('apple_token') ? 'EXISTS' : 'null');
-    console.log('code param:', params.get('code') ? 'EXISTS' : 'null');
-
-    const appleAuth = params.get('apple_auth');
-    if (appleAuth === '1') {
-      window.history.replaceState({}, '', '/');
-      console.log('apple_auth=1 detected, reading cookie');
-      console.log('all cookies:', document.cookie);
-      const getCookie = (name) => {
-        const match = document.cookie.split(';').find(c => c.trim().startsWith(name + '='));
-        return match ? match.trim().substring(name.length + 1) : null;
-      };
-      const tokenB64 = getCookie('apple_auth_token');
-      const givenName = getCookie('apple_auth_given') || '';
-      console.log('tokenB64 from cookie:', tokenB64 ? 'EXISTS length=' + tokenB64.length : 'null');
-      if (tokenB64) {
-        try {
-          const base64 = tokenB64.replace(/-/g, '+').replace(/_/g, '/');
-          const token = atob(base64);
-          console.log('decoded token length:', token.length);
-          loginWithApple(token, { givenName, familyName: '' });
-        } catch (e) {
-          console.error('Error decoding apple token from cookie:', e);
-          setLoading(false);
-        }
-      } else {
-        setLoading(false);
-      }
-      return;
-    }
-
     const oauthCode = params.get('code');
     if (oauthCode) {
       window.history.replaceState({}, '', '/');
@@ -74,7 +42,6 @@ export function AuthProvider({ children }) {
         .catch(() => setLoading(false));
       return;
     }
-
     const saved = localStorage.getItem('tradaria_token');
     if (saved) {
       fetchUser(saved);
@@ -85,8 +52,9 @@ export function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
+    console.log('=== APPLE POLLING STARTED ===');
     if (window.__appleAuthData) {
-      console.log('IMMEDIATE __appleAuthData found on mount!');
+      console.log('=== IMMEDIATE APPLE DATA FOUND ===');
       const { tokenB64, givenName } = window.__appleAuthData;
       window.__appleAuthData = null;
       try {
@@ -100,7 +68,7 @@ export function AuthProvider({ children }) {
     }
     const interval = setInterval(() => {
       if (window.__appleAuthData) {
-        console.log('POLLING __appleAuthData found!');
+        console.log('=== POLLING APPLE DATA FOUND ===');
         const { tokenB64, givenName } = window.__appleAuthData;
         window.__appleAuthData = null;
         try {
@@ -112,7 +80,10 @@ export function AuthProvider({ children }) {
         }
       }
     }, 300);
-    return () => clearInterval(interval);
+    return () => {
+      console.log('=== APPLE POLLING STOPPED ===');
+      clearInterval(interval);
+    };
   }, []);
 
   async function fetchPurchases(token) {
