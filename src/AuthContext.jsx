@@ -24,6 +24,8 @@ export function AuthProvider({ children }) {
   }
 
   useEffect(() => {
+    console.log('AuthContext mount, URL:', window.location.href);
+    console.log('search params:', window.location.search);
     const params = new URLSearchParams(window.location.search);
 
     const appleToken = params.get('apple_token');
