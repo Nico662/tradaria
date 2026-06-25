@@ -70,6 +70,18 @@ mongoose.connect(MONGODB_URI, { autoIndex: false })
       await db.collection('users').dropIndex('username_1');
       console.log('Índice username_1 eliminado');
     }
+    const hasGoogleIdIndex = indexes.some(i => i.name === 'googleId_1' && !i.sparse);
+    if (hasGoogleIdIndex) {
+      await db.collection('users').dropIndex('googleId_1');
+      console.log('Dropped googleId_1 index (non-sparse)');
+    }
+    const hasAppleIdIndex = indexes.some(i => i.name === 'appleId_1' && !i.sparse);
+    if (hasAppleIdIndex) {
+      await db.collection('users').dropIndex('appleId_1');
+      console.log('Dropped appleId_1 index (non-sparse)');
+    }
+    await User.syncIndexes();
+    console.log('User indexes synced');
     const { deletedCount } = await db.collection('asyncduels').deleteMany({
       $or: [{ expiresAt: null }, { expiresAt: { $exists: false } }],
     });
