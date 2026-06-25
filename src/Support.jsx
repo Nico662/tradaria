@@ -10,8 +10,16 @@ export default function Support({ onSelect }) {
         {t.common.back}
       </button>
 
-      <h1 style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '28px', color: 'var(--text-primary)', marginBottom: '8px', letterSpacing: '-0.5px' }}>Support</h1>
-      <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '32px' }}>We're here to help.</p>
+      <h1 style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '28px', color: 'var(--text-primary)', marginBottom: '16px', letterSpacing: '-0.5px' }}>Support</h1>
+
+      <div style={{ background: 'var(--bg-surface)', border: '1.5px solid var(--green)', borderRadius: 'var(--radius-lg)', padding: '16px 20px', marginBottom: '24px' }}>
+        <p style={{ fontSize: '15px', color: 'var(--text-primary)', fontWeight: 700, lineHeight: '1.5', margin: 0 }}>
+          For support, contact us at{' '}
+          <a href="mailto:tradikonicolasvidal@gmail.com" style={{ color: 'var(--green)', textDecoration: 'underline', fontWeight: 800 }}>
+            tradikonicolasvidal@gmail.com
+          </a>
+        </p>
+      </div>
 
       <div style={{ marginBottom: '24px', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-lg)', padding: '20px' }}>
         <h2 style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--text-primary)', marginBottom: '8px' }}>Contact us</h2>
