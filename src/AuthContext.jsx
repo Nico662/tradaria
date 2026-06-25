@@ -248,5 +248,7 @@ export function useAuth() {
 }
 
 export function isIOSApp() {
+  if (typeof window === 'undefined') return false;
+  if (window.__isIOSApp === true) return true;
   return document.cookie.split(';').some(c => c.trim() === 'app-platform=iOS App Store');
 }
