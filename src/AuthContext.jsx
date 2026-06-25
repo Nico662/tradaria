@@ -203,8 +203,9 @@ export function AuthProvider({ children }) {
     console.log('Starting Apple Sign In polling');
 
     const interval = setInterval(() => {
+      console.log('polling tick, __appleSignInPending:', window.__appleSignInPending);
       if (window.__appleSignInPending) {
-        console.log('__appleSignInPending detected:', window.__appleSignInPending);
+        console.log('FOUND pending Apple token!');
         const { token, givenName, familyName } = window.__appleSignInPending;
         window.__appleSignInPending = null;
         loginWithApple(token, { givenName, familyName });
