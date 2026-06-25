@@ -211,25 +211,26 @@ export function AuthProvider({ children }) {
   }, [loginWithApple]);
 
   function loginWithApple(identityToken, fullName) {
-    console.log('loginWithApple called, posting to /auth/apple');
+    console.log('loginWithApple START, token length:', identityToken?.length);
+    console.log('fullName:', JSON.stringify(fullName));
     return fetch(`${SERVER}/auth/apple`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ identityToken, fullName }),
     })
       .then(r => {
-        console.log('auth/apple response status:', r.status);
+        console.log('auth/apple status:', r.status, r.ok);
         return r.json();
       })
-      .then(({ token }) => {
-        console.log('token received:', token ? 'yes' : 'no');
-        if (!token) throw new Error('No token');
-        localStorage.setItem('tradaria_token', token);
-        fetchUser(token);
-        fetchPurchases(token);
+      .then(data => {
+        console.log('auth/apple response:', JSON.stringify(data));
+        if (!data.token) throw new Error('No token in response');
+        localStorage.setItem('tradaria_token', data.token);
+        fetchUser(data.token);
+        fetchPurchases(data.token);
       })
       .catch(err => {
-        console.error('loginWithApple error:', err);
+        console.error('loginWithApple ERROR:', err.message);
       });
   }
 
