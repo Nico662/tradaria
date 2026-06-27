@@ -62,22 +62,19 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Push notifications
 self.addEventListener('push', (event) => {
-  const data = event.data?.json() ?? {};
-  event.waitUntil(
-    self.registration.showNotification(data.title ?? '⚡ Tradiko', {
-      body:  data.body ?? 'Daily challenge is ready!',
-      icon:  '/icon-192.png',
-      badge: '/icon-192.png',
-      data:  { url: data.url ?? 'https://tradiko.dev' },
-    })
-  );
+  const data = event.data ? event.data.json() : {};
+  const title = data.title || '⚡ Tradiko';
+  const options = {
+    body: data.body || "Today's challenge is ready.",
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    data: { url: data.url || 'https://tradiko.dev' }
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
 });
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  event.waitUntil(
-    clients.openWindow(event.notification.data?.url ?? 'https://tradiko.dev')
-  );
+  event.waitUntil(clients.openWindow(event.notification.data.url));
 });
