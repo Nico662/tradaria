@@ -13,8 +13,21 @@ inject();
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      const reg = await navigator.serviceWorker.register('/sw.js');
+      // Migrar token de Tradaria a Tradiko
+      const oldToken = localStorage.getItem('tradaria_token');
+      if (oldToken && !localStorage.getItem('tradiko_token')) {
+        localStorage.setItem('tradiko_token', oldToken);
+      }
+
+      await navigator.serviceWorker.register('/sw.js');
       console.log('SW registered');
+
+      // Forzar re-suscripción push para usuarios con suscripciones antiguas
+      const reg = await navigator.serviceWorker.ready;
+      const existingSub = await reg.pushManager.getSubscription();
+      if (existingSub && existingSub.endpoint.includes('tradara')) {
+        await existingSub.unsubscribe();
+      }
 
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') return;
