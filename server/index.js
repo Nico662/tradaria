@@ -1208,6 +1208,23 @@ app.get('/shop/purchases', async (req, res) => {
   }
 });
 
+app.post('/shop/iap-confirm', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'Unauthorized' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const { itemId } = req.body;
+    if (!itemId) return res.status(400).json({ error: 'Missing itemId' });
+    const update = itemId === 'pro'
+      ? { isPro: true, $addToSet: { purchases: itemId } }
+      : { $addToSet: { purchases: itemId } };
+    await User.findByIdAndUpdate(decoded.id, update);
+    res.json({ success: true });
+  } catch {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+});
+
 // ── Stats routes ──────────────────────────────────────────────────
 app.get('/stats', (req, res) => {
   try {

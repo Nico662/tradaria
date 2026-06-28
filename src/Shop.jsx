@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useLang } from './LangContext.jsx';
 import { useAuth, isIOSApp } from './AuthContext.jsx';
 import { SERVER } from './config.js';
+import { purchaseWithStoreKit } from './iap.js';
 
 const SHOP_ITEMS = {
   frames: [
@@ -312,17 +313,57 @@ function PreviewEffect({ item }) {
 
 export default function Shop({ onBack }) {
   const { lang, t } = useLang();
-  const { user, purchases, activeCosmetics, equipCosmetic, unequipCosmetic } = useAuth();
+  const { user, purchases, refreshPurchases, activeCosmetics, equipCosmetic, unequipCosmetic } = useAuth();
   const [activeCategory, setActiveCategory] = useState('frames');
   const [loading, setLoading] = useState(null);
 
   const items = SHOP_ITEMS[activeCategory];
   const cosmeticType = CATEGORY_TYPES[activeCategory];
 
+  async function handlePurchaseSuccess(itemId) {
+    const token = localStorage.getItem('tradaria_token');
+    if (!token) return;
+    try {
+      await fetch(`${SERVER}/shop/iap-confirm`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ itemId }),
+      });
+      await refreshPurchases();
+    } catch (err) {
+      console.error('IAP confirm error:', err);
+    }
+  }
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (window.__iapPurchased) {
+        const productID = window.__iapPurchased;
+        window.__iapPurchased = null;
+        const itemId = productID.split('.').slice(2).join('_');
+        handlePurchaseSuccess(itemId);
+      }
+    }, 500);
+    return () => clearInterval(interval);
+  }, []);
+
   async function handleBuy(itemId) {
     const token = localStorage.getItem('tradaria_token');
     if (!token) {
       alert(t.shop.signIn);
+      return;
+    }
+    if (isIOSApp()) {
+      setLoading(itemId);
+      try {
+        const productID = `dev.tradiko.${itemId.replace('_', '.')}`;
+        await purchaseWithStoreKit(productID);
+        await handlePurchaseSuccess(itemId);
+      } catch (err) {
+        console.log('IAP error:', err.message);
+      } finally {
+        setLoading(null);
+      }
       return;
     }
     setLoading(itemId);
@@ -347,14 +388,6 @@ export default function Shop({ onBack }) {
     } else {
       equipCosmetic(cosmeticType, item.id);
     }
-  }
-
-  if (isIOSApp()) {
-    return (
-      <div style={{ padding: '24px', fontFamily: 'var(--font-body)', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '14px', lineHeight: 1.6 }}>
-        The shop is available at tradiko.dev
-      </div>
-    );
   }
 
   return (

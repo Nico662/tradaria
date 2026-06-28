@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { useAuth, isIOSApp } from './AuthContext';
 import { SERVER } from './config.js';
 import { useLang } from './LangContext.jsx';
+import { purchaseWithStoreKit } from './iap.js';
 
 export default function Pricing({ onBack, fromTournament }) {
-  const { user, isPro } = useAuth();
+  const { user, isPro, updateUser } = useAuth();
   const { t } = useLang();
   const [loading, setLoading] = useState(false);
   const [msg, setMsg]         = useState('');
@@ -22,6 +23,23 @@ export default function Pricing({ onBack, fromTournament }) {
   async function handleUpgrade() {
     if (!user) { setMsg(t.pricing.signInFirst); return; }
     setLoading(true);
+    if (isIOSApp()) {
+      try {
+        await purchaseWithStoreKit('dev.tradiko.pro.monthly');
+        const token = localStorage.getItem('tradaria_token');
+        await fetch(`${SERVER}/shop/iap-confirm`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ itemId: 'pro' }),
+        });
+        updateUser({ isPro: true });
+      } catch (err) {
+        if (err.message !== 'Purchase cancelled') setMsg(t.pricing.networkError);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
     try {
       const token = localStorage.getItem('tradaria_token');
       const res   = await fetch(`${SERVER}/pro/checkout`, {
@@ -35,14 +53,6 @@ export default function Pricing({ onBack, fromTournament }) {
       setMsg(t.pricing.networkError);
       setLoading(false);
     }
-  }
-
-  if (isIOSApp()) {
-    return (
-      <div style={{ padding: '24px', fontFamily: 'var(--font-body)', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '14px', lineHeight: 1.6 }}>
-        Pro subscriptions are available at tradiko.dev
-      </div>
-    );
   }
 
   return (
