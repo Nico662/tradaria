@@ -15,6 +15,15 @@ const jwt            = require('jsonwebtoken');
 const Stripe         = require('stripe');
 const rateLimit      = require('express-rate-limit');
 const { Redis }      = require('@upstash/redis');
+const { ApnsClient, Notification } = require('apns2');
+
+const apnsClient = new ApnsClient({
+  team: 'KA99F6SRW4',
+  keyId: '4QV52YAMPK',
+  signingKey: (process.env.APNS_SIGNING_KEY || '').replace(/\\n/g, '\n'),
+  defaultTopic: 'dev.tradiko',
+  production: true
+});
 
 // ── Config ────────────────────────────────────────────────────────
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -338,6 +347,43 @@ loadSubscriptions().then(subs => {
   pushSubscriptions = subs;
   console.log('Loaded', subs.length, 'subscriptions from Redis');
 });
+
+async function sendPushToUser(userId, payload) {
+  const title = payload.title || '⚡ Tradiko';
+  const body = payload.body || '';
+  const url = payload.url || 'https://tradiko.dev';
+
+  // Web Push
+  try {
+    const subRaw = await redis.get(`push_user_sub:${userId}`);
+    if (subRaw) {
+      const sub = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
+      await webpush.sendNotification(sub, JSON.stringify({ title, body, url })).catch(async err => {
+        if (err.statusCode === 410) await redis.del(`push_user_sub:${userId}`);
+      });
+    }
+  } catch (err) {
+    console.log('Web push error:', err.message);
+  }
+
+  // APNs
+  try {
+    const tokenRaw = await redis.get(`apns_token:${userId}`);
+    if (tokenRaw) {
+      const notification = new Notification(tokenRaw, {
+        alert: { title, body },
+        sound: 'default',
+        badge: 1,
+        data: { url }
+      });
+      await apnsClient.send(notification).catch(err => {
+        console.log('APNs error:', err.message);
+      });
+    }
+  } catch (err) {
+    console.log('APNs error:', err.message);
+  }
+}
 
 // ── Cache ─────────────────────────────────────────────────────────
 async function cachedFetch(key, ttlSeconds, fetchFn) {
@@ -1777,6 +1823,15 @@ app.post('/push/send', async (req, res) => {
   res.json({ ok: true, sent: pushSubscriptions.length });
 });
 
+app.post('/push/apns-register', async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
+  const { deviceToken } = req.body;
+  if (!deviceToken) return res.status(400).json({ error: 'No token' });
+  await redis.set(`apns_token:${decoded.id}`, deviceToken);
+  res.json({ ok: true });
+});
+
 // ── Candles helpers ───────────────────────────────────────────────
 async function fetchCandles(asset) {
   console.log('Fetching:', asset.name, asset.source);
@@ -2153,18 +2208,12 @@ cron.schedule('*/15 * * * *', async () => {
           (alert.condition === 'below' && currentPrice <= alert.targetPrice);
         if (!hit) continue;
         await PriceAlert.findByIdAndUpdate(alert._id, { triggered: true });
-        const subRaw = await redis.get(`push_user_sub:${alert.userId}`);
-        if (!subRaw) continue;
-        const sub   = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
         const emoji = alert.condition === 'above' ? '📈' : '📉';
         const dir   = alert.condition === 'above' ? 'subido a' : 'bajado a';
-        const payload = JSON.stringify({
+        await sendPushToUser(alert.userId, {
           title: `${emoji} Alerta: ${alert.ticker}`,
           body:  `${alert.ticker} ha ${dir} $${currentPrice.toFixed(2)} (objetivo: $${alert.targetPrice})`,
           url:   'https://tradiko.dev',
-        });
-        await webpush.sendNotification(sub, payload).catch(async err => {
-          if (err.statusCode === 410) await redis.del(`push_user_sub:${alert.userId}`);
         });
       } catch (e) {
         console.error('Alert check error:', e.message);
@@ -2249,16 +2298,10 @@ cron.schedule('0 7 * * *', async () => {
       const changePct = ((change / histYest.totalValue) * 100).toFixed(2);
       const emoji     = change >= 0 ? '📈' : '📉';
       const sign      = change >= 0 ? '+' : '';
-      const subRaw    = await redis.get(`push_user_sub:${portfolio.userId._id}`);
-      if (!subRaw) continue;
-      const sub     = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
-      const payload = JSON.stringify({
+      await sendPushToUser(portfolio.userId._id, {
         title: `${emoji} Tu portfolio hoy`,
         body:  `${sign}${changePct}% (${sign}${change.toFixed(0)}) · Valor total: ${histToday.totalValue.toFixed(0)}`,
         url:   'https://tradiko.dev',
-      });
-      await webpush.sendNotification(sub, payload).catch(async err => {
-        if (err.statusCode === 410) await redis.del(`push_user_sub:${portfolio.userId._id}`);
       });
     } catch (e) {
       console.error('Portfolio notification error:', e.message);
@@ -2285,18 +2328,13 @@ cron.schedule('0 21 * * *', async () => {
   for (const user of usersAtRisk) {
     try {
       const subRaw = await redis.get(`push_user_sub:${user._id}`);
-      console.log(`[streak-cron] user=${user._id} streak=${user.dailyStreak} lastPlayed=${user.lastPlayed} hasSub=${!!subRaw}`);
-      if (!subRaw) continue;
-      const sub = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
-
-      const payload = JSON.stringify({
+      const apnsRaw = await redis.get(`apns_token:${user._id}`);
+      console.log(`[streak-cron] user=${user._id} streak=${user.dailyStreak} lastPlayed=${user.lastPlayed} hasSub=${!!subRaw} hasApns=${!!apnsRaw}`);
+      if (!subRaw && !apnsRaw) continue;
+      await sendPushToUser(user._id, {
         title: '⚡ Tu racha está en peligro',
         body:  `Llevas ${user.dailyStreak} días seguidos. Te quedan 3 horas para mantenerla.`,
         url:   'https://tradiko.dev',
-      });
-
-      await webpush.sendNotification(sub, payload).catch(async err => {
-        if (err.statusCode === 410) await redis.del(`push_user_sub:${user._id}`);
       });
       sent++;
     } catch (e) {

@@ -12,6 +12,7 @@
   "type": "commonjs",
   "dependencies": {
     "@upstash/redis": "^1.37.0",
+    "apns2": "^12.2.0",
     "apple-signin-auth": "^2.0.0",
     "cors": "^2.8.6",
     "express": "^4.18.2",
