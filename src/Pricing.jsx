@@ -35,7 +35,7 @@ export default function Pricing({ onBack, fromTournament }) {
         });
         updateUser({ isPro: true });
       } catch (err) {
-        if (err.message !== 'Purchase cancelled') setMsg(t.pricing.networkError);
+        alert('IAP Error: ' + err.message);
       } finally {
         setLoading(false);
       }
