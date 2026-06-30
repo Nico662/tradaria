@@ -130,7 +130,7 @@ export default function Home({ onSelect }) {
         {/* Top bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            {TOP_BUTTONS.filter(({ id }) => !(id === 'shop' && isIOSApp())).map(({ id, Icon, hover }) => (
+            {TOP_BUTTONS.map(({ id, Icon, hover }) => (
               <div key={id} style={{ position: 'relative', flexShrink: 0 }}>
                 <button
                   onClick={() => { if (id === 'friends') setHasPendingFriends(false); onSelect(id); }}
@@ -175,7 +175,7 @@ export default function Home({ onSelect }) {
             )}
           </div>
 
-          {!isIOSApp() && (isPro ? (
+          {isPro ? (
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '5px 12px', background: 'var(--green-dim)', border: '0.5px solid var(--border-green)', borderRadius: 'var(--radius-full)', fontSize: '12px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontWeight: 800, letterSpacing: '0.06em' }}>
               ⚡ Pro
             </div>
@@ -184,7 +184,7 @@ export default function Home({ onSelect }) {
               style={{ background: 'var(--gradient-brand)', border: 'none', borderRadius: 'var(--radius-full)', padding: '6px 16px', color: '#0d0d0d', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 900, cursor: 'pointer', letterSpacing: '0.06em' }}>
               {t.home.goPro}
             </button>
-          ))}
+          )}
         </div>
 
         {/* User */}
