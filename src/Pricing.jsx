@@ -137,6 +137,18 @@ export default function Pricing({ onBack, fromTournament }) {
           {msg && (
             <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--color-down)', textAlign: 'center' }}>{msg}</div>
           )}
+          {!isPro && (
+            <p style={{ fontSize: '11px', color: '#888', textAlign: 'center', marginTop: '8px' }}>
+              By subscribing, you agree to our{' '}
+              <a href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/" target="_blank" rel="noopener noreferrer" style={{ color: '#888', textDecoration: 'underline' }}>
+                Terms of Use
+              </a>
+              {' '}and{' '}
+              <a href="https://www.tradiko.dev/privacy" target="_blank" rel="noopener noreferrer" style={{ color: '#888', textDecoration: 'underline' }}>
+                Privacy Policy
+              </a>
+            </p>
+          )}
         </div>
 
         {/* Paid tournaments info */}
