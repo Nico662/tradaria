@@ -26,6 +26,7 @@ export default function Pricing({ onBack, fromTournament }) {
     alert('isIOSApp: ' + isIOSApp() + ' | window.__isIOSApp: ' + window.__isIOSApp);
     if (isIOSApp()) {
       try {
+        alert('Has messageHandlers: ' + (typeof window.webkit !== 'undefined') + ' | Has iapPurchase: ' + (window.webkit && typeof window.webkit.messageHandlers !== 'undefined' && typeof window.webkit.messageHandlers.iapPurchase !== 'undefined') + ' | All handlers: ' + (window.webkit && window.webkit.messageHandlers ? Object.keys(window.webkit.messageHandlers).join(',') : 'none'));
         await purchaseWithStoreKit('dev.tradiko.pro.monthly');
         const token = localStorage.getItem('tradaria_token');
         await fetch(`${SERVER}/shop/iap-confirm`, {
