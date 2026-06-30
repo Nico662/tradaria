@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tradiko-v3';
+const CACHE_NAME = 'tradiko-v4';
 
 const STATIC_ASSETS = [
   '/',
