@@ -23,6 +23,7 @@ export default function Pricing({ onBack, fromTournament }) {
   async function handleUpgrade() {
     if (!user) { setMsg(t.pricing.signInFirst); return; }
     setLoading(true);
+    alert('isIOSApp: ' + isIOSApp() + ' | window.__isIOSApp: ' + window.__isIOSApp);
     if (isIOSApp()) {
       try {
         await purchaseWithStoreKit('dev.tradiko.pro.monthly');
