@@ -7,7 +7,7 @@ import Chart, { generateCandles } from "./Chart";
 import Home from "./Home";
 import { useLang } from './LangContext.jsx';
 import Arena from './Arena.jsx';
-import html2canvas from 'html2canvas';
+import { copyToClipboard } from './utils/share.js';
 import { playWin, playLose, playClick, playStreak } from './sounds.js';
 import Legal from './Legal.jsx';
 import Privacy from './Privacy.jsx';
@@ -98,6 +98,7 @@ export default function App() {
   const wonCatsRef       = useRef(new Set());
   const [chartReady, setChartReady] = useState(false);
   const [pricingFromTournament, setPricingFromTournament] = useState(false);
+  const [shareStatus, setShareStatus] = useState('idle');
 
   const { syncProgress, activeCosmetics = {}, user, checkLevelUp } = useAuth();
   const { lang, setLang, t } = useLang();
@@ -458,13 +459,13 @@ export default function App() {
   };
 
   const shareResult = async () => {
-    const el = document.getElementById('share-card');
-    if (!el) return;
-    const canvas = await html2canvas(el, { backgroundColor: 'var(--bg-page)', scale: 2 });
-    const link = document.createElement('a');
-    link.download = 'tradiko-result.png';
-    link.href = canvas.toDataURL();
-    link.click();
+    const dir     = result?.direction === 'up' ? '▲' : '▼';
+    const pct     = result ? `${result.pctMove > 0 ? '+' : ''}${result.pctMove.toFixed(2)}` : '0.00';
+    const verdict = result?.win && !result?.neutral ? '✅ CORRECT' : !result?.win && !result?.neutral ? '❌ WRONG' : '➡️ SKIPPED';
+    const text    = `🎯 Tradiko — Guess The Market\n${verdict} — ${asset.name} ${asset.tf}\n${dir} ${pct}% move\ntradiko.dev`;
+    const ok = await copyToClipboard(text);
+    setShareStatus(ok ? 'copied' : 'error');
+    setTimeout(() => setShareStatus('idle'), 2000);
   };
 
   // ── Game Over ─────────────────────────────────────────────────────
@@ -567,11 +568,9 @@ export default function App() {
 
           <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
             <button onClick={shareResult}
-              style={{ flex: 1, padding: '14px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.18s', boxShadow: '0 0 20px rgba(0,229,160,0.08)' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,229,160,0.14)'; e.currentTarget.style.boxShadow = '0 0 28px rgba(0,229,160,0.18)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,229,160,0.08)'; e.currentTarget.style.boxShadow = '0 0 20px rgba(0,229,160,0.08)'; }}
+              style={{ flex: 1, padding: '14px', background: shareStatus === 'error' ? 'rgba(224,85,85,0.08)' : 'rgba(0,229,160,0.08)', border: `1px solid ${shareStatus === 'error' ? 'var(--color-down)' : 'var(--green)'}`, borderRadius: '8px', color: shareStatus === 'error' ? 'var(--color-down)' : 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.18s', boxShadow: shareStatus === 'error' ? 'none' : '0 0 20px rgba(0,229,160,0.08)' }}
             >
-              📸 {t.gameover.share ?? 'Share'}
+              {shareStatus === 'copied' ? '✅ COPIED!' : shareStatus === 'error' ? '❌ ERROR' : '📋 SHARE'}
             </button>
           </div>
           <div style={{ display: 'flex', gap: '10px' }}>

@@ -382,17 +382,17 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
 
           <button onClick={async () => {
             const displayScore = phase === 'finished' ? score : alreadyScore;
-            const roundInfo = phase === 'finished' && rounds.length > 0 ? ` — Round ${round + 1}/${rounds.length}` : '';
-            const rankInfo = userPosition ? `\n📊 Rank #${userPosition.rank}` : '';
-            const text = `🏆 Tradiko Tournament\n${displayScore} pts${roundInfo}${rankInfo}\ntradiko.dev`;
+            const roundInfo = phase === 'finished' && rounds.length > 0 ? ` · Round ${round + 1}/${rounds.length}` : '';
+            const rankInfo = userPosition ? `\n📊 Rank #${userPosition.rank} this week` : '';
+            const text = `🏆 Tradiko Weekly Tournament\n${displayScore} pts${roundInfo}${rankInfo}\ntradiko.dev #Tradiko`;
             const ok = await copyToClipboard(text);
             setShareStatus(ok ? 'copied' : 'error');
             setTimeout(() => setShareStatus('idle'), 2000);
             const tok = localStorage.getItem('tradaria_token');
             if (tok) fetch(`${SERVER}/stats/share`, { method: 'POST', headers: { Authorization: `Bearer ${tok}` } }).catch(() => {});
             addXP(5);
-          }} style={{ marginTop: '16px', width: '100%', padding: '12px', background: 'rgba(232,184,75,0.06)', border: '1px solid var(--color-neutral)', borderRadius: '6px', color: 'var(--color-neutral)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-            {shareStatus === 'copied' ? t.daily.copied : shareStatus === 'error' ? 'Error' : t.daily.share}
+          }} style={{ marginTop: '16px', width: '100%', padding: '12px', background: shareStatus === 'error' ? 'rgba(224,85,85,0.08)' : 'rgba(232,184,75,0.06)', border: `1px solid ${shareStatus === 'error' ? 'var(--color-down)' : 'var(--color-neutral)'}`, borderRadius: '6px', color: shareStatus === 'error' ? 'var(--color-down)' : 'var(--color-neutral)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+            {shareStatus === 'copied' ? '✅ COPIED!' : shareStatus === 'error' ? '❌ ERROR' : '📋 SHARE'}
           </button>
         </div>
 

@@ -221,7 +221,10 @@ export default function Survival({ onBack }) {
 
   // ── Game Over ─────────────────────────────────────────────────────
   const shareSurvival = async () => {
-    const text = `☠️ Tradiko Survival\n${round - 1} rounds survived\n🏆 Best: ${highscore} pts\ntradiko.dev`;
+    const wins = history.filter(h => h === 'win').length;
+    const losses = history.filter(h => h === 'lose').length;
+    const accuracy = Math.round(wins / (wins + losses || 1) * 100);
+    const text = `☠️ Tradiko Survival Mode\nSurvived ${round - 1} rounds · ${accuracy}% accuracy\n🏆 Personal best: ${highscore} pts\nCan you beat me? tradiko.dev #Tradiko`;
     const ok = await copyToClipboard(text);
     setShareStatus(ok ? 'copied' : 'error');
     setTimeout(() => setShareStatus('idle'), 2000);
@@ -309,8 +312,8 @@ export default function Survival({ onBack }) {
             </div>
           )}
           <button onClick={shareSurvival}
-            style={{ marginTop: '10px', width: '100%', padding: '12px', background: 'var(--green-dim)', border: '1px solid var(--border-green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-            {shareStatus === 'copied' ? t.daily.copied : shareStatus === 'error' ? 'Error' : t.daily.share}
+            style={{ marginTop: '10px', width: '100%', padding: '12px', background: shareStatus === 'error' ? 'rgba(224,85,85,0.08)' : 'var(--green-dim)', border: `1px solid ${shareStatus === 'error' ? 'var(--color-down)' : 'var(--border-green)'}`, borderRadius: '6px', color: shareStatus === 'error' ? 'var(--color-down)' : 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+            {shareStatus === 'copied' ? '✅ COPIED!' : shareStatus === 'error' ? '❌ ERROR' : '📋 SHARE'}
           </button>
         </div>
         {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}

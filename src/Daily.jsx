@@ -11,11 +11,13 @@ import EffectOverlay from './EffectOverlay.jsx';
 import { incrementMission, recordModePlayed, incrementWeeklyMission, recordWeeklyModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
 
-function ShareButton({ onShare, shareStatus, t }) {
+function ShareButton({ onShare, shareStatus }) {
+  const isError  = shareStatus === 'error';
+  const isCopied = shareStatus === 'copied';
   return (
     <button onClick={onShare}
-      style={{ marginTop: '12px', width: '100%', padding: '12px', background: 'var(--green-dim)', border: '1px solid var(--border-green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-      {shareStatus === 'copied' ? t.daily.copied : shareStatus === 'error' ? 'Error' : t.daily.share}
+      style={{ marginTop: '12px', width: '100%', padding: '12px', background: isError ? 'rgba(224,85,85,0.08)' : 'var(--green-dim)', border: `1px solid ${isError ? 'var(--color-down)' : 'var(--border-green)'}`, borderRadius: '6px', color: isError ? 'var(--color-down)' : 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+      {isCopied ? '✅ COPIED!' : isError ? '❌ ERROR' : '📋 SHARE'}
     </button>
   );
 }
@@ -195,7 +197,7 @@ export default function Daily({ onBack }) {
     const streak = localStorage.getItem('tradaria_daily_streak') || '1';
     const dir = result.direction === 'up' ? '▲' : result.direction === 'down' ? '▼' : '—';
     const pct = `${result.pctMove > 0 ? '+' : ''}${result.pctMove.toFixed(2)}%`;
-    const text = `⚡ Tradiko Daily Challenge\n${new Date().toISOString().split('T')[0]}\n${result.win ? '✅ WIN' : '❌ WRONG'} — ${dir} ${pct}\n🔥 ${streak} day streak\ntradiko.dev`;
+    const text = `⚡ Tradiko Daily Challenge\n${new Date().toISOString().split('T')[0]}\n${result.win ? '✅ WIN' : '❌ WRONG'} — ${dir} ${pct}\n🔥 ${streak} day streak\ntradiko.dev #TradingGame`;
     const ok = await copyToClipboard(text);
     setShareStatus(ok ? 'copied' : 'error');
     setTimeout(() => setShareStatus('idle'), 2000);
@@ -297,7 +299,7 @@ export default function Daily({ onBack }) {
                 <div style={{ marginTop: '16px', fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                   {t.daily.comeback}
                 </div>
-                <ShareButton onShare={shareResult} shareStatus={shareStatus} t={t} />
+                <ShareButton onShare={shareResult} shareStatus={shareStatus} />
                 {user?.username && (
                   <button
                     onClick={() => {
@@ -328,7 +330,7 @@ export default function Daily({ onBack }) {
             <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
               {t.daily.next} {timeLeft}
             </div>
-            <ShareButton onShare={shareResult} shareStatus={shareStatus} t={t} />
+            <ShareButton onShare={shareResult} shareStatus={shareStatus} />
             {user?.username && (
               <button
                 onClick={() => {
