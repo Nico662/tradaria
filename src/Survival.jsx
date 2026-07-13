@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import html2canvas from 'html2canvas';
+import { shareResult } from './utils/share.js';
 import EffectOverlay from './EffectOverlay.jsx';
 import { ASSETS } from './assets.js';
 import Chart, { generateCandles } from "./Chart";
@@ -220,13 +220,13 @@ export default function Survival({ onBack }) {
 
   // ── Game Over ─────────────────────────────────────────────────────
   const shareSurvival = async () => {
-    const el = document.getElementById('share-card-survival');
-    if (!el) return;
-    const canvas = await html2canvas(el, { backgroundColor: 'var(--bg-page)', scale: 2 });
-    const link = document.createElement('a');
-    link.download = 'tradiko-survival.png';
-    link.href = canvas.toDataURL();
-    link.click();
+    const wins = history.filter(h => h === 'win').length;
+    const losses = history.filter(h => h === 'lose').length;
+    const accuracy = Math.round(wins / (wins + losses || 1) * 100);
+    await shareResult({
+      title: '☠️ Tradiko Survival',
+      text: `☠️ Tradiko Survival\n\nScore: ${score}\nRounds: ${round - 1} · Correct: ${wins} · Accuracy: ${accuracy}%`,
+    });
     const tok = localStorage.getItem('tradaria_token');
     if (tok) fetch(`${SERVER}/stats/share`, { method: 'POST', headers: { Authorization: `Bearer ${tok}` } }).catch(() => {});
     addXP(5);
@@ -312,20 +312,8 @@ export default function Survival({ onBack }) {
           )}
           <button onClick={shareSurvival}
             style={{ marginTop: '10px', width: '100%', padding: '12px', background: 'var(--green-dim)', border: '1px solid var(--border-green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-            📸 {t.daily.share}
+            {t.daily.share}
           </button>
-        </div>
-        <div id="share-card-survival" style={{ position: 'absolute', left: '-9999px', top: 0, width: '320px', background: 'var(--bg-page)', border: '1px solid var(--color-down)', borderRadius: '12px', padding: '28px 24px', fontFamily: 'var(--font-body)' }}>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: '16px' }}>☠️ TRADIKO SURVIVAL</div>
-          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '48px', color: 'var(--color-neutral)', letterSpacing: '-0.02em', lineHeight: 1, marginBottom: '4px' }}>{score}</div>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '16px' }}>{t.survival.finalScore}</div>
-          {isNewHS && <div style={{ fontSize: '12px', color: 'var(--green)', marginBottom: '8px' }}>{t.survival.newHighscore}</div>}
-          <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
-            <div><span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)' }}>{round - 1}</span><div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{t.survival.rounds}</div></div>
-            <div><span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--green)' }}>{wins}</span><div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>correct</div></div>
-            <div><span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--color-neutral)' }}>{accuracy}%</span><div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>accuracy</div></div>
-          </div>
-          <div style={{ fontSize: '12px', color: 'var(--green)', letterSpacing: '0.1em', marginTop: '8px' }}>tradiko.dev</div>
         </div>
         {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
       </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import html2canvas from 'html2canvas';
-import { useAuth, isIOSApp } from './AuthContext';
+import { shareResult } from './utils/share.js';
+import { useAuth } from './AuthContext';
 import { useLang } from './LangContext.jsx';
 import Chart from './Chart';
 import { addXP } from './levels.js';
@@ -32,18 +32,6 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
   const [alreadyScore, setAlreadyScore] = useState(null);
   const [newBadge, setNewBadge] = useState(null);
   const [missionToast, setMissionToast] = useState(null);
-  const [paidTournaments, setPaidTournaments] = useState([]);
-  const [joiningId, setJoiningId] = useState(null);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [createParticipants, setCreateParticipants] = useState(6);
-  const [creating, setCreating] = useState(false);
-  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
-  const [deletingId, setDeletingId] = useState(null);
-  const [deleteError, setDeleteError] = useState('');
-  const [confirmLeaveId, setConfirmLeaveId] = useState(null);
-  const [leavingId, setLeavingId] = useState(null);
-  const [leaveError, setLeaveError] = useState('');
-  const [leaveMessage, setLeaveMessage] = useState('');
   const [academyTournamentData, setAcademyTournamentData] = useState(null);
   const chartRef = useRef(null);
 
@@ -77,107 +65,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
     base: () => 100,
   } : null, [currentRound]);
 
-  useEffect(() => { init(); fetchPaidTournaments(); }, []);
-
-  async function fetchPaidTournaments() {
-    try {
-      const res  = await fetch(`${SERVER}/tournaments`);
-      const data = await res.json();
-      if (data.paid) setPaidTournaments(data.paid);
-    } catch {}
-  }
-
-  async function deletePaidTournament(tournamentId) {
-    setDeletingId(tournamentId);
-    setDeleteError('');
-    try {
-      const token = localStorage.getItem('tradaria_token');
-      const res = await fetch(`${SERVER}/tournament/paid/${tournamentId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (data.success) {
-        setPaidTournaments(prev => prev.filter(t => String(t._id) !== tournamentId));
-        setConfirmDeleteId(null);
-      } else {
-        setDeleteError(data.error || t.tournament.deleteErrorFallback);
-      }
-    } catch {
-      setDeleteError(t.tournament.networkError);
-    }
-    setDeletingId(null);
-  }
-
-  async function createPaidTournament() {
-    if (!user) return;
-    const n = parseInt(createParticipants, 10);
-    if (!Number.isInteger(n) || n < 2 || n > 10) return;
-    setCreating(true);
-    try {
-      const token = localStorage.getItem('tradaria_token');
-      const res = await fetch(`${SERVER}/tournament/paid/create`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ maxParticipants: n }),
-      });
-      const data = await res.json();
-      if (data.ok) {
-        setShowCreateModal(false);
-        setCreateParticipants(6);
-        await fetchPaidTournaments();
-      }
-    } catch {}
-    setCreating(false);
-  }
-
-  async function joinPaidTournament(tournamentId) {
-    if (!user) return;
-    setJoiningId(tournamentId);
-    try {
-      const token = localStorage.getItem('tradaria_token');
-      const res   = await fetch(`${SERVER}/tournament/paid/join`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tournamentId }),
-      });
-      const data = await res.json();
-      if (data.url) window.location.href = data.url;
-    } catch {}
-    setJoiningId(null);
-  }
-
-  async function leavePaidTournament(tournamentId) {
-    setLeavingId(tournamentId);
-    setLeaveError('');
-    setLeaveMessage('');
-    try {
-      const token = localStorage.getItem('tradaria_token');
-      const res = await fetch(`${SERVER}/tournament/paid/${tournamentId}/leave`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (data.success) {
-        const myId = String(user?._id || user?.id);
-        setPaidTournaments(prev => prev.map(t =>
-          String(t._id) === tournamentId
-            ? { ...t, players: t.players.filter(p => (p.userId ? String(p.userId) : String(p)) !== myId) }
-            : t
-        ));
-        if (data.manualRefund) {
-          setLeaveMessage(data.message);
-        } else {
-          setConfirmLeaveId(null);
-        }
-      } else {
-        setLeaveError(data.error || t.tournament.errorLeave);
-      }
-    } catch {
-      setLeaveError(t.tournament.errorNetwork);
-    }
-    setLeavingId(null);
-  }
+  useEffect(() => { init(); }, []);
 
   async function init() {
     if (!user) { setPhase('login'); return; }
@@ -415,7 +303,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                             </div>
                             <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
                               <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: isMe ? 'var(--green)' : 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{name}</span>
-                              {isMe && <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>{t.tournament.you}</span>}
+                              {isMe && <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>}
                             </div>
                             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--green)' }}>{p.score}</div>
                           </div>
@@ -491,230 +379,18 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
             </>
           )}
 
-          {/* Torneos de pago */}
-          {!isIOSApp() && !academyTournamentId && paidTournaments.length > 0 && (
-            <div style={{ marginTop: '28px' }}>
-              <div style={{ fontSize: '12px', color: 'var(--color-neutral)', letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '12px' }}>
-                {t.tournament.paidSection}
-              </div>
-              {paidTournaments.map(pt => {
-                const spots    = pt.maxPlayers - pt.players.length;
-                const isFull   = pt.status === 'active' || spots <= 0;
-                const alreadyIn = pt.players.some(p => p.userId.toString() === String(user?._id || user?.id));
-                return (
-                  <div key={pt._id} style={{ padding: '14px 16px', background: 'var(--bg-surface)', border: '1px solid var(--bd2)', borderRadius: '10px', marginBottom: '10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      <div>
-                        <div style={{ fontSize: '12px', color: 'var(--text-primary)', fontFamily: 'var(--font-body)', fontWeight: 700 }}>
-                          {t.tournament.entry} €{pt.entryFee} · {t.tournament.prize} €{pt.prize}
-                        </div>
-                        <div style={{ fontSize: '12px', color: isFull ? 'var(--green)' : 'var(--text-muted)', marginTop: '3px' }}>
-                          {isFull ? t.tournament.activeStatus : `${pt.players.length}/${pt.maxPlayers} ${t.tournament.players}`}
-                        </div>
-                      </div>
-                      <div style={{ width: '80px', height: '6px', background: 'var(--border-default)', borderRadius: '3px', overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${(pt.players.length / pt.maxPlayers) * 100}%`, background: isFull ? 'var(--green)' : 'var(--color-neutral)', borderRadius: '3px', transition: 'width 0.4s' }} />
-                      </div>
-                    </div>
-                    {!isFull && !alreadyIn && user && (
-                      <button
-                        onClick={() => joinPaidTournament(String(pt._id))}
-                        disabled={joiningId === String(pt._id)}
-                        style={{ width: '100%', padding: '10px', background: 'rgba(232,184,75,0.08)', border: '1px solid var(--color-neutral)', borderRadius: '6px', color: 'var(--color-neutral)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
-                      >
-                        {joiningId === String(pt._id) ? t.tournament.loadingJoin : t.tournament.joinFor.replace('{fee}', pt.entryFee)}
-                      </button>
-                    )}
-                    {alreadyIn && pt.status === 'waiting' && (
-                      <button
-                        onClick={() => { setConfirmLeaveId(String(pt._id)); setLeaveError(''); }}
-                        style={{ width: '100%', padding: '10px', background: 'transparent', border: '1px solid rgba(255,126,179,0.4)', borderRadius: '6px', color: 'rgba(255,126,179,0.85)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
-                      >
-                        {t.tournament.leaveBtn}
-                      </button>
-                    )}
-                    {alreadyIn && pt.status !== 'waiting' && (
-                      <div style={{ fontSize: '12px', color: 'var(--green)', textAlign: 'center', fontFamily: 'var(--font-body)' }}>{t.tournament.alreadyIn}</div>
-                    )}
-                    {!user && (
-                      <div style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center' }}>{t.tournament.signInJoin}</div>
-                    )}
-                    {pt.createdBy && String(pt.createdBy) === String(user?._id || user?.id) && pt.players.length === 0 && (
-                      <button
-                        onClick={() => { setConfirmDeleteId(String(pt._id)); setDeleteError(''); }}
-                        style={{ marginTop: '8px', width: '100%', padding: '7px', background: 'transparent', border: '1px solid rgba(255,126,179,0.3)', borderRadius: '6px', color: 'rgba(255,126,179,0.75)', fontFamily: 'var(--font-body)', fontSize: '12px', letterSpacing: '0.06em', cursor: 'pointer' }}
-                      >
-                        {t.tournament.deleteBtn}
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-
-              {user && (
-                <button
-                  onClick={() => setShowCreateModal(true)}
-                  style={{ width: '100%', padding: '10px', background: 'transparent', border: '1px dashed var(--bd2)', borderRadius: '8px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', letterSpacing: '0.04em' }}
-                >
-                  {t.tournament.createBtn}
-                </button>
-              )}
-            </div>
-          )}
-
-          {confirmLeaveId && (
-            <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,12,15,0.88)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: '20px' }}>
-              <div style={{ width: '100%', maxWidth: '320px', background: 'var(--bg-surface)', border: '1px solid rgba(255,126,179,0.4)', borderRadius: '12px', padding: '24px' }}>
-                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: 'var(--text-primary)', marginBottom: '12px' }}>
-                  {t.tournament.leaveTitle}
-                </div>
-                {!leaveMessage && (
-                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '20px', lineHeight: 1.6 }}>
-                    {t.tournament.leaveText}
-                  </div>
-                )}
-                {leaveMessage && (
-                  <div style={{ fontSize: '12px', color: 'var(--color-neutral)', fontFamily: 'var(--font-body)', marginBottom: '20px', padding: '10px 12px', background: 'rgba(232,184,75,0.08)', border: '1px solid rgba(232,184,75,0.3)', borderRadius: '6px', lineHeight: 1.6 }}>
-                    {leaveMessage}
-                  </div>
-                )}
-                {leaveError && (
-                  <div style={{ fontSize: '12px', color: 'var(--color-down)', fontFamily: 'var(--font-body)', marginBottom: '16px', padding: '8px 10px', background: 'rgba(255,126,179,0.08)', border: '1px solid rgba(255,126,179,0.25)', borderRadius: '6px' }}>
-                    {leaveError}
-                  </div>
-                )}
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button
-                    onClick={() => { setConfirmLeaveId(null); setLeaveError(''); setLeaveMessage(''); }}
-                    style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid var(--border-default)', borderRadius: '6px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer' }}
-                  >
-                    {leaveMessage ? t.tournament.leaveCancel : t.tournament.cancel}
-                  </button>
-                  {!leaveMessage && (
-                    <button
-                      onClick={() => leavePaidTournament(confirmLeaveId)}
-                      disabled={!!leavingId}
-                      style={{ flex: 1, padding: '10px', background: 'rgba(255,126,179,0.1)', border: '1px solid var(--color-down)', borderRadius: '6px', color: 'var(--color-down)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', cursor: leavingId ? 'default' : 'pointer', opacity: leavingId ? 0.5 : 1 }}
-                    >
-                      {leavingId ? '...' : t.tournament.leaveConfirm}
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {confirmDeleteId && (
-            <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,12,15,0.88)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: '20px' }}>
-              <div style={{ width: '100%', maxWidth: '320px', background: 'var(--bg-surface)', border: '1px solid rgba(255,126,179,0.4)', borderRadius: '12px', padding: '24px' }}>
-                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: 'var(--text-primary)', marginBottom: '12px' }}>
-                  {t.tournament.deleteTitle}
-                </div>
-                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '20px', lineHeight: 1.6 }}>
-                  {t.tournament.deleteConfirmMsg}
-                </div>
-                {deleteError && (
-                  <div style={{ fontSize: '12px', color: 'var(--color-down)', fontFamily: 'var(--font-body)', marginBottom: '16px', padding: '8px 10px', background: 'rgba(255,126,179,0.08)', border: '1px solid rgba(255,126,179,0.25)', borderRadius: '6px' }}>
-                    {deleteError}
-                  </div>
-                )}
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button
-                    onClick={() => { setConfirmDeleteId(null); setDeleteError(''); }}
-                    style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid var(--border-default)', borderRadius: '6px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer' }}
-                  >
-                    {t.tournament.cancel}
-                  </button>
-                  <button
-                    onClick={() => deletePaidTournament(confirmDeleteId)}
-                    disabled={!!deletingId}
-                    style={{ flex: 1, padding: '10px', background: 'rgba(255,126,179,0.1)', border: '1px solid var(--color-down)', borderRadius: '6px', color: 'var(--color-down)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', cursor: deletingId ? 'default' : 'pointer', opacity: deletingId ? 0.5 : 1 }}
-                  >
-                    {deletingId ? '...' : t.tournament.confirmDelete}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {showCreateModal && (
-            <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,12,15,0.88)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: '20px' }}>
-              <div style={{ width: '100%', maxWidth: '340px', background: 'var(--bg-surface)', border: '1px solid var(--bd2)', borderRadius: '12px', padding: '24px' }}>
-                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '15px', color: 'var(--text-primary)', marginBottom: '20px' }}>
-                  {t.tournament.createTitle}
-                </div>
-
-                <div style={{ marginBottom: '16px' }}>
-                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', marginBottom: '8px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                    {t.tournament.participantsLabel}
-                  </div>
-                  <input
-                    type="number"
-                    min={2}
-                    max={10}
-                    value={createParticipants}
-                    onChange={e => {
-                      const v = parseInt(e.target.value, 10);
-                      setCreateParticipants(isNaN(v) ? '' : v);
-                    }}
-                    style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-page)', border: '1px solid var(--border-default)', borderRadius: '6px', color: 'var(--text-primary)', fontFamily: 'var(--font-body)', fontSize: '14px', boxSizing: 'border-box', outline: 'none' }}
-                  />
-                </div>
-
-                {Number.isInteger(createParticipants) && createParticipants >= 2 && createParticipants <= 10 && (
-                  <div style={{ padding: '12px 14px', background: 'rgba(232,184,75,0.06)', border: '1px solid rgba(232,184,75,0.18)', borderRadius: '8px', marginBottom: '20px' }}>
-                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', lineHeight: 1.8 }}>
-                      {t.tournament.potLinePrefix.replace('{n}', createParticipants)}<span style={{ color: 'var(--color-neutral)' }}>€{createParticipants * 2}{t.tournament.potLineSuffix}</span>
-                    </div>
-                    <div style={{ fontSize: '12px', color: 'var(--color-neutral)', fontFamily: 'var(--font-body)', fontWeight: 700 }}>
-                      {t.tournament.prizeLinePrefix}{createParticipants}
-                    </div>
-                  </div>
-                )}
-
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button
-                    onClick={() => { setShowCreateModal(false); setCreateParticipants(6); }}
-                    style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid var(--border-default)', borderRadius: '6px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer' }}
-                  >
-                    {t.tournament.cancel}
-                  </button>
-                  <button
-                    onClick={createPaidTournament}
-                    disabled={creating || !(Number.isInteger(createParticipants) && createParticipants >= 2 && createParticipants <= 10)}
-                    style={{ flex: 1, padding: '10px', background: 'rgba(232,184,75,0.1)', border: '1px solid var(--color-neutral)', borderRadius: '6px', color: 'var(--color-neutral)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', cursor: (creating || !(Number.isInteger(createParticipants) && createParticipants >= 2 && createParticipants <= 10)) ? 'default' : 'pointer', opacity: (creating || !(Number.isInteger(createParticipants) && createParticipants >= 2 && createParticipants <= 10)) ? 0.4 : 1 }}
-                  >
-                    {creating ? t.tournament.creating : t.tournament.create}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
           <button onClick={async () => {
-            const el = document.getElementById('share-card-tournament');
-            if (!el) return;
-            const canvas = await html2canvas(el, { backgroundColor: 'var(--bg-page)', scale: 2 });
-            const link = document.createElement('a');
-            link.download = 'tradiko-tournament.png';
-            link.href = canvas.toDataURL();
-            link.click();
+            const displayScore = phase === 'finished' ? score : alreadyScore;
+            await shareResult({
+              title: '🏆 Tradiko Tournament',
+              text: `🏆 Tradiko Tournament\n${formatWeekId(weekId)}\n\n${displayScore} pts`,
+            });
             const tok = localStorage.getItem('tradaria_token');
             if (tok) fetch(`${SERVER}/stats/share`, { method: 'POST', headers: { Authorization: `Bearer ${tok}` } }).catch(() => {});
             addXP(5);
           }} style={{ marginTop: '16px', width: '100%', padding: '12px', background: 'rgba(232,184,75,0.06)', border: '1px solid var(--color-neutral)', borderRadius: '6px', color: 'var(--color-neutral)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-            📸 {t.daily.share}
+            {t.daily.share}
           </button>
-        </div>
-
-        <div id="share-card-tournament" style={{ position: 'absolute', left: '-9999px', top: 0, width: '320px', background: 'var(--bg-page)', border: '1px solid var(--color-neutral)', borderRadius: '12px', padding: '28px 24px', fontFamily: 'var(--font-body)' }}>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: '16px' }}>🏆 TRADIKO TOURNAMENT</div>
-          <div style={{ fontSize: '12px', color: '#5a6a7d', marginBottom: '16px' }}>{formatWeekId(weekId)}</div>
-          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '48px', color: 'var(--color-neutral)', letterSpacing: '-0.02em', lineHeight: 1, marginBottom: '4px' }}>
-            {phase === 'finished' ? score : alreadyScore}
-          </div>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '16px' }}>{t.gameover.finalScore}</div>
-          <div style={{ fontSize: '12px', color: 'var(--color-neutral)', letterSpacing: '0.1em', marginTop: '8px' }}>tradiko.dev</div>
         </div>
 
         {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}

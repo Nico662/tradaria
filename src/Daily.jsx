@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { shareResult as doShare } from './utils/share.js';
 import Chart from './Chart.jsx';
 import { SERVER } from './config.js';
 import { unlockBadge, BADGES } from './badges.js';
@@ -189,16 +190,17 @@ export default function Daily({ onBack }) {
   }
  };
 
-  const shareResult = () => {
+  const shareResult = async () => {
     if (!result) return;
     const streak = localStorage.getItem('tradaria_daily_streak') || '1';
     const dir = result.direction === 'up' ? '▲' : result.direction === 'down' ? '▼' : '—';
     const pct = `${result.pctMove > 0 ? '+' : ''}${result.pctMove.toFixed(2)}%`;
-    const text = `⚡ Tradiko Daily Challenge\n${new Date().toISOString().split('T')[0]}\n\n${result.win ? '✅ CORRECT' : '❌ WRONG'} — ${dir} ${pct}\n🔥 ${streak} day streak\n\ntradiko.dev`;
-    navigator.clipboard.writeText(text).then(() => {
+    const text = `⚡ Tradiko Daily Challenge\n${new Date().toISOString().split('T')[0]}\n\n${result.win ? '✅ CORRECT' : '❌ WRONG'} — ${dir} ${pct}\n🔥 ${streak} day streak`;
+    const shared = await doShare({ title: '⚡ Tradiko Daily Challenge', text });
+    if (shared) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    });
+    }
     const tok = localStorage.getItem('tradaria_token');
     if (tok) fetch(`${SERVER}/stats/share`, { method: 'POST', headers: { Authorization: `Bearer ${tok}` } }).catch(() => {});
     const prevXP = getXP(); checkLevelUp(prevXP, addXP(5));
