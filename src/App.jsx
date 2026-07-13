@@ -459,10 +459,17 @@ export default function App() {
   };
 
   const shareResult = async () => {
-    const dir     = result?.direction === 'up' ? '▲' : '▼';
-    const pct     = result ? `${result.pctMove > 0 ? '+' : ''}${result.pctMove.toFixed(2)}` : '0.00';
-    const verdict = result?.win && !result?.neutral ? '✅ CORRECT' : !result?.win && !result?.neutral ? '❌ WRONG' : '➡️ SKIPPED';
-    const text    = `🎯 Tradiko — Guess The Market\n${verdict} — ${asset.name} ${asset.tf}\n${dir} ${pct}% move\ntradiko.dev`;
+    const wins      = history.filter(h => h === 'win').length;
+    const losses    = history.filter(h => h === 'lose').length;
+    const accuracy  = Math.round(wins / (wins + losses || 1) * 100);
+    const maxStreak = history.reduce((acc, h, i) => {
+      if (h !== 'win') return acc;
+      let s = 1;
+      while (history[i + s] === 'win') s++;
+      return Math.max(acc, s);
+    }, 0);
+    const bar  = history.map(h => h === 'win' ? '✅' : h === 'lose' ? '❌' : '➖').join('');
+    const text = `🎯 Tradiko Classic Mode\n${wins}/25 correct · ${accuracy}% accuracy\n🔥 Best streak: ${maxStreak}x · ${score} pts\n${bar}\ntradiko.dev #Tradiko`;
     const ok = await copyToClipboard(text);
     setShareStatus(ok ? 'copied' : 'error');
     setTimeout(() => setShareStatus('idle'), 2000);
