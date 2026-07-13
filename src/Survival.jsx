@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { shareResult } from './utils/share.js';
+import { copyToClipboard } from './utils/share.js';
 import EffectOverlay from './EffectOverlay.jsx';
 import { ASSETS } from './assets.js';
 import Chart, { generateCandles } from "./Chart";
@@ -41,6 +41,7 @@ export default function Survival({ onBack }) {
   const [liveLost,    setLiveLost]   = useState(false);
   const [missionToast, setMissionToast] = useState([]);
   const pushMission = data => setMissionToast(q => [...q, data]);
+  const [shareStatus, setShareStatus] = useState('idle');
   const floatingXPKeyRef = useRef(0);
   const highscoreRef   = useRef(parseInt(localStorage.getItem('tradaria_survival_highscore') || '0'));
   const effectTimerRef = useRef(null);
@@ -220,13 +221,10 @@ export default function Survival({ onBack }) {
 
   // ── Game Over ─────────────────────────────────────────────────────
   const shareSurvival = async () => {
-    const wins = history.filter(h => h === 'win').length;
-    const losses = history.filter(h => h === 'lose').length;
-    const accuracy = Math.round(wins / (wins + losses || 1) * 100);
-    await shareResult({
-      title: '☠️ Tradiko Survival',
-      text: `☠️ Tradiko Survival\n\nScore: ${score}\nRounds: ${round - 1} · Correct: ${wins} · Accuracy: ${accuracy}%`,
-    });
+    const text = `☠️ Tradiko Survival\n${round - 1} rounds survived\n🏆 Best: ${highscore} pts\ntradiko.dev`;
+    const ok = await copyToClipboard(text);
+    setShareStatus(ok ? 'copied' : 'error');
+    setTimeout(() => setShareStatus('idle'), 2000);
     const tok = localStorage.getItem('tradaria_token');
     if (tok) fetch(`${SERVER}/stats/share`, { method: 'POST', headers: { Authorization: `Bearer ${tok}` } }).catch(() => {});
     addXP(5);
@@ -312,7 +310,7 @@ export default function Survival({ onBack }) {
           )}
           <button onClick={shareSurvival}
             style={{ marginTop: '10px', width: '100%', padding: '12px', background: 'var(--green-dim)', border: '1px solid var(--border-green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-            {t.daily.share}
+            {shareStatus === 'copied' ? t.daily.copied : shareStatus === 'error' ? 'Error' : t.daily.share}
           </button>
         </div>
         {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}

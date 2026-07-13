@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { shareResult } from './utils/share.js';
+import { copyToClipboard } from './utils/share.js';
 import { useAuth } from './AuthContext';
 import { useLang } from './LangContext.jsx';
 import Chart from './Chart';
@@ -33,6 +33,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
   const [newBadge, setNewBadge] = useState(null);
   const [missionToast, setMissionToast] = useState(null);
   const [academyTournamentData, setAcademyTournamentData] = useState(null);
+  const [shareStatus, setShareStatus] = useState('idle');
   const chartRef = useRef(null);
 
   async function loadAcademyTournament() {
@@ -381,15 +382,17 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
 
           <button onClick={async () => {
             const displayScore = phase === 'finished' ? score : alreadyScore;
-            await shareResult({
-              title: '🏆 Tradiko Tournament',
-              text: `🏆 Tradiko Tournament\n${formatWeekId(weekId)}\n\n${displayScore} pts`,
-            });
+            const roundInfo = phase === 'finished' && rounds.length > 0 ? ` — Round ${round + 1}/${rounds.length}` : '';
+            const rankInfo = userPosition ? `\n📊 Rank #${userPosition.rank}` : '';
+            const text = `🏆 Tradiko Tournament\n${displayScore} pts${roundInfo}${rankInfo}\ntradiko.dev`;
+            const ok = await copyToClipboard(text);
+            setShareStatus(ok ? 'copied' : 'error');
+            setTimeout(() => setShareStatus('idle'), 2000);
             const tok = localStorage.getItem('tradaria_token');
             if (tok) fetch(`${SERVER}/stats/share`, { method: 'POST', headers: { Authorization: `Bearer ${tok}` } }).catch(() => {});
             addXP(5);
           }} style={{ marginTop: '16px', width: '100%', padding: '12px', background: 'rgba(232,184,75,0.06)', border: '1px solid var(--color-neutral)', borderRadius: '6px', color: 'var(--color-neutral)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-            {t.daily.share}
+            {shareStatus === 'copied' ? t.daily.copied : shareStatus === 'error' ? 'Error' : t.daily.share}
           </button>
         </div>
 

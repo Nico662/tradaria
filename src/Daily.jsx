@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { shareResult as doShare } from './utils/share.js';
+import { copyToClipboard } from './utils/share.js';
 import Chart from './Chart.jsx';
 import { SERVER } from './config.js';
 import { unlockBadge, BADGES } from './badges.js';
@@ -11,11 +11,11 @@ import EffectOverlay from './EffectOverlay.jsx';
 import { incrementMission, recordModePlayed, incrementWeeklyMission, recordWeeklyModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
 
-function ShareButton({ onShare, copied, t }) {
+function ShareButton({ onShare, shareStatus, t }) {
   return (
     <button onClick={onShare}
       style={{ marginTop: '12px', width: '100%', padding: '12px', background: 'var(--green-dim)', border: '1px solid var(--border-green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-      {copied ? t.daily.copied : t.daily.share}
+      {shareStatus === 'copied' ? t.daily.copied : shareStatus === 'error' ? 'Error' : t.daily.share}
     </button>
   );
 }
@@ -33,7 +33,7 @@ export default function Daily({ onBack }) {
   const [timeLeft, setTimeLeft]     = useState('');
   const [newBadge, setNewBadge]     = useState(null);
   const [floatingXP, setFloatingXP] = useState(null);
-  const [copied, setCopied]           = useState(false);
+  const [shareStatus, setShareStatus] = useState('idle');
   const [copiedInvite, setCopiedInvite] = useState(false);
   const [missionToast, setMissionToast] = useState([]);
   const pushMission = data => setMissionToast(q => [...q, data]);
@@ -195,12 +195,10 @@ export default function Daily({ onBack }) {
     const streak = localStorage.getItem('tradaria_daily_streak') || '1';
     const dir = result.direction === 'up' ? '▲' : result.direction === 'down' ? '▼' : '—';
     const pct = `${result.pctMove > 0 ? '+' : ''}${result.pctMove.toFixed(2)}%`;
-    const text = `⚡ Tradiko Daily Challenge\n${new Date().toISOString().split('T')[0]}\n\n${result.win ? '✅ CORRECT' : '❌ WRONG'} — ${dir} ${pct}\n🔥 ${streak} day streak`;
-    const shared = await doShare({ title: '⚡ Tradiko Daily Challenge', text });
-    if (shared) {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
+    const text = `⚡ Tradiko Daily Challenge\n${new Date().toISOString().split('T')[0]}\n${result.win ? '✅ WIN' : '❌ WRONG'} — ${dir} ${pct}\n🔥 ${streak} day streak\ntradiko.dev`;
+    const ok = await copyToClipboard(text);
+    setShareStatus(ok ? 'copied' : 'error');
+    setTimeout(() => setShareStatus('idle'), 2000);
     const tok = localStorage.getItem('tradaria_token');
     if (tok) fetch(`${SERVER}/stats/share`, { method: 'POST', headers: { Authorization: `Bearer ${tok}` } }).catch(() => {});
     const prevXP = getXP(); checkLevelUp(prevXP, addXP(5));
@@ -299,7 +297,7 @@ export default function Daily({ onBack }) {
                 <div style={{ marginTop: '16px', fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                   {t.daily.comeback}
                 </div>
-                <ShareButton onShare={shareResult} copied={copied} t={t} />
+                <ShareButton onShare={shareResult} shareStatus={shareStatus} t={t} />
                 {user?.username && (
                   <button
                     onClick={() => {
@@ -330,7 +328,7 @@ export default function Daily({ onBack }) {
             <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
               {t.daily.next} {timeLeft}
             </div>
-            <ShareButton onShare={shareResult} copied={copied} t={t} />
+            <ShareButton onShare={shareResult} shareStatus={shareStatus} t={t} />
             {user?.username && (
               <button
                 onClick={() => {
