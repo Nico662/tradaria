@@ -43,24 +43,35 @@ export function AuthProvider({ children }) {
       return;
     }
     if (typeof window !== 'undefined' && window.__isIOSApp === true) {
-      window.__savedToken = null;
-      window.webkit.messageHandlers.getToken.postMessage('');
-      const checkToken = setInterval(() => {
-        if (window.__savedToken !== null) {
-          clearInterval(checkToken);
-          const saved = window.__savedToken;
-          if (saved) {
-            fetchUser(saved);
-            fetchPurchases(saved);
-          } else {
-            setLoading(false);
+      if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.getToken) {
+        window.__savedToken = null;
+        window.webkit.messageHandlers.getToken.postMessage('');
+        const checkToken = setInterval(() => {
+          if (window.__savedToken !== null) {
+            clearInterval(checkToken);
+            const saved = window.__savedToken;
+            if (saved) {
+              fetchUser(saved);
+              fetchPurchases(saved);
+            } else {
+              setLoading(false);
+            }
           }
+        }, 50);
+        setTimeout(() => {
+          clearInterval(checkToken);
+          setLoading(false);
+        }, 3000);
+      } else {
+        // Fallback para builds antiguas: leer directamente del localStorage
+        const saved = localStorage.getItem('tradaria_token');
+        if (saved) {
+          fetchUser(saved);
+          fetchPurchases(saved);
+        } else {
+          setLoading(false);
         }
-      }, 50);
-      setTimeout(() => {
-        clearInterval(checkToken);
-        setLoading(false);
-      }, 3000);
+      }
     } else {
       const saved = localStorage.getItem('tradaria_token');
       if (saved) {
