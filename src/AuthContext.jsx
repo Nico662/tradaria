@@ -172,12 +172,14 @@ export function AuthProvider({ children }) {
   }
 
   async function fetchUser(token) {
+    window.__authLogs.push('fetchUser called with token: ' + (token ? token.substring(0, 20) : 'null'));
     try {
       const res = await fetch(`${SERVER}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         const data = await res.json();
+        window.__authLogs.push('fetchUser result: ' + JSON.stringify(data).substring(0, 100));
         setUser(data);
 
         // Asociar suscripción push con el userId cuando el usuario se carga
