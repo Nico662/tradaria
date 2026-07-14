@@ -107,7 +107,12 @@ export default function Settings({ onBack }) {
   const s = STRINGS[lang] || STRINGS.en;
 
   const [notifEnabled, setNotifEnabled] = useState(
-    () => typeof Notification !== 'undefined' && Notification.permission === 'granted'
+    () => {
+      if (typeof window !== 'undefined' && window.__isIOSApp === true) {
+        return true; // En iOS los permisos se gestionan desde Swift/Ajustes
+      }
+      return typeof Notification !== 'undefined' && Notification.permission === 'granted';
+    }
   );
   const [showUsernameModal, setShowUsernameModal] = useState(false);
   const [cancelConfirm, setCancelConfirm] = useState(false);
