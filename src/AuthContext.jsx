@@ -3,17 +3,10 @@ import { SERVER } from './config.js';
 import { getLevel, getXP } from './levels.js';
 import LevelUpOverlay from './LevelUpOverlay.jsx';
 
-window.__authLogs = window.__authLogs || [];
-
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const [user, setUserState] = useState(null);
-  const setUser = (val) => {
-    window.__authLogs = window.__authLogs || [];
-    window.__authLogs.push('setUser called with: ' + (val ? val.id : 'NULL') + ' | stack: ' + new Error().stack.split('\n')[2]);
-    setUserState(val);
-  };
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [purchases, setPurchases] = useState([]);
   const [activeCosmetics, setActiveCosmetics] = useState(() => {
@@ -31,7 +24,6 @@ export function AuthProvider({ children }) {
   }
 
   useEffect(() => {
-    window.__authLogs.push('AUTH INIT - isIOSApp: ' + (typeof window !== 'undefined' && window.__isIOSApp === true) + ' | value: ' + window.__isIOSApp);
     const params = new URLSearchParams(window.location.search);
     const oauthCode = params.get('code');
     if (oauthCode) {
@@ -51,16 +43,11 @@ export function AuthProvider({ children }) {
       return;
     }
     if (typeof window !== 'undefined' && window.__isIOSApp === true) {
-      window.__authLogs.push('AUTH INIT - entering iOS branch');
-      window.__authLogs.push('iOS branch - setting __savedToken to null');
       window.__savedToken = null;
       window.webkit.messageHandlers.getToken.postMessage('');
-      window.__authLogs.push('iOS branch - postMessage sent');
       const checkToken = setInterval(() => {
-        window.__authLogs.push('iOS branch - checking, __savedToken: ' + window.__savedToken);
         if (window.__savedToken !== null) {
           clearInterval(checkToken);
-          window.__authLogs.push('iOS branch - token received: ' + (window.__savedToken ? 'yes' : 'empty'));
           const saved = window.__savedToken;
           if (saved) {
             fetchUser(saved);
@@ -86,9 +73,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    console.log('=== APPLE POLLING STARTED ===');
     if (window.__appleAuthData) {
-      console.log('=== IMMEDIATE APPLE DATA FOUND ===');
       const { tokenB64, givenName } = window.__appleAuthData;
       window.__appleAuthData = null;
       try {
@@ -102,11 +87,7 @@ export function AuthProvider({ children }) {
     }
     const interval = setInterval(() => {
       if (window.__appleAuthData) {
-        console.log('=== POLLING APPLE DATA FOUND ===');
-        console.log('__appleAuthData keys:', Object.keys(window.__appleAuthData));
-        console.log('__appleAuthData full:', JSON.stringify(window.__appleAuthData));
         const { tokenB64, givenName } = window.__appleAuthData;
-        console.log('tokenB64:', tokenB64 ? 'EXISTS length=' + tokenB64.length : 'UNDEFINED');
         window.__appleAuthData = null;
         try {
           const base64 = tokenB64.replace(/-/g, '+').replace(/_/g, '/');
@@ -117,10 +98,7 @@ export function AuthProvider({ children }) {
         }
       }
     }, 300);
-    return () => {
-      console.log('=== APPLE POLLING STOPPED ===');
-      clearInterval(interval);
-    };
+    return () => clearInterval(interval);
   }, []);
 
   async function fetchPurchases(token) {
@@ -177,16 +155,13 @@ export function AuthProvider({ children }) {
   }
 
   async function fetchUser(token) {
-    window.__authLogs.push('fetchUser called with token: ' + (token ? token.substring(0, 20) : 'null'));
     try {
       const res = await fetch(`${SERVER}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         const data = await res.json();
-        window.__authLogs.push('fetchUser result: ' + JSON.stringify(data).substring(0, 100));
         setUser(data);
-        window.__authLogs.push('setUser called - user id: ' + data.id);
 
         // Asociar suscripción push con el userId cuando el usuario se carga
         if (data.id && 'serviceWorker' in navigator) {
@@ -258,7 +233,6 @@ export function AuthProvider({ children }) {
         localStorage.removeItem('tradaria_token');
       }
     } catch (e) {}
-    window.__authLogs.push('setLoading(false) called');
     setLoading(false);
   }
 
