@@ -42,13 +42,16 @@ export function AuthProvider({ children }) {
         .catch(() => setLoading(false));
       return;
     }
-    const saved = localStorage.getItem('tradaria_token');
-    if (saved) {
-      fetchUser(saved);
-      fetchPurchases(saved);
-    } else {
-      setLoading(false);
-    }
+    const initDelay = (typeof window !== 'undefined' && window.__isIOSApp === true) ? 500 : 0;
+    setTimeout(() => {
+      const saved = localStorage.getItem('tradaria_token');
+      if (saved) {
+        fetchUser(saved);
+        fetchPurchases(saved);
+      } else {
+        setLoading(false);
+      }
+    }, initDelay);
   }, []);
 
   useEffect(() => {
