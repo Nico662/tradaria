@@ -2291,6 +2291,21 @@ cron.schedule('0 8 * * *', async () => {
   );
   await Promise.all(promises);
   console.log(`Sent to ${pushSubscriptions.length} subscribers`);
+  // Enviar APNs a usuarios con token registrado
+  const apnsKeys = await redis.keys('apns_token:*');
+  const { Notification } = require('apns2');
+  for (const key of apnsKeys) {
+    const deviceToken = await redis.get(key);
+    if (!deviceToken) continue;
+    try {
+      const notif = new Notification(deviceToken, {
+        alert: { title: payload.title, body: payload.body },
+        sound: 'default',
+        badge: 1,
+      });
+      await apnsClient.send(notif).catch(() => {});
+    } catch {}
+  }
  });
  // Notificación apertura mercado — 15:30 hora española = 13:30 UTC (horario verano)
 cron.schedule('30 13 * * 1-5', async () => {
@@ -2311,6 +2326,21 @@ cron.schedule('30 13 * * 1-5', async () => {
   );
   await Promise.all(promises);
   console.log(`Market open notification sent to ${pushSubscriptions.length} subscribers`);
+  // Enviar APNs a usuarios con token registrado
+  const apnsKeys = await redis.keys('apns_token:*');
+  const { Notification } = require('apns2');
+  for (const key of apnsKeys) {
+    const deviceToken = await redis.get(key);
+    if (!deviceToken) continue;
+    try {
+      const notif = new Notification(deviceToken, {
+        alert: { title: payload.title, body: payload.body },
+        sound: 'default',
+        badge: 1,
+      });
+      await apnsClient.send(notif).catch(() => {});
+    } catch {}
+  }
 });
 
 // Notificación cierre mercado — 22:00 hora española = 20:00 UTC (horario verano)
@@ -2330,6 +2360,21 @@ cron.schedule('0 20 * * 1-5', async () => {
     })
   );
   await Promise.all(promises);
+  // Enviar APNs a usuarios con token registrado
+  const apnsKeys = await redis.keys('apns_token:*');
+  const { Notification } = require('apns2');
+  for (const key of apnsKeys) {
+    const deviceToken = await redis.get(key);
+    if (!deviceToken) continue;
+    try {
+      const notif = new Notification(deviceToken, {
+        alert: { title: payload.title, body: payload.body },
+        sound: 'default',
+        badge: 1,
+      });
+      await apnsClient.send(notif).catch(() => {});
+    } catch {}
+  }
  });
 
 cron.schedule('0 7 * * *', async () => {
