@@ -42,9 +42,10 @@ export function AuthProvider({ children }) {
         .catch(() => setLoading(false));
       return;
     }
-    const initDelay = (typeof window !== 'undefined' && window.__isIOSApp === true) ? 500 : 0;
+    const initDelay = (typeof window !== 'undefined' && window.__isIOSApp === true) ? 1500 : 0;
     setTimeout(() => {
       const saved = localStorage.getItem('tradaria_token');
+      console.log('AUTH INIT - delay done, token:', saved ? saved.substring(0, 20) : 'null');
       if (saved) {
         fetchUser(saved);
         fetchPurchases(saved);
