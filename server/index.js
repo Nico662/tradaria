@@ -20,7 +20,7 @@ const { ApnsClient, Notification } = require('apns2');
 const apnsClient = new ApnsClient({
   team: 'KA99F6SRW4',
   keyId: '4QV52YAMPK',
-  signingKey: (process.env.APNS_SIGNING_KEY || '').replace(/\\n/g, '\n'),
+  signingKey: Buffer.from(process.env.APNS_SIGNING_KEY || '', 'base64').toString('utf8'),
   defaultTopic: 'dev.tradiko',
   production: true
 });
