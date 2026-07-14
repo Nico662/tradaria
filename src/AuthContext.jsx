@@ -8,7 +8,12 @@ window.__authLogs = window.__authLogs || [];
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [user, setUserState] = useState(null);
+  const setUser = (val) => {
+    window.__authLogs = window.__authLogs || [];
+    window.__authLogs.push('setUser called with: ' + (val ? val.id : 'NULL') + ' | stack: ' + new Error().stack.split('\n')[2]);
+    setUserState(val);
+  };
   const [loading, setLoading] = useState(true);
   const [purchases, setPurchases] = useState([]);
   const [activeCosmetics, setActiveCosmetics] = useState(() => {
