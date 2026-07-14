@@ -22,7 +22,7 @@ const apnsClient = new ApnsClient({
   keyId: '4QV52YAMPK',
   signingKey: Buffer.from(process.env.APNS_SIGNING_KEY || '', 'base64').toString('utf8'),
   defaultTopic: 'dev.tradiko',
-  production: false
+  production: true
 });
 
 // ── Config ────────────────────────────────────────────────────────
