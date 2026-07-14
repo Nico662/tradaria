@@ -1849,6 +1849,30 @@ app.post('/push/apns-register', async (req, res) => {
   res.json({ ok: true });
 });
 
+app.post('/push/send-apns', async (req, res) => {
+  const key = req.headers['x-admin-secret'];
+  if (!ADMIN_SECRET || key !== ADMIN_SECRET) return res.status(403).json({ error: 'Forbidden' });
+
+  const { title, body, userId } = req.body;
+
+  try {
+    const tokenRaw = await redis.get(`apns_token:${userId}`);
+    if (!tokenRaw) return res.status(404).json({ error: 'No APNs token for user' });
+
+    const { Notification } = require('apns2');
+    const notification = new Notification(tokenRaw, {
+      alert: { title: title || '⚡ Tradiko', body: body || 'Test' },
+      sound: 'default',
+      badge: 1,
+    });
+
+    await apnsClient.send(notification);
+    res.json({ ok: true, token: tokenRaw.substring(0, 10) + '...' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── Candles helpers ───────────────────────────────────────────────
 async function fetchCandles(asset) {
   console.log('Fetching:', asset.name, asset.source);
