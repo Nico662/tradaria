@@ -1849,6 +1849,13 @@ app.post('/push/apns-register', async (req, res) => {
   res.json({ ok: true });
 });
 
+app.get('/push/apns-token', async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
+  const token = await redis.get(`apns_token:${decoded.id}`);
+  res.json({ token: token || null });
+});
+
 app.post('/push/send-apns', async (req, res) => {
   const key = req.headers['x-admin-secret'];
   if (!ADMIN_SECRET || key !== ADMIN_SECRET) return res.status(403).json({ error: 'Forbidden' });
