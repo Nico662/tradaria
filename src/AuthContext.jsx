@@ -42,17 +42,35 @@ export function AuthProvider({ children }) {
         .catch(() => setLoading(false));
       return;
     }
-    const initDelay = (typeof window !== 'undefined' && window.__isIOSApp === true) ? 1500 : 0;
-    setTimeout(() => {
+    if (typeof window !== 'undefined' && window.__isIOSApp === true) {
+      window.__savedToken = null;
+      window.webkit.messageHandlers.getToken.postMessage('');
+      const checkToken = setInterval(() => {
+        if (window.__savedToken !== null) {
+          clearInterval(checkToken);
+          const saved = window.__savedToken;
+          console.log('AUTH INIT - iOS token from Swift:', saved ? saved.substring(0, 20) : 'empty');
+          if (saved) {
+            fetchUser(saved);
+            fetchPurchases(saved);
+          } else {
+            setLoading(false);
+          }
+        }
+      }, 50);
+      setTimeout(() => {
+        clearInterval(checkToken);
+        setLoading(false);
+      }, 3000);
+    } else {
       const saved = localStorage.getItem('tradaria_token');
-      console.log('AUTH INIT - delay done, token:', saved ? saved.substring(0, 20) : 'null');
       if (saved) {
         fetchUser(saved);
         fetchPurchases(saved);
       } else {
         setLoading(false);
       }
-    }, initDelay);
+    }
   }, []);
 
   useEffect(() => {
