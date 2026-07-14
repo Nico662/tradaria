@@ -3,6 +3,8 @@ import { SERVER } from './config.js';
 import { getLevel, getXP } from './levels.js';
 import LevelUpOverlay from './LevelUpOverlay.jsx';
 
+window.__authLogs = window.__authLogs || [];
+
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
@@ -24,7 +26,7 @@ export function AuthProvider({ children }) {
   }
 
   useEffect(() => {
-    console.log('AUTH INIT - isIOSApp:', typeof window !== 'undefined' && window.__isIOSApp === true, '| __isIOSApp value:', window.__isIOSApp);
+    window.__authLogs.push('AUTH INIT - isIOSApp: ' + (typeof window !== 'undefined' && window.__isIOSApp === true) + ' | value: ' + window.__isIOSApp);
     const params = new URLSearchParams(window.location.search);
     const oauthCode = params.get('code');
     if (oauthCode) {
@@ -44,7 +46,7 @@ export function AuthProvider({ children }) {
       return;
     }
     if (typeof window !== 'undefined' && window.__isIOSApp === true) {
-      console.log('AUTH INIT - entering iOS branch, posting getToken');
+      window.__authLogs.push('AUTH INIT - entering iOS branch');
       window.__savedToken = null;
       window.webkit.messageHandlers.getToken.postMessage('');
       const checkToken = setInterval(() => {
