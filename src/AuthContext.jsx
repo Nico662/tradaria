@@ -181,6 +181,7 @@ export function AuthProvider({ children }) {
         const data = await res.json();
         window.__authLogs.push('fetchUser result: ' + JSON.stringify(data).substring(0, 100));
         setUser(data);
+        window.__authLogs.push('setUser called - user id: ' + data.id);
 
         // Asociar suscripción push con el userId cuando el usuario se carga
         if (data.id && 'serviceWorker' in navigator) {
@@ -252,6 +253,7 @@ export function AuthProvider({ children }) {
         localStorage.removeItem('tradaria_token');
       }
     } catch (e) {}
+    window.__authLogs.push('setLoading(false) called');
     setLoading(false);
   }
 
