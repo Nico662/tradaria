@@ -47,13 +47,16 @@ export function AuthProvider({ children }) {
     }
     if (typeof window !== 'undefined' && window.__isIOSApp === true) {
       window.__authLogs.push('AUTH INIT - entering iOS branch');
+      window.__authLogs.push('iOS branch - setting __savedToken to null');
       window.__savedToken = null;
       window.webkit.messageHandlers.getToken.postMessage('');
+      window.__authLogs.push('iOS branch - postMessage sent');
       const checkToken = setInterval(() => {
+        window.__authLogs.push('iOS branch - checking, __savedToken: ' + window.__savedToken);
         if (window.__savedToken !== null) {
           clearInterval(checkToken);
+          window.__authLogs.push('iOS branch - token received: ' + (window.__savedToken ? 'yes' : 'empty'));
           const saved = window.__savedToken;
-          console.log('AUTH INIT - iOS token from Swift:', saved ? saved.substring(0, 20) : 'empty');
           if (saved) {
             fetchUser(saved);
             fetchPurchases(saved);
