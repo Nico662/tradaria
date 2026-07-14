@@ -24,6 +24,7 @@ export function AuthProvider({ children }) {
   }
 
   useEffect(() => {
+    console.log('AUTH INIT - isIOSApp:', typeof window !== 'undefined' && window.__isIOSApp === true, '| __isIOSApp value:', window.__isIOSApp);
     const params = new URLSearchParams(window.location.search);
     const oauthCode = params.get('code');
     if (oauthCode) {
@@ -43,6 +44,7 @@ export function AuthProvider({ children }) {
       return;
     }
     if (typeof window !== 'undefined' && window.__isIOSApp === true) {
+      console.log('AUTH INIT - entering iOS branch, posting getToken');
       window.__savedToken = null;
       window.webkit.messageHandlers.getToken.postMessage('');
       const checkToken = setInterval(() => {
