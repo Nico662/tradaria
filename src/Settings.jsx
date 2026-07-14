@@ -168,9 +168,31 @@ export default function Settings({ onBack }) {
   }
 
   async function enableNotifications() {
+    if (window.__isIOSApp) {
+      // En iOS nativo, pedir permisos via Swift
+      if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.requestPushPermission) {
+        window.webkit.messageHandlers.requestPushPermission.postMessage('');
+      }
+      return;
+    }
+    // Web normal
     if (typeof Notification === 'undefined') return;
     const perm = await Notification.requestPermission();
-    setNotifEnabled(perm === 'granted');
+    if (perm === 'granted') {
+      setNotifEnabled(true);
+      // Suscribir al push
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: 'BEWPkbh1HeSsw08H0EsELp5TIPD2gcQ8Yfa1RsSW-9jER3uvoeVUTazcIqjlf4UNFKe7QeqQ8ZlVjGI72pinR0I'
+      });
+      const token = localStorage.getItem('tradaria_token');
+      await fetch(`${SERVER}/push/subscribe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(sub)
+      });
+    }
   }
 
   return (
