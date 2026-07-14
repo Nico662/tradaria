@@ -2299,7 +2299,7 @@ cron.schedule('0 8 * * *', async () => {
     if (!deviceToken) continue;
     try {
       const notif = new Notification(deviceToken, {
-        alert: { title: payload.title, body: payload.body },
+        alert: { title: '⚡ Daily Challenge', body: "Today's chart is ready. Can you call it?" },
         sound: 'default',
         badge: 1,
       });
@@ -2334,7 +2334,7 @@ cron.schedule('30 13 * * 1-5', async () => {
     if (!deviceToken) continue;
     try {
       const notif = new Notification(deviceToken, {
-        alert: { title: payload.title, body: payload.body },
+        alert: { title: '📈 El mercado acaba de abrir', body: 'NYSE y NASDAQ abiertos. Revisa tu portfolio.' },
         sound: 'default',
         badge: 1,
       });
@@ -2368,7 +2368,7 @@ cron.schedule('0 20 * * 1-5', async () => {
     if (!deviceToken) continue;
     try {
       const notif = new Notification(deviceToken, {
-        alert: { title: payload.title, body: payload.body },
+        alert: { title: '🔔 El mercado ha cerrado', body: 'Revisa cómo ha ido tu portfolio hoy.' },
         sound: 'default',
         badge: 1,
       });
