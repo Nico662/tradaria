@@ -976,14 +976,6 @@ app.post('/shop/webhook', express.raw({ type: 'application/json' }), async (req,
           pt.players.push({ userId, paymentIntentId: session.payment_intent });
           if (pt.players.length >= pt.maxPlayers) {
             pt.status = 'active';
-            // Notify all subscribers that a paid tournament is starting
-            const subs = await loadSubscriptions();
-            const payload = JSON.stringify({
-              title: '⚔️ Torneo de pago — ¡COMIENZA!',
-              body:  `El torneo de €${pt.entryFee} con premio de €${pt.prize} ya tiene ${pt.maxPlayers} jugadores. ¡Entra a jugar!`,
-              url:   '/?screen=tournament',
-            });
-            subs.forEach(sub => webpush.sendNotification(sub, payload).catch(() => {}));
           }
           await pt.save();
         }
@@ -1773,8 +1765,8 @@ app.post('/arena/async/:code/submit', async (req, res) => {
           if (subRaw) {
             const sub = JSON.parse(subRaw);
             await webpush.sendNotification(sub, JSON.stringify({
-              title: '⚔️ ¡Tu rival ha aceptado el reto!',
-              body:  'Ver los resultados →',
+              title: '⚔️ Your rival accepted the challenge!',
+              body:  'The results are in — who called it better?',
               url:   `${CLIENT_URL}?reto=${code}`,
             })).catch(() => {});
           }
@@ -1825,7 +1817,7 @@ app.post('/push/send', async (req, res) => {
   pushSubscriptions = await loadSubscriptions();
   const payload = JSON.stringify({
     title: '⚡ Daily Challenge',
-    body:  "Today's chart is ready. Can you call it?",
+    body:  "Can you call today's chart? One chart, one shot.",
     url:   'https://tradiko.dev',
   });
   const promises = pushSubscriptions.map(sub =>
@@ -2278,7 +2270,7 @@ cron.schedule('0 8 * * *', async () => {
   console.log('Sending to', pushSubscriptions.length, 'subscribers...');
   const payload = JSON.stringify({
     title: '⚡ Daily Challenge',
-    body:  "Today's chart is ready. Can you call it?",
+    body:  "Can you call today's chart? One chart, one shot.",
     url:   'https://tradiko.dev',
   });
   const promises = pushSubscriptions.map(sub =>
@@ -2299,7 +2291,7 @@ cron.schedule('0 8 * * *', async () => {
     if (!deviceToken) continue;
     try {
       const notif = new Notification(deviceToken, {
-        alert: { title: '⚡ Daily Challenge', body: "Today's chart is ready. Can you call it?" },
+        alert: { title: '⚡ Daily Challenge', body: "Can you call today's chart? One chart, one shot." },
         sound: 'default',
         badge: 1,
       });
@@ -2312,8 +2304,8 @@ cron.schedule('30 13 * * 1-5', async () => {
   pushSubscriptions = await loadSubscriptions();
   console.log('Sending market open notification...');
   const payload = JSON.stringify({
-    title: '📈 El mercado acaba de abrir',
-    body:  'NYSE y NASDAQ abiertos. Revisa tu portfolio.',
+    title: '📈 Markets are open',
+    body:  'NYSE & NASDAQ just opened. Check your portfolio.',
     url:   'https://tradiko.dev',
   });
   const promises = pushSubscriptions.map(sub =>
@@ -2334,7 +2326,7 @@ cron.schedule('30 13 * * 1-5', async () => {
     if (!deviceToken) continue;
     try {
       const notif = new Notification(deviceToken, {
-        alert: { title: '📈 El mercado acaba de abrir', body: 'NYSE y NASDAQ abiertos. Revisa tu portfolio.' },
+        alert: { title: '📈 Markets are open', body: 'NYSE & NASDAQ just opened. Check your portfolio.' },
         sound: 'default',
         badge: 1,
       });
@@ -2347,8 +2339,8 @@ cron.schedule('30 13 * * 1-5', async () => {
 cron.schedule('0 20 * * 1-5', async () => {
   pushSubscriptions = await loadSubscriptions();
   const payload = JSON.stringify({
-    title: '🔔 El mercado ha cerrado',
-    body:  'Revisa cómo ha ido tu portfolio hoy.',
+    title: '🔔 Markets closed',
+    body:  'How did your portfolio do today?',
     url:   'https://tradiko.dev',
   });
   const promises = pushSubscriptions.map(sub =>
@@ -2368,7 +2360,7 @@ cron.schedule('0 20 * * 1-5', async () => {
     if (!deviceToken) continue;
     try {
       const notif = new Notification(deviceToken, {
-        alert: { title: '🔔 El mercado ha cerrado', body: 'Revisa cómo ha ido tu portfolio hoy.' },
+        alert: { title: '🔔 Markets closed', body: 'How did your portfolio do today?' },
         sound: 'default',
         badge: 1,
       });
@@ -2392,7 +2384,7 @@ cron.schedule('0 7 * * *', async () => {
       const emoji     = change >= 0 ? '📈' : '📉';
       const sign      = change >= 0 ? '+' : '';
       await sendPushToUser(portfolio.userId._id, {
-        title: `${emoji} Tu portfolio hoy`,
+        title: `📊 Portfolio update`,
         body:  `${sign}${changePct}% (${sign}${change.toFixed(0)}) · Valor total: ${histToday.totalValue.toFixed(0)}`,
         url:   'https://tradiko.dev',
       });
@@ -2425,8 +2417,8 @@ cron.schedule('0 21 * * *', async () => {
       console.log(`[streak-cron] user=${user._id} streak=${user.dailyStreak} lastPlayed=${user.lastPlayed} hasSub=${!!subRaw} hasApns=${!!apnsRaw}`);
       if (!subRaw && !apnsRaw) continue;
       await sendPushToUser(user._id, {
-        title: '⚡ Tu racha está en peligro',
-        body:  `Llevas ${user.dailyStreak} días seguidos. Te quedan 3 horas para mantenerla.`,
+        title: '🔥 Your streak is at risk!',
+        body:  `${user.dailyStreak}-day streak on the line. Play before midnight.`,
         url:   'https://tradiko.dev',
       });
       sent++;
@@ -3064,7 +3056,7 @@ app.post('/portfolio/snapshot', async (req, res) => {
             const sub     = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
             const myName  = `@${myData.name}`;
             const payload = JSON.stringify({
-              title: '📉 Te han superado en el ranking',
+              title: '📉 Someone just passed you',
               body:  `${myName} te ha superado. Su portfolio: ${myData.returnPct >= 0 ? '+' : ''}${myData.returnPct.toFixed(1)}% · El tuyo: ${surpassedUser.returnPct >= 0 ? '+' : ''}${surpassedUser.returnPct.toFixed(1)}%`,
               url:   'https://tradiko.dev',
             });
