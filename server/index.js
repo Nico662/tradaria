@@ -2389,7 +2389,7 @@ cron.schedule('0 7 * * 0', async () => {
         const mondayDate = new Date(Date.now() - mondayOffset * 86400000).toISOString().split('T')[0];
         histEnd = await PortfolioHistory.findOne({ userId: portfolio.userId._id, date: fridayDate });
         histRef = await PortfolioHistory.findOne({ userId: portfolio.userId._id, date: mondayDate });
-        title   = '📊 Resumen semanal';
+        title   = '📊 Weekly recap';
       } else {
         const today     = new Date().toISOString().split('T')[0];
         const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
@@ -2404,7 +2404,7 @@ cron.schedule('0 7 * * 0', async () => {
       const sign      = change >= 0 ? '+' : '';
       await sendPushToUser(portfolio.userId._id, {
         title,
-        body:  `${sign}${changePct}% (${sign}${change.toFixed(0)}) · Valor total: ${histEnd.totalValue.toFixed(0)}`,
+        body:  `${sign}${changePct}% (${sign}${change.toFixed(0)}) · Total value: ${histEnd.totalValue.toFixed(0)}`,
         url:   'https://tradiko.dev',
       });
     } catch (e) {
