@@ -2369,30 +2369,49 @@ cron.schedule('0 20 * * 1-5', async () => {
   }
  });
 
-cron.schedule('0 7 * * *', async () => {
+cron.schedule('0 7 * * 0', async () => {
+  const now        = new Date();
+  const dayOfWeek  = now.getDay(); // 0=domingo, 6=sábado
+  const isWeekend  = dayOfWeek === 0 || dayOfWeek === 6;
+
   const portfolios = await Portfolio.find({}).populate('userId', 'name');
   for (const portfolio of portfolios) {
     try {
       if (!portfolio.userId) continue;
-      const today     = new Date().toISOString().split('T')[0];
-      const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-      const histToday = await PortfolioHistory.findOne({ userId: portfolio.userId._id, date: today });
-      const histYest  = await PortfolioHistory.findOne({ userId: portfolio.userId._id, date: yesterday });
-      if (!histToday || !histYest) continue;
-      const change    = histToday.totalValue - histYest.totalValue;
-      const changePct = ((change / histYest.totalValue) * 100).toFixed(2);
-      const emoji     = change >= 0 ? '📈' : '📉';
+
+      let histEnd, histRef, title;
+
+      if (isWeekend) {
+        // sábado → viernes=1d atrás, lunes=5d atrás; domingo → viernes=2d, lunes=6d
+        const fridayOffset = dayOfWeek === 6 ? 1 : 2;
+        const mondayOffset = dayOfWeek === 6 ? 5 : 6;
+        const fridayDate = new Date(Date.now() - fridayOffset * 86400000).toISOString().split('T')[0];
+        const mondayDate = new Date(Date.now() - mondayOffset * 86400000).toISOString().split('T')[0];
+        histEnd = await PortfolioHistory.findOne({ userId: portfolio.userId._id, date: fridayDate });
+        histRef = await PortfolioHistory.findOne({ userId: portfolio.userId._id, date: mondayDate });
+        title   = '📊 Resumen semanal';
+      } else {
+        const today     = new Date().toISOString().split('T')[0];
+        const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+        histEnd = await PortfolioHistory.findOne({ userId: portfolio.userId._id, date: today });
+        histRef = await PortfolioHistory.findOne({ userId: portfolio.userId._id, date: yesterday });
+        title   = '📊 Portfolio update';
+      }
+
+      if (!histEnd || !histRef) continue;
+      const change    = histEnd.totalValue - histRef.totalValue;
+      const changePct = ((change / histRef.totalValue) * 100).toFixed(2);
       const sign      = change >= 0 ? '+' : '';
       await sendPushToUser(portfolio.userId._id, {
-        title: `📊 Portfolio update`,
-        body:  `${sign}${changePct}% (${sign}${change.toFixed(0)}) · Valor total: ${histToday.totalValue.toFixed(0)}`,
+        title,
+        body:  `${sign}${changePct}% (${sign}${change.toFixed(0)}) · Valor total: ${histEnd.totalValue.toFixed(0)}`,
         url:   'https://tradiko.dev',
       });
     } catch (e) {
       console.error('Portfolio notification error:', e.message);
     }
   }
-});
+}, { timezone: 'Europe/Madrid' });
 
 cron.schedule('0 21 * * *', async () => {
   const now = new Date();
