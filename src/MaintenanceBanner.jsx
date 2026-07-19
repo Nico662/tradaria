@@ -32,7 +32,7 @@ export default function MaintenanceBanner() {
       </span>
       <button
         onClick={() => setDismissed(true)}
-        aria-label="Cerrar"
+        aria-label={t.common.close}
         style={{
           background: 'none',
           border: 'none',

@@ -56,14 +56,15 @@ function TournamentVisual() {
 }
 
 function ClassCodeVisual() {
+  const { t } = useLang();
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center' }}>
       <div style={{ padding: '14px 32px', background: 'rgba(0,229,160,0.06)', border: '1px solid rgba(0,229,160,0.3)', borderRadius: '10px', textAlign: 'center' }}>
-        <div style={{ fontSize: '12px', color: 'var(--t6)', fontFamily: 'var(--font-body)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px' }}>Código de acceso</div>
+        <div style={{ fontSize: '12px', color: 'var(--t6)', fontFamily: 'var(--font-body)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px' }}>{t.academiasLanding.accessCode}</div>
         <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '26px', color: 'var(--green)', letterSpacing: '0.12em' }}>ABCD-1234</div>
       </div>
       <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
-        <div style={{ flex: 1, padding: '9px', background: 'var(--bg-page)', border: '1px solid var(--bd)', borderRadius: '8px', textAlign: 'center', fontSize: '12px', color: 'var(--t4)', fontFamily: 'var(--font-body)' }}>Copiar código</div>
+        <div style={{ flex: 1, padding: '9px', background: 'var(--bg-page)', border: '1px solid var(--bd)', borderRadius: '8px', textAlign: 'center', fontSize: '12px', color: 'var(--t4)', fontFamily: 'var(--font-body)' }}>{t.academiasLanding.copyCode}</div>
         <div style={{ flex: 1, padding: '9px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', textAlign: 'center', fontSize: '12px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontWeight: 700 }}>Unirse →</div>
       </div>
     </div>

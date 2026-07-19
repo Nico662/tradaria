@@ -1041,19 +1041,19 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                             <button
                               onClick={() => deleteAlert(existingAlert._id)}
                               style={{ background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '4px', color: 'var(--t5)', fontSize: '12px', padding: '2px 8px', cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.04em' }}
-                            >borrar</button>
+                            >{t.portfolio.delete}</button>
                           </>
                         ) : (
                           <button
                             onClick={() => openAlertModal(pos)}
                             style={{ background: 'transparent', border: '1px solid rgba(232,184,75,0.3)', borderRadius: '6px', color: 'var(--color-neutral)', fontSize: '12px', padding: '3px 10px', cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.04em' }}
-                          >🔔 Alerta</button>
+                          >{t.portfolio.alertBtn}</button>
                         )
                       ) : (
                         <button
                           onClick={() => onGoPricing?.()}
                           style={{ background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t6)', fontSize: '12px', padding: '3px 10px', cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.04em', opacity: 0.55 }}
-                        >🔒 Alertas · Pro</button>
+                        >{t.portfolio.alertPro}</button>
                       )}
                     </div>
                     {/* Note button */}
@@ -1112,7 +1112,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                 </div>
                 <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
                   <span style={{ fontSize: '20px' }}>🔒</span>
-                  <button onClick={() => onGoPricing?.()} style={{ padding: '8px 20px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>Desbloquear Pro</button>
+                  <button onClick={() => onGoPricing?.()} style={{ padding: '8px 20px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>{t.portfolio.unlockPro}</button>
                 </div>
               </div>
             ) : compareExpanded && (
@@ -1120,7 +1120,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                 {compareLoading ? (
                   <div style={{ textAlign: 'center', padding: '24px', fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>···</div>
                 ) : !compareData?.top1 ? (
-                  <div style={{ textAlign: 'center', padding: '24px', fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>No hay datos de ranking disponibles</div>
+                  <div style={{ textAlign: 'center', padding: '24px', fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>{t.portfolio.noRankingData}</div>
                 ) : (
                   <>
                     {/* Me vs #1 header */}
@@ -1161,7 +1161,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                     {/* In common */}
                     {compareData.inCommon.length > 0 && (
                       <>
-                        <div style={{ fontSize: '12px', color: 'var(--green)', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginTop: '10px', marginBottom: '6px' }}>En común</div>
+                        <div style={{ fontSize: '12px', color: 'var(--green)', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginTop: '10px', marginBottom: '6px' }}>{t.portfolio.inCommon}</div>
                         {compareData.inCommon.map(item => (
                           <div key={item.symbol} style={{ display: 'flex', alignItems: 'center', padding: '6px 8px', background: 'rgba(0,229,160,0.04)', border: '1px solid rgba(0,229,160,0.12)', borderRadius: '6px', marginBottom: '4px' }}>
                             <div style={{ flex: 1 }}>
@@ -1186,7 +1186,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                     {/* Only in me */}
                     {compareData.onlyInMe.length > 0 && (
                       <>
-                        <div style={{ fontSize: '12px', color: '#378ADD', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginTop: '10px', marginBottom: '6px' }}>Solo en ti</div>
+                        <div style={{ fontSize: '12px', color: '#378ADD', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginTop: '10px', marginBottom: '6px' }}>{t.portfolio.onlyYours}</div>
                         {compareData.onlyInMe.map(item => (
                           <div key={item.symbol} style={{ display: 'flex', alignItems: 'center', padding: '6px 8px', background: 'rgba(55,138,221,0.04)', border: '1px solid rgba(55,138,221,0.12)', borderRadius: '6px', marginBottom: '4px' }}>
                             <div style={{ flex: 1 }}>
@@ -1202,7 +1202,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                     )}
 
                     {compareData.onlyInTop1.length === 0 && compareData.inCommon.length === 0 && compareData.onlyInMe.length === 0 && (
-                      <div style={{ textAlign: 'center', padding: '20px', fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>Sin posiciones para comparar</div>
+                      <div style={{ textAlign: 'center', padding: '20px', fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>{t.portfolio.noPositionsToCompare}</div>
                     )}
                   </>
                 )}
@@ -1413,7 +1413,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
             <textarea
               value={noteText}
               onChange={e => setNoteText(e.target.value)}
-              placeholder="Compré porque..."
+              placeholder={t.portfolio.notePlaceholder}
               rows={4}
               maxLength={1000}
               style={{ width: '100%', boxSizing: 'border-box', padding: '10px 12px', background: 'var(--bg-page)', border: '1px solid var(--bd)', borderRadius: '6px', color: 'var(--t1)', fontFamily: 'var(--font-body)', fontSize: '12px', outline: 'none', resize: 'vertical', marginBottom: '16px', lineHeight: 1.6 }}
@@ -1423,17 +1423,17 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                 <button
                   onClick={() => deleteNote(noteModal.symbol)}
                   style={{ padding: '10px', background: 'transparent', border: '1px solid rgba(255,126,179,0.4)', borderRadius: '6px', color: 'var(--color-down)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer' }}
-                >borrar</button>
+                >{t.portfolio.delete}</button>
               )}
               <button
                 onClick={() => setNoteModal(null)}
                 style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid var(--bd)', borderRadius: '6px', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer' }}
-              >cancelar</button>
+              >{t.portfolio.cancel}</button>
               <button
                 onClick={() => saveNote(noteModal.symbol, noteText)}
                 disabled={noteSaving || !noteText.trim()}
                 style={{ flex: 2, padding: '10px', background: 'rgba(0,229,160,0.1)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: noteSaving || !noteText.trim() ? 'not-allowed' : 'pointer', letterSpacing: '0.04em', opacity: noteSaving || !noteText.trim() ? 0.5 : 1 }}
-              >{noteSaving ? '···' : 'guardar nota'}</button>
+              >{noteSaving ? '···' : t.portfolio.saveNote}</button>
             </div>
           </div>
         </div>
@@ -1449,7 +1449,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
             onClick={e => e.stopPropagation()}
             style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '340px' }}
           >
-            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t1)', marginBottom: '4px' }}>🔔 Alerta de precio</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t1)', marginBottom: '4px' }}>{t.portfolio.priceAlertTitle}</div>
             <div style={{ fontSize: '12px', color: 'var(--t5)', marginBottom: '20px', fontFamily: 'var(--font-body)', letterSpacing: '0.06em' }}>
               {alertModal.name} · actual: {formatPrice(alertModal.currentPrice, alertModal.type)}
             </div>
@@ -1470,7 +1470,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
               type="number"
               value={alertPrice}
               onChange={e => setAlertPrice(e.target.value)}
-              placeholder="Precio objetivo"
+              placeholder={t.portfolio.targetPricePlaceholder}
               style={{ width: '100%', boxSizing: 'border-box', padding: '10px 12px', background: 'var(--bg-page)', border: '1px solid var(--bd)', borderRadius: '6px', color: 'var(--t1)', fontFamily: 'var(--font-body)', fontSize: '13px', outline: 'none', marginBottom: '16px' }}
             />
 
@@ -1479,11 +1479,11 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
               <button
                 onClick={() => setAlertModal(null)}
                 style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid var(--bd)', borderRadius: '6px', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer' }}
-              >cancelar</button>
+              >{t.portfolio.cancel}</button>
               <button
                 onClick={() => saveAlert(alertModal.ticker, parseFloat(alertPrice), alertCondition)}
                 style={{ flex: 2, padding: '10px', background: 'rgba(0,229,160,0.1)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em' }}
-              >guardar alerta</button>
+              >{t.portfolio.saveAlert}</button>
             </div>
           </div>
         </div>

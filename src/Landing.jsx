@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLang } from './LangContext.jsx';
 
 const DEMO_CANDLES = [
   { o: 100, h: 108, l: 97,  c: 106 },
@@ -124,6 +125,7 @@ function DemoChart() {
 }
 
 export default function Landing({ onEnter }) {
+  const { t } = useLang();
   function enter() {
     localStorage.setItem('tradaria_landing_seen', 'true');
     onEnter();
@@ -149,7 +151,7 @@ export default function Landing({ onEnter }) {
         style={{ position: 'fixed', top: '16px', right: '16px', zIndex: 100, background: 'transparent', border: 'none', color: '#3a4455', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', letterSpacing: '0.06em', padding: '8px' }}
         onMouseEnter={e => e.currentTarget.style.color = '#e2e8f0'}
         onMouseLeave={e => e.currentTarget.style.color = '#3a4455'}
-      >Skip →</button>
+      >{t.common.skip}</button>
 
       <div style={{ maxWidth: '420px', margin: '0 auto', padding: '56px 28px 120px' }}>
 

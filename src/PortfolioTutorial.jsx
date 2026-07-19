@@ -78,6 +78,7 @@ function RankingVisual() {
 }
 
 function LeagueVisual() {
+  const { t } = useLang();
   const rows = [
     { name: '@you',    val: '+18.4%', color: 'var(--green)', you: true  },
     { name: '@sara_m', val: '+12.1%', color: 'var(--t1)', you: false },
@@ -86,7 +87,7 @@ function LeagueVisual() {
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-        <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>Liga de Amigos</span>
+        <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>{t.portfolio.friendsLeague}</span>
         <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--green)', fontWeight: 700, letterSpacing: '0.16em', padding: '3px 8px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)30', borderRadius: '4px' }}>AB3KX2</span>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>

@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { getXP, getNextLevel, getProgress } from './levels.js';
+import { useLang } from './LangContext.jsx';
 
 const PARTICLES = Array.from({ length: 28 }, (_, i) => ({
   id: i,
@@ -12,6 +13,7 @@ const PARTICLES = Array.from({ length: 28 }, (_, i) => ({
 }));
 
 export default function LevelUpOverlay({ newLevel, prevLevel, onClose }) {
+  const { t } = useLang();
   const xp   = getXP();
   const next = getNextLevel(xp);
   const prog = getProgress(xp);
@@ -69,7 +71,7 @@ export default function LevelUpOverlay({ newLevel, prevLevel, onClose }) {
           textTransform: 'uppercase',
           marginBottom: '8px',
           animation: 'luSlideUp 0.4s 0.3s both',
-        }}>✦ level up ✦</div>
+        }}>{t.common.levelUp}</div>
 
         {/* Icon */}
         <div style={{
