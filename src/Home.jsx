@@ -200,14 +200,16 @@ export default function Home({ onSelect }) {
 
         {/* Garland */}
         {new Date() <= new Date('2026-07-25T23:59:59') && (
-          <div style={{ position: 'relative', height: '32px', marginBottom: '8px', overflow: 'visible' }}>
-            <div style={{ position: 'absolute', top: '0', left: '-28px', right: '-28px', height: '1px', background: '#888' }} />
-            {['8%','18%','28%','38%','48%','58%','68%','78%','88%','98%'].map((left, i) => (
-              <div key={i} style={{ position: 'absolute', top: '0', left: left, display: 'flex', flexDirection: 'column', alignItems: 'center', transform: 'translateX(-50%)' }}>
-                <div style={{ width: '1px', height: '8px', background: '#888' }} />
-                <span style={{ fontSize: '16px', lineHeight: 1 }}>🇪🇸</span>
-              </div>
-            ))}
+          <div style={{ position: 'relative', height: '36px', marginBottom: '8px', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', top: '0', left: '0', right: '0', height: '100%', background: 'linear-gradient(to bottom right, transparent calc(50% - 0.5px), #666 calc(50% - 0.5px), #666 calc(50% + 0.5px), transparent calc(50% + 0.5px))' }} />
+            <div style={{ position: 'absolute', top: '0', left: '0', right: '0', display: 'flex', justifyContent: 'space-between', padding: '0 4px' }}>
+              {Array.from({ length: 9 }).map((_, i) => (
+                <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <div style={{ display: 'inline-block', borderLeft: '1px solid #666', height: '12px', verticalAlign: 'top' }} />
+                  <span style={{ fontSize: '18px', lineHeight: 1 }}>🇪🇸</span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
