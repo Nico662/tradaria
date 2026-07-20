@@ -10,10 +10,6 @@ import { useAuth, isIOSApp } from './AuthContext';
 import UsernameModal from './UsernameModal.jsx';
 import { FRAME_STYLES, AVATAR_EMOJIS } from './UserAvatar.jsx';
 import FounderBadge, { isFounder } from './FounderBadge.jsx';
-import WorldCupBanner from './WorldCupBanner.jsx';
-
-const IS_WORLDCUP = Date.now() < new Date('2026-07-25T23:59:59').getTime();
-
 const TOURNAMENT_SUB = {
   en: 'Weekly · Global ranking · 10 rounds',
   es: 'Semanal · Ranking global · 10 rondas',
@@ -124,7 +120,6 @@ export default function Home({ onSelect }) {
 
   return (
     <div id="gtm-root">
-      <WorldCupBanner />
       {showUsernameModal && (
         <UsernameModal onDone={handleUsernameDone} />
       )}
@@ -331,7 +326,7 @@ export default function Home({ onSelect }) {
               </defs>
             </svg>
             <span style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '38px', letterSpacing: '-1px', color: 'var(--text-primary)', lineHeight: 1 }}>
-              Tradi<span style={{ color: 'var(--pink)' }}>ko</span>{IS_WORLDCUP && <span style={{ fontSize: '16px', marginLeft: '5px', verticalAlign: 'middle' }}>👑</span>}
+              Tradi<span style={{ color: 'var(--pink)' }}>ko</span>
             </span>
           </div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: '6px', fontFamily: 'var(--font-body)', fontWeight: 700 }}>
@@ -379,7 +374,7 @@ export default function Home({ onSelect }) {
           {/* Hero: Daily */}
           <button
             onClick={() => onSelect('daily')}
-            style={{ width: '100%', background: 'var(--gradient-surface)', border: IS_WORLDCUP ? '1px solid #ffc400' : '0.5px solid var(--border-default)', borderRadius: 'var(--radius-lg)', padding: '18px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', transition: 'transform 0.1s', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.10s both' }}
+            style={{ width: '100%', background: 'var(--gradient-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-lg)', padding: '18px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', transition: 'transform 0.1s', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.10s both' }}
             onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
             onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
             onTouchStart={e => e.currentTarget.style.transform = 'scale(0.98)'}
