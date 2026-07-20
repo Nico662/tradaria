@@ -198,6 +198,19 @@ export default function Home({ onSelect }) {
           )}
         </div>
 
+        {/* Garland */}
+        {new Date() <= new Date('2026-07-25T23:59:59') && (
+          <div style={{ position: 'relative', height: '32px', marginBottom: '8px', overflow: 'visible' }}>
+            <div style={{ position: 'absolute', top: '0', left: '-28px', right: '-28px', height: '1px', background: '#888' }} />
+            {['8%','18%','28%','38%','48%','58%','68%','78%','88%','98%'].map((left, i) => (
+              <div key={i} style={{ position: 'absolute', top: '0', left: left, display: 'flex', flexDirection: 'column', alignItems: 'center', transform: 'translateX(-50%)' }}>
+                <div style={{ width: '1px', height: '8px', background: '#888' }} />
+                <span style={{ fontSize: '16px', lineHeight: 1 }}>🇪🇸</span>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* User */}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
           {user ? (
