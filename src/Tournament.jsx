@@ -228,6 +228,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
 
   const formatWeekId = (id) => {
     if (!id) return '';
+    if (id === '2026-W30') return '🏆 Copa del Mundo Tradiko 2026';
     const [year, week] = id.split('-W');
     return `Week ${week} · ${year}`;
   };
