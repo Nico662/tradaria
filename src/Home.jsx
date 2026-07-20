@@ -10,6 +10,7 @@ import { useAuth, isIOSApp } from './AuthContext';
 import UsernameModal from './UsernameModal.jsx';
 import { FRAME_STYLES, AVATAR_EMOJIS } from './UserAvatar.jsx';
 import FounderBadge, { isFounder } from './FounderBadge.jsx';
+import WorldCupBanner from './WorldCupBanner.jsx';
 
 const TOURNAMENT_SUB = {
   en: 'Weekly · Global ranking · 10 rounds',
@@ -121,6 +122,7 @@ export default function Home({ onSelect }) {
 
   return (
     <div id="gtm-root">
+      <WorldCupBanner />
       {showUsernameModal && (
         <UsernameModal onDone={handleUsernameDone} />
       )}
