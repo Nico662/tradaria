@@ -11,6 +11,7 @@ import UsernameModal from './UsernameModal.jsx';
 import { FRAME_STYLES, AVATAR_EMOJIS } from './UserAvatar.jsx';
 import FounderBadge, { isFounder } from './FounderBadge.jsx';
 import SpainGarland from './SpainGarland.jsx';
+import WorldCupModal from './WorldCupModal.jsx';
 const TOURNAMENT_SUB = {
   en: 'Weekly · Global ranking · 10 rounds',
   es: 'Semanal · Ranking global · 10 rondas',
@@ -35,6 +36,7 @@ export default function Home({ onSelect }) {
   const fileInputRef = useRef(null);
   const [academyName, setAcademyName] = useState(() => localStorage.getItem('academy_name') || null);
   const [hasPendingFriends, setHasPendingFriends] = useState(false);
+  const [showWorldCup, setShowWorldCup] = useState(false);
 
   useEffect(() => {
     if (!user?.academyId || !user?.isAcademyPro || academyName) return;
@@ -366,6 +368,27 @@ export default function Home({ onSelect }) {
           <WordOfTheDay />
         </div>
 
+        {/* World Cup 2026 */}
+        {new Date() <= new Date('2026-07-27T23:59:59+02:00') && (
+          <div style={{ background: 'linear-gradient(135deg, #c60b1e 0%, #ffc400 50%, #c60b1e 100%)', borderRadius: '14px', padding: '1.5px', marginBottom: '12px' }}>
+            <div style={{ background: 'var(--bg-card)', borderRadius: '12.5px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ fontSize: '28px', flexShrink: 0, lineHeight: 1 }}>🏆</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '14px', color: 'var(--text-primary)', marginBottom: '3px' }}>Copa del Mundo Tradiko 2026</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>
+                  Top 3 gana <span style={{ color: '#ffc400' }}>Pro para siempre</span> · Acaba el 27 jul
+                </div>
+              </div>
+              <button
+                onClick={() => setShowWorldCup(true)}
+                style={{ background: 'linear-gradient(135deg, #c60b1e, #ffc400)', border: 'none', borderRadius: '8px', padding: '6px 12px', color: '#0d0d0d', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 900, cursor: 'pointer', letterSpacing: '0.04em', flexShrink: 0 }}
+              >
+                Ver ranking
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Mode cards */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
 
@@ -460,6 +483,7 @@ export default function Home({ onSelect }) {
         </div>
 
       </div>
-    </div>
+    {showWorldCup && <WorldCupModal onClose={() => setShowWorldCup(false)} />}
+  </div>
   );
 }

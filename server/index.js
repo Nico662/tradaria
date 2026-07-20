@@ -316,6 +316,16 @@ const AsyncDuelSchema = new mongoose.Schema({
 });
 const AsyncDuel = mongoose.model('AsyncDuel', AsyncDuelSchema);
 
+const WorldCupEntrySchema = new mongoose.Schema({
+  userId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
+  name:      { type: String, required: true },
+  username:  { type: String, default: null },
+  avatar:    { type: String, default: null },
+  score:     { type: Number, default: 0 },
+  updatedAt: { type: Date, default: Date.now },
+});
+const WorldCupEntry = mongoose.model('WorldCupEntry', WorldCupEntrySchema);
+
 // ── VAPID / Push ──────────────────────────────────────────────────
 webpush.setVapidDetails(
   'mailto:nicolasvidalcorrecher@tradaria.dev',
@@ -1253,6 +1263,14 @@ app.post('/stats/game', async (req, res) => {
     const safeStreak   = Math.max(0, Math.min(Number(streak)   || 0, 10000));
     const safeRounds   = Math.max(0, Math.min(Number(rounds)   || 0, 10000));
     await GameHistory.create({ userId: decoded.id, mode, score: safeScore, correct: safeCorrect, wrong: safeWrong, accuracy: safeAccuracy, streak: safeStreak, rounds: safeRounds });
+    if (isWorldCupPeriod() && safeScore > 0) {
+      const u = await User.findById(decoded.id).select('name username avatar').lean();
+      if (u) await WorldCupEntry.findOneAndUpdate(
+        { userId: decoded.id },
+        { $inc: { score: safeScore }, $set: { name: u.username || u.name, username: u.username || null, avatar: u.avatar || null, updatedAt: new Date() } },
+        { upsert: true }
+      );
+    }
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1401,6 +1419,11 @@ function getWeekId() {
   return `${year}-W${String(week).padStart(2, '00')}`;
 }
 
+function isWorldCupPeriod() {
+  const now = new Date();
+  return now >= new Date('2026-07-20T00:00:00+02:00') && now <= new Date('2026-07-27T23:59:59+02:00');
+}
+
 app.get('/tournament', async (req, res) => {
   try {
     const weekId = getWeekId();
@@ -1480,6 +1503,13 @@ app.post('/tournament/score', async (req, res) => {
 
     await Score.create({ weekId, userId: user._id, name: user.username || user.name, username: user.username || null, avatar: user.avatar, score: calculatedScore, rounds: session.history, cosmeticAvatar: cosmeticAvatar || null });
     await TournamentSession.findOneAndUpdate({ weekId, userId: user._id }, { completed: true });
+    if (isWorldCupPeriod() && calculatedScore > 0) {
+      await WorldCupEntry.findOneAndUpdate(
+        { userId: user._id },
+        { $inc: { score: calculatedScore }, $set: { name: user.username || user.name, username: user.username || null, avatar: user.avatar || null, updatedAt: new Date() } },
+        { upsert: true }
+      );
+    }
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -3706,6 +3736,51 @@ app.get('/api/portfolio/compare', async (req, res) => {
     });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
+
+// ── World Cup Tradiko 2026 ─────────────────────────────────────────
+app.get('/tournament/worldcup2026', async (req, res) => {
+  try {
+    const top = await WorldCupEntry.find().sort({ score: -1 }).limit(10).lean();
+    let myId = null;
+    const auth = req.headers.authorization;
+    if (auth) {
+      try { myId = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET).id?.toString(); } catch {}
+    }
+    const ranking = top.map((e, i) => ({
+      rank:   i + 1,
+      name:   e.username || e.name,
+      avatar: e.avatar,
+      score:  e.score,
+      isMe:   myId ? e.userId.toString() === myId : false,
+    }));
+    let myRank = null;
+    if (myId) {
+      const myEntry = await WorldCupEntry.findOne({ userId: myId }).lean();
+      if (myEntry) {
+        const above = await WorldCupEntry.countDocuments({ score: { $gt: myEntry.score } });
+        myRank = { rank: above + 1, score: myEntry.score };
+      }
+    }
+    res.json({ ranking, myRank });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Cron: award Pro to top 3 on July 27 2026 at 23:59 Madrid time
+cron.schedule('59 23 27 7 *', async () => {
+  if (new Date().getFullYear() !== 2026) return;
+  try {
+    const top3 = await WorldCupEntry.find().sort({ score: -1 }).limit(3).lean();
+    for (const entry of top3) {
+      await User.findByIdAndUpdate(entry.userId, { isPro: true });
+      await sendPushToUser(entry.userId, {
+        title: '🏆 ¡Has ganado la Copa del Mundo Tradiko!',
+        body:  'Eres Pro para siempre. Felicidades campeón.',
+        url:   'https://tradiko.dev',
+      });
+    }
+    console.log(`WorldCup 2026: Pro awarded to ${top3.length} winners`);
+  } catch (err) { console.error('WorldCup cron error:', err.message); }
+}, { timezone: 'Europe/Madrid' });
 
 app.get('/', (req, res) => res.json({ status: 'ok' }));
 
