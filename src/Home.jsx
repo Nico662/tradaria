@@ -325,8 +325,19 @@ export default function Home({ onSelect }) {
                 </linearGradient>
               </defs>
             </svg>
-            <span style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '38px', letterSpacing: '-1px', color: 'var(--text-primary)', lineHeight: 1 }}>
-              Tradi<span style={{ color: 'var(--pink)' }}>ko</span>
+            <span style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '38px', letterSpacing: '-1px', lineHeight: 1 }}>
+              {(() => {
+                const isFiesta = new Date() <= new Date('2026-07-25T23:59:59');
+                return isFiesta ? (
+                  <>
+                    <span style={{ color: '#c60b1e' }}>Tra</span>
+                    <span style={{ color: '#ffc400' }}>di</span>
+                    <span style={{ color: '#c60b1e' }}>ko</span>
+                  </>
+                ) : (
+                  <span style={{ color: 'var(--text-primary)' }}>Tradi<span style={{ color: 'var(--pink)' }}>ko</span></span>
+                );
+              })()}
             </span>
           </div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: '6px', fontFamily: 'var(--font-body)', fontWeight: 700 }}>
