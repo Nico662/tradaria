@@ -163,8 +163,19 @@ export default function Landing({ onEnter }) {
               <rect x="25" y="40" width="50" height="110" rx="6" fill="var(--green)"/>
               <line x1="50" y1="150" x2="50" y2="190" stroke="var(--green)" strokeWidth="8" strokeLinecap="round"/>
             </svg>
-            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '38px', letterSpacing: '-0.02em', color: '#f0f0f0', textShadow: '0 0 60px rgba(0,229,160,0.2)' }}>
-              Tradiko
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '38px', letterSpacing: '-0.02em', textShadow: '0 0 60px rgba(0,229,160,0.2)' }}>
+              {(() => {
+                const isFiesta = new Date() <= new Date('2026-07-25T23:59:59');
+                return isFiesta ? (
+                  <>
+                    <span style={{ color: '#c60b1e' }}>Tra</span>
+                    <span style={{ color: '#ffc400' }}>di</span>
+                    <span style={{ color: '#c60b1e' }}>ko</span>
+                  </>
+                ) : (
+                  <span style={{ color: '#f0f0f0' }}>Tradiko</span>
+                );
+              })()}
             </div>
           </div>
           <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '26px', color: '#f0f0f0', lineHeight: 1.2, marginBottom: '10px', letterSpacing: '-0.01em' }}>
