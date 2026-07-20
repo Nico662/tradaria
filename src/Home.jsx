@@ -412,29 +412,59 @@ export default function Home({ onSelect }) {
 
           {/* Secondary cards */}
           {[
-            { id: 'survival',   icon: '☠️', label: t.survival.title,   sub: t.survival.sub,          color: 'var(--text-primary)', delay: '0.15s' },
-            { id: 'historical', icon: '📜', label: t.home.mode5,        sub: t.home.mode5sub,         color: 'var(--text-primary)', delay: '0.20s' },
-            { id: 'arena',      icon: '⚔️', label: t.home.mode2,        sub: t.arena.sub,             color: 'var(--text-primary)', delay: '0.25s' },
-            { id: 'tournament', icon: '🏆', label: t.home.mode3,        sub: TOURNAMENT_SUB[lang],    color: 'var(--text-primary)', delay: '0.30s' },
-            { id: 'game',       icon: '📈', label: t.home.mode1,        sub: t.home.mode1sub,         color: 'var(--text-primary)', delay: '0.35s' },
-          ].map(({ id, icon, label, sub, color, delay }) => (
-            <button
-              key={id}
-              onClick={() => onSelect(id)}
-              style={{ width: '100%', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-lg)', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', transition: 'transform 0.1s', textAlign: 'left', animation: `fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) ${delay} both` }}
-              onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
-              onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
-              onTouchStart={e => e.currentTarget.style.transform = 'scale(0.98)'}
-              onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
-            >
-              <div style={{ width: '38px', height: '38px', borderRadius: 'var(--radius-md)', background: 'var(--bg-base)', border: '0.5px solid var(--border-default)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>{icon}</div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '13px', color, marginBottom: '3px' }}>{label}</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>{sub}</div>
-              </div>
-              <span style={{ color, fontSize: '18px', flexShrink: 0 }}>›</span>
-            </button>
-          ))}
+            { id: 'survival',   icon: '☠️', label: t.survival.title,   sub: t.survival.sub,       color: 'var(--text-primary)', delay: '0.15s' },
+            { id: 'historical', icon: '📜', label: t.home.mode5,        sub: t.home.mode5sub,      color: 'var(--text-primary)', delay: '0.20s' },
+            { id: 'arena',      icon: '⚔️', label: t.home.mode2,        sub: t.arena.sub,          color: 'var(--text-primary)', delay: '0.25s' },
+            { id: 'tournament', icon: '🏆', label: t.home.mode3,        sub: TOURNAMENT_SUB[lang], color: 'var(--text-primary)', delay: '0.30s' },
+            { id: 'game',       icon: '📈', label: t.home.mode1,        sub: t.home.mode1sub,      color: 'var(--text-primary)', delay: '0.35s' },
+          ].map(({ id, icon, label, sub, color, delay }) => {
+            const isWorldCupWeek = new Date() >= new Date('2026-07-20') && new Date() <= new Date('2026-07-27');
+            const wcCard = id === 'tournament' && isWorldCupWeek;
+            const cardLabel = wcCard ? '🏆 Copa del Mundo Tradiko 2026' : label;
+            const cardSub   = wcCard ? 'Top 3 gana Pro para siempre · Acaba el 27 jul' : sub;
+            const btn = (
+              <button
+                onClick={() => onSelect(id)}
+                style={{ width: '100%', background: wcCard ? 'var(--bg-card)' : 'var(--bg-surface)', border: wcCard ? 'none' : '0.5px solid var(--border-default)', borderRadius: wcCard ? '12.5px' : 'var(--radius-lg)', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', transition: 'transform 0.1s', textAlign: 'left', animation: `fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) ${delay} both` }}
+                onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
+                onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+                onTouchStart={e => e.currentTarget.style.transform = 'scale(0.98)'}
+                onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
+              >
+                <div style={{ width: '38px', height: '38px', borderRadius: 'var(--radius-md)', background: wcCard ? 'rgba(198,11,30,0.15)' : 'var(--bg-base)', border: wcCard ? '1px solid rgba(198,11,30,0.35)' : '0.5px solid var(--border-default)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>{icon}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '13px', color, marginBottom: '3px' }}>{cardLabel}</div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>{cardSub}</div>
+                </div>
+                <span style={{ color, fontSize: '18px', flexShrink: 0 }}>›</span>
+              </button>
+            );
+            if (wcCard) {
+              return (
+                <div key={id} style={{ background: 'linear-gradient(135deg, #c60b1e 0%, #ffc400 50%, #c60b1e 100%)', borderRadius: '14px', padding: '1.5px', animation: `fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) ${delay} both` }}>
+                  {btn}
+                </div>
+              );
+            }
+            return (
+              <button
+                key={id}
+                onClick={() => onSelect(id)}
+                style={{ width: '100%', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-lg)', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', transition: 'transform 0.1s', textAlign: 'left', animation: `fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) ${delay} both` }}
+                onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
+                onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+                onTouchStart={e => e.currentTarget.style.transform = 'scale(0.98)'}
+                onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
+              >
+                <div style={{ width: '38px', height: '38px', borderRadius: 'var(--radius-md)', background: 'var(--bg-base)', border: '0.5px solid var(--border-default)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>{icon}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '13px', color, marginBottom: '3px' }}>{label}</div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>{sub}</div>
+                </div>
+                <span style={{ color, fontSize: '18px', flexShrink: 0 }}>›</span>
+              </button>
+            );
+          })}
 
         </div>
 
