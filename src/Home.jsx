@@ -11,7 +11,6 @@ import UsernameModal from './UsernameModal.jsx';
 import { FRAME_STYLES, AVATAR_EMOJIS } from './UserAvatar.jsx';
 import FounderBadge, { isFounder } from './FounderBadge.jsx';
 import WorldCupBanner from './WorldCupBanner.jsx';
-import WorldCupConfetti from './WorldCupConfetti.jsx';
 
 const IS_WORLDCUP = Date.now() < new Date('2026-07-25T23:59:59').getTime();
 
@@ -126,7 +125,6 @@ export default function Home({ onSelect }) {
   return (
     <div id="gtm-root">
       <WorldCupBanner />
-      <WorldCupConfetti />
       {showUsernameModal && (
         <UsernameModal onDone={handleUsernameDone} />
       )}
@@ -320,9 +318,6 @@ export default function Home({ onSelect }) {
 
         {/* Logo */}
         <div className="animate-fade-in-up" style={{ textAlign: 'center', marginBottom: '24px' }}>
-          {IS_WORLDCUP && (
-            <div style={{ fontSize: '22px', lineHeight: 1, marginBottom: '4px' }}>👑</div>
-          )}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 200" width="22">
               <line x1="50" y1="10" x2="50" y2="40" stroke="#ff7eb3" strokeWidth="8" strokeLinecap="round"/>
@@ -336,7 +331,7 @@ export default function Home({ onSelect }) {
               </defs>
             </svg>
             <span style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '38px', letterSpacing: '-1px', color: 'var(--text-primary)', lineHeight: 1 }}>
-              Tradi<span style={{ color: 'var(--pink)' }}>ko</span>
+              Tradi<span style={{ color: 'var(--pink)' }}>ko</span>{IS_WORLDCUP && <span style={{ fontSize: '16px', marginLeft: '5px', verticalAlign: 'middle' }}>👑</span>}
             </span>
           </div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: '6px', fontFamily: 'var(--font-body)', fontWeight: 700 }}>
@@ -384,7 +379,7 @@ export default function Home({ onSelect }) {
           {/* Hero: Daily */}
           <button
             onClick={() => onSelect('daily')}
-            style={{ width: '100%', background: 'var(--gradient-surface)', border: IS_WORLDCUP ? '1px solid #ffc400' : '0.5px solid var(--border-default)', boxShadow: IS_WORLDCUP ? '0 0 10px rgba(255,196,0,0.18)' : undefined, borderRadius: 'var(--radius-lg)', padding: '18px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', transition: 'transform 0.1s', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.10s both' }}
+            style={{ width: '100%', background: 'var(--gradient-surface)', border: IS_WORLDCUP ? '1px solid #ffc400' : '0.5px solid var(--border-default)', borderRadius: 'var(--radius-lg)', padding: '18px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', transition: 'transform 0.1s', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.10s both' }}
             onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
             onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
             onTouchStart={e => e.currentTarget.style.transform = 'scale(0.98)'}

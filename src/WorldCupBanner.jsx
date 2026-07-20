@@ -22,21 +22,20 @@ export default function WorldCupBanner() {
         }
       `}</style>
       <div style={{
-        background: 'linear-gradient(90deg, #c60b1e 0%, #ffc400 100%)',
+        background: '#c60b1e',
         color: '#fff',
         fontFamily: 'var(--font-body, sans-serif)',
         fontWeight: 700,
-        fontSize: '14px',
-        padding: '10px 16px',
+        fontSize: '13px',
+        padding: '6px 12px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap: '12px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.35)',
-        animation: 'wcFadeIn 0.4s ease both',
+        gap: '8px',
+        animation: 'wcFadeIn 0.3s ease both',
       }}>
-        <span style={{ flex: 1, textAlign: 'center', letterSpacing: '0.03em' }}>
-          🏆 ¡España Campeona del Mundo! 🇪🇸 #Campeones
+        <span style={{ flex: 1, textAlign: 'center', letterSpacing: '0.02em' }}>
+          🏆 ¡España Campeona! 🇪🇸
         </span>
         <button
           onClick={dismiss}
@@ -46,10 +45,10 @@ export default function WorldCupBanner() {
             border: 'none',
             cursor: 'pointer',
             color: '#fff',
-            fontSize: '18px',
+            fontSize: '14px',
             lineHeight: 1,
-            padding: '0 4px',
-            opacity: 0.8,
+            padding: '0 2px',
+            opacity: 0.6,
             flexShrink: 0,
           }}
         >×</button>
