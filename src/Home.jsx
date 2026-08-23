@@ -151,7 +151,7 @@ export default function Home({ onSelect }) {
               </div>
             ))}
             <a
-              href="https://discord.gg/Fvs9kPwPC"
+              href="https://discord.gg/NSwHdPKrt8"
               target="_blank"
               rel="noopener noreferrer"
               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', borderRadius: '50%', border: '0.5px solid var(--border-default)', background: 'transparent', color: '#5865F2', textDecoration: 'none', flexShrink: 0, transition: 'border-color 0.15s' }}
