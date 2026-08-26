@@ -42,6 +42,7 @@ import StudentDashboard from './StudentDashboard.jsx';
 import AppLayout from './components/layout/AppLayout.jsx';
 import ModesPage from './components/ModesPage.jsx';
 import BattlePass from './BattlePass.jsx';
+import TradingMode from './TradingMode.jsx';
 
 
 const CATEGORIES = [
@@ -639,6 +640,7 @@ export default function App() {
           else if (mode === 'student_dashboard') setScreen('student_dashboard');
           else if (mode === 'privacy')           setScreen('privacy');
           else if (mode === 'support')           setScreen('support');
+          else if (mode === 'trading')           setScreen('trading');
           else {
             setScreen('game');
             if (!localStorage.getItem('tradaria_tutorial_done')) setShowTutorial(true);
@@ -651,6 +653,7 @@ export default function App() {
   }
 
   if (screen === 'battle_pass') return <BattlePass onBack={() => setScreen('home')} onGoPricing={() => setScreen('pricing')} />;
+  if (screen === 'trading')    return <TradingMode onBack={() => setScreen('home')} />;
 
   if (screen === 'arena') return (
     <>
