@@ -16,6 +16,8 @@ const Stripe         = require('stripe');
 const rateLimit      = require('express-rate-limit');
 const { Redis }      = require('@upstash/redis');
 const { ApnsClient, Notification } = require('apns2');
+const Season      = require('./models/Season');
+const season1Cfg  = require('./config/season1');
 
 const apnsClient = new ApnsClient({
   team: 'KA99F6SRW4',
@@ -40,6 +42,8 @@ const VALID_BADGE_IDS = new Set([
   'social_first','social_squad','social_duel_win','social_duel_3','social_challenger',
   'streak_14','streak_60','streak_100','arena_streak_3','arena_streak_5',
   'secret_night','secret_allgreen','secret_broke','secret_speedrun','secret_comeback',
+  // Battle Pass Season 1 badges
+  'bp_s1_early_trader','bp_s1_elite','bp_s1_season1_pro','bp_s1_season1','bp_s1_champion',
 ]);
 
 const VALID_GAME_MODES = new Set(['guess', 'survival', 'daily', 'arena', 'tournament', 'historical', 'portfolio']);
@@ -95,6 +99,20 @@ mongoose.connect(MONGODB_URI, { autoIndex: false })
       $or: [{ expiresAt: null }, { expiresAt: { $exists: false } }],
     });
     if (deletedCount > 0) console.log(`Retos fantasma eliminados: ${deletedCount}`);
+
+    // ── Seed Season 1 (idempotent upsert) ────────────────────────────────────
+    await Season.findOneAndUpdate(
+      { seasonId: season1Cfg.seasonId },
+      {
+        seasonId:  season1Cfg.seasonId,
+        name:      season1Cfg.name,
+        startDate: season1Cfg.startDate,
+        endDate:   season1Cfg.endDate,
+        status:    'upcoming',
+      },
+      { upsert: true, setDefaultsOnInsert: true }
+    );
+    console.log('Season 1 seeded (or already present)');
   })
   .catch(err => console.error('MongoDB error:', err));
 
@@ -131,6 +149,23 @@ const UserSchema = new mongoose.Schema({
   academyId:             { type: mongoose.Schema.Types.ObjectId, ref: 'Academy', default: null },
   role:                  { type: String,  enum: ['student', 'teacher'], default: 'student' },
   isAcademyPro:          { type: Boolean, default: false },
+  // ── Battle Pass ──────────────────────────────────────────────────
+  // battlePass is null for users who predate Season 1 or haven't played yet.
+  // Initialized on first BP-related request for the active season.
+  // level is computed on demand: Math.min(30, Math.floor(bpPoints / 300))
+  battlePass: {
+    seasonId:          { type: Number,   default: null },
+    bpPoints:          { type: Number,   default: 0 },
+    completedMissions: { type: [String], default: [] }, // mission IDs (e.g. 'bp_s1_l1')
+    claimedRewards:    { type: [Number], default: [] }, // level numbers claimed (e.g. [2, 4])
+  },
+  // Mechanic tickets earned through the Battle Pass (e.g. restore streak).
+  // Pending design discussion (Fase 6d) — field reserved, logic not yet implemented.
+  battlePassItems: [{
+    _id:    false,
+    itemId: { type: String,  required: true },
+    used:   { type: Boolean, default: false },
+  }],
 });
 
 const TournamentSchema = new mongoose.Schema({
@@ -3575,6 +3610,8 @@ app.get('/u/:username', async (req, res) => {
 });
 
 app.use('/academy', require('./routes/academy'));
+const { router: battlePassRouter, addBattlePassProgress } = require('./routes/battlepass');
+app.use('/battle-pass', battlePassRouter);
 
 // ── Stripe academy billing portal ─────────────────────────────────
 app.post('/stripe/academy-portal', async (req, res) => {

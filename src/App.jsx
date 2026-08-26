@@ -41,6 +41,7 @@ import { LevelIcon } from './components/AppIcons.jsx';
 import StudentDashboard from './StudentDashboard.jsx';
 import AppLayout from './components/layout/AppLayout.jsx';
 import ModesPage from './components/ModesPage.jsx';
+import BattlePass from './BattlePass.jsx';
 
 
 const CATEGORIES = [
@@ -631,6 +632,7 @@ export default function App() {
           else if (mode === 'portfolio') setScreen('portfolio');
           else if (mode === 'friends')   setScreen('friends');
           else if (mode === 'settings')  setScreen('settings');
+          else if (mode === 'battle_pass')        setScreen('battle_pass');
           else if (mode === 'pricing')          setScreen('pricing');
           else if (mode === 'join_academy')      setScreen('join_academy');
           else if (mode === 'teacher_dashboard') setScreen('teacher_dashboard');
@@ -647,6 +649,8 @@ export default function App() {
       </AppLayout>
     );
   }
+
+  if (screen === 'battle_pass') return <BattlePass onBack={() => setScreen('home')} onGoPricing={() => setScreen('pricing')} />;
 
   if (screen === 'arena') return (
     <>
