@@ -399,27 +399,28 @@ export default function Home({ onSelect }) {
           {/* Trader Pass */}
           <button
             onClick={() => onSelect('battle_pass')}
-            style={{ width: '100%', background: 'transparent', border: '1px solid rgba(34,211,160,0.2)', borderRadius: 'var(--radius-lg)', padding: '18px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.03s both' }}
+            style={{ width: '100%', background: 'transparent', border: '1px solid rgba(0,192,135,0.2)', borderRadius: 'var(--radius-lg)', padding: '18px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.03s both' }}
           >
-            <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-md)', background: 'rgba(34,211,160,0.08)', border: '1px solid rgba(34,211,160,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Ticket size={22} strokeWidth={2} aria-hidden style={{ stroke: '#22d3a5' }} /></div>
+            <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-md)', background: 'rgba(0,192,135,0.08)', border: '1px solid rgba(0,192,135,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Ticket size={22} strokeWidth={2} aria-hidden style={{ stroke: '#00c087' }} /></div>
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '15px', color: '#ffffff', marginBottom: '3px' }}>{t.home.traderPass}</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: '#22d3a5' }}>{t.home.traderPassSub}</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: '#00c087' }}>{t.home.traderPassSub}</div>
             </div>
             <span style={{ color: 'var(--t4)', fontSize: '18px', flexShrink: 0 }}>›</span>
           </button>
 
-          {/* Trading Mode — próximamente */}
-          <div
-            style={{ width: '100%', background: 'transparent', border: '1px dashed #2a2a2a', borderRadius: 'var(--radius-lg)', padding: '18px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'default', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.05s both', opacity: 0.5 }}
+          {/* Trading Mode */}
+          <button
+            onClick={() => onSelect('trading')}
+            style={{ width: '100%', background: 'transparent', border: '1px solid rgba(224,85,133,0.2)', borderRadius: 'var(--radius-lg)', padding: '18px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.05s both' }}
           >
-            <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-md)', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(96,165,250,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><CandlestickChart size={22} strokeWidth={2} aria-hidden style={{ stroke: '#6a6a6a' }} /></div>
+            <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-md)', background: 'rgba(224,85,133,0.08)', border: '1px solid rgba(224,85,133,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><CandlestickChart size={22} strokeWidth={2} aria-hidden style={{ stroke: '#e05585' }} /></div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '15px', color: '#8a8a8a', marginBottom: '3px' }}>{t.home.tradingMode}</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: '#6a6a6a' }}>{t.home.tradingModeSub}</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '15px', color: '#ffffff', marginBottom: '3px' }}>{t.home.tradingMode}</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: '#e05585' }}>{t.home.tradingModeSub}</div>
             </div>
-            <span style={{ fontSize: '9px', letterSpacing: '1px', borderRadius: '999px', padding: '3px 8px', border: '0.5px solid #2a2a2a', color: '#6a6a6a', fontFamily: 'var(--font-body)', fontWeight: 700, flexShrink: 0 }}>{t.home.comingSoon}</span>
-          </div>
+            <span style={{ color: 'var(--t4)', fontSize: '18px', flexShrink: 0 }}>›</span>
+          </button>
 
           {/* Hero: Portfolio */}
           <button

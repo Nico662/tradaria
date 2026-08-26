@@ -29,32 +29,37 @@ export default function ModesPage({ onSelect }) {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
 
-        {/* Trading Mode — próximamente */}
-        <div
+        {/* Trading Mode */}
+        <button
           className="animate-fade-in-up stagger-1"
+          onClick={() => onSelect('trading')}
           style={{
             background: 'transparent',
-            border: '1px dashed #2a2a2a',
+            border: '1px solid rgba(224,85,133,0.2)',
             borderRadius: 'var(--radius-lg)',
             padding: '14px 16px',
             display: 'flex',
             alignItems: 'center',
             gap: 14,
-            cursor: 'default',
-            opacity: 0.5,
+            cursor: 'pointer',
             width: '100%',
             textAlign: 'left',
+            transition: 'transform 0.1s',
           }}
+          onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
+          onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+          onTouchStart={e => e.currentTarget.style.transform = 'scale(0.98)'}
+          onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
         >
-          <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-md)', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(96,165,250,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <CandlestickChart size={22} strokeWidth={2} aria-hidden style={{ stroke: '#6a6a6a' }} />
+          <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-md)', background: 'rgba(224,85,133,0.08)', border: '1px solid rgba(224,85,133,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <CandlestickChart size={22} strokeWidth={2} aria-hidden style={{ stroke: '#e05585' }} />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 900, fontSize: 14, color: '#8a8a8a', marginBottom: 3 }}>{t.home.tradingMode}</div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: '#6a6a6a', lineHeight: 1.4 }}>{t.home.tradingModeSub}</div>
+            <div style={{ fontWeight: 900, fontSize: 14, color: '#ffffff', marginBottom: 3 }}>{t.home.tradingMode}</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#e05585', lineHeight: 1.4 }}>{t.home.tradingModeSub}</div>
           </div>
-          <span style={{ fontSize: '9px', letterSpacing: '1px', borderRadius: '999px', padding: '3px 8px', border: '0.5px solid #2a2a2a', color: '#6a6a6a', fontFamily: 'var(--font-body)', fontWeight: 700, flexShrink: 0 }}>{t.home.comingSoon}</span>
-        </div>
+          <span style={{ color: 'var(--t4)', fontSize: '18px', flexShrink: 0 }}>›</span>
+        </button>
 
         {MODES.map((mode, index) => (
           <button
