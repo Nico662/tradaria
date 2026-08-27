@@ -25,13 +25,16 @@ const AVATAR_SWATCHES = {
   'Dragon': '#9333ea',
 };
 
-function RewardDisplay({ reward }) {
+function RewardDisplay({ reward, track }) {
   if (!reward) return null;
   const Icon = REWARD_ICONS[reward.type];
   const isXp    = reward.type === 'xp';
   const isColor = reward.type === 'username_color';
   const isTheme = reward.type === 'theme';
   const isAvatar = reward.type === 'avatar';
+
+  // Iconos en el color del carril para mayor presencia
+  const iconColor = track === 'pro' ? 'var(--pink)' : 'var(--green)';
 
   const swatchHex = isColor
     ? reward.hex
@@ -42,21 +45,21 @@ function RewardDisplay({ reward }) {
         : null;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '0 4px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-        {Icon && <Icon size={14} color="var(--text-secondary)" strokeWidth={2} />}
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '0 6px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+        {Icon && <Icon size={16} color={iconColor} strokeWidth={2} />}
         {swatchHex && (
           <div style={{
-            width: 10, height: 10, borderRadius: '50%',
+            width: 12, height: 12, borderRadius: '50%',
             background: swatchHex,
-            border: '1px solid rgba(255,255,255,0.3)',
+            border: '1.5px solid rgba(255,255,255,0.35)',
             flexShrink: 0,
-            boxShadow: `0 0 4px ${swatchHex}55`,
+            boxShadow: `0 0 6px ${swatchHex}66`,
           }} />
         )}
         {isXp && (
           <span style={{
-            fontFamily: 'var(--font-body)', fontSize: '11px',
+            fontFamily: 'var(--font-body)', fontSize: '15px',
             fontWeight: 800, color: 'var(--text-primary)',
           }}>
             +{reward.amount.toLocaleString()}
@@ -65,15 +68,15 @@ function RewardDisplay({ reward }) {
       </div>
       {isXp ? (
         <div style={{
-          fontSize: '8px', color: 'var(--text-muted)',
-          fontFamily: 'var(--font-body)', letterSpacing: '0.08em',
+          fontSize: '10px', color: 'var(--text-muted)',
+          fontFamily: 'var(--font-body)', letterSpacing: '0.08em', fontWeight: 700,
         }}>
           XP
         </div>
       ) : reward.name ? (
         <div style={{
-          fontSize: '8px', color: 'var(--text-secondary)', fontFamily: 'var(--font-body)',
-          fontWeight: 600, textAlign: 'center', lineHeight: 1.2,
+          fontSize: '11px', color: 'var(--text-primary)', fontFamily: 'var(--font-body)',
+          fontWeight: 700, textAlign: 'center', lineHeight: 1.25,
         }}>
           {reward.name}
         </div>
@@ -113,25 +116,24 @@ export default function RewardCard({ reward, mission, state, track, isActive, t,
   const isProLocked = state === 'pro_locked';
 
   // ── Colores del carril ────────────────────────────────────────────────────
-  // Fondo: suficientemente opaco para que la tarjeta "exista" sobre el fondo oscuro
   const cardBg = isClaimable
-    ? (isProTrack ? 'rgba(224,85,133,0.16)' : 'rgba(0,192,135,0.16)')
+    ? (isProTrack ? 'rgba(224,85,133,0.18)' : 'rgba(0,192,135,0.18)')
     : isClaimed
-      ? (isProTrack ? 'rgba(224,85,133,0.06)' : 'rgba(0,192,135,0.06)')
-      : (isProTrack ? 'rgba(224,85,133,0.09)' : 'rgba(0,192,135,0.09)');
+      ? (isProTrack ? 'rgba(224,85,133,0.07)' : 'rgba(0,192,135,0.07)')
+      : (isProTrack ? 'rgba(224,85,133,0.13)' : 'rgba(0,192,135,0.10)');
 
   const cardBorder = isClaimable
-    ? (isProTrack ? 'rgba(224,85,133,0.7)'  : 'rgba(0,192,135,0.7)')
+    ? (isProTrack ? 'rgba(224,85,133,0.75)'  : 'rgba(0,192,135,0.75)')
     : isActive && !isClaimed
-      ? (isProTrack ? 'rgba(224,85,133,0.55)' : 'rgba(0,192,135,0.55)')
+      ? (isProTrack ? 'rgba(224,85,133,0.6)'  : 'rgba(0,192,135,0.6)')
       : isClaimed
-        ? (isProTrack ? 'rgba(224,85,133,0.2)'  : 'rgba(0,192,135,0.2)')
-        : (isProTrack ? 'rgba(224,85,133,0.32)' : 'rgba(0,192,135,0.32)');
+        ? (isProTrack ? 'rgba(224,85,133,0.22)' : 'rgba(0,192,135,0.22)')
+        : (isProTrack ? 'rgba(224,85,133,0.42)' : 'rgba(0,192,135,0.38)');
 
   const cardShadow = isClaimable
-    ? (isProTrack ? '0 0 14px rgba(224,85,133,0.28)' : '0 0 14px rgba(0,192,135,0.28)')
+    ? (isProTrack ? '0 0 16px rgba(224,85,133,0.3)'  : '0 0 16px rgba(0,192,135,0.3)')
     : isActive && !isClaimed
-      ? (isProTrack ? '0 0 8px rgba(224,85,133,0.18)'  : '0 0 8px rgba(0,192,135,0.18)')
+      ? (isProTrack ? '0 0 10px rgba(224,85,133,0.2)' : '0 0 10px rgba(0,192,135,0.2)')
       : 'none';
 
   const hasComingSoon = mission && mission.enabled === false;
@@ -156,7 +158,7 @@ export default function RewardCard({ reward, mission, state, track, isActive, t,
         userSelect: isProLocked ? 'none' : 'auto',
         pointerEvents: isProLocked ? 'none' : 'auto',
       }}>
-        <RewardDisplay reward={reward} />
+        <RewardDisplay reward={reward} track={track} />
         {hasComingSoon && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 3, marginTop: 5 }}>
             <CandlestickChart size={8} color="var(--text-muted)" strokeWidth={2} />
@@ -196,7 +198,7 @@ export default function RewardCard({ reward, mission, state, track, isActive, t,
           display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center',
           gap: 5,
-          background: 'rgba(13,13,13,0.8)',
+          background: 'rgba(13,13,13,0.65)',
         }}>
           <Lock size={11} color="var(--pink)" strokeWidth={2} />
           {onGoPricing && (
