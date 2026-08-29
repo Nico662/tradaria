@@ -41,7 +41,6 @@ function RewardDisplay({ reward, track }) {
   const isTheme = reward.type === 'theme';
   const isAvatar = reward.type === 'avatar';
 
-  // Iconos en el color del carril para mayor presencia
   const iconColor = track === 'pro' ? 'var(--pink)' : 'var(--green)';
 
   const swatchHex = isColor
@@ -94,21 +93,25 @@ function RewardDisplay({ reward, track }) {
 }
 
 // Props:
-//   reward       — reward object from season1Config, or null
-//   mission      — mission object { title, desc, enabled } or null
-//   state        — 'empty' | 'locked' | 'claimable' | 'claimed' | 'pro_locked'
-//   track        — 'free' | 'pro'
-//   isActive     — true when this card is at the user's current level
-//   t            — translation object (needs t.traderPass)
-//   onGoPricing  — called when free user taps the PRO lock button
-export default function RewardCard({ reward, mission, state, track, isActive, t, onGoPricing }) {
-  const isProTrack  = track === 'pro';
-  const swatchHex   = getSwatchHex(reward);
+//   reward          — reward object from season1Config, or null
+//   mission         — mission object { title, desc, enabled } or null
+//   state           — 'empty' | 'locked' | 'claimable' | 'claimed' | 'pro_locked'
+//   track           — 'free' | 'pro'
+//   isActive        — true when this card is at the user's current level
+//   missionProgress — { current, target } | null — shows progress bar at active level
+//   t               — translation object (needs t.traderPass)
+//   onGoPricing     — called when free user taps the PRO lock button
+export default function RewardCard({ reward, mission, state, track, isActive, missionProgress, t, onGoPricing }) {
+  const isProTrack = track === 'pro';
+  const swatchHex  = getSwatchHex(reward);
 
   if (state === 'empty') {
-    // Niveles impares del Free track: solo un puntito, más brillante si es el nivel actual
+    // Niveles impares del Free track: solo un puntito centrado en la celda
     return (
-      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{
+        flex: 1, width: '100%', minHeight: 68,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
         <div style={{
           width: 5, height: 5, borderRadius: '50%',
           background: isActive ? 'rgba(0,192,135,0.7)' : 'var(--border-default)',
@@ -145,39 +148,91 @@ export default function RewardCard({ reward, mission, state, track, isActive, t,
       ? (isProTrack ? '0 0 10px rgba(224,85,133,0.2)' : '0 0 10px rgba(0,192,135,0.2)')
       : 'none';
 
+  const trackColor    = isProTrack ? 'var(--pink)' : 'var(--green)';
   const hasComingSoon = mission && mission.enabled === false;
+  const showProgress  = isActive && !!missionProgress && !hasComingSoon;
 
   return (
     <div style={{
-      width: '100%', height: '100%', position: 'relative',
+      flex: 1,
+      width: '100%', position: 'relative',
       borderRadius: '8px', background: cardBg,
       border: `1px solid ${cardBorder}`,
       boxShadow: cardShadow,
       display: 'flex', flexDirection: 'column',
-      alignItems: 'center', justifyContent: 'center',
+      alignItems: 'center',
       overflow: 'hidden',
       opacity: isLocked ? 0.4 : 1,
       transition: 'border-color 0.2s, box-shadow 0.2s',
     }}>
-      {/* Reward content */}
+      {/* Reward content — blurred when pro_locked */}
       <div style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center',
         width: '100%',
+        padding: '8px 0 6px',
         filter: isProLocked ? 'blur(9px)' : 'none',
         opacity: isProLocked ? 0.2 : 1,
         userSelect: isProLocked ? 'none' : 'auto',
         pointerEvents: isProLocked ? 'none' : 'auto',
       }}>
+        {/* Reward: icon + name/amount + swatch */}
         <RewardDisplay reward={reward} track={track} />
-        {hasComingSoon && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 3, marginTop: 5 }}>
-            <CandlestickChart size={8} color="var(--text-muted)" strokeWidth={2} />
-            <span style={{
-              fontFamily: 'var(--font-body)', fontSize: '7px', fontWeight: 700,
-              color: 'var(--text-muted)', letterSpacing: '0.04em',
+
+        {/* Mission text */}
+        {mission && (
+          <div style={{
+            width: '100%',
+            marginTop: 5,
+            borderTop: '0.5px solid rgba(255,255,255,0.07)',
+            paddingTop: 5,
+          }}>
+            <p style={{
+              margin: 0, padding: '0 6px',
+              fontSize: '8.5px', color: 'var(--text-muted)',
+              fontFamily: 'var(--font-body)', fontWeight: 500,
+              textAlign: 'center', lineHeight: 1.35,
             }}>
-              {t.traderPass.comingSoon}
-            </span>
+              {mission.desc}
+            </p>
+
+            {/* Progress bar — solo en el nivel activo, misiones habilitadas */}
+            {showProgress && (
+              <div style={{ marginTop: 5, padding: '0 6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 2 }}>
+                  <span style={{
+                    fontFamily: 'var(--font-body)', fontSize: '7px',
+                    fontWeight: 700, color: trackColor,
+                  }}>
+                    {missionProgress.current}/{missionProgress.target}
+                  </span>
+                </div>
+                <div style={{ height: 2, background: 'rgba(255,255,255,0.1)', borderRadius: 2 }}>
+                  <div style={{
+                    height: '100%',
+                    width: `${Math.min(100, (missionProgress.current / missionProgress.target) * 100)}%`,
+                    background: trackColor, borderRadius: 2,
+                    transition: 'width 0.3s ease',
+                    boxShadow: `0 0 4px ${trackColor}88`,
+                  }} />
+                </div>
+              </div>
+            )}
+
+            {/* Coming soon badge — Trading Mode missions */}
+            {hasComingSoon && (
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                gap: 3, marginTop: 5,
+              }}>
+                <CandlestickChart size={8} color="var(--text-muted)" strokeWidth={2} />
+                <span style={{
+                  fontFamily: 'var(--font-body)', fontSize: '7px', fontWeight: 700,
+                  color: 'var(--text-muted)', letterSpacing: '0.04em',
+                }}>
+                  {t.traderPass.comingSoon}
+                </span>
+              </div>
+            )}
           </div>
         )}
       </div>

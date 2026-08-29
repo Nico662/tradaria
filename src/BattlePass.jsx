@@ -20,6 +20,11 @@ const MOCK_USER_LEVEL    = 7;    // nivel actual del usuario de ejemplo
 const MOCK_BP_POINTS     = 2240; // 7×300 base + 140 puntos en el nivel actual
 const MOCK_CLAIMED_INIT  = [2, 4]; // niveles ya reclamados en el mock
 const MOCK_IS_PRO        = false;  // false → muestra estados pro_locked en la columna Pro
+// Mock mission progress for the active level (Phase 5 will replace with real server data)
+const MOCK_ACTIVE_PROGRESS = {
+  free: null,                      // level 7 has no free mission (odd level)
+  pro:  { current: 3, target: 10 }, // Racha Classic: 3/10 rondas seguidas
+};
 // ─────────────────────────────────────────────────────────────────────────────
 
 const CARD_H = 80;
@@ -323,42 +328,44 @@ export default function BattlePass({ onBack, onGoPricing }) {
               key={lvl.level}
               style={{
                 display: 'grid', gridTemplateColumns: '1fr 44px 1fr',
-                alignItems: 'center',
+                alignItems: 'stretch',
                 padding: `${ROW_PY}px 16px`,
                 gap: 6,
                 borderBottom: '0.5px solid rgba(255,255,255,0.03)',
                 background: isActive ? 'rgba(0,192,135,0.025)' : 'transparent',
+                position: 'relative',
               }}
             >
+              {/* Spine line — absolute to the full row so it stretches with variable card heights */}
+              <div style={{
+                position: 'absolute', top: 0, bottom: 0,
+                left: '50%', transform: 'translateX(-50%)',
+                width: 1, background: lineColor, zIndex: 0,
+                pointerEvents: 'none',
+                transition: 'background 0.3s ease',
+              }} />
+
               {/* Left — Free reward */}
-              <div style={{ height: CARD_H }}>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <RewardCard
                   reward={lvl.freeReward}
                   mission={lvl.freeMission}
                   state={freeState}
                   track="free"
                   isActive={isActive}
+                  missionProgress={isActive ? MOCK_ACTIVE_PROGRESS.free : null}
                   t={t}
                 />
               </div>
 
-              {/* Center — spine */}
+              {/* Center — spine bubble + claim button (line lives on the row now) */}
               <div style={{
                 display: 'flex', flexDirection: 'column',
                 alignItems: 'center', justifyContent: 'center',
-                gap: 4, height: CARD_H, position: 'relative',
+                gap: 4, position: 'relative', zIndex: 1,
               }}>
-                {/* Vertical connector line */}
-                <div style={{
-                  position: 'absolute', top: 0, bottom: 0,
-                  left: '50%', transform: 'translateX(-50%)',
-                  width: 1, background: lineColor, zIndex: 0,
-                  transition: 'background 0.3s ease',
-                }} />
-
                 {/* Level bubble */}
                 <div style={{
-                  position: 'relative', zIndex: 1,
                   width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
                   background: bubbleBg,
                   border: `1.5px solid ${bubbleBorder}`,
@@ -385,7 +392,6 @@ export default function BattlePass({ onBack, onGoPricing }) {
                     onClick={() => handleClaim(lvl.level)}
                     disabled={isClaiming}
                     style={{
-                      position: 'relative', zIndex: 1,
                       background: 'var(--green)', border: 'none', borderRadius: '5px',
                       padding: '3px 6px', fontFamily: 'var(--font-body)', fontSize: '8px',
                       fontWeight: 800, color: '#000', cursor: isClaiming ? 'default' : 'pointer',
@@ -399,13 +405,14 @@ export default function BattlePass({ onBack, onGoPricing }) {
               </div>
 
               {/* Right — Pro reward */}
-              <div style={{ height: CARD_H }}>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <RewardCard
                   reward={lvl.proReward}
                   mission={lvl.proMission}
                   state={proState}
                   track="pro"
                   isActive={isActive}
+                  missionProgress={isActive ? MOCK_ACTIVE_PROGRESS.pro : null}
                   t={t}
                   onGoPricing={onGoPricing}
                 />
