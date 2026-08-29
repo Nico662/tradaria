@@ -25,6 +25,14 @@ const AVATAR_SWATCHES = {
   'Dragon': '#9333ea',
 };
 
+function getSwatchHex(reward) {
+  if (!reward) return null;
+  if (reward.type === 'username_color') return reward.hex ?? null;
+  if (reward.type === 'theme')          return THEME_SWATCHES[reward.name] ?? null;
+  if (reward.type === 'avatar')         return AVATAR_SWATCHES[reward.name] ?? null;
+  return null;
+}
+
 function RewardDisplay({ reward, track }) {
   if (!reward) return null;
   const Icon = REWARD_ICONS[reward.type];
@@ -95,6 +103,7 @@ function RewardDisplay({ reward, track }) {
 //   onGoPricing  — called when free user taps the PRO lock button
 export default function RewardCard({ reward, mission, state, track, isActive, t, onGoPricing }) {
   const isProTrack  = track === 'pro';
+  const swatchHex   = getSwatchHex(reward);
 
   if (state === 'empty') {
     // Niveles impares del Free track: solo un puntito, más brillante si es el nivel actual
@@ -154,7 +163,8 @@ export default function RewardCard({ reward, mission, state, track, isActive, t,
       <div style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center',
         width: '100%',
-        filter: isProLocked ? 'blur(4px)' : 'none',
+        filter: isProLocked ? 'blur(9px)' : 'none',
+        opacity: isProLocked ? 0.2 : 1,
         userSelect: isProLocked ? 'none' : 'auto',
         pointerEvents: isProLocked ? 'none' : 'auto',
       }}>
@@ -197,9 +207,17 @@ export default function RewardCard({ reward, mission, state, track, isActive, t,
           position: 'absolute', inset: 0,
           display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center',
-          gap: 5,
-          background: 'rgba(13,13,13,0.65)',
+          gap: 4,
+          background: 'rgba(13,13,13,0.72)',
         }}>
+          {swatchHex && (
+            <div style={{
+              width: 9, height: 9, borderRadius: '50%',
+              background: swatchHex,
+              boxShadow: `0 0 7px ${swatchHex}bb`,
+              flexShrink: 0,
+            }} />
+          )}
           <Lock size={11} color="var(--pink)" strokeWidth={2} />
           {onGoPricing && (
             <button
