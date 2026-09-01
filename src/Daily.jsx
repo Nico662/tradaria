@@ -10,6 +10,8 @@ import { useAuth } from './AuthContext';
 import EffectOverlay from './EffectOverlay.jsx';
 import { incrementMission, recordModePlayed, incrementWeeklyMission, recordWeeklyModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
+import BattlePassNotification from './BattlePassNotification.jsx';
+import { useBattlePass } from './BattlePassContext.jsx';
 import { Calendar, Clipboard } from 'lucide-react';
 
 function ShareButton({ onShare, shareStatus }) {
@@ -27,6 +29,8 @@ function ShareButton({ onShare, shareStatus }) {
 export default function Daily({ onBack }) {
   const { t, lang, setLang } = useLang();
   const { activeCosmetics, user, checkLevelUp, syncProgress } = useAuth();
+  const { refreshBattlePass } = useBattlePass();
+  const [bpLevelUp, setBpLevelUp] = useState(null);
   const [activeEffect, setActiveEffect] = useState(false);
   function triggerEffect() { setActiveEffect(true); clearTimeout(effectTimerRef.current); effectTimerRef.current = setTimeout(() => setActiveEffect(false), 1500); }
   const [phase, setPhase]           = useState('loading');
@@ -195,6 +199,8 @@ export default function Daily({ onBack }) {
         localStorage.setItem('tradaria_daily_streak', String(data.dailyStreak));
         localStorage.setItem('tradaria_daily_last', new Date().toISOString().split('T')[0]);
       }
+      if (data?.bpProgress?.awardedMissions?.length > 0) refreshBattlePass();
+      if (data?.bpProgress?.leveledUp) setBpLevelUp(data.bpProgress.newLevel);
     } catch (e) {
       console.error('Daily sync error:', e);
     }
@@ -380,6 +386,7 @@ export default function Daily({ onBack }) {
       </div>
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
       {missionToast[0] && <MissionNotification data={missionToast[0]} onDone={() => setMissionToast(q => q.slice(1))} />}
+      {bpLevelUp && <BattlePassNotification level={bpLevelUp} onDone={() => setBpLevelUp(null)} />}
       <EffectOverlay effect={activeCosmetics?.effect} active={activeEffect} />
     </div>
   );

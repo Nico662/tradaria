@@ -13,6 +13,8 @@ import { Swords, Lock, Clock, Target, Camera, Bot, MessageCircle, Zap } from 'lu
 import { SERVER } from './config.js';
 import { incrementMission, recordModePlayed, incrementWeeklyMission, recordWeeklyModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
+import BattlePassNotification from './BattlePassNotification.jsx';
+import { useBattlePass } from './BattlePassContext.jsx';
 const SOCKET_URL = SERVER;
 
 const BOT_NAMES = ['AlgoBot', 'TradeAI', 'MarketBot', 'CryptoBot', 'NeuralBot'];
@@ -64,6 +66,8 @@ function botMakeChoice(direction) {
 export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
   const { t, lang, setLang } = useLang();
   const { activeCosmetics, user } = useAuth();
+  const { refreshBattlePass } = useBattlePass();
+  const [bpLevelUp, setBpLevelUp] = useState(null);
   const [activeEffect, setActiveEffect] = useState(false);
   function triggerEffect() { setActiveEffect(true); clearTimeout(effectTimerRef.current); effectTimerRef.current = setTimeout(() => setActiveEffect(false), 1500); }
   const [screen,    setScreen]   = useState('lobby');
@@ -156,6 +160,9 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ mode: 'arena', score: myScore, correct: won, wrong: 1 - won, accuracy: won * 100, streak: 0, rounds: total }),
+    }).then(r => r.json()).then(data => {
+      if (data?.bpProgress?.awardedMissions?.length > 0) refreshBattlePass();
+      if (data?.bpProgress?.leveledUp) setBpLevelUp(data.bpProgress.newLevel);
     }).catch(() => {});
     fetch(`${SERVER}/stats/personal`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json()).then(setPersonalStats).catch(() => {});
@@ -1342,6 +1349,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
         </div>
         {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
         {missionToast[0] && <MissionNotification data={missionToast[0]} onDone={() => setMissionToast(q => q.slice(1))} />}
+        {bpLevelUp && <BattlePassNotification level={bpLevelUp} onDone={() => setBpLevelUp(null)} />}
       </div>
     );
   }

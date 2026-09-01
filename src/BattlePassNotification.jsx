@@ -1,0 +1,68 @@
+import { useState, useEffect } from 'react';
+import { TrendingUp } from 'lucide-react';
+import { useLang } from './LangContext.jsx';
+
+const LABELS = {
+  es: { sub: 'Trader Pass — ¡nivel nuevo!', pts: '+300 BP' },
+  de: { sub: 'Trader Pass — neues Level!',  pts: '+300 BP' },
+  en: { sub: 'Trader Pass — level up!',      pts: '+300 BP' },
+};
+
+export default function BattlePassNotification({ level, onDone }) {
+  const { lang } = useLang();
+  const [visible, setVisible] = useState(false);
+  const label = LABELS[lang] ?? LABELS.en;
+
+  useEffect(() => {
+    const t1 = setTimeout(() => setVisible(true), 50);
+    const t2 = setTimeout(() => {
+      setVisible(false);
+      setTimeout(onDone, 400);
+    }, 3500);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [onDone]);
+
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 'calc(20px + env(safe-area-inset-top))',
+      left: '50%',
+      transform: `translateX(-50%) translateY(${visible ? '0' : '-80px'})`,
+      opacity: visible ? 1 : 0,
+      transition: 'transform 0.4s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s ease',
+      zIndex: 9999,
+      background: 'var(--bg-card)',
+      border: '1px solid var(--pink)',
+      borderRadius: '12px',
+      padding: '12px 20px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px',
+      boxShadow: '0 0 24px rgba(224,85,133,0.25)',
+      minWidth: '220px',
+      pointerEvents: 'none',
+    }}>
+      <TrendingUp size={20} color="var(--pink)" strokeWidth={2} aria-hidden />
+      <div>
+        <div style={{
+          fontSize: '12px', color: 'var(--pink)',
+          letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '2px',
+        }}>
+          {label.sub}
+        </div>
+        <div style={{
+          fontFamily: 'var(--font-body)', fontWeight: 800,
+          fontSize: '13px', color: 'var(--text-primary)',
+        }}>
+          Nivel {level}
+        </div>
+        <div style={{
+          fontSize: '12px', color: 'var(--pink)',
+          marginTop: '2px', fontFamily: 'var(--font-body)',
+        }}>
+          {label.pts}
+        </div>
+      </div>
+    </div>
+  );
+}

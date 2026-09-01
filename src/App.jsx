@@ -43,6 +43,8 @@ import AppLayout from './components/layout/AppLayout.jsx';
 import ModesPage from './components/ModesPage.jsx';
 import BattlePass from './BattlePass.jsx';
 import TradingMode from './TradingMode.jsx';
+import BattlePassNotification from './BattlePassNotification.jsx';
+import { useBattlePass } from './BattlePassContext.jsx';
 
 
 const CATEGORIES = [
@@ -94,6 +96,7 @@ export default function App() {
   const [activeEffect,setActiveEffect] = useState(false);
   const [missionToast, setMissionToast] = useState([]);
   const pushMission = data => setMissionToast(q => [...q, data]);
+  const [bpLevelUp,   setBpLevelUp]   = useState(null); // newLevel when Trader Pass levels up
   const floatingXPKeyRef = useRef(0);
   const gameStartRef     = useRef(Date.now());
   const wonCatsRef       = useRef(new Set());
@@ -102,6 +105,7 @@ export default function App() {
   const [shareStatus, setShareStatus] = useState('idle');
 
   const { syncProgress, activeCosmetics = {}, user, checkLevelUp } = useAuth();
+  const { refreshBattlePass } = useBattlePass();
   const { lang, setLang, t } = useLang();
   const chartRef = useRef(null);
 
@@ -385,6 +389,9 @@ export default function App() {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ mode: 'guess', score, correct: wins, wrong: losses, accuracy: acc, streak: maxStr, rounds: history.length }),
+    }).then(r => r.json()).then(data => {
+      if (data?.bpProgress?.awardedMissions?.length > 0) refreshBattlePass();
+      if (data?.bpProgress?.leveledUp) setBpLevelUp(data.bpProgress.newLevel);
     }).catch(() => {});
     fetch(`${SERVER}/stats/personal`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json()).then(setPersonalStats).catch(() => {});
@@ -902,6 +909,7 @@ export default function App() {
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
 
       {missionToast[0] && <MissionNotification data={missionToast[0]} onDone={() => setMissionToast(q => q.slice(1))} />}
+      {bpLevelUp && <BattlePassNotification level={bpLevelUp} onDone={() => setBpLevelUp(null)} />}
 
       <EffectOverlay effect={activeCosmetics.effect} active={activeEffect} />
       {challengeOverlay}

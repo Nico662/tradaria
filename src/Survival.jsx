@@ -11,7 +11,9 @@ import BadgeNotification from './BadgeNotification.jsx';
 import { addXP, getXP, getLevel } from './levels.js';
 import { incrementMission, recordModePlayed, incrementWeeklyMission, recordWeeklyModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
+import BattlePassNotification from './BattlePassNotification.jsx';
 import { useAuth } from './AuthContext';
+import { useBattlePass } from './BattlePassContext.jsx';
 import { SERVER } from './config.js';
 
 
@@ -22,6 +24,8 @@ function randomAsset() {
 export default function Survival({ onBack }) {
   const { t, lang } = useLang();
   const { syncProgress, activeCosmetics, checkLevelUp, isPro } = useAuth();
+  const { refreshBattlePass } = useBattlePass();
+  const [bpLevelUp, setBpLevelUp] = useState(null);
   const MAX_LIVES = isPro ? 5 : 3;
 
   const [phase,       setPhase]      = useState('choose');
@@ -214,6 +218,9 @@ export default function Survival({ onBack }) {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ mode: 'survival', score, correct: wins, wrong: losses, accuracy: acc, streak, rounds: history.length }),
+    }).then(r => r.json()).then(data => {
+      if (data?.bpProgress?.awardedMissions?.length > 0) refreshBattlePass();
+      if (data?.bpProgress?.leveledUp) setBpLevelUp(data.bpProgress.newLevel);
     }).catch(() => {});
     fetch(`${SERVER}/stats/personal`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json()).then(setPersonalStats).catch(() => {});
@@ -484,6 +491,7 @@ export default function Survival({ onBack }) {
 
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
       {missionToast[0] && <MissionNotification data={missionToast[0]} onDone={() => setMissionToast(q => q.slice(1))} />}
+      {bpLevelUp && <BattlePassNotification level={bpLevelUp} onDone={() => setBpLevelUp(null)} />}
 
       <EffectOverlay effect={activeCosmetics.effect} active={activeEffect} />
     </div>
