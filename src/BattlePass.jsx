@@ -54,6 +54,7 @@ export default function BattlePass({ onBack, onGoPricing }) {
   const [claimingLevel, setClaimingLevel] = useState(null);
   const [claimError,    setClaimError]    = useState(null);
   const [mockClaimed,   setMockClaimed]   = useState(MOCK_CLAIMED_INIT);
+  const [justClaimed,   setJustClaimed]   = useState(null);
   const scrollRef  = useRef(null);
   const didScroll  = useRef(false);
 
@@ -86,6 +87,8 @@ export default function BattlePass({ onBack, onGoPricing }) {
       // Mock: simula latencia, actualiza estado local sin tocar BD
       await new Promise(r => setTimeout(r, 450));
       setMockClaimed(prev => [...prev, levelNum]);
+      setJustClaimed(levelNum);
+      setTimeout(() => setJustClaimed(null), 650);
       setClaimingLevel(null);
       return;
     }
@@ -95,6 +98,9 @@ export default function BattlePass({ onBack, onGoPricing }) {
     if (!result.ok) {
       setClaimError(result.error ?? 'ERROR');
       setTimeout(() => setClaimError(null), 3000);
+    } else {
+      setJustClaimed(levelNum);
+      setTimeout(() => setJustClaimed(null), 650);
     }
   }
 
@@ -155,23 +161,36 @@ export default function BattlePass({ onBack, onGoPricing }) {
         )}
 
         {/* Title row */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '12px' }}>
-          <div>
-            <h1 style={{
-              margin: 0, fontFamily: 'var(--font-body)',
-              fontWeight: 900, fontSize: '22px', color: 'var(--text-primary)',
-              letterSpacing: '-0.01em',
-            }}>
-              {t.home.traderPass}
-            </h1>
-            {season && (
-              <span style={{
-                fontFamily: 'var(--font-body)', fontSize: '12px',
-                color: 'var(--green)', fontWeight: 700, letterSpacing: '0.04em',
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 200" width="22" style={{ flexShrink: 0 }}>
+              <line x1="50" y1="10" x2="50" y2="40" stroke="#ff7eb3" strokeWidth="8" strokeLinecap="round"/>
+              <rect x="25" y="40" width="50" height="110" rx="6" fill="url(#candleGradBP)"/>
+              <line x1="50" y1="150" x2="50" y2="190" stroke="#00e5a0" strokeWidth="8" strokeLinecap="round"/>
+              <defs>
+                <linearGradient id="candleGradBP" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#ff7eb3"/>
+                  <stop offset="100%" stopColor="#00e5a0"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <div>
+              <h1 style={{
+                margin: 0, fontFamily: 'var(--font-body)',
+                fontWeight: 900, fontSize: '28px', color: 'var(--text-primary)',
+                letterSpacing: '-0.02em', lineHeight: 1,
               }}>
-                {season.name}
-              </span>
-            )}
+                {t.home.traderPass}
+              </h1>
+              {season && (
+                <span style={{
+                  fontFamily: 'var(--font-body)', fontSize: '12px',
+                  color: 'var(--green)', fontWeight: 700, letterSpacing: '0.04em',
+                }}>
+                  {season.name}
+                </span>
+              )}
+            </div>
           </div>
           {daysLeft !== null && (
             <div style={{
@@ -275,21 +294,19 @@ export default function BattlePass({ onBack, onGoPricing }) {
             display: 'grid', gridTemplateColumns: '1fr 44px 1fr',
             padding: '8px 16px',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
-              <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--green)', flexShrink: 0 }} />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <span style={{
-                fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 800,
-                letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--green)',
+                fontFamily: 'var(--font-body)', fontSize: '15px', fontWeight: 800,
+                letterSpacing: '0.18em', textTransform: 'uppercase', color: '#00c087',
               }}>
                 {tp.freeTrack}
               </span>
             </div>
             <div />
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
-              <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--pink)', flexShrink: 0 }} />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <span style={{
-                fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 800,
-                letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--pink)',
+                fontFamily: 'var(--font-body)', fontSize: '15px', fontWeight: 800,
+                letterSpacing: '0.18em', textTransform: 'uppercase', color: '#e05585',
               }}>
                 {tp.proTrack}
               </span>
@@ -359,6 +376,7 @@ export default function BattlePass({ onBack, onGoPricing }) {
                   track="free"
                   isActive={isActive}
                   missionProgress={isActive ? MOCK_ACTIVE_PROGRESS.free : null}
+                  animate={justClaimed === lvl.level}
                   t={t}
                 />
               </div>
@@ -418,6 +436,7 @@ export default function BattlePass({ onBack, onGoPricing }) {
                   track="pro"
                   isActive={isActive}
                   missionProgress={isActive ? MOCK_ACTIVE_PROGRESS.pro : null}
+                  animate={justClaimed === lvl.level}
                   t={t}
                   onGoPricing={onGoPricing}
                 />

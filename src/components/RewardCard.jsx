@@ -101,7 +101,7 @@ function RewardDisplay({ reward, track }) {
 //   missionProgress — { current, target } | null — shows progress bar at active level
 //   t               — translation object (needs t.traderPass)
 //   onGoPricing     — called when free user taps the PRO lock button
-export default function RewardCard({ reward, mission, state, track, isActive, missionProgress, t, onGoPricing }) {
+export default function RewardCard({ reward, mission, state, track, isActive, missionProgress, animate, t, onGoPricing }) {
   const isProTrack = track === 'pro';
   const swatchHex  = getSwatchHex(reward);
 
@@ -164,6 +164,8 @@ export default function RewardCard({ reward, mission, state, track, isActive, mi
       overflow: 'hidden',
       opacity: isLocked ? 0.4 : 1,
       transition: 'border-color 0.2s, box-shadow 0.2s',
+      '--anim-glow': isProTrack ? 'rgba(224,85,133,0.8)' : 'rgba(0,192,135,0.8)',
+      animation: animate ? 'claimPop 0.55s ease-out' : 'none',
     }}>
       {/* Reward content — blurred when pro_locked */}
       <div style={{
@@ -244,6 +246,7 @@ export default function RewardCard({ reward, mission, state, track, isActive, mi
           width: 16, height: 16, borderRadius: '50%',
           background: isProTrack ? 'var(--pink)' : 'var(--green)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
+          animation: animate ? 'checkIn 0.35s ease-out' : 'none',
         }}>
           <span style={{ fontSize: '9px', color: '#000', fontWeight: 800, lineHeight: 1 }}>✓</span>
         </div>
