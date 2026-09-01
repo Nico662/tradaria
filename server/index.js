@@ -154,10 +154,13 @@ const UserSchema = new mongoose.Schema({
   // Initialized on first BP-related request for the active season.
   // level is computed on demand: Math.min(30, Math.floor(bpPoints / 300))
   battlePass: {
-    seasonId:          { type: Number,   default: null },
-    bpPoints:          { type: Number,   default: 0 },
-    completedMissions: { type: [String], default: [] }, // mission IDs (e.g. 'bp_s1_l1')
-    claimedRewards:    { type: [Number], default: [] }, // level numbers claimed (e.g. [2, 4])
+    seasonId:             { type: Number,   default: null },
+    bpPoints:             { type: Number,   default: 0 },
+    completedMissions:    { type: [String], default: [] }, // mission IDs (e.g. 'bp_s1_l1')
+    claimedRewards:       { type: [Number], default: [] }, // level numbers claimed (e.g. [2, 4])
+    // ── Phase 5A counters (accumulate across games within the season) ──────────
+    survivalRoundsTotal:  { type: Number,   default: 0 }, // total rounds survived in Survival
+    classicMaxStreak:     { type: Number,   default: 0 }, // best consecutive streak in Classic
   },
   // Mechanic tickets earned through the Battle Pass (e.g. restore streak).
   // Pending design discussion (Fase 6d) — field reserved, logic not yet implemented.
@@ -1344,7 +1347,8 @@ app.post('/stats/game', async (req, res) => {
     const safeStreak   = Math.max(0, Math.min(Number(streak)   || 0, 10000));
     const safeRounds   = Math.max(0, Math.min(Number(rounds)   || 0, 10000));
     await GameHistory.create({ userId: decoded.id, mode, score: safeScore, correct: safeCorrect, wrong: safeWrong, accuracy: safeAccuracy, streak: safeStreak, rounds: safeRounds });
-    res.json({ ok: true });
+    const bpProgress = await processGameBpProgress(decoded.id, { mode, streak: safeStreak, rounds: safeRounds });
+    res.json({ ok: true, bpProgress });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -3610,7 +3614,7 @@ app.get('/u/:username', async (req, res) => {
 });
 
 app.use('/academy', require('./routes/academy'));
-const { router: battlePassRouter, addBattlePassProgress } = require('./routes/battlepass');
+const { router: battlePassRouter, addBattlePassProgress, processGameBpProgress } = require('./routes/battlepass');
 app.use('/battle-pass', battlePassRouter);
 
 // ── Stripe academy billing portal ─────────────────────────────────

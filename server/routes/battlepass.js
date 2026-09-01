@@ -231,4 +231,77 @@ router.post('/claim/:level', requireAuth, async (req, res) => {
   }
 });
 
-module.exports = { router, addBattlePassProgress };
+// ── processGameBpProgress ─────────────────────────────────────────────────────
+// Called from POST /stats/game after recording the game in GameHistory.
+// Handles Phase 5A mission types:
+//   play_any_game   — fires on any game (idempotency ensures one award ever)
+//   survival_rounds — cumulative rounds survived in Survival across sessions
+//   classic_streak  — highest streak ever achieved in a Classic session
+//
+// All counter updates + mission awards land in a single user.save() so they
+// are consistent even if the request is retried (mission IDs are idempotent).
+//
+// Returns { leveledUp, newLevel, awardedMissions: [missionId, ...] }
+
+async function processGameBpProgress(userId, { mode, streak = 0, rounds = 0 }) {
+  const User   = mongoose.model('User');
+  const season = await getActiveSeason();
+  if (!season) return { leveledUp: false, newLevel: 0, awardedMissions: [] };
+
+  const user = await User.findById(userId);
+  if (!user) return { leveledUp: false, newLevel: 0, awardedMissions: [] };
+
+  ensureBattlePassInit(user, season.seasonId);
+  const bp = user.battlePass;
+
+  const oldLevel        = computeLevel(bp.bpPoints);
+  const awardedMissions = [];
+
+  // In-memory idempotent award: add mission + points once per missionId
+  function tryAward(missionId) {
+    if (!bp.completedMissions.includes(missionId)) {
+      bp.completedMissions.push(missionId);
+      bp.bpPoints += season1.BP_POINTS_PER_LEVEL;
+      awardedMissions.push(missionId);
+    }
+  }
+
+  // Index missions by type for O(1) lookup
+  const missionsByType = {};
+  for (const lvl of season1.LEVELS) {
+    for (const m of [lvl.freeMission, lvl.proMission]) {
+      if (!m || !m.enabled) continue;
+      if (!missionsByType[m.type]) missionsByType[m.type] = [];
+      missionsByType[m.type].push(m);
+    }
+  }
+
+  // 1. play_any_game — first time playing any mode (one award per mission ID)
+  for (const m of missionsByType['play_any_game'] || []) {
+    tryAward(m.id);
+  }
+
+  // 2. survival_rounds — cumulative rounds survived across Survival sessions
+  if (mode === 'survival' && rounds > 0) {
+    bp.survivalRoundsTotal = (bp.survivalRoundsTotal || 0) + rounds;
+    for (const m of missionsByType['survival_rounds'] || []) {
+      if (bp.survivalRoundsTotal >= m.target) tryAward(m.id);
+    }
+  }
+
+  // 3. classic_streak — best streak ever in a Classic session
+  if (mode === 'classic' && streak > 0) {
+    bp.classicMaxStreak = Math.max(bp.classicMaxStreak || 0, streak);
+    for (const m of missionsByType['classic_streak'] || []) {
+      if (bp.classicMaxStreak >= m.target) tryAward(m.id);
+    }
+  }
+
+  user.markModified('battlePass');
+  await user.save();
+
+  const newLevel = computeLevel(bp.bpPoints);
+  return { leveledUp: newLevel > oldLevel, newLevel, awardedMissions };
+}
+
+module.exports = { router, addBattlePassProgress, processGameBpProgress };
