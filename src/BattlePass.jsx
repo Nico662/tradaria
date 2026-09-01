@@ -88,7 +88,7 @@ export default function BattlePass({ onBack, onGoPricing }) {
       await new Promise(r => setTimeout(r, 450));
       setMockClaimed(prev => [...prev, levelNum]);
       setJustClaimed(levelNum);
-      setTimeout(() => setJustClaimed(null), 650);
+      setTimeout(() => setJustClaimed(null), 1200);
       setClaimingLevel(null);
       return;
     }
@@ -100,7 +100,7 @@ export default function BattlePass({ onBack, onGoPricing }) {
       setTimeout(() => setClaimError(null), 3000);
     } else {
       setJustClaimed(levelNum);
-      setTimeout(() => setJustClaimed(null), 650);
+      setTimeout(() => setJustClaimed(null), 1200);
     }
   }
 

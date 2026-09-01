@@ -1,3 +1,4 @@
+import { useRef, useEffect } from 'react';
 import { Lock, Zap, Award, Droplet, Tag, Ticket, CircleUser, Palette, Square, Eye, CandlestickChart } from 'lucide-react';
 
 const REWARD_ICONS = {
@@ -12,7 +13,6 @@ const REWARD_ICONS = {
   mechanic:       Eye,
 };
 
-// Colores de muestra para recompensas cosméticas sin hex explícito en el config
 const THEME_SWATCHES = {
   'Midnight': '#6b9fff',
   'Aurora':   '#a855f7',
@@ -35,8 +35,8 @@ function getSwatchHex(reward) {
 
 function RewardDisplay({ reward, track }) {
   if (!reward) return null;
-  const Icon = REWARD_ICONS[reward.type];
-  const isXp    = reward.type === 'xp';
+  const Icon   = REWARD_ICONS[reward.type];
+  const isXp   = reward.type === 'xp';
   const isColor = reward.type === 'username_color';
   const isTheme = reward.type === 'theme';
   const isAvatar = reward.type === 'avatar';
@@ -99,14 +99,139 @@ function RewardDisplay({ reward, track }) {
 //   track           — 'free' | 'pro'
 //   isActive        — true when this card is at the user's current level
 //   missionProgress — { current, target } | null — shows progress bar at active level
+//   animate         — true for one render cycle when this level's reward was just claimed
 //   t               — translation object (needs t.traderPass)
 //   onGoPricing     — called when free user taps the PRO lock button
 export default function RewardCard({ reward, mission, state, track, isActive, missionProgress, animate, t, onGoPricing }) {
+  const cardRef          = useRef(null);
+  const rewardDisplayRef = useRef(null);
+  const checkRef         = useRef(null);
+
   const isProTrack = track === 'pro';
-  const swatchHex  = getSwatchHex(reward);
+  const trackRgb   = isProTrack ? '224,85,133' : '0,192,135';
+  const trackHex   = isProTrack ? '#e05585' : '#00c087';
+
+  // ── Claim animation sequence (~1.1s total) ────────────────────────────────
+  // Triggered once when `animate` flips true (parent sets it on confirmed success
+  // only, so this never fires if the claim is later reverted to 403).
+  useEffect(() => {
+    if (!animate) return;
+    const card = cardRef.current;
+    if (!card) return;
+
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+
+    const timers   = [];
+    const fixedEls = []; // position:fixed overlays on document.body (rings)
+    const localEls = []; // position:absolute children inside card (glow, check ring)
+
+    const addTimer = (fn, delay) => { const id = setTimeout(fn, delay); timers.push(id); };
+    const runAnim  = (el, kf, opts) => (el ? el.animate(kf, opts) : null);
+
+    // prefers-reduced-motion: brief glow, no motion
+    if (reduced) {
+      card.style.borderColor = trackHex;
+      card.style.boxShadow   = `0 0 16px rgba(${trackRgb},0.6)`;
+      addTimer(() => { card.style.borderColor = ''; card.style.boxShadow = ''; }, 400);
+      return () => { timers.forEach(clearTimeout); };
+    }
+
+    // 1+2. Card: quick sink → elastic bounce
+    runAnim(card, [
+      { transform: 'scale(1)',    easing: 'ease-out',                    offset: 0    },
+      { transform: 'scale(0.9)', easing: 'cubic-bezier(.34,1.56,.64,1)', offset: 0.15 },
+      { transform: 'scale(1)',                                            offset: 1    },
+    ], { duration: 730, fill: 'none' });
+
+    // Border + shadow flash (direct DOM, revert after bounce)
+    card.style.borderColor = `${trackHex}cc`;
+    card.style.boxShadow   = `0 0 22px rgba(${trackRgb},0.45)`;
+    addTimer(() => { card.style.borderColor = ''; card.style.boxShadow = ''; }, 750);
+
+    // 4. Radial glow inside card
+    const glow = document.createElement('div');
+    glow.style.cssText = `position:absolute;inset:0;border-radius:8px;` +
+      `background:radial-gradient(circle,rgba(${trackRgb},0.38) 0%,transparent 70%);` +
+      `pointer-events:none;z-index:5;`;
+    card.appendChild(glow);
+    localEls.push(glow);
+    const glowA = runAnim(glow, [
+      { opacity: 0 },
+      { opacity: 1, offset: 0.2 },
+      { opacity: 0, offset: 1   },
+    ], { duration: 700, easing: 'ease-in-out', fill: 'forwards' });
+    if (glowA) glowA.finished.then(() => glow.remove()).catch(() => {});
+
+    // 3. Energy rings — position:fixed so they expand beyond any overflow boundary
+    [
+      { borderRadius: '8px', dur: 700, alpha: 0.85, delay: 110 },
+      { borderRadius: '50%', dur: 820, alpha: 0.70, delay: 230 },
+    ].forEach(({ borderRadius, dur, alpha, delay }) => {
+      addTimer(() => {
+        if (!card.isConnected) return;
+        const r = card.getBoundingClientRect();
+        const ring = document.createElement('div');
+        ring.style.cssText = [
+          'position:fixed',
+          `left:${r.left}px`, `top:${r.top}px`,
+          `width:${r.width}px`, `height:${r.height}px`,
+          `border-radius:${borderRadius}`,
+          `border:1.5px solid rgba(${trackRgb},${alpha})`,
+          'pointer-events:none', 'z-index:9999',
+        ].join(';');
+        document.body.appendChild(ring);
+        fixedEls.push(ring);
+        const ra = runAnim(ring, [
+          { transform: 'scale(0.5)', opacity: alpha },
+          { transform: 'scale(2.5)', opacity: 0     },
+        ], { duration: dur, easing: 'ease-out', fill: 'forwards' });
+        if (ra) ra.finished.then(() => ring.remove()).catch(() => {});
+      }, delay);
+    });
+
+    // 5. Reward content: jump + brightness flash
+    addTimer(() => {
+      runAnim(rewardDisplayRef.current, [
+        { transform: 'translateY(0)     scale(1)',    filter: 'brightness(1)'   },
+        { transform: 'translateY(-14px) scale(1.14)', filter: 'brightness(1.8)', offset: 0.45 },
+        { transform: 'translateY(0)     scale(1)',    filter: 'brightness(1)'   },
+      ], { duration: 560, easing: 'cubic-bezier(.34,1.56,.64,1)', fill: 'none' });
+    }, 180);
+
+    // 6. Check badge: expanding ring + elastic seal with rotation
+    const checkEl = checkRef.current;
+    if (checkEl) {
+      const checkRing = document.createElement('div');
+      checkRing.style.cssText = `position:absolute;inset:-6px;border-radius:50%;` +
+        `border:1.5px solid rgba(${trackRgb},0.9);pointer-events:none;`;
+      checkEl.style.position = 'relative';
+      checkEl.appendChild(checkRing);
+      localEls.push(checkRing);
+      const cra = runAnim(checkRing, [
+        { transform: 'scale(0.5)', opacity: 1 },
+        { transform: 'scale(2.2)', opacity: 0 },
+      ], { duration: 500, easing: 'ease-out', fill: 'forwards' });
+      if (cra) cra.finished.then(() => checkRing.remove()).catch(() => {});
+
+      // fill:'both' hides badge (scale 0) during 200ms delay, then seals it in elastically
+      runAnim(checkEl, [
+        { transform: 'scale(0)    rotate(-30deg)', opacity: 0 },
+        { transform: 'scale(1.35) rotate(6deg)',   opacity: 1, offset: 0.65 },
+        { transform: 'scale(1)    rotate(0deg)',   opacity: 1 },
+      ], { duration: 480, delay: 200, easing: 'cubic-bezier(.34,1.56,.64,1)', fill: 'both' });
+    }
+
+    return () => {
+      timers.forEach(clearTimeout);
+      fixedEls.forEach(el => { try { el.remove(); } catch {} });
+      localEls.forEach(el => { try { el.remove(); } catch {} });
+    };
+  }, [animate, trackRgb, trackHex]);
+
+  // ── Render ────────────────────────────────────────────────────────────────
+  const swatchHex = getSwatchHex(reward);
 
   if (state === 'empty') {
-    // Niveles impares del Free track: solo un puntito centrado en la celda
     return (
       <div style={{
         flex: 1, width: '100%', minHeight: 68,
@@ -127,7 +252,7 @@ export default function RewardCard({ reward, mission, state, track, isActive, mi
   const isLocked    = state === 'locked';
   const isProLocked = state === 'pro_locked';
 
-  // ── Colores del carril ────────────────────────────────────────────────────
+  // ── Track colours ─────────────────────────────────────────────────────────
   const cardBg = isClaimable
     ? (isProTrack ? 'rgba(224,85,133,0.18)' : 'rgba(0,192,135,0.18)')
     : isClaimed
@@ -153,30 +278,34 @@ export default function RewardCard({ reward, mission, state, track, isActive, mi
   const showProgress  = isActive && !!missionProgress && !hasComingSoon;
 
   return (
-    <div style={{
-      flex: 1,
-      width: '100%', position: 'relative',
-      borderRadius: '8px', background: cardBg,
-      border: `1px solid ${cardBorder}`,
-      boxShadow: cardShadow,
-      display: 'flex', flexDirection: 'column',
-      alignItems: 'center',
-      overflow: 'hidden',
-      opacity: isLocked ? 0.4 : 1,
-      transition: 'border-color 0.2s, box-shadow 0.2s',
-      '--anim-glow': isProTrack ? 'rgba(224,85,133,0.8)' : 'rgba(0,192,135,0.8)',
-      animation: animate ? 'claimPop 0.55s ease-out' : 'none',
-    }}>
+    <div
+      ref={cardRef}
+      style={{
+        flex: 1,
+        width: '100%', position: 'relative',
+        borderRadius: '8px', background: cardBg,
+        border: `1px solid ${cardBorder}`,
+        boxShadow: cardShadow,
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center',
+        overflow: 'hidden',
+        opacity: isLocked ? 0.4 : 1,
+        transition: 'border-color 0.2s, box-shadow 0.2s',
+      }}
+    >
       {/* Reward content — blurred when pro_locked */}
-      <div style={{
-        display: 'flex', flexDirection: 'column', alignItems: 'center',
-        width: '100%',
-        padding: '8px 0 6px',
-        filter: isProLocked ? 'blur(9px)' : 'none',
-        opacity: isProLocked ? 0.2 : 1,
-        userSelect: isProLocked ? 'none' : 'auto',
-        pointerEvents: isProLocked ? 'none' : 'auto',
-      }}>
+      <div
+        ref={rewardDisplayRef}
+        style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center',
+          width: '100%',
+          padding: '8px 0 6px',
+          filter: isProLocked ? 'blur(9px)' : 'none',
+          opacity: isProLocked ? 0.2 : 1,
+          userSelect: isProLocked ? 'none' : 'auto',
+          pointerEvents: isProLocked ? 'none' : 'auto',
+        }}
+      >
         {/* Reward: icon + name/amount + swatch */}
         <RewardDisplay reward={reward} track={track} />
 
@@ -241,13 +370,15 @@ export default function RewardCard({ reward, mission, state, track, isActive, mi
 
       {/* Claimed badge */}
       {isClaimed && (
-        <div style={{
-          position: 'absolute', top: 4, right: 4,
-          width: 16, height: 16, borderRadius: '50%',
-          background: isProTrack ? 'var(--pink)' : 'var(--green)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          animation: animate ? 'checkIn 0.35s ease-out' : 'none',
-        }}>
+        <div
+          ref={checkRef}
+          style={{
+            position: 'absolute', top: 4, right: 4,
+            width: 16, height: 16, borderRadius: '50%',
+            background: isProTrack ? 'var(--pink)' : 'var(--green)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
           <span style={{ fontSize: '9px', color: '#000', fontWeight: 800, lineHeight: 1 }}>✓</span>
         </div>
       )}
