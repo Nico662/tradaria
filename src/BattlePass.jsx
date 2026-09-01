@@ -19,7 +19,7 @@ const MOCK_SEASON = {
 const MOCK_USER_LEVEL    = 7;    // nivel actual del usuario de ejemplo
 const MOCK_BP_POINTS     = 2240; // 7×300 base + 140 puntos en el nivel actual
 const MOCK_CLAIMED_INIT  = [2, 4]; // niveles ya reclamados en el mock
-const MOCK_IS_PRO        = false;  // false → muestra estados pro_locked en la columna Pro
+const MOCK_IS_PRO        = true;   // true → columna Pro desbloqueada · false → pro_locked
 // Mock mission progress for the active level (Phase 5 will replace with real server data)
 const MOCK_ACTIVE_PROGRESS = {
   free: null,                      // level 7 has no free mission (odd level)
@@ -302,10 +302,15 @@ export default function BattlePass({ onBack, onGoPricing }) {
           const freeState = getCardState(lvl.freeReward, lvl.level, 'free', userLevel, claimedRewards, isPro);
           const proState  = getCardState(lvl.proReward,  lvl.level, 'pro',  userLevel, claimedRewards, isPro);
           const isClaimed   = claimedRewards.includes(lvl.level);
+          const freeEnabled = !lvl.freeMission || lvl.freeMission.enabled !== false;
+          const proEnabled  = !lvl.proMission  || lvl.proMission.enabled  !== false;
           const isClaimable = (
             !isClaimed &&
             userLevel >= lvl.level &&
-            (freeState === 'claimable' || (isPro && proState === 'claimable'))
+            (
+              (freeState === 'claimable' && freeEnabled) ||
+              (isPro && proState === 'claimable' && proEnabled)
+            )
           );
           const isClaiming = claimingLevel === lvl.level;
           const isActive   = lvl.level === userLevel;
