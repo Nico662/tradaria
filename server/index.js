@@ -158,9 +158,16 @@ const UserSchema = new mongoose.Schema({
     bpPoints:             { type: Number,   default: 0 },
     completedMissions:    { type: [String], default: [] }, // mission IDs (e.g. 'bp_s1_l1')
     claimedRewards:       { type: [Number], default: [] }, // level numbers claimed (e.g. [2, 4])
-    // ── Phase 5A counters (accumulate across games within the season) ──────────
-    survivalRoundsTotal:  { type: Number,   default: 0 }, // total rounds survived in Survival
-    classicMaxStreak:     { type: Number,   default: 0 }, // best consecutive streak in Classic
+    // ── Phase 5A counters ───────────────────────────────────────────────────────
+    survivalRoundsTotal:       { type: Number, default: 0 }, // total rounds survived in Survival
+    classicMaxStreak:          { type: Number, default: 0 }, // best consecutive streak in Classic
+    // ── Phase 5B counters ───────────────────────────────────────────────────────
+    dailiesCompleted:          { type: Number, default: 0 }, // total daily challenges finished
+    // ── Phase 5C counters ───────────────────────────────────────────────────────
+    classicWinsTotal:          { type: Number, default: 0 }, // cumulative correct answers in Classic
+    historicalEventsCompleted: { type: Number, default: 0 }, // historical games completed
+    // ── Phase 5D counters ───────────────────────────────────────────────────────
+    arenaWinsTotal:            { type: Number, default: 0 }, // real-time + async arena wins
   },
   // Mechanic tickets earned through the Battle Pass (e.g. restore streak).
   // Pending design discussion (Fase 6d) — field reserved, logic not yet implemented.
@@ -816,10 +823,13 @@ app.post('/daily/complete', async (req, res) => {
     { new: true, returnDocument: 'after' }
   );
 
+  const bpProgress = await processDailyBpProgress(decoded.id, { newStreak }).catch(() => null);
+
   res.json({
-    dailyStreak: updatedUser.dailyStreak,
-    lastPlayed:  updatedUser.lastPlayed,
+    dailyStreak:  updatedUser.dailyStreak,
+    lastPlayed:   updatedUser.lastPlayed,
     alreadyPlayed: false,
+    bpProgress,
   });
 });
 
@@ -1347,7 +1357,7 @@ app.post('/stats/game', async (req, res) => {
     const safeStreak   = Math.max(0, Math.min(Number(streak)   || 0, 10000));
     const safeRounds   = Math.max(0, Math.min(Number(rounds)   || 0, 10000));
     await GameHistory.create({ userId: decoded.id, mode, score: safeScore, correct: safeCorrect, wrong: safeWrong, accuracy: safeAccuracy, streak: safeStreak, rounds: safeRounds });
-    const bpProgress = await processGameBpProgress(decoded.id, { mode, streak: safeStreak, rounds: safeRounds });
+    const bpProgress = await processGameBpProgress(decoded.id, { mode, streak: safeStreak, rounds: safeRounds, correct: safeCorrect });
     res.json({ ok: true, bpProgress });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1869,6 +1879,16 @@ app.post('/arena/async/:code/submit', async (req, res) => {
       }
     }
     const updated = await AsyncDuel.findOne({ code });
+    // 5D: award arena win BP progress when async duel completes.
+    // NOTE: rival score is client-submitted (not server-computed) — existing behaviour.
+    if (updated.status === 'completed') {
+      const cScore = updated.challenger.score ?? 0;
+      const rScore = updated.rival.score       ?? 0;
+      if (cScore !== rScore) {
+        const winnerId = cScore > rScore ? updated.challenger.userId : updated.rival.userId;
+        if (winnerId) processArenaWinBpProgress(String(winnerId)).catch(() => {});
+      }
+    }
     res.json({ ok: true, duel: {
       code: updated.code, status: updated.status, charts: updated.charts,
       challenger: { name: updated.challenger.name, score: updated.challenger.score, answers: updated.challenger.answers },
@@ -2067,6 +2087,17 @@ function resolveRound(roomId) {
     setTimeout(() => {
       io.to(roomId).emit('game:over', { scores: room.scores, names: room.names });
       finishedRooms[roomId] = { ...room };
+      // 5D: award arena win BP progress to the higher-scoring player
+      const [p1, p2] = room.players;
+      const s1 = room.scores[p1] ?? 0;
+      const s2 = room.scores[p2] ?? 0;
+      if (s1 !== s2) {
+        const winnerSocketId = s1 > s2 ? p1 : p2;
+        const winnerSocket   = io.sockets.sockets.get(winnerSocketId);
+        if (winnerSocket?.userId) {
+          processArenaWinBpProgress(winnerSocket.userId).catch(() => {});
+        }
+      }
       delete rooms[roomId];
       setTimeout(() => delete finishedRooms[roomId], 120000);
     }, 3000);
@@ -3614,7 +3645,7 @@ app.get('/u/:username', async (req, res) => {
 });
 
 app.use('/academy', require('./routes/academy'));
-const { router: battlePassRouter, addBattlePassProgress, processGameBpProgress } = require('./routes/battlepass');
+const { router: battlePassRouter, addBattlePassProgress, processGameBpProgress, processDailyBpProgress, processArenaWinBpProgress } = require('./routes/battlepass');
 app.use('/battle-pass', battlePassRouter);
 
 // ── Stripe academy billing portal ─────────────────────────────────

@@ -231,19 +231,27 @@ router.post('/claim/:level', requireAuth, async (req, res) => {
   }
 });
 
+// ── Shared helper: build missionsByType index from season config ──────────────
+function buildMissionsByType() {
+  const map = {};
+  for (const lvl of season1.LEVELS) {
+    for (const m of [lvl.freeMission, lvl.proMission]) {
+      if (!m || !m.enabled) continue;
+      if (!map[m.type]) map[m.type] = [];
+      map[m.type].push(m);
+    }
+  }
+  return map;
+}
+
 // ── processGameBpProgress ─────────────────────────────────────────────────────
 // Called from POST /stats/game after recording the game in GameHistory.
-// Handles Phase 5A mission types:
-//   play_any_game   — fires on any game (idempotency ensures one award ever)
-//   survival_rounds — cumulative rounds survived in Survival across sessions
-//   classic_streak  — highest streak ever achieved in a Classic session
-//
-// All counter updates + mission awards land in a single user.save() so they
-// are consistent even if the request is retried (mission IDs are idempotent).
+// Phase 5A:  play_any_game, survival_rounds, classic_streak
+// Phase 5C:  classic_wins (cumulative correct answers), historical_event
 //
 // Returns { leveledUp, newLevel, awardedMissions: [missionId, ...] }
 
-async function processGameBpProgress(userId, { mode, streak = 0, rounds = 0 }) {
+async function processGameBpProgress(userId, { mode, streak = 0, rounds = 0, correct = 0 }) {
   const User   = mongoose.model('User');
   const season = await getActiveSeason();
   if (!season) return { leveledUp: false, newLevel: 0, awardedMissions: [] };
@@ -256,8 +264,8 @@ async function processGameBpProgress(userId, { mode, streak = 0, rounds = 0 }) {
 
   const oldLevel        = computeLevel(bp.bpPoints);
   const awardedMissions = [];
+  const missionsByType  = buildMissionsByType();
 
-  // In-memory idempotent award: add mission + points once per missionId
   function tryAward(missionId) {
     if (!bp.completedMissions.includes(missionId)) {
       bp.completedMissions.push(missionId);
@@ -266,17 +274,7 @@ async function processGameBpProgress(userId, { mode, streak = 0, rounds = 0 }) {
     }
   }
 
-  // Index missions by type for O(1) lookup
-  const missionsByType = {};
-  for (const lvl of season1.LEVELS) {
-    for (const m of [lvl.freeMission, lvl.proMission]) {
-      if (!m || !m.enabled) continue;
-      if (!missionsByType[m.type]) missionsByType[m.type] = [];
-      missionsByType[m.type].push(m);
-    }
-  }
-
-  // 1. play_any_game — first time playing any mode (one award per mission ID)
+  // 1. play_any_game — first game in any mode (idempotency handles dedup)
   for (const m of missionsByType['play_any_game'] || []) {
     tryAward(m.id);
   }
@@ -289,11 +287,30 @@ async function processGameBpProgress(userId, { mode, streak = 0, rounds = 0 }) {
     }
   }
 
-  // 3. classic_streak — best streak ever in a Classic session
-  if (mode === 'classic' && streak > 0) {
-    bp.classicMaxStreak = Math.max(bp.classicMaxStreak || 0, streak);
-    for (const m of missionsByType['classic_streak'] || []) {
-      if (bp.classicMaxStreak >= m.target) tryAward(m.id);
+  // 3. classic_streak — best streak ever in a Classic session (5A)
+  // 4. classic_wins  — cumulative correct answers in Classic (5C)
+  if (mode === 'classic') {
+    if (streak > 0) {
+      bp.classicMaxStreak = Math.max(bp.classicMaxStreak || 0, streak);
+      for (const m of missionsByType['classic_streak'] || []) {
+        if (bp.classicMaxStreak >= m.target) tryAward(m.id);
+      }
+    }
+    if (correct > 0) {
+      bp.classicWinsTotal = (bp.classicWinsTotal || 0) + correct;
+      for (const m of missionsByType['classic_wins'] || []) {
+        if (bp.classicWinsTotal >= m.target) tryAward(m.id);
+      }
+    }
+  }
+
+  // 5. historical_event — each completed Historical game = 1 event (5C)
+  //    historical_all_events (target:0) is NOT wired here: it requires tracking
+  //    which specific event IDs were completed, not just a count.
+  if (mode === 'historical') {
+    bp.historicalEventsCompleted = (bp.historicalEventsCompleted || 0) + 1;
+    for (const m of missionsByType['historical_event'] || []) {
+      if (bp.historicalEventsCompleted >= m.target) tryAward(m.id);
     }
   }
 
@@ -304,4 +321,104 @@ async function processGameBpProgress(userId, { mode, streak = 0, rounds = 0 }) {
   return { leveledUp: newLevel > oldLevel, newLevel, awardedMissions };
 }
 
-module.exports = { router, addBattlePassProgress, processGameBpProgress };
+// ── processDailyBpProgress ────────────────────────────────────────────────────
+// Called from POST /daily/complete (Phase 5B).
+// Mission types: complete_daily (cumulative count), daily_streak and
+// streak_days (both checked against newStreak = current consecutive day streak).
+//
+// Returns { leveledUp, newLevel, awardedMissions: [missionId, ...] }
+
+async function processDailyBpProgress(userId, { newStreak }) {
+  const User   = mongoose.model('User');
+  const season = await getActiveSeason();
+  if (!season) return { leveledUp: false, newLevel: 0, awardedMissions: [] };
+
+  const user = await User.findById(userId);
+  if (!user) return { leveledUp: false, newLevel: 0, awardedMissions: [] };
+
+  ensureBattlePassInit(user, season.seasonId);
+  const bp = user.battlePass;
+
+  const oldLevel        = computeLevel(bp.bpPoints);
+  const awardedMissions = [];
+  const missionsByType  = buildMissionsByType();
+
+  function tryAward(missionId) {
+    if (!bp.completedMissions.includes(missionId)) {
+      bp.completedMissions.push(missionId);
+      bp.bpPoints += season1.BP_POINTS_PER_LEVEL;
+      awardedMissions.push(missionId);
+    }
+  }
+
+  // Increment cumulative daily counter
+  bp.dailiesCompleted = (bp.dailiesCompleted || 0) + 1;
+
+  // complete_daily — cumulative dailies completed (3, 5, 20, 40, 50)
+  for (const m of missionsByType['complete_daily'] || []) {
+    if (bp.dailiesCompleted >= m.target) tryAward(m.id);
+  }
+
+  // daily_streak + streak_days — both measure consecutive daily streak
+  for (const m of missionsByType['daily_streak'] || []) {
+    if (newStreak >= m.target) tryAward(m.id);
+  }
+  for (const m of missionsByType['streak_days'] || []) {
+    if (newStreak >= m.target) tryAward(m.id);
+  }
+
+  user.markModified('battlePass');
+  await user.save();
+
+  const newLevel = computeLevel(bp.bpPoints);
+  return { leveledUp: newLevel > oldLevel, newLevel, awardedMissions };
+}
+
+// ── processArenaWinBpProgress ─────────────────────────────────────────────────
+// Called when a user wins an Arena duel (real-time socket or async). (Phase 5D)
+// Increments arenaWinsTotal and checks arena_wins mission thresholds (3,5,20,30).
+//
+// Returns { leveledUp, newLevel, awardedMissions: [missionId, ...] }
+
+async function processArenaWinBpProgress(userId) {
+  const User   = mongoose.model('User');
+  const season = await getActiveSeason();
+  if (!season) return { leveledUp: false, newLevel: 0, awardedMissions: [] };
+
+  const user = await User.findById(String(userId));
+  if (!user) return { leveledUp: false, newLevel: 0, awardedMissions: [] };
+
+  ensureBattlePassInit(user, season.seasonId);
+  const bp = user.battlePass;
+
+  const oldLevel        = computeLevel(bp.bpPoints);
+  const awardedMissions = [];
+  const missionsByType  = buildMissionsByType();
+
+  function tryAward(missionId) {
+    if (!bp.completedMissions.includes(missionId)) {
+      bp.completedMissions.push(missionId);
+      bp.bpPoints += season1.BP_POINTS_PER_LEVEL;
+      awardedMissions.push(missionId);
+    }
+  }
+
+  bp.arenaWinsTotal = (bp.arenaWinsTotal || 0) + 1;
+  for (const m of missionsByType['arena_wins'] || []) {
+    if (bp.arenaWinsTotal >= m.target) tryAward(m.id);
+  }
+
+  user.markModified('battlePass');
+  await user.save();
+
+  const newLevel = computeLevel(bp.bpPoints);
+  return { leveledUp: newLevel > oldLevel, newLevel, awardedMissions };
+}
+
+module.exports = {
+  router,
+  addBattlePassProgress,
+  processGameBpProgress,
+  processDailyBpProgress,
+  processArenaWinBpProgress,
+};
