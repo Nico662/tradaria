@@ -244,6 +244,33 @@ function buildMissionsByType() {
   return map;
 }
 
+// Total distinct Historical Mode events. Mirrors the HISTORICAL_EVENTS array in the frontend.
+// Update this constant if events are added or removed.
+const TOTAL_HISTORICAL_EVENTS = 50;
+
+// Enabled mission IDs for each track, excluding level 30 (the completion missions themselves).
+// enabled:false missions (Trading Mode, not yet live) are excluded so level 30 is reachable.
+const ENABLED_FREE_MISSION_IDS = season1.LEVELS.slice(0, 29)
+  .filter(l => l.freeMission && l.freeMission.enabled !== false)
+  .map(l => l.freeMission.id);
+
+const ENABLED_PRO_MISSION_IDS = season1.LEVELS.slice(0, 29)
+  .filter(l => l.proMission && l.proMission.enabled !== false)
+  .map(l => l.proMission.id);
+
+// Check and award the level-30 completion missions given a loaded bp subdoc.
+// Call after all other tryAward calls inside a process function.
+function checkLevel30(bp, tryAward) {
+  const completedSet = new Set(bp.completedMissions);
+  const missionsByType = buildMissionsByType();
+  if (ENABLED_FREE_MISSION_IDS.every(id => completedSet.has(id))) {
+    for (const m of missionsByType['complete_all_free_missions'] || []) tryAward(m.id);
+  }
+  if (ENABLED_PRO_MISSION_IDS.every(id => completedSet.has(id))) {
+    for (const m of missionsByType['complete_all_pro_missions'] || []) tryAward(m.id);
+  }
+}
+
 // ── processGameBpProgress ─────────────────────────────────────────────────────
 // Called from POST /stats/game after recording the game in GameHistory.
 // Phase 5A:  play_any_game, survival_rounds, classic_streak
@@ -251,7 +278,7 @@ function buildMissionsByType() {
 //
 // Returns { leveledUp, newLevel, awardedMissions: [missionId, ...] }
 
-async function processGameBpProgress(userId, { mode, streak = 0, rounds = 0, correct = 0 }) {
+async function processGameBpProgress(userId, { mode, streak = 0, rounds = 0, correct = 0, eventId = null }) {
   const User   = mongoose.model('User');
   const season = await getActiveSeason();
   if (!season) return { leveledUp: false, newLevel: 0, awardedMissions: [] };
@@ -304,15 +331,24 @@ async function processGameBpProgress(userId, { mode, streak = 0, rounds = 0, cor
     }
   }
 
-  // 5. historical_event — each completed Historical game = 1 event (5C)
-  //    historical_all_events (target:0) is NOT wired here: it requires tracking
-  //    which specific event IDs were completed, not just a count.
+  // 5. historical_event + historical_all_events (5C / phase 5 final)
   if (mode === 'historical') {
     bp.historicalEventsCompleted = (bp.historicalEventsCompleted || 0) + 1;
     for (const m of missionsByType['historical_event'] || []) {
       if (bp.historicalEventsCompleted >= m.target) tryAward(m.id);
     }
+    // Track unique event IDs for historical_all_events (target = TOTAL_HISTORICAL_EVENTS)
+    if (eventId) {
+      if (!bp.completedEventIds) bp.completedEventIds = [];
+      if (!bp.completedEventIds.includes(eventId)) bp.completedEventIds.push(eventId);
+    }
+    const uniqueCount = (bp.completedEventIds || []).length;
+    for (const m of missionsByType['historical_all_events'] || []) {
+      if (uniqueCount >= TOTAL_HISTORICAL_EVENTS) tryAward(m.id);
+    }
   }
+
+  checkLevel30(bp, tryAward);
 
   user.markModified('battlePass');
   await user.save();
@@ -367,6 +403,8 @@ async function processDailyBpProgress(userId, { newStreak }) {
     if (newStreak >= m.target) tryAward(m.id);
   }
 
+  checkLevel30(bp, tryAward);
+
   user.markModified('battlePass');
   await user.save();
 
@@ -408,11 +446,43 @@ async function processArenaWinBpProgress(userId) {
     if (bp.arenaWinsTotal >= m.target) tryAward(m.id);
   }
 
+  checkLevel30(bp, tryAward);
+
   user.markModified('battlePass');
   await user.save();
 
   const newLevel = computeLevel(bp.bpPoints);
   return { leveledUp: newLevel > oldLevel, newLevel, awardedMissions };
+}
+
+// ── checkCompletionBpMissions ─────────────────────────────────────────────────
+// Checks level-30 completion missions for a user after events that don't go
+// through the process* functions (e.g. the weekly ranking cron which calls
+// addBattlePassProgress directly). Safe to call from fire-and-forget contexts.
+
+async function checkCompletionBpMissions(userId) {
+  const User   = mongoose.model('User');
+  const season = await getActiveSeason();
+  if (!season) return;
+  const user = await User.findById(String(userId));
+  if (!user) return;
+  ensureBattlePassInit(user, season.seasonId);
+  const bp = user.battlePass;
+
+  let changed = false;
+  function tryAward(missionId) {
+    if (!bp.completedMissions.includes(missionId)) {
+      bp.completedMissions.push(missionId);
+      bp.bpPoints += season1.BP_POINTS_PER_LEVEL;
+      changed = true;
+    }
+  }
+
+  checkLevel30(bp, tryAward);
+  if (changed) {
+    user.markModified('battlePass');
+    await user.save();
+  }
 }
 
 module.exports = {
@@ -421,4 +491,5 @@ module.exports = {
   processGameBpProgress,
   processDailyBpProgress,
   processArenaWinBpProgress,
+  checkCompletionBpMissions,
 };

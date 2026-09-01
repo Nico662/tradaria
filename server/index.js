@@ -166,6 +166,7 @@ const UserSchema = new mongoose.Schema({
     // ── Phase 5C counters ───────────────────────────────────────────────────────
     classicWinsTotal:          { type: Number, default: 0 }, // cumulative correct answers in Classic
     historicalEventsCompleted: { type: Number, default: 0 }, // historical games completed
+    completedEventIds:         { type: [String], default: [] }, // unique historical event IDs
     // ── Phase 5D counters ───────────────────────────────────────────────────────
     arenaWinsTotal:            { type: Number, default: 0 }, // real-time + async arena wins
   },
@@ -1348,7 +1349,7 @@ app.post('/stats/game', async (req, res) => {
   const decoded = verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
-    const { mode, score, correct, wrong, accuracy, streak, rounds } = req.body;
+    const { mode, score, correct, wrong, accuracy, streak, rounds, eventId } = req.body;
     if (!VALID_GAME_MODES.has(mode)) return res.status(400).json({ error: 'Invalid mode' });
     const safeScore    = Math.max(0, Math.min(Number(score)    || 0, 100000));
     const safeCorrect  = Math.max(0, Math.min(Number(correct)  || 0, 10000));
@@ -1356,8 +1357,9 @@ app.post('/stats/game', async (req, res) => {
     const safeAccuracy = Math.max(0, Math.min(Number(accuracy) || 0, 100));
     const safeStreak   = Math.max(0, Math.min(Number(streak)   || 0, 10000));
     const safeRounds   = Math.max(0, Math.min(Number(rounds)   || 0, 10000));
+    const safeEventId  = (typeof eventId === 'string' && /^[a-z0-9_]{1,60}$/.test(eventId)) ? eventId : null;
     await GameHistory.create({ userId: decoded.id, mode, score: safeScore, correct: safeCorrect, wrong: safeWrong, accuracy: safeAccuracy, streak: safeStreak, rounds: safeRounds });
-    const bpProgress = await processGameBpProgress(decoded.id, { mode, streak: safeStreak, rounds: safeRounds, correct: safeCorrect });
+    const bpProgress = await processGameBpProgress(decoded.id, { mode, streak: safeStreak, rounds: safeRounds, correct: safeCorrect, eventId: safeEventId });
     res.json({ ok: true, bpProgress });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1862,7 +1864,33 @@ app.post('/arena/async/:code/submit', async (req, res) => {
       await AsyncDuel.findByIdAndUpdate(duel._id, { 'challenger.answers': safeAnswers, 'challenger.score': serverScore, 'challenger.completedAt': new Date(), status: 'waiting_rival' });
     } else {
       if (duel.status !== 'waiting_rival') return res.status(400).json({ error: 'Cannot submit now' });
-      await AsyncDuel.findByIdAndUpdate(duel._id, { 'rival.name': name, 'rival.userId': userId, 'rival.answers': answers, 'rival.score': score, 'rival.completedAt': new Date(), status: 'completed' });
+
+      // Compute rival score server-side using the stored charts — same logic as challenger.
+      const rivalServerScore = duel.charts.reduce((total, chart, i) => {
+        const choice = answers?.[i]?.choice;
+        if (!choice || !chart) return total;
+        const lastClose  = chart.visible[chart.visible.length - 1].close;
+        const lastFuture = chart.future[chart.future.length - 1].close;
+        const pctMove    = (lastFuture - lastClose) / lastClose * 100;
+        const direction  = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
+        const win = (choice === 'long' && direction === 'up') || (choice === 'short' && direction === 'down') || (choice === 'skip' && direction === 'flat');
+        return total + (win && choice !== 'skip' ? 100 : win && choice === 'skip' ? 50 : 0);
+      }, 0);
+
+      const safeRivalAnswers = (answers || []).map((a, i) => {
+        const chart = duel.charts[i];
+        if (!chart) return { choice: 'skip', win: false, pts: 0, direction: 'flat', pctMove: 0 };
+        const choice     = ['long', 'short', 'skip'].includes(a?.choice) ? a.choice : 'skip';
+        const lastClose  = chart.visible[chart.visible.length - 1].close;
+        const lastFuture = chart.future[chart.future.length - 1].close;
+        const pctMove    = (lastFuture - lastClose) / lastClose * 100;
+        const direction  = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
+        const win = (choice === 'long' && direction === 'up') || (choice === 'short' && direction === 'down') || (choice === 'skip' && direction === 'flat');
+        const pts = win && choice !== 'skip' ? 100 : win && choice === 'skip' ? 50 : 0;
+        return { choice, win, pts, direction, pctMove: +pctMove.toFixed(2) };
+      });
+
+      await AsyncDuel.findByIdAndUpdate(duel._id, { 'rival.name': name, 'rival.userId': userId, 'rival.answers': safeRivalAnswers, 'rival.score': rivalServerScore, 'rival.completedAt': new Date(), status: 'completed' });
       // Push notification to challenger
       if (duel.challenger.userId) {
         try {
@@ -2643,6 +2671,8 @@ cron.schedule('55 23 * * 0', async () => {
           if (!result.alreadyCompleted && !result.noActiveSeason) awarded++;
         }
       }
+      // Check level-30 completion missions after all ranking awards for this user.
+      await checkCompletionBpMissions(userId).catch(() => {});
       processed++;
     }
 
@@ -3708,7 +3738,7 @@ app.get('/u/:username', async (req, res) => {
 });
 
 app.use('/academy', require('./routes/academy'));
-const { router: battlePassRouter, addBattlePassProgress, processGameBpProgress, processDailyBpProgress, processArenaWinBpProgress } = require('./routes/battlepass');
+const { router: battlePassRouter, addBattlePassProgress, processGameBpProgress, processDailyBpProgress, processArenaWinBpProgress, checkCompletionBpMissions } = require('./routes/battlepass');
 app.use('/battle-pass', battlePassRouter);
 
 // ── Stripe academy billing portal ─────────────────────────────────

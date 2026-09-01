@@ -11,6 +11,8 @@ import { useAuth } from './AuthContext';
 import EffectOverlay from './EffectOverlay.jsx';
 import { incrementMission, recordModePlayed, recordWeeklyModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
+import { useBattlePass } from './BattlePassContext.jsx';
+import BattlePassNotification from './BattlePassNotification.jsx';
 
 function EventIcon({ event, size = 32 }) {
   return (
@@ -37,6 +39,8 @@ function EventIcon({ event, size = 32 }) {
 export default function Historical({ onBack }) {
   const { t, lang, setLang } = useLang();
   const { activeCosmetics }  = useAuth();
+  const { refreshBattlePass } = useBattlePass();
+  const [bpLevelUp, setBpLevelUp] = useState(null);
   const [activeEffect, setActiveEffect] = useState(false);
   function triggerEffect() { setActiveEffect(true); clearTimeout(effectTimerRef.current); effectTimerRef.current = setTimeout(() => setActiveEffect(false), 1500); }
   const [phase, setPhase]         = useState('select');
@@ -119,6 +123,18 @@ export default function Historical({ onBack }) {
     const modeR = recordModePlayed('historical');
     if (modeR.completed) pushMission({ xpEarned: modeR.xpEarned, title: modeR.mission.title });
     recordWeeklyModePlayed('historical');
+
+    const token = localStorage.getItem('tradaria_token');
+    if (token) {
+      fetch(`${SERVER}/stats/game`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'historical', eventId: event.id, correct: win ? 1 : 0, wrong: win ? 0 : 1, score: win ? 15 : 5, accuracy: win ? 100 : 0, streak: 0, rounds: 1 }),
+      }).then(r => r.json()).then(data => {
+        if (data?.bpProgress?.awardedMissions?.length > 0) refreshBattlePass();
+        if (data?.bpProgress?.leveledUp) setBpLevelUp(data.bpProgress.newLevel);
+      }).catch(() => {});
+    }
   };
 
   const shareResult = () => {
@@ -314,6 +330,7 @@ export default function Historical({ onBack }) {
 
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
       {missionToast[0] && <MissionNotification data={missionToast[0]} onDone={() => setMissionToast(q => q.slice(1))} />}
+      {bpLevelUp && <BattlePassNotification level={bpLevelUp} onDone={() => setBpLevelUp(null)} />}
       <EffectOverlay effect={activeCosmetics?.effect} active={activeEffect} />
     </div>
   );
