@@ -2589,6 +2589,69 @@ cron.schedule('0 0 * * *', async () => {
   }
 });
 
+// ── Phase 5E: weekly ranking BP missions cron ────────────────────────────────
+// Fires Sunday 23:55 Madrid time (CET/CEST handles DST automatically).
+// In winter (UTC+1) → 22:55 UTC; in summer (UTC+2) → 21:55 UTC — both well
+// before Monday 00:00 UTC when getWeekId() rolls to the next week.
+//
+// The closing week's Score documents are NEVER deleted — old scores keep their
+// weekId string forever. The cron computes the closing weekId by anchoring to
+// "1 hour ago" (still Sunday in all cases) to stay robust against tiny slippage.
+//
+// Only reads Score documents. addBattlePassProgress() idempotency ensures
+// missions are awarded at most once even if the cron fires twice.
+cron.schedule('55 23 * * 0', async () => {
+  // Anchor to 1 hour ago — guarantees we get Sunday's weekId even if the
+  // cron fires a few minutes late and wall-clock UTC has already ticked to Monday.
+  const anchor  = new Date(Date.now() - 60 * 60 * 1000);
+  const anchorDay  = anchor.getUTCDay();
+  const anchorDiff = anchorDay === 0 ? -6 : 1 - anchorDay;
+  const anchorMonday = new Date(anchor);
+  anchorMonday.setUTCDate(anchor.getUTCDate() + anchorDiff);
+  const anchorYear  = anchorMonday.getUTCFullYear();
+  const anchorStart = new Date(Date.UTC(anchorYear, 0, 1));
+  const anchorWeek  = Math.ceil(((anchorMonday - anchorStart) / 86400000 + anchorStart.getUTCDay() + 1) / 7);
+  const weekId = `${anchorYear}-W${String(anchorWeek).padStart(2, '00')}`;
+
+  console.log(`[bp-ranking-cron] Fired — evaluating weekId=${weekId}`);
+  try {
+    const scores = await Score.find({ weekId }).sort({ score: -1 });
+    if (!scores.length) {
+      console.log('[bp-ranking-cron] No scores for this week, skipping.');
+      return;
+    }
+
+    // Ranking-based missions: awarded to any user whose final position ≤ threshold.
+    // Progressive: position 1 qualifies for ALL thresholds; position 3 qualifies for
+    // top-50/25/10/5/3 but NOT win_tournament.
+    const rankingMissions = [
+      { id: 'bp_s1_l8_pro',  threshold: 50 },
+      { id: 'bp_s1_l13_pro', threshold: 25 },
+      { id: 'bp_s1_l19_pro', threshold: 10 },
+      { id: 'bp_s1_l24_pro', threshold: 5  },
+      { id: 'bp_s1_l29_pro', threshold: 3  },
+      { id: 'bp_s1_l20_pro', threshold: 1  }, // win_tournament: champion only
+    ];
+
+    let processed = 0, awarded = 0;
+    for (let i = 0; i < scores.length; i++) {
+      const position = i + 1;
+      const userId   = String(scores[i].userId);
+      for (const m of rankingMissions) {
+        if (position <= m.threshold) {
+          const result = await addBattlePassProgress(userId, 300, m.id, 'weekly_ranking');
+          if (!result.alreadyCompleted && !result.noActiveSeason) awarded++;
+        }
+      }
+      processed++;
+    }
+
+    console.log(`[bp-ranking-cron] Done — ${processed} players, ${awarded} missions awarded.`);
+  } catch (err) {
+    console.error('[bp-ranking-cron] Error:', err.message);
+  }
+}, { timezone: 'Europe/Madrid' });
+
  app.get('/stats/dashboard', async (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
   try {
