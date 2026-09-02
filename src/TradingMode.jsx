@@ -3,8 +3,8 @@ import { useLang } from './LangContext';
 import { ASSETS } from './assets.js';
 import {
   ChevronLeft, Lock, TrendingUp, TrendingDown, X, Info,
-  Trophy, Users, BarChart3, CandlestickChart, Activity, FileText,
-  ChevronRight, Minus, Plus, Pencil, PlusCircle, List,
+  Trophy, Users, BarChart3, CandlestickChart, Activity,
+  ChevronRight, Minus, Plus, Pencil, PlusCircle, List, Clock,
 } from 'lucide-react';
 
 // ── Mock initial prices ───────────────────────────────────────────────────────
@@ -175,6 +175,15 @@ const INITIAL_POSITIONS = [
   { id: 1, symbol: 'BTC/USD', dir: 'BUY',  lots: 0.10, entry: 64250.00 },
   { id: 2, symbol: 'GOLD',    dir: 'SELL', lots: 0.05, entry: 2290.00  },
   { id: 3, symbol: 'EUR/USD', dir: 'BUY',  lots: 0.10, entry: 1.08200  },
+];
+
+// ── Mock closed trade history ─────────────────────────────────────────────────
+const MOCK_HISTORY = [
+  { id: 101, symbol: 'BTC/USD', dir: 'BUY',  lots: 0.05, entry: 61200.00, close: 63850.00, closeTime: '01/09 14:32', pnl: +132.50 },
+  { id: 102, symbol: 'GOLD',    dir: 'SELL', lots: 0.10, entry: 2295.00,  close: 2271.50,  closeTime: '01/09 11:20', pnl: +117.50 },
+  { id: 103, symbol: 'EUR/USD', dir: 'BUY',  lots: 0.20, entry: 1.08650,  close: 1.08420,  closeTime: '31/08 18:45', pnl:  -46.00 },
+  { id: 104, symbol: 'ETH/USD', dir: 'SELL', lots: 0.10, entry: 3280.00,  close: 3195.00,  closeTime: '31/08 09:12', pnl:  +85.00 },
+  { id: 105, symbol: 'NVDA',    dir: 'BUY',  lots: 1.00, entry: 865.20,   close: 879.40,   closeTime: '30/08 15:58', pnl:  +14.20 },
 ];
 
 // ── SVG Candlestick chart (adaptive — receives measured width/height) ─────────
@@ -393,6 +402,8 @@ export default function TradingMode({ onBack }) {
   );
   const [updateTimes,    setUpdateTimes]    = useState({});
   const [blinkSeq,       setBlinkSeq]       = useState({});
+  const [histTab,         setHistTab]        = useState('positions');
+  const [closedPositions, setClosedPositions] = useState(MOCK_HISTORY);
 
   // ── Mock price blinking ───────────────────────────────────────────────────
   useEffect(() => {
@@ -453,10 +464,19 @@ export default function TradingMode({ onBack }) {
     setSelectedSymbol(name);
     setSlPrice('');
     setTpPrice('');
-    setTab('ticket');
+    setTab('chart');
   }
 
   function handleClosePosition(id) {
+    const pos = positionsLive.find(p => p.id === id);
+    if (pos) {
+      const now = new Date();
+      const dd  = String(now.getDate()).padStart(2, '0');
+      const mm  = String(now.getMonth() + 1).padStart(2, '0');
+      const hh  = String(now.getHours()).padStart(2, '0');
+      const mn  = String(now.getMinutes()).padStart(2, '0');
+      setClosedPositions(prev => [{ ...pos, close: pos.curr, closeTime: `${dd}/${mm} ${hh}:${mn}` }, ...prev]);
+    }
     setPositions(prev => prev.filter(p => p.id !== id));
   }
 
@@ -759,198 +779,237 @@ export default function TradingMode({ onBack }) {
   // TAB: POSITIONS
   // ─────────────────────────────────────────────────────────────────────────────
   function renderPositions() {
-    return (
-      <div style={{ flex: 1, overflow: 'auto' }}>
-        {/* P&L header */}
-        <div style={{ padding: '12px 16px', borderBottom: '0.5px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 12, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-            {tr.totalPnl ?? 'Total P&L'}
+    const pnlColor    = totalPnl >= 0 ? 'var(--green)' : 'var(--pink)';
+    const equityStr   = Math.abs(MOCK_EQUITY).toFixed(2);
+    const [eInt, eDec] = equityStr.split('.');
+    const eFormatted  = parseInt(eInt, 10).toLocaleString('en-US');
+
+    const AccountHeader = (
+      <div style={{ padding: '12px 14px 10px', borderBottom: '1px solid var(--border-default)', flexShrink: 0 }}>
+        {/* EQUITY — largest number on screen */}
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 6 }}>
+          <div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 9, fontWeight: 800, color: 'var(--text-hint)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 2 }}>
+              {tr.equity ?? 'Equidad'}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 0 }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--green)', opacity: 0.75 }}>$</span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 34, fontWeight: 700, color: 'var(--green)', lineHeight: 1, letterSpacing: '-0.02em' }}>{eFormatted}</span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 17, fontWeight: 500, color: 'var(--green)', opacity: 0.8, lineHeight: 1 }}>.{eDec}</span>
+            </div>
           </div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 20, color: totalPnl >= 0 ? 'var(--green)' : 'var(--color-down)' }}>
-            {fmtPnl(totalPnl)}
+          <div style={{ textAlign: 'right', paddingBottom: 3 }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 9, fontWeight: 800, color: 'var(--text-hint)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 3 }}>P&L</div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 14, fontWeight: 700, color: pnlColor }}>
+              {totalPnl >= 0 ? '+' : ''}${totalPnl.toFixed(2)}
+            </div>
           </div>
         </div>
 
-        {positionsLive.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center' }}>
-            <Activity size={36} style={{ stroke: '#333', marginBottom: 12 }} />
-            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 15, color: 'var(--text-muted)', marginBottom: 6 }}>
-              {tr.noPositions ?? 'No open positions'}
+        {/* 2×2 data matrix */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3px 24px', paddingTop: 8, borderTop: '1px solid var(--border-subtle)' }}>
+          {[
+            { label: tr.balance ?? 'Balance',       value: `$${(10000).toFixed(2)}`,      color: 'var(--text-primary)'   },
+            { label: tr.margin  ?? 'Margen',         value: `$${MOCK_MARGIN.toFixed(2)}`,  color: 'var(--text-secondary)' },
+            { label: tr.free    ?? 'Margen libre',   value: `$${MOCK_FREE.toFixed(2)}`,    color: 'var(--text-secondary)' },
+            { label: tr.level   ?? 'Nivel',          value: `${MOCK_LEVEL.toFixed(0)}%`,   color: levelColor              },
+          ].map(({ label, value, color }) => (
+            <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '2px 0' }}>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 9, fontWeight: 700, color: 'var(--text-hint)', letterSpacing: '0.06em' }}>{label}</span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700, color }}>{value}</span>
             </div>
-            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 12, color: '#444' }}>
-              {tr.noPositionsSub ?? 'Open a position from the Ticket tab'}
+          ))}
+        </div>
+      </div>
+    );
+
+    const Separator = (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 14px', flexShrink: 0 }}>
+        <div style={{ flex: 1, height: 1, background: 'var(--border-subtle)' }} />
+        <span style={{ fontFamily: 'var(--font-body)', fontSize: 9, fontWeight: 800, color: 'var(--text-hint)', letterSpacing: '0.14em', textTransform: 'uppercase' }}>
+          {tr.positionsLabel ?? 'Posiciones'}{positionsLive.length > 0 ? ` (${positionsLive.length})` : ''}
+        </span>
+        <div style={{ flex: 1, height: 1, background: 'var(--border-subtle)' }} />
+      </div>
+    );
+
+    if (positionsLive.length === 0) {
+      return (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          {AccountHeader}
+          {Separator}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '0 32px 48px' }}>
+            <Activity size={46} style={{ stroke: '#222' }} />
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 14, color: 'var(--text-muted)', textAlign: 'center' }}>
+              {tr.noPositions ?? 'Sin posiciones abiertas'}
             </div>
-            <button onClick={() => setTab('ticket')} style={{ marginTop: 16, padding: '10px 20px', background: 'var(--green-dim)', border: '1.5px solid var(--border-green)', borderRadius: 'var(--radius-md)', color: 'var(--green)', fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
-              {tr.tabTicket ?? 'Ticket'} →
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#444', textAlign: 'center' }}>
+              {tr.noPositionsSub ?? 'Abre una posición desde el Gráfico'}
+            </div>
+            <button onClick={() => setTab('chart')} style={{ marginTop: 6, padding: '10px 22px', background: 'var(--green-dim)', border: '1.5px solid var(--border-green)', borderRadius: 'var(--radius-md)', color: 'var(--green)', fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
+              {tr.tabChart ?? 'Gráfico'} →
             </button>
           </div>
-        ) : (
-          <div>
-            {positionsLive.map(pos => {
-              const pnlColor = pos.pnl >= 0 ? 'var(--green)' : 'var(--color-down)';
-              const dirColor = pos.dir === 'BUY' ? 'var(--green)' : 'var(--color-down)';
-              return (
-                <div key={pos.id} style={{ padding: '14px 16px', borderBottom: '0.5px solid var(--border-subtle)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 14, color: 'var(--text-primary)' }}>{pos.symbol}</span>
-                      <span style={{ fontSize: 10, fontWeight: 900, color: dirColor, background: pos.dir === 'BUY' ? 'var(--green-dim)' : 'var(--pink-dim)', border: `1px solid ${pos.dir === 'BUY' ? 'var(--border-green)' : 'var(--border-pink)'}`, borderRadius: 4, padding: '1px 6px', letterSpacing: '0.08em' }}>
-                        {pos.dir}
-                      </span>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: '#666' }}>{pos.lots} {tr.lotsLabel ?? 'lots'}</span>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 16, color: pnlColor }}>
-                        {fmtPnl(pos.pnl)}
-                      </div>
-                    </div>
+        </div>
+      );
+    }
+
+    return (
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {AccountHeader}
+        {Separator}
+        <div style={{ flex: 1, overflowY: 'auto' }}>
+          {positionsLive.map(pos => {
+            const posPnlColor = pos.pnl >= 0 ? 'var(--green)' : 'var(--pink)';
+            const dirColor    = pos.dir === 'BUY' ? 'var(--green)' : 'var(--pink)';
+            return (
+              <div key={pos.id} style={{ display: 'flex', alignItems: 'center', padding: '10px 14px', borderBottom: '1px solid var(--border-subtle)', minHeight: 66 }}>
+                {/* Left: symbol + direction + lots | entry → current */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 5 }}>
+                    <span style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 14, color: 'var(--text-primary)' }}>{pos.symbol}</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700, color: dirColor, background: pos.dir === 'BUY' ? 'rgba(0,192,135,0.10)' : 'rgba(224,85,133,0.10)', border: `0.5px solid ${dirColor}`, borderRadius: 2, padding: '1px 5px', letterSpacing: '0.08em' }}>
+                      {pos.dir.toLowerCase()}
+                    </span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#555' }}>{pos.lots.toFixed(2)}</span>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 10 }}>
-                    {[
-                      { label: tr.entryLabel ?? 'Entry',   value: fmtPrice(pos.entry) },
-                      { label: tr.currentLabel ?? 'Curr.', value: fmtPrice(pos.curr)  },
-                      { label: tr.liqLabel ?? 'Liq.',      value: fmtPrice(pos.liq)   },
-                    ].map(({ label, value }) => (
-                      <div key={label} style={{ background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', padding: '6px 8px' }}>
-                        <div style={{ fontFamily: 'var(--font-body)', fontSize: 9, fontWeight: 800, color: 'var(--text-hint)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 2 }}>{label}</div>
-                        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)' }}>{value}</div>
-                      </div>
-                    ))}
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-hint)' }}>
+                    {fmtPrice(pos.entry)}&nbsp;→&nbsp;{fmtPrice(pos.curr)}
                   </div>
-                  <button
-                    onClick={() => handleClosePosition(pos.id)}
-                    style={{ width: '100%', padding: '8px', background: 'rgba(224,85,133,0.08)', border: '0.5px solid var(--border-pink)', borderRadius: 'var(--radius-sm)', color: 'var(--color-down)', fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 12, cursor: 'pointer', letterSpacing: '0.08em' }}>
-                    {tr.closeBtn ?? 'Close position'}
+                </div>
+
+                {/* Right: P&L + close button */}
+                <div style={{ flexShrink: 0, textAlign: 'right', marginLeft: 14 }}>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 19, color: posPnlColor, lineHeight: 1.1 }}>
+                    {pos.pnl >= 0 ? '+' : ''}${Math.abs(pos.pnl).toFixed(2)}
+                  </div>
+                  <button onClick={() => handleClosePosition(pos.id)}
+                    style={{ marginTop: 5, background: 'rgba(224,85,133,0.08)', border: '0.5px solid var(--border-pink)', borderRadius: 3, color: 'var(--pink)', fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 9, cursor: 'pointer', padding: '2px 7px', letterSpacing: '0.08em' }}>
+                    {tr.closeBtn ?? 'CERRAR'}
                   </button>
                 </div>
-              );
-            })}
-            <div style={{ height: 16 }} />
-          </div>
-        )}
+              </div>
+            );
+          })}
+          <div style={{ height: 16 }} />
+        </div>
       </div>
     );
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // TAB: TICKET
+  // TAB: HISTORIAL
   // ─────────────────────────────────────────────────────────────────────────────
-  function renderTicket() {
+  function renderHistorial() {
+    const HIST_TABS = [
+      { id: 'positions',    label: tr.histPositions    ?? 'Posiciones'    },
+      { id: 'orders',       label: tr.histOrders       ?? 'Órdenes'       },
+      { id: 'transactions', label: tr.histTransactions ?? 'Transacciones' },
+    ];
+
+    const totalBenefit = closedPositions.reduce((s, p) => s + Math.max(0, p.pnl), 0);
+    const commission   = closedPositions.length * 2.50;
+    const netPnl       = closedPositions.reduce((s, p) => s + p.pnl, 0);
+    const finalBalance = 10000 + netPnl - commission;
+
     return (
-      <div style={{ flex: 1, overflow: 'auto', padding: '16px 16px 24px' }}>
-        {/* Symbol selector */}
-        <button
-          onClick={() => setTab('symbols')}
-          style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', background: 'var(--bg-elevated)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', marginBottom: 16, cursor: 'pointer' }}>
-          <div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 3 }}>
-              {tr.tabSymbols ?? 'Symbol'}
-            </div>
-            <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 16, color: selectedSymbol ? 'var(--text-primary)' : '#444' }}>
-              {selectedSymbol ?? (tr.noSymbolSelected ?? 'Select a symbol →')}
-            </div>
-          </div>
-          <div style={{ textAlign: 'right' }}>
-            {selectedSymbol && (
-              <>
-                <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 15, color: 'var(--text-primary)' }}>
-                  {fmtPrice(selPrice)}
-                </div>
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: (prices[selectedSymbol]?.change ?? 0) >= 0 ? 'var(--green)' : 'var(--color-down)' }}>
-                  {(prices[selectedSymbol]?.change ?? 0) >= 0 ? '+' : ''}{(prices[selectedSymbol]?.change ?? 0).toFixed(2)}%
-                </div>
-              </>
-            )}
-            {!selectedSymbol && <ChevronRight size={18} style={{ stroke: '#444' }} />}
-          </div>
-        </button>
-
-        {/* BUY / SELL */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 20 }}>
-          <button onClick={() => setSide('BUY')} style={{ padding: '14px', borderRadius: 'var(--radius-md)', border: side === 'BUY' ? '2px solid var(--green)' : '1px solid var(--border-default)', background: side === 'BUY' ? 'var(--green)' : 'var(--bg-elevated)', color: side === 'BUY' ? '#0d0d0d' : '#555', fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 15, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'all 0.15s' }}>
-            <TrendingUp size={16} /> {tr.buy ?? 'BUY'}
-          </button>
-          <button onClick={() => setSide('SELL')} style={{ padding: '14px', borderRadius: 'var(--radius-md)', border: side === 'SELL' ? '2px solid var(--color-down)' : '1px solid var(--border-default)', background: side === 'SELL' ? 'var(--color-down)' : 'var(--bg-elevated)', color: side === 'SELL' ? '#0d0d0d' : '#555', fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 15, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'all 0.15s' }}>
-            <TrendingDown size={16} /> {tr.sell ?? 'SELL'}
-          </button>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {/* Sub-tab bar */}
+        <div style={{ display: 'flex', borderBottom: '1px solid var(--border-default)', flexShrink: 0 }}>
+          {HIST_TABS.map(ht => (
+            <button key={ht.id} onClick={() => setHistTab(ht.id)} style={{
+              flex: 1, padding: '10px 2px', background: 'transparent', border: 'none',
+              borderBottom: histTab === ht.id ? '2px solid var(--green)' : '2px solid transparent',
+              color: histTab === ht.id ? 'var(--green)' : 'var(--text-hint)',
+              fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 10,
+              cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase',
+              transition: 'color 0.15s',
+            }}>
+              {ht.label}
+            </button>
+          ))}
         </div>
 
-        {/* Lot size */}
-        <div style={{ background: 'var(--bg-elevated)', borderRadius: 'var(--radius-md)', padding: '14px', marginBottom: 12 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-              {tr.volumeLabel ?? 'Volume (Lots)'}
-            </span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <button onClick={() => setLots(l => Math.max(0.01, +(l - 0.01).toFixed(2)))} style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--bg-subtle)', border: '0.5px solid var(--border-default)', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Minus size={12} />
-              </button>
-              <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)', minWidth: 48, textAlign: 'center' }}>{lots.toFixed(2)}</span>
-              <button onClick={() => setLots(l => Math.min(5, +(l + 0.01).toFixed(2)))} style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--bg-subtle)', border: '0.5px solid var(--border-default)', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Plus size={12} />
-              </button>
-            </div>
-          </div>
-          <input type="range" min={0.01} max={5} step={0.01} value={lots}
-            onChange={e => setLots(parseFloat(e.target.value))}
-            style={{ width: '100%', accentColor: 'var(--green)', cursor: 'pointer' }} />
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#555' }}>0.01</span>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#555' }}>5.00</span>
-          </div>
-        </div>
-
-        {/* SL / TP */}
-        <div style={{ background: 'var(--bg-elevated)', borderRadius: 'var(--radius-md)', padding: '14px', marginBottom: 16 }}>
-          <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>
-            {tr.optionals ?? 'Optional'}
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            {[
-              { label: tr.slLabel ?? 'Stop Loss',   key: 'sl', val: slPrice, set: setSlPrice, use: useStopLoss,   setUse: setUseStopLoss },
-              { label: tr.tpLabel ?? 'Take Profit', key: 'tp', val: tpPrice, set: setTpPrice, use: useTakeProfit, setUse: setUseTakeProfit },
-            ].map(({ label, key, val, set, use, setUse }) => (
-              <div key={key}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                  <div onClick={() => setUse(u => !u)} style={{ width: 16, height: 16, borderRadius: 4, border: `2px solid ${use ? 'var(--green)' : '#444'}`, background: use ? 'var(--green)' : 'transparent', cursor: 'pointer', flexShrink: 0, transition: 'all 0.15s' }} />
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 700, color: use ? 'var(--text-primary)' : '#555' }}>{label}</span>
+        {/* Content */}
+        <div style={{ flex: 1, overflowY: 'auto' }}>
+          {histTab === 'positions' && (
+            <>
+              {closedPositions.length === 0 ? (
+                <div style={{ padding: 48, textAlign: 'center' }}>
+                  <Clock size={38} style={{ stroke: '#222' }} />
+                  <div style={{ marginTop: 12, fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 14, color: 'var(--text-muted)' }}>
+                    {tr.noHistory ?? 'Sin historial'}
+                  </div>
                 </div>
-                <input
-                  type="number" value={val} disabled={!use}
-                  onChange={e => set(e.target.value)}
-                  placeholder={fmtPrice(selPrice)}
-                  style={{ width: '100%', padding: '8px 10px', background: use ? 'var(--bg-subtle)' : 'rgba(255,255,255,0.02)', border: `0.5px solid ${use ? 'var(--border-default)' : '#222'}`, borderRadius: 'var(--radius-sm)', color: use ? 'var(--text-primary)' : '#444', fontFamily: 'var(--font-mono)', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+              ) : (
+                <>
+                  {closedPositions.map(pos => {
+                    const posPnlColor = pos.pnl >= 0 ? 'var(--green)' : 'var(--pink)';
+                    const dirColor    = pos.dir === 'BUY' ? 'var(--green)' : 'var(--pink)';
+                    return (
+                      <div key={pos.id} style={{ display: 'flex', alignItems: 'center', padding: '10px 14px', borderBottom: '1px solid var(--border-subtle)', minHeight: 62 }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
+                            <span style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 14, color: 'var(--text-primary)' }}>{pos.symbol}</span>
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700, color: dirColor, background: pos.dir === 'BUY' ? 'rgba(0,192,135,0.10)' : 'rgba(224,85,133,0.10)', border: `0.5px solid ${dirColor}`, borderRadius: 2, padding: '1px 5px', letterSpacing: '0.08em' }}>
+                              {pos.dir.toLowerCase()}
+                            </span>
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#555' }}>{pos.lots.toFixed(2)}</span>
+                          </div>
+                          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-hint)' }}>
+                            {fmtPrice(pos.entry)}&nbsp;→&nbsp;{fmtPrice(pos.close)}&nbsp;&nbsp;{pos.closeTime}
+                          </div>
+                        </div>
+                        <div style={{ flexShrink: 0, textAlign: 'right', marginLeft: 14 }}>
+                          <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 17, color: posPnlColor, lineHeight: 1 }}>
+                            {pos.pnl >= 0 ? '+' : ''}${Math.abs(pos.pnl).toFixed(2)}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {/* Summary block */}
+                  <div style={{ margin: '12px 14px 24px', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}>
+                    <div style={{ padding: '9px 12px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, fontWeight: 800, color: 'var(--text-hint)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                        {tr.histBenefit ?? 'Beneficio'}
+                      </span>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: 'var(--green)' }}>
+                        +${totalBenefit.toFixed(2)}
+                      </span>
+                    </div>
+                    <div style={{ padding: '9px 12px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, fontWeight: 800, color: 'var(--text-hint)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                        {tr.histCommission ?? 'Comisión'}
+                      </span>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)' }}>
+                        -${commission.toFixed(2)}
+                      </span>
+                    </div>
+                    <div style={{ padding: '11px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,192,135,0.04)' }}>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                        {tr.balance ?? 'Balance'}
+                      </span>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 16, fontWeight: 700, color: 'var(--green)' }}>
+                        ${finalBalance.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                </>
+              )}
+            </>
+          )}
+
+          {(histTab === 'orders' || histTab === 'transactions') && (
+            <div style={{ padding: 48, textAlign: 'center' }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 32, color: '#1e1e1e', marginBottom: 12, lineHeight: 1 }}>—</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 13, color: 'var(--text-muted)' }}>
+                {histTab === 'orders' ? (tr.noOrders ?? 'Sin órdenes pendientes') : (tr.noTransactions ?? 'Sin transacciones')}
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Calculations */}
-        {selectedSymbol && (
-          <div style={{ background: 'rgba(0,192,135,0.04)', border: '0.5px solid var(--border-green)', borderRadius: 'var(--radius-md)', padding: '12px 14px', marginBottom: 16 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              {[
-                { label: tr.posSize ?? 'Position', value: `$${posValue >= 1000 ? (posValue / 1000).toFixed(1) + 'K' : posValue.toFixed(2)}` },
-                { label: tr.marginReq ?? 'Margin', value: `$${marginReq.toFixed(2)}` },
-                { label: tr.leverage ?? '1:100', value: '1 : 100' },
-                { label: 'Lev. Type', value: 'CFD' },
-              ].map(({ label, value }) => (
-                <div key={label}>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 10, fontWeight: 800, color: 'var(--text-hint)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 2 }}>{label}</div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: 'var(--green)' }}>{value}</div>
-                </div>
-              ))}
             </div>
-          </div>
-        )}
-
-        {/* Confirm */}
-        <button
-          disabled={!selectedSymbol}
-          onClick={handleConfirmOrder}
-          style={{ width: '100%', padding: '16px', background: selectedSymbol ? (side === 'BUY' ? 'var(--green)' : 'var(--color-down)') : '#222', border: 'none', borderRadius: 'var(--radius-md)', color: selectedSymbol ? '#0d0d0d' : '#444', fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 15, cursor: selectedSymbol ? 'pointer' : 'not-allowed', letterSpacing: '0.04em', transition: 'all 0.15s' }}>
-          {tr.confirmOrder ?? 'Open Position'}
-        </button>
+          )}
+        </div>
       </div>
     );
   }
@@ -1000,7 +1059,7 @@ export default function TradingMode({ onBack }) {
     { id: 'symbols',   label: tr.tabSymbols   ?? 'Cotizaciones', icon: <List size={17} />           },
     { id: 'chart',     label: tr.tabChart     ?? 'Chart',        icon: <CandlestickChart size={17} /> },
     { id: 'positions', label: tr.tabPositions ?? 'Positions',    icon: <Activity size={17} />       },
-    { id: 'ticket',    label: tr.tabTicket    ?? 'Ticket',       icon: <FileText size={17} />       },
+    { id: 'ticket',    label: tr.tabHistorial ?? 'Historial',    icon: <Clock size={17} />          },
     { id: 'social',    label: tr.tabSocial    ?? 'Social',       icon: <Trophy size={17} />         },
   ];
 
@@ -1043,7 +1102,7 @@ export default function TradingMode({ onBack }) {
         {tab === 'symbols'   && renderSymbols()}
         {tab === 'chart'     && renderChart()}
         {tab === 'positions' && renderPositions()}
-        {tab === 'ticket'    && renderTicket()}
+        {tab === 'ticket'    && renderHistorial()}
         {tab === 'social'    && renderSocial()}
       </div>
 
