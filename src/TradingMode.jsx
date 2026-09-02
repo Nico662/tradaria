@@ -172,13 +172,19 @@ function generateCandles(symbol, tf, count = 60) {
 
 // ── Initial mock positions ────────────────────────────────────────────────────
 const INITIAL_POSITIONS = [
-  { id: 1, symbol: 'BTC/USD', dir: 'BUY',  lots: 0.10, entry: 64250.00 },
-  { id: 2, symbol: 'GOLD',    dir: 'SELL', lots: 0.05, entry: 2290.00  },
-  { id: 3, symbol: 'EUR/USD', dir: 'BUY',  lots: 0.10, entry: 1.08200  },
+  { id: 1, symbol: 'BTC/USD', dir: 'BUY',  lots: 0.10, entry: 64250.00, sl: 63000.00, tp: 66500.00 },
+  { id: 2, symbol: 'GOLD',    dir: 'SELL', lots: 0.05, entry: 2290.00,  sl: 2310.00,  tp: 2250.00  },
+  { id: 3, symbol: 'EUR/USD', dir: 'BUY',  lots: 0.10, entry: 1.08200,  sl: 1.07800,  tp: 1.08800  },
 ];
 
-// ── SVG Candlestick chart (adaptive — receives measured width/height) ─────────
-function CandleChart({ symbol, timeframe, width, height }) {
+// ── SVG Candlestick chart ─────────────────────────────────────────────────────
+// positionsOnSymbol: [{ id, dir, lots, entry, sl, tp, pnl }] — already live-P&L from parent
+// onUpdateSL/onUpdateTP: (posId, newPrice) => void — today: update mock; later: call backend
+function CandleChart({ symbol, timeframe, width, height, positionsOnSymbol = [], onUpdateSL, onUpdateTP }) {
+  const svgRef = useRef(null);
+  const [dragState, setDragState] = useState(null);
+  // dragState: { type:'sl'|'tp', posId, currentPrice } | null
+
   const candles = generateCandles(symbol, timeframe);
   const PAD = { t: 12, b: 22, l: 2, r: 58 };
   const W = width - PAD.l - PAD.r;
@@ -186,12 +192,19 @@ function CandleChart({ symbol, timeframe, width, height }) {
 
   if (W <= 0 || H <= 0) return null;
 
-  const allP  = candles.flatMap(c => [c.high, c.low]);
+  // Include position prices in range so lines are always visible
+  const posPrices = positionsOnSymbol.flatMap(p => [
+    p.entry,
+    ...(p.sl != null ? [p.sl] : []),
+    ...(p.tp != null ? [p.tp] : []),
+  ]);
+  const allP  = [...candles.flatMap(c => [c.high, c.low]), ...posPrices];
   const minP  = Math.min(...allP);
   const maxP  = Math.max(...allP);
   const range = maxP - minP || 1;
 
   const py = p => PAD.t + H - ((p - minP) / range) * H;
+  const yp = y => minP + (1 - (y - PAD.t) / H) * range;
   const cw = Math.max(2, W / candles.length - 1.2);
   const cx = i => PAD.l + (i + 0.5) * (W / candles.length);
 
@@ -205,7 +218,6 @@ function CandleChart({ symbol, timeframe, width, height }) {
     p: minP + t * range,
     y: PAD.t + H * (1 - t),
   }));
-
   const timeIdxs = [0, 1, 2, 3, 4].map(i => Math.round(i * (candles.length - 1) / 4));
 
   function priceFmt(p) {
@@ -224,16 +236,166 @@ function CandleChart({ symbol, timeframe, width, height }) {
     return t.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
   }
 
+  // ── Drag gesture logic ────────────────────────────────────────────────────────
+  // Disambiguation: pointerdown ON a drag zone → capture → drag the line.
+  //                 pointerdown on chart background → future pan (no capture set here).
+  function clientYtoPrice(clientY) {
+    const rect = svgRef.current?.getBoundingClientRect();
+    if (!rect) return null;
+    const y = clientY - rect.top;
+    return yp(Math.max(PAD.t, Math.min(PAD.t + H, y)));
+  }
+
+  function onDragZoneDown(e, type, posId, linePrice) {
+    e.stopPropagation();
+    e.preventDefault();
+    // Redirect all future pointer events for this pointer to the SVG element
+    svgRef.current?.setPointerCapture(e.pointerId);
+    setDragState({ type, posId, currentPrice: linePrice });
+  }
+
+  function onSvgMove(e) {
+    if (!dragState) return;
+    const price = clientYtoPrice(e.clientY);
+    if (price !== null) setDragState(d => d ? { ...d, currentPrice: price } : null);
+  }
+
+  function onSvgUp(e) {
+    if (!dragState) return;
+    // TODO: conectar al backend del Trading Mode cuando exista
+    if (dragState.type === 'sl') onUpdateSL?.(dragState.posId, dragState.currentPrice);
+    else                         onUpdateTP?.(dragState.posId, dragState.currentPrice);
+    setDragState(null);
+  }
+
+  // ── Position overlay renderer ────────────────────────────────────────────────
+  function renderPositionLines() {
+    return positionsOnSymbol.map(pos => {
+      const dirColor  = pos.dir === 'BUY' ? '#00c087' : '#e05585';
+      const pnlColor  = pos.pnl >= 0 ? '#00c087' : '#e05585';
+      const pnlStr    = fmtPnl(pos.pnl);
+
+      // Dragged price overrides committed price during drag
+      const displaySL = dragState?.posId === pos.id && dragState.type === 'sl'
+        ? dragState.currentPrice : pos.sl;
+      const displayTP = dragState?.posId === pos.id && dragState.type === 'tp'
+        ? dragState.currentPrice : pos.tp;
+
+      const entryY = py(pos.entry);
+
+      return (
+        <g key={pos.id}>
+          {/* ── Entry line ── */}
+          <line x1={PAD.l} y1={entryY} x2={width - PAD.r} y2={entryY}
+            stroke={dirColor} strokeWidth={1} strokeDasharray="6,3" opacity={0.9} />
+          {/* Entry info badge (left) */}
+          <rect x={PAD.l + 2} y={entryY - 10} width={86} height={19}
+            fill="rgba(0,0,0,0.72)" rx={3} />
+          <text x={PAD.l + 7} y={entryY + 2}
+            fill={dirColor} fontSize={8} fontFamily="monospace" fontWeight="bold">
+            {pos.dir}
+          </text>
+          <text x={PAD.l + 28} y={entryY + 2}
+            fill="#aaa" fontSize={8} fontFamily="monospace">
+            {pos.lots}L
+          </text>
+          <text x={PAD.l + 88} y={entryY + 2}
+            fill={pnlColor} fontSize={8} fontFamily="monospace" fontWeight="bold" textAnchor="end">
+            {pnlStr}
+          </text>
+          {/* Entry price chip (right axis) */}
+          <rect x={width - PAD.r} y={entryY - 9} width={PAD.r} height={18}
+            fill={dirColor} opacity={0.9} rx={2} />
+          <text x={width - PAD.r / 2} y={entryY + 3.8}
+            fill="#080808" fontSize={8} fontFamily="monospace" fontWeight="bold" textAnchor="middle">
+            {priceFmt(pos.entry)}
+          </text>
+
+          {/* ── SL line ── */}
+          {displaySL != null && (
+            <g>
+              <line x1={PAD.l} y1={py(displaySL)} x2={width - PAD.r} y2={py(displaySL)}
+                stroke="#e05585" strokeWidth={1} strokeDasharray="3,3" opacity={0.85} />
+              {/* SL badge */}
+              <rect x={PAD.l + 2} y={py(displaySL) - 8} width={20} height={15}
+                fill="rgba(224,85,133,0.18)" rx={2} />
+              <text x={PAD.l + 12} y={py(displaySL) + 3}
+                fill="#e05585" fontSize={8} fontFamily="monospace" fontWeight="bold" textAnchor="middle">
+                SL
+              </text>
+              {/* SL price chip */}
+              <rect x={width - PAD.r} y={py(displaySL) - 8} width={PAD.r} height={15}
+                fill="rgba(224,85,133,0.14)" stroke="#e05585" strokeWidth={0.5} rx={2} />
+              <text x={width - PAD.r / 2} y={py(displaySL) + 3}
+                fill="#e05585" fontSize={8} fontFamily="monospace" textAnchor="middle">
+                {priceFmt(displaySL)}
+              </text>
+              {/* Drag handle indicator */}
+              <circle cx={PAD.l + W * 0.65} cy={py(displaySL)} r={4}
+                fill="#e05585" opacity={0.6} style={{ pointerEvents: 'none' }} />
+              {/* Drag zone — 24px tall invisible touch target */}
+              <rect
+                x={PAD.l} y={py(displaySL) - 12} width={W} height={24}
+                fill="transparent"
+                style={{ cursor: 'ns-resize', touchAction: 'none' }}
+                onPointerDown={e => onDragZoneDown(e, 'sl', pos.id, displaySL)}
+              />
+            </g>
+          )}
+
+          {/* ── TP line ── */}
+          {displayTP != null && (
+            <g>
+              <line x1={PAD.l} y1={py(displayTP)} x2={width - PAD.r} y2={py(displayTP)}
+                stroke="#00c087" strokeWidth={1} strokeDasharray="3,3" opacity={0.85} />
+              {/* TP badge */}
+              <rect x={PAD.l + 2} y={py(displayTP) - 8} width={20} height={15}
+                fill="rgba(0,192,135,0.15)" rx={2} />
+              <text x={PAD.l + 12} y={py(displayTP) + 3}
+                fill="#00c087" fontSize={8} fontFamily="monospace" fontWeight="bold" textAnchor="middle">
+                TP
+              </text>
+              {/* TP price chip */}
+              <rect x={width - PAD.r} y={py(displayTP) - 8} width={PAD.r} height={15}
+                fill="rgba(0,192,135,0.12)" stroke="#00c087" strokeWidth={0.5} rx={2} />
+              <text x={width - PAD.r / 2} y={py(displayTP) + 3}
+                fill="#00c087" fontSize={8} fontFamily="monospace" textAnchor="middle">
+                {priceFmt(displayTP)}
+              </text>
+              {/* Drag handle indicator */}
+              <circle cx={PAD.l + W * 0.65} cy={py(displayTP)} r={4}
+                fill="#00c087" opacity={0.6} style={{ pointerEvents: 'none' }} />
+              {/* Drag zone */}
+              <rect
+                x={PAD.l} y={py(displayTP) - 12} width={W} height={24}
+                fill="transparent"
+                style={{ cursor: 'ns-resize', touchAction: 'none' }}
+                onPointerDown={e => onDragZoneDown(e, 'tp', pos.id, displayTP)}
+              />
+            </g>
+          )}
+        </g>
+      );
+    });
+  }
+
   return (
-    <svg width={width} height={height} style={{ display: 'block' }}>
+    <svg
+      ref={svgRef}
+      width={width} height={height}
+      style={{ display: 'block', touchAction: dragState ? 'none' : 'pan-x pan-y' }}
+      onPointerMove={onSvgMove}
+      onPointerUp={onSvgUp}
+      onPointerLeave={onSvgUp}
+    >
       <rect width={width} height={height} fill="#080808" />
 
-      {/* Grid: horizontal dashed lines */}
+      {/* Horizontal grid */}
       {gridLevels.map((l, i) => (
         <line key={`gh${i}`} x1={PAD.l} y1={l.y} x2={width - PAD.r} y2={l.y}
           stroke="rgba(255,255,255,0.045)" strokeWidth={1} strokeDasharray="3,5" />
       ))}
-      {/* Grid: vertical dashed lines */}
+      {/* Vertical grid */}
       {timeIdxs.map(idx => (
         <line key={`gv${idx}`} x1={cx(idx)} y1={PAD.t} x2={cx(idx)} y2={PAD.t + H}
           stroke="rgba(255,255,255,0.025)" strokeWidth={1} strokeDasharray="3,5" />
@@ -265,7 +427,7 @@ function CandleChart({ symbol, timeframe, width, height }) {
       <line x1={PAD.l} y1={PAD.t + H} x2={width - PAD.r} y2={PAD.t + H}
         stroke="rgba(255,255,255,0.07)" strokeWidth={1} />
 
-      {/* Price labels (right axis) */}
+      {/* Price labels */}
       {gridLevels.map((l, i) => (
         <text key={`pl${i}`} x={width - PAD.r + 5} y={l.y + 3.5}
           fill="#555" fontSize={9} fontFamily="monospace" textAnchor="start">
@@ -273,7 +435,7 @@ function CandleChart({ symbol, timeframe, width, height }) {
         </text>
       ))}
 
-      {/* Current-price highlighted chip */}
+      {/* Current-price chip */}
       <rect x={width - PAD.r} y={lastY - 9} width={PAD.r} height={18}
         fill={priceColor} rx={2} />
       <text x={width - PAD.r / 2} y={lastY + 3.8}
@@ -281,19 +443,22 @@ function CandleChart({ symbol, timeframe, width, height }) {
         {priceFmt(lastPrice)}
       </text>
 
-      {/* Time labels (bottom axis) */}
+      {/* Time labels */}
       {timeIdxs.map(idx => (
         <text key={`tl${idx}`} x={cx(idx)} y={height - 5}
           fill="#444" fontSize={8} fontFamily="monospace" textAnchor="middle">
           {timeFmt(idx)}
         </text>
       ))}
+
+      {/* Position overlays — rendered last so they sit on top of candles */}
+      {renderPositionLines()}
     </svg>
   );
 }
 
-// ── ResizeObserver wrapper so the chart fills its container exactly ───────────
-function ChartContainer({ symbol, timeframe }) {
+// ── ResizeObserver wrapper ────────────────────────────────────────────────────
+function ChartContainer({ symbol, timeframe, positionsOnSymbol, onUpdateSL, onUpdateTP }) {
   const ref  = useRef(null);
   const [dims, setDims] = useState({ width: 0, height: 0 });
 
@@ -311,7 +476,12 @@ function ChartContainer({ symbol, timeframe }) {
   return (
     <div ref={ref} style={{ width: '100%', height: '100%', overflow: 'hidden', background: '#080808' }}>
       {dims.width > 0 && dims.height > 0 && (
-        <CandleChart symbol={symbol} timeframe={timeframe} width={dims.width} height={dims.height} />
+        <CandleChart
+          symbol={symbol} timeframe={timeframe}
+          width={dims.width} height={dims.height}
+          positionsOnSymbol={positionsOnSymbol}
+          onUpdateSL={onUpdateSL} onUpdateTP={onUpdateTP}
+        />
       )}
     </div>
   );
@@ -458,6 +628,14 @@ export default function TradingMode({ onBack }) {
 
   function handleClosePosition(id) {
     setPositions(prev => prev.filter(p => p.id !== id));
+  }
+
+  // TODO: conectar al backend del Trading Mode cuando exista
+  function handleUpdateStopLoss(positionId, newPrice) {
+    setPositions(prev => prev.map(p => p.id === positionId ? { ...p, sl: newPrice } : p));
+  }
+  function handleUpdateTakeProfit(positionId, newPrice) {
+    setPositions(prev => prev.map(p => p.id === positionId ? { ...p, tp: newPrice } : p));
   }
 
   function handleConfirmOrder() {
@@ -701,7 +879,12 @@ export default function TradingMode({ onBack }) {
 
         {/* ── Chart — elastic, fills all remaining height ── */}
         <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
-          <ChartContainer symbol={selectedSymbol} timeframe={timeframe} />
+          <ChartContainer
+            symbol={selectedSymbol} timeframe={timeframe}
+            positionsOnSymbol={positionsLive.filter(p => p.symbol === selectedSymbol)}
+            onUpdateSL={handleUpdateStopLoss}
+            onUpdateTP={handleUpdateTakeProfit}
+          />
         </div>
 
         {/* ── Execution panel: SELL | lots | BUY ── */}
