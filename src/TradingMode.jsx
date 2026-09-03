@@ -329,7 +329,8 @@ function ChartContainer({ symbol, timeframe }) {
 // ── Tutorial overlay ─────────────────────────────────────────────────────────
 function TradingTutorial({ t, onClose }) {
   const [step, setStep] = useState(0);
-  const tr = t.trading;
+  const tr = t.trading ?? {};
+  if (!t.trading) return null;
   const steps = [
     { title: tr.tutStep1title, body: tr.tutStep1 },
     { title: tr.tutStep2title, body: tr.tutStep2 },
