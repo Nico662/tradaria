@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { createChart, CandlestickSeries } from 'lightweight-charts';
 import { useLang } from './LangContext';
 import { ASSETS } from './assets.js';
 import {
@@ -186,144 +187,101 @@ const MOCK_HISTORY = [
   { id: 105, symbol: 'NVDA',    dir: 'BUY',  lots: 1.00, entry: 865.20,   close: 879.40,   closeTime: '30/08 15:58', pnl:  +14.20 },
 ];
 
-// ── SVG Candlestick chart (adaptive — receives measured width/height) ─────────
-function CandleChart({ symbol, timeframe, width, height }) {
-  const candles = generateCandles(symbol, timeframe);
-  const PAD = { t: 12, b: 22, l: 2, r: 58 };
-  const W = width - PAD.l - PAD.r;
-  const H = height - PAD.t - PAD.b;
-
-  if (W <= 0 || H <= 0) return null;
-
-  const allP  = candles.flatMap(c => [c.high, c.low]);
-  const minP  = Math.min(...allP);
-  const maxP  = Math.max(...allP);
-  const range = maxP - minP || 1;
-
-  const py = p => PAD.t + H - ((p - minP) / range) * H;
-  const cw = Math.max(2, W / candles.length - 1.2);
-  const cx = i => PAD.l + (i + 0.5) * (W / candles.length);
-
-  const lastCandle = candles[candles.length - 1];
-  const lastPrice  = lastCandle.close;
-  const lastUp     = lastCandle.close >= lastCandle.open;
-  const priceColor = lastUp ? '#00c087' : '#e05585';
-  const lastY      = py(lastPrice);
-
-  const gridLevels = [0, 0.25, 0.5, 0.75, 1].map(t => ({
-    p: minP + t * range,
-    y: PAD.t + H * (1 - t),
-  }));
-
-  const timeIdxs = [0, 1, 2, 3, 4].map(i => Math.round(i * (candles.length - 1) / 4));
-
-  function priceFmt(p) {
-    if (p >= 10000) return p.toLocaleString('en-US', { maximumFractionDigits: 0 });
-    if (p >= 1000)  return p.toFixed(0);
-    if (p >= 100)   return p.toFixed(1);
-    if (p >= 1)     return p.toFixed(3);
-    return p.toFixed(5);
-  }
-
-  function timeFmt(idx) {
-    const msMap = { M1: 60e3, M5: 300e3, M15: 900e3, H1: 3600e3, H4: 14400e3, D1: 86400e3 };
-    const ms = msMap[timeframe] ?? 3600e3;
-    const t  = new Date(Date.now() - (candles.length - 1 - idx) * ms);
-    if (timeframe === 'D1') return t.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
-    return t.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
-  }
-
-  return (
-    <svg width={width} height={height} style={{ display: 'block' }}>
-      <rect width={width} height={height} fill="#080808" />
-
-      {/* Grid: horizontal dashed lines */}
-      {gridLevels.map((l, i) => (
-        <line key={`gh${i}`} x1={PAD.l} y1={l.y} x2={width - PAD.r} y2={l.y}
-          stroke="rgba(255,255,255,0.045)" strokeWidth={1} strokeDasharray="3,5" />
-      ))}
-      {/* Grid: vertical dashed lines */}
-      {timeIdxs.map(idx => (
-        <line key={`gv${idx}`} x1={cx(idx)} y1={PAD.t} x2={cx(idx)} y2={PAD.t + H}
-          stroke="rgba(255,255,255,0.025)" strokeWidth={1} strokeDasharray="3,5" />
-      ))}
-
-      {/* Candles */}
-      {candles.map((c, i) => {
-        const up    = c.close >= c.open;
-        const color = up ? '#00c087' : '#e05585';
-        const x     = cx(i);
-        const bTop  = py(Math.max(c.open, c.close));
-        const bBot  = py(Math.min(c.open, c.close));
-        const bH    = Math.max(1, bBot - bTop);
-        return (
-          <g key={i}>
-            <line x1={x} y1={py(c.high)} x2={x} y2={py(c.low)} stroke={color} strokeWidth={1} />
-            <rect x={x - cw / 2} y={bTop} width={cw} height={bH} fill={color} />
-          </g>
-        );
-      })}
-
-      {/* Last-price dashed line */}
-      <line x1={PAD.l} y1={lastY} x2={width - PAD.r} y2={lastY}
-        stroke={priceColor} strokeWidth={1} strokeDasharray="4,3" opacity={0.8} />
-
-      {/* Axis separators */}
-      <line x1={width - PAD.r} y1={PAD.t} x2={width - PAD.r} y2={PAD.t + H}
-        stroke="rgba(255,255,255,0.07)" strokeWidth={1} />
-      <line x1={PAD.l} y1={PAD.t + H} x2={width - PAD.r} y2={PAD.t + H}
-        stroke="rgba(255,255,255,0.07)" strokeWidth={1} />
-
-      {/* Price labels (right axis) */}
-      {gridLevels.map((l, i) => (
-        <text key={`pl${i}`} x={width - PAD.r + 5} y={l.y + 3.5}
-          fill="#555" fontSize={9} fontFamily="monospace" textAnchor="start">
-          {priceFmt(l.p)}
-        </text>
-      ))}
-
-      {/* Current-price highlighted chip */}
-      <rect x={width - PAD.r} y={lastY - 9} width={PAD.r} height={18}
-        fill={priceColor} rx={2} />
-      <text x={width - PAD.r / 2} y={lastY + 3.8}
-        fill="#080808" fontSize={9} fontFamily="monospace" fontWeight="bold" textAnchor="middle">
-        {priceFmt(lastPrice)}
-      </text>
-
-      {/* Time labels (bottom axis) */}
-      {timeIdxs.map(idx => (
-        <text key={`tl${idx}`} x={cx(idx)} y={height - 5}
-          fill="#444" fontSize={8} fontFamily="monospace" textAnchor="middle">
-          {timeFmt(idx)}
-        </text>
-      ))}
-    </svg>
-  );
-}
-
-// ── ResizeObserver wrapper so the chart fills its container exactly ───────────
-function ChartContainer({ symbol, timeframe }) {
-  const ref  = useRef(null);
-  const [dims, setDims] = useState({ width: 0, height: 0 });
+// ── Lightweight Charts candlestick — replicates the Chart.jsx pattern ─────────
+function TradingChart({ symbol, timeframe }) {
+  const containerRef = useRef(null);
 
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const ro = new ResizeObserver(entries => {
-      const r = entries[0].contentRect;
-      setDims({ width: Math.floor(r.width), height: Math.floor(r.height) });
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
+    if (!containerRef.current || !symbol) return;
+    let chart;
+    let ro;
 
-  return (
-    <div ref={ref} style={{ width: '100%', height: '100%', overflow: 'hidden', background: '#080808' }}>
-      {dims.width > 0 && dims.height > 0 && (
-        <CandleChart symbol={symbol} timeframe={timeframe} width={dims.width} height={dims.height} />
-      )}
-    </div>
-  );
+    const timer = setTimeout(() => {
+      const el = containerRef.current;
+      if (!el || !el.clientWidth || !el.clientHeight) return;
+
+      const isForex = ASSETS.find(a => a.name === symbol)?.cat === 'forex';
+
+      chart = createChart(el, {
+        width:  el.clientWidth,
+        height: el.clientHeight,
+        layout: {
+          background: { type: 'solid', color: '#080808' },
+          textColor: '#555555',
+        },
+        grid: {
+          vertLines: { color: 'rgba(255,255,255,0.04)' },
+          horzLines: { color: 'rgba(255,255,255,0.04)' },
+        },
+        rightPriceScale: { borderColor: 'transparent' },
+        timeScale: {
+          borderColor: 'transparent',
+          barSpacing: 6,
+          rightOffset: 3,
+          timeVisible: timeframe !== 'D1',
+          fixLeftEdge: true,
+          fixRightEdge: false,
+        },
+        localization: {
+          priceFormatter: (price) => isForex ? price.toFixed(4) : price.toFixed(2),
+        },
+        crosshair: {
+          mode: 1,
+          vertLine: { color: 'rgba(224,85,133,0.4)', labelBackgroundColor: '#e05585' },
+          horzLine: { color: 'rgba(0,192,135,0.4)',  labelBackgroundColor: '#00c087' },
+        },
+        handleScroll: true,
+        handleScale:  true,
+      });
+
+      const series = chart.addSeries(CandlestickSeries, {
+        upColor:         '#00c087',
+        downColor:       '#e05585',
+        borderUpColor:   '#00c087',
+        borderDownColor: '#e05585',
+        wickUpColor:     '#00c087',
+        wickDownColor:   '#e05585',
+        priceFormat: isForex
+          ? { type: 'price', precision: 4, minMove: 0.0001 }
+          : { type: 'price', precision: 2, minMove: 0.01  },
+      });
+
+      const rawCandles = generateCandles(symbol, timeframe, 60);
+      const msMap = { M1: 60e3, M5: 300e3, M15: 900e3, H1: 3600e3, H4: 14400e3, D1: 86400e3 };
+      const intervalSec = (msMap[timeframe] ?? 3600e3) / 1000;
+      const nowSec = Math.floor(Date.now() / 1000);
+      const alignedNow = Math.floor(nowSec / intervalSec) * intervalSec;
+
+      const chartData = rawCandles.map((c, i) => ({
+        time:  alignedNow - (rawCandles.length - 1 - i) * intervalSec,
+        open:  c.open,
+        high:  c.high,
+        low:   c.low,
+        close: c.close,
+      }));
+
+      series.setData(chartData);
+      chart.timeScale().fitContent();
+
+      ro = new ResizeObserver(() => {
+        if (containerRef.current) {
+          chart.applyOptions({
+            width:  containerRef.current.clientWidth,
+            height: containerRef.current.clientHeight,
+          });
+        }
+      });
+      ro.observe(el);
+    }, 10);
+
+    return () => {
+      clearTimeout(timer);
+      if (ro) ro.disconnect();
+      if (chart) chart.remove();
+    };
+  }, [symbol, timeframe]);
+
+  return <div ref={containerRef} style={{ width: '100%', height: '100%' }} />;
 }
 
 // ── Tutorial overlay ─────────────────────────────────────────────────────────
@@ -722,7 +680,7 @@ export default function TradingMode({ onBack }) {
 
         {/* ── Chart — elastic, fills all remaining height ── */}
         <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
-          <ChartContainer symbol={selectedSymbol} timeframe={timeframe} />
+          <TradingChart symbol={selectedSymbol} timeframe={timeframe} />
         </div>
 
         {/* ── Execution panel: SELL | lots | BUY ── */}
