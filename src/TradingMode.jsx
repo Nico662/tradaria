@@ -6,6 +6,7 @@ import {
   ChevronLeft, Lock, TrendingUp, TrendingDown, X, Info,
   Trophy, Users, BarChart3, CandlestickChart, Activity,
   ChevronRight, Minus, Plus, Pencil, PlusCircle, List, Clock,
+  Flame, Swords,
 } from 'lucide-react';
 
 // ── Mock initial prices ───────────────────────────────────────────────────────
@@ -187,6 +188,71 @@ const MOCK_HISTORY = [
   { id: 105, symbol: 'NVDA',    dir: 'BUY',  lots: 1.00, entry: 865.20,   close: 879.40,   closeTime: '30/08 15:58', pnl:  +14.20 },
 ];
 
+// ─────────────────────────────────────────────────────────────────────────────
+// SOCIAL MOCK DATA — Trading Mode
+// TODO: conectar al backend del Trading Mode cuando exista:
+//   GET /api/trading/ranking?period=global|week  → { traders: Trader[] }
+//   GET /api/trading/duel/active                  → { active, endsAt, me, rival }
+//   GET /api/trading/leagues/me                   → { division, myId, myRank, total, promoteTop, relegateFrom, traders }
+// ─────────────────────────────────────────────────────────────────────────────
+const SOCIAL_ME_ID = 'u3';
+
+const SOCIAL_RANKING = {
+  global: [
+    { id: 'u1',  name: 'AlexTrade',   ops: 52, wr: 63, streak: 5, pct: +18.4 },
+    { id: 'u2',  name: 'MarketWolf',  ops: 41, wr: 58, streak: 2, pct: +14.7 },
+    { id: 'u3',  name: 'Tú',          ops: 37, wr: 59, streak: 3, pct: +12.1 },
+    { id: 'u4',  name: 'CryptoKing',  ops: 29, wr: 52, streak: 1, pct:  +9.8 },
+    { id: 'u5',  name: 'BullRider',   ops: 44, wr: 47, streak: 0, pct:  +5.3 },
+    { id: 'u6',  name: 'FXHunter',    ops: 18, wr: 44, streak: 0, pct:  +1.9 },
+    { id: 'u7',  name: 'ShortSeller', ops: 23, wr: 39, streak: 0, pct:  -2.4 },
+    { id: 'u8',  name: 'LossTaker',   ops: 15, wr: 33, streak: 0, pct:  -7.1 },
+  ],
+  week: [
+    { id: 'u4',  name: 'CryptoKing',  ops: 12, wr: 67, streak: 4, pct:  +6.2 },
+    { id: 'u3',  name: 'Tú',          ops:  9, wr: 56, streak: 2, pct:  +3.8 },
+    { id: 'u1',  name: 'AlexTrade',   ops:  8, wr: 50, streak: 1, pct:  +2.1 },
+    { id: 'u5',  name: 'BullRider',   ops: 14, wr: 43, streak: 0, pct:  +0.7 },
+    { id: 'u2',  name: 'MarketWolf',  ops:  6, wr: 33, streak: 0, pct:  -1.3 },
+    { id: 'u6',  name: 'FXHunter',    ops:  4, wr: 25, streak: 0, pct:  -3.5 },
+  ],
+};
+
+const SOCIAL_DUEL = {
+  active: true,
+  endsAt: '2d 4h',   // TODO: ISO date from backend, compute diff client-side
+  me:    { id: 'u3', name: 'Tú',         pct: +12.1 },
+  rival: { id: 'u2', name: 'MarketWolf', pct: +14.7 },
+};
+
+const SOCIAL_LEAGUE = {
+  division: 'gold',   // TODO: 'gold' | 'silver' | 'bronze' from backend
+  myId: 'u3',
+  myRank: 4,
+  total: 30,
+  promoteTop: 7,    // ranks 1-7 promote
+  relegateFrom: 26, // ranks 26-30 relegate
+  traders: [
+    { id: 'u1',  name: 'AlexTrade',  pct: +18.4 },
+    { id: 'u2',  name: 'MarketWolf', pct: +14.7 },
+    { id: 'u9',  name: 'Prism',      pct: +13.3 },
+    { id: 'u3',  name: 'Tú',         pct: +12.1 },
+    { id: 'u4',  name: 'CryptoKing', pct:  +9.8 },
+    { id: 'u5',  name: 'BullRider',  pct:  +5.3 },
+    { id: 'u10', name: 'FXPro',      pct:  +3.1 },
+    { id: 'u11', name: 'NightSwing', pct:  +1.7 },
+    { id: 'u12', name: 'DayTrader',  pct:  +0.9 },
+    { id: 'u13', name: 'GridBot',    pct:  +0.2 },
+    { id: 'u14', name: 'SlowHands',  pct:  -0.6 },
+    { id: 'u15', name: 'FOMOKing',   pct:  -1.8 },
+    { id: 'u26', name: 'RedAlert',   pct:  -8.4 },
+    { id: 'u27', name: 'DrawDown',   pct: -10.1 },
+    { id: 'u28', name: 'LossStreak', pct: -13.5 },
+    { id: 'u29', name: 'MarginCall', pct: -15.2 },
+    { id: 'u30', name: 'LiqHunter',  pct: -18.7 },
+  ],
+};
+
 // ── Lightweight Charts candlestick — replicates the Chart.jsx pattern ─────────
 function TradingChart({ symbol, timeframe }) {
   const containerRef = useRef(null);
@@ -363,6 +429,8 @@ export default function TradingMode({ onBack }) {
   const [blinkSeq,       setBlinkSeq]       = useState({});
   const [histTab,         setHistTab]        = useState('positions');
   const [closedPositions, setClosedPositions] = useState(MOCK_HISTORY);
+  const [socialTab,       setSocialTab]       = useState('ranking');
+  const [rankingPeriod,   setRankingPeriod]   = useState('global');
 
   // ── Mock price blinking ───────────────────────────────────────────────────
   useEffect(() => {
@@ -974,30 +1042,234 @@ export default function TradingMode({ onBack }) {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // TAB: SOCIAL (Ranking / Duel / Ligas placeholders)
+  // TAB: SOCIAL — Ranking / Duelo / Ligas
   // ─────────────────────────────────────────────────────────────────────────────
   function renderSocial() {
-    const sections = [
-      { icon: <Trophy size={22} style={{ stroke: 'var(--color-neutral)' }} />, title: tr.ranking ?? 'Trading Ranking',  color: 'var(--color-neutral)', border: 'var(--color-neutral-border)' },
-      { icon: <Users size={22} style={{ stroke: 'var(--pink)' }} />,          title: tr.duel ?? 'Trading Duel',         color: 'var(--pink)', border: 'var(--border-pink)' },
-      { icon: <BarChart3 size={22} style={{ stroke: 'var(--green)' }} />,      title: tr.leagues ?? 'Trading Leagues',   color: 'var(--green)', border: 'var(--border-green)' },
+    const rankList = rankingPeriod === 'global' ? SOCIAL_RANKING.global : SOCIAL_RANKING.week;
+    const { division, myId, myRank, total, promoteTop, relegateFrom, traders: leagueTraders } = SOCIAL_LEAGUE;
+    const divColor = division === 'gold' ? 'var(--color-neutral)' : division === 'silver' ? 'var(--text-secondary)' : '#cd7f32';
+    const divLabel = division === 'gold'
+      ? (tr.leagueDivGold ?? 'División Oro')
+      : division === 'silver'
+        ? (tr.leagueDivSilver ?? 'División Plata')
+        : (tr.leagueDivBronze ?? 'División Bronce');
+
+    // ── Sub-tab bar ────────────────────────────────────────────────────────────
+    const subTabs = [
+      { id: 'ranking', label: tr.tabRanking ?? 'Ranking', icon: <Trophy size={13} /> },
+      { id: 'duel',    label: tr.tabDuelSub ?? 'Duelo',   icon: <Swords size={13} /> },
+      { id: 'leagues', label: tr.tabLeagues ?? 'Ligas',   icon: <BarChart3 size={13} /> },
     ];
-    return (
-      <div style={{ flex: 1, overflow: 'auto', padding: '16px' }}>
-        {sections.map(s => (
-          <div key={s.title} style={{ background: 'var(--bg-elevated)', border: `0.5px solid ${s.border}`, borderRadius: 'var(--radius-lg)', padding: '20px 18px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-md)', background: 'rgba(255,255,255,0.04)', border: `1px solid ${s.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              {s.icon}
+
+    // ── Ranking ────────────────────────────────────────────────────────────────
+    function Ranking() {
+      return (
+        <div style={{ flex: 1, overflowY: 'auto' }}>
+          {/* Period toggle */}
+          <div style={{ display: 'flex', padding: '10px 14px', borderBottom: '1px solid var(--border-default)' }}>
+            {['global', 'week'].map((p, i) => {
+              const active = rankingPeriod === p;
+              const label  = p === 'global' ? (tr.rankGlobal ?? 'Global') : (tr.rankWeek ?? 'Semana');
+              return (
+                <button
+                  key={p}
+                  onClick={() => setRankingPeriod(p)}
+                  style={{
+                    flex: 1, padding: '6px 0',
+                    background: active ? 'var(--green)' : 'var(--bg-elevated)',
+                    color: active ? '#0d0d0d' : 'var(--text-muted)',
+                    border: '1px solid var(--border-default)',
+                    borderRadius: i === 0 ? 'var(--radius-sm) 0 0 var(--radius-sm)' : '0 var(--radius-sm) var(--radius-sm) 0',
+                    fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 12,
+                    cursor: 'pointer', transition: 'all 0.15s',
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Trader rows */}
+          {rankList.map((trader, idx) => {
+            const rank       = idx + 1;
+            const isMe       = trader.id === SOCIAL_ME_ID;
+            const rankColor  = rank <= 3 ? 'var(--color-neutral)' : 'var(--text-hint)';
+            const pctColor   = trader.pct >= 0 ? 'var(--green)' : 'var(--pink)';
+            const pctSign    = trader.pct >= 0 ? '+' : '';
+            return (
+              <div
+                key={trader.id}
+                style={{
+                  display: 'flex', alignItems: 'center', padding: '9px 14px', gap: 10,
+                  background: isMe ? 'rgba(0,192,135,0.05)' : 'transparent',
+                  borderBottom: '1px solid var(--border-default)',
+                }}
+              >
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: rankColor, minWidth: 22, textAlign: 'right', flexShrink: 0 }}>
+                  {rank}
+                </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 13, color: isMe ? 'var(--green)' : 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {trader.name}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 1 }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-hint)' }}>
+                      {trader.ops} ops · WR {trader.wr}%
+                    </span>
+                    {trader.streak > 0 && (
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 2, fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--color-neutral)' }}>
+                        <Flame size={10} />{trader.streak}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 16, fontWeight: 700, color: pctColor, flexShrink: 0 }}>
+                  {pctSign}{trader.pct.toFixed(1)}%
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    // ── Duelo ──────────────────────────────────────────────────────────────────
+    function Duelo() {
+      if (!SOCIAL_DUEL.active) {
+        return (
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 24px', gap: 12, textAlign: 'center' }}>
+            <Swords size={36} style={{ color: 'var(--text-hint)' }} />
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 15, color: 'var(--text-primary)' }}>
+              {tr.duelNone ?? 'Sin duelo activo'}
             </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 14, color: 'var(--text-primary)', marginBottom: 3 }}>{s.title}</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 12, color: '#555' }}>{tr.comingSoonSub ?? 'Coming soon for Trading Mode'}</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--text-muted)', maxWidth: 260 }}>
+              {tr.duelNoneSub ?? 'Reta a un amigo y compite por la mejor rentabilidad en Trading Mode'}
             </div>
-            <span style={{ fontSize: 9, fontWeight: 800, color: '#555', background: 'rgba(255,255,255,0.04)', border: '0.5px solid #333', borderRadius: 'var(--radius-full)', padding: '3px 8px', letterSpacing: '0.1em', flexShrink: 0 }}>
-              SOON
+            <button style={{ marginTop: 8, padding: '10px 24px', background: 'var(--green)', color: '#0d0d0d', border: 'none', borderRadius: 'var(--radius-sm)', fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 13, cursor: 'pointer' }}>
+              {tr.duelChallenge ?? 'Retar a un amigo'}
+            </button>
+          </div>
+        );
+      }
+      const iWinning    = SOCIAL_DUEL.me.pct > SOCIAL_DUEL.rival.pct;
+      const myColor     = SOCIAL_DUEL.me.pct    >= 0 ? 'var(--green)' : 'var(--pink)';
+      const rivalColor  = SOCIAL_DUEL.rival.pct >= 0 ? 'var(--green)' : 'var(--pink)';
+      const mySign      = SOCIAL_DUEL.me.pct    >= 0 ? '+' : '';
+      const rivalSign   = SOCIAL_DUEL.rival.pct >= 0 ? '+' : '';
+      return (
+        <div style={{ flex: 1, overflowY: 'auto' }}>
+          {/* Time remaining */}
+          <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-default)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 11, color: 'var(--text-hint)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+              {tr.duelTimeLeft ?? 'Tiempo restante'}
+            </span>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: 'var(--color-neutral)' }}>
+              {SOCIAL_DUEL.endsAt}
             </span>
           </div>
-        ))}
+
+          {/* VS panel */}
+          <div style={{ padding: '24px 14px', display: 'flex', alignItems: 'stretch' }}>
+            {/* Me */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '20px 12px', background: iWinning ? 'rgba(0,192,135,0.07)' : 'var(--bg-elevated)', border: iWinning ? '1px solid var(--border-green)' : '1px solid var(--border-default)', borderRadius: 'var(--radius-md) 0 0 var(--radius-md)' }}>
+              <span style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 13, color: 'var(--green)' }}>{SOCIAL_DUEL.me.name}</span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 28, fontWeight: 700, color: myColor, lineHeight: 1 }}>{mySign}{SOCIAL_DUEL.me.pct.toFixed(1)}%</span>
+              {iWinning && <span style={{ fontSize: 9, fontWeight: 800, color: 'var(--green)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>▲ {tr.duelWinning ?? 'Ganando'}</span>}
+            </div>
+            {/* VS */}
+            <div style={{ width: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-surface)', borderTop: '1px solid var(--border-default)', borderBottom: '1px solid var(--border-default)' }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 900, color: 'var(--text-hint)', letterSpacing: '0.05em' }}>VS</span>
+            </div>
+            {/* Rival */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '20px 12px', background: !iWinning ? 'rgba(224,85,133,0.07)' : 'var(--bg-elevated)', border: !iWinning ? '1px solid var(--border-pink)' : '1px solid var(--border-default)', borderRadius: '0 var(--radius-md) var(--radius-md) 0' }}>
+              <span style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 13, color: 'var(--text-primary)' }}>{SOCIAL_DUEL.rival.name}</span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 28, fontWeight: 700, color: rivalColor, lineHeight: 1 }}>{rivalSign}{SOCIAL_DUEL.rival.pct.toFixed(1)}%</span>
+              {!iWinning && <span style={{ fontSize: 9, fontWeight: 800, color: 'var(--pink)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>▲ {tr.duelWinning ?? 'Ganando'}</span>}
+            </div>
+          </div>
+
+          {/* Challenge button */}
+          <div style={{ padding: '0 14px 24px' }}>
+            <button style={{ width: '100%', padding: '11px 0', background: 'transparent', color: 'var(--green)', border: '1px solid var(--border-green)', borderRadius: 'var(--radius-sm)', fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 13, cursor: 'pointer', letterSpacing: '0.04em' }}>
+              {tr.duelChallenge ?? 'Retar a un amigo'}
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // ── Ligas ──────────────────────────────────────────────────────────────────
+    function Ligas() {
+      return (
+        <div style={{ flex: 1, overflowY: 'auto' }}>
+          {/* Division header */}
+          <div style={{ padding: '12px 14px', borderBottom: '1px solid var(--border-default)', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Trophy size={20} style={{ color: divColor, flexShrink: 0 }} />
+            <div>
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 14, color: divColor }}>{divLabel}</div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-muted)', marginTop: 1 }}>
+                {tr.leagueRankLabel ?? 'Puesto'} {myRank} {tr.leagueOf ?? 'de'} {total} · {tr.leaguePromotes ?? 'asciende top'} {promoteTop}
+              </div>
+            </div>
+          </div>
+
+          {/* League table */}
+          {leagueTraders.map((trader, idx) => {
+            const rank      = idx + 1;
+            const isMe      = trader.id === myId;
+            const zone      = rank <= promoteTop ? 'up' : rank >= relegateFrom ? 'down' : 'stay';
+            const dotColor  = zone === 'up' ? 'var(--green)' : zone === 'down' ? 'var(--pink)' : 'var(--text-hint)';
+            const rankColor = rank <= 3 ? 'var(--color-neutral)' : 'var(--text-hint)';
+            const pctColor  = trader.pct >= 0 ? 'var(--green)' : 'var(--pink)';
+            const pctSign   = trader.pct >= 0 ? '+' : '';
+            return (
+              <div
+                key={trader.id}
+                style={{
+                  display: 'flex', alignItems: 'center', padding: '8px 14px', gap: 10,
+                  background: isMe ? 'rgba(0,192,135,0.05)' : 'transparent',
+                  borderBottom: '1px solid var(--border-default)',
+                }}
+              >
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: dotColor, flexShrink: 0, display: 'inline-block' }} />
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: rankColor, minWidth: 18, textAlign: 'right', flexShrink: 0 }}>{rank}</span>
+                <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontWeight: isMe ? 900 : 700, fontSize: 13, color: isMe ? 'var(--green)' : 'var(--text-primary)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{trader.name}</span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: pctColor, flexShrink: 0 }}>{pctSign}{trader.pct.toFixed(1)}%</span>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    return (
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {/* Sub-tab bar */}
+        <div style={{ display: 'flex', borderBottom: '1px solid var(--border-default)', flexShrink: 0 }}>
+          {subTabs.map(st => {
+            const active = socialTab === st.id;
+            return (
+              <button
+                key={st.id}
+                onClick={() => setSocialTab(st.id)}
+                style={{
+                  flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  gap: 5, padding: '9px 4px', background: 'transparent', border: 'none',
+                  borderBottom: active ? '2px solid var(--green)' : '2px solid transparent',
+                  color: active ? 'var(--green)' : 'var(--text-hint)',
+                  fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 11,
+                  letterSpacing: '0.04em', cursor: 'pointer', marginBottom: -1,
+                }}
+              >
+                {st.icon} {st.label}
+              </button>
+            );
+          })}
+        </div>
+        {socialTab === 'ranking' && <Ranking />}
+        {socialTab === 'duel'    && <Duelo />}
+        {socialTab === 'leagues' && <Ligas />}
       </div>
     );
   }

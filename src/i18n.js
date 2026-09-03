@@ -636,6 +636,14 @@ export const LANGS = {
       tutStep5title: 'Close & Manage Risk',
       tutStep5: 'Close any position at any time. Use stop-loss and take-profit orders to protect your capital.',
       tutSkip: 'Skip', tutNext: 'Next →', tutDone: 'Start Trading →',
+      // Social screens
+      tabRanking: 'Ranking', tabDuelSub: 'Duel', tabLeagues: 'Leagues',
+      rankGlobal: 'Global', rankWeek: 'Week',
+      duelTimeLeft: 'Time left', duelChallenge: 'Challenge a friend',
+      duelNone: 'No active duel', duelWinning: 'Winning',
+      duelNoneSub: 'Challenge a friend and compete for the best return in Trading Mode',
+      leagueDivGold: 'Gold Division', leagueDivSilver: 'Silver Division', leagueDivBronze: 'Bronze Division',
+      leagueRankLabel: 'Rank', leagueOf: 'of', leaguePromotes: 'promotes top',
     },
   },
 
@@ -1276,6 +1284,14 @@ export const LANGS = {
       tutStep5title: 'Cerrar y Gestionar',
       tutStep5: 'Cierra cualquier posición en cualquier momento. Usa stop-loss y take-profit para proteger tu capital.',
       tutSkip: 'Saltar', tutNext: 'Siguiente →', tutDone: 'Empezar a operar →',
+      // Pantallas sociales
+      tabRanking: 'Ranking', tabDuelSub: 'Duelo', tabLeagues: 'Ligas',
+      rankGlobal: 'Global', rankWeek: 'Semana',
+      duelTimeLeft: 'Tiempo restante', duelChallenge: 'Retar a un amigo',
+      duelNone: 'Sin duelo activo', duelWinning: 'Ganando',
+      duelNoneSub: 'Reta a un amigo y compite por la mejor rentabilidad en Trading Mode',
+      leagueDivGold: 'División Oro', leagueDivSilver: 'División Plata', leagueDivBronze: 'División Bronce',
+      leagueRankLabel: 'Puesto', leagueOf: 'de', leaguePromotes: 'asciende top',
     },
   },
 
@@ -1916,6 +1932,14 @@ export const LANGS = {
       tutStep5title: 'Schließen & Risiko managen',
       tutStep5: 'Schließe jede Position jederzeit. Nutze Stop-Loss und Take-Profit, um dein Kapital zu schützen.',
       tutSkip: 'Überspringen', tutNext: 'Weiter →', tutDone: 'Mit Trading beginnen →',
+      // Soziale Screens
+      tabRanking: 'Ranking', tabDuelSub: 'Duell', tabLeagues: 'Ligen',
+      rankGlobal: 'Global', rankWeek: 'Woche',
+      duelTimeLeft: 'Verbleibende Zeit', duelChallenge: 'Freund herausfordern',
+      duelNone: 'Kein aktives Duell', duelWinning: 'Führend',
+      duelNoneSub: 'Fordere einen Freund heraus und konkurriere um die beste Rendite im Trading Mode',
+      leagueDivGold: 'Gold-Division', leagueDivSilver: 'Silber-Division', leagueDivBronze: 'Bronze-Division',
+      leagueRankLabel: 'Rang', leagueOf: 'von', leaguePromotes: 'aufsteigt Top',
     },
   },
 };
