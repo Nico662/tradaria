@@ -52,7 +52,6 @@ export default function LevelsPanel({ onClose }) {
         flexShrink: 0,
       }}>
         <span style={{
-          fontFamily: 'var(--font-body)',
           fontWeight: 900,
           fontSize: '18px',
           color: 'var(--text-primary)',
@@ -115,7 +114,6 @@ export default function LevelsPanel({ onClose }) {
             </div>
             <div>
               <div style={{
-                fontFamily: 'var(--font-body)',
                 fontWeight: 900,
                 fontSize: '24px',
                 color: 'var(--text-primary)',
@@ -151,11 +149,11 @@ export default function LevelsPanel({ onClose }) {
               {progress}%
             </span>
             {next ? (
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-hint)', fontWeight: 600 }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-hint)', fontWeight: 600 }}>
                 {(next.xp - xp).toLocaleString()} XP → {next.name}
               </span>
             ) : (
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color, fontWeight: 700 }}>
+              <span style={{ fontSize: '11px', color, fontWeight: 700 }}>
                 {tr.maxLevel}
               </span>
             )}
@@ -207,7 +205,6 @@ export default function LevelsPanel({ onClose }) {
 
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{
-                    fontFamily: 'var(--font-body)',
                     fontWeight: 800,
                     fontSize: '13px',
                     color: locked ? 'var(--text-hint)' : isCurrent ? c : 'var(--text-primary)',
@@ -217,7 +214,6 @@ export default function LevelsPanel({ onClose }) {
                     {l.name}
                     {isCurrent && (
                       <span style={{
-                        fontFamily: 'var(--font-mono)',
                         fontSize: '9px',
                         fontWeight: 700,
                         color: c,
@@ -233,7 +229,6 @@ export default function LevelsPanel({ onClose }) {
                     )}
                   </div>
                   <div style={{
-                    fontFamily: 'var(--font-mono)',
                     fontSize: '11px',
                     color: 'var(--text-hint)',
                   }}>
