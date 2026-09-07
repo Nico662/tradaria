@@ -596,6 +596,7 @@ export const LANGS = {
       ctaSub: 'No sign-up · Free forever',
     },
     common: { back: '← back', menu: '← menu', you: 'YOU', streak: 'streak', days: 'days', logout: 'logout', signIn: 'Sign in', signInApple: 'Sign in with Apple', signInGoogle: 'Sign in with Google', privacy: 'Privacy', support: 'Support', legal: 'Legal', error: 'Connection error', close: 'Close', levelUp: '✦ level up ✦', skip: 'Skip →', shareCopied: 'COPIED!', shareError: 'ERROR', shareBtn: 'SHARE' },
+    levels: { title: 'Levels', current: 'CURRENT', startingLevel: 'Starting level', maxLevel: 'Max level' },
     league: {
       back: '← back', daysLeft: 'days left', finished: 'Finished', players: 'players',
       you: 'you', copied: '✓ Copied', shareCode: 'Share code', delete: 'Delete', leave: 'Leave',
@@ -1212,6 +1213,7 @@ export const LANGS = {
       ctaSub: 'Sin registro · Gratis para siempre',
     },
     common: { back: '← volver', menu: '← menú', you: 'TÚ', streak: 'racha', days: 'días', logout: 'logout', signIn: 'Iniciar sesión', signInApple: 'Iniciar sesión con Apple', signInGoogle: 'Iniciar sesión con Google', privacy: 'Privacidad', support: 'Soporte', legal: 'Legal', error: 'Error de conexión', close: 'Cerrar', levelUp: '✦ level up ✦', skip: 'Omitir →', shareCopied: '¡COPIADO!', shareError: 'ERROR', shareBtn: 'COMPARTIR' },
+    levels: { title: 'Niveles', current: 'ACTUAL', startingLevel: 'Nivel inicial', maxLevel: 'Nivel máximo' },
     league: {
       back: '← Volver', daysLeft: 'días restantes', finished: 'Finalizada', players: 'jugadores',
       you: 'tú', copied: '✓ Copiado', shareCode: 'Compartir código', delete: 'Eliminar', leave: 'Salir',
@@ -1828,6 +1830,7 @@ export const LANGS = {
       ctaSub: 'Kein Konto · Kostenlos für immer',
     },
     common: { back: '← zurück', menu: '← Menü', you: 'DU', streak: 'Serie', days: 'Tage', logout: 'Abmelden', signIn: 'Anmelden', signInApple: 'Mit Apple anmelden', signInGoogle: 'Mit Google anmelden', privacy: 'Datenschutz', support: 'Support', legal: 'Impressum', error: 'Verbindungsfehler', close: 'Schließen', levelUp: '✦ level up ✦', skip: 'Überspringen →', shareCopied: 'KOPIERT!', shareError: 'FEHLER', shareBtn: 'TEILEN' },
+    levels: { title: 'Level', current: 'AKTUELL', startingLevel: 'Anfangslevel', maxLevel: 'Maximallevel' },
     league: {
       back: '← zurück', daysLeft: 'Tage übrig', finished: 'Beendet', players: 'Spieler',
       you: 'du', copied: '✓ Kopiert', shareCode: 'Code teilen', delete: 'Löschen', leave: 'Verlassen',
