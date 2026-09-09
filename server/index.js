@@ -170,6 +170,10 @@ const UserSchema = new mongoose.Schema({
     // ── Phase 5D counters ───────────────────────────────────────────────────────
     arenaWinsTotal:            { type: Number, default: 0 }, // real-time + async arena wins
   },
+  // Mechanics unlocked through the Battle Pass (e.g. portfolio view, verified badge).
+  // Stored as an array of mechanic IDs. Effects are applied elsewhere; this field
+  // is the source of truth for whether a mechanic is unlocked.
+  battlePassMechanics: { type: [String], default: [] },
   // Mechanic tickets earned through the Battle Pass (e.g. restore streak).
   // Pending design discussion (Fase 6d) — field reserved, logic not yet implemented.
   battlePassItems: [{
@@ -783,7 +787,8 @@ app.get('/auth/me', async (req, res) => {
       role:             user.role || 'student',
       academyId,
       isAcademyPro,
-      battlePassItems:  user.battlePassItems || [],
+      battlePassItems:     user.battlePassItems     || [],
+      battlePassMechanics: user.battlePassMechanics || [],
     });
   } catch (err) {
     res.status(401).json({ error: 'Invalid token' });

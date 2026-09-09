@@ -71,7 +71,7 @@ export const SEASON1_LEVELS = [
     freeMission: { title: 'Racha de Desafíos',     desc: 'Completa 7 Daily Challenges seguidos',                           enabled: true  },
     freeReward:  { type: 'xp',             amount: 750 },
     proMission:  { title: 'Constancia Diaria',     desc: 'Completa 14 Daily Challenges seguidos',                          enabled: true  },
-    proReward:   { type: 'mechanic',       name: 'Ver Portfolio' },
+    proReward:   { type: 'mechanic', id: 'mechanic_portfolio_view',   name: 'Ver Portfolio' },
   },
   {
     level: 11,
@@ -141,7 +141,7 @@ export const SEASON1_LEVELS = [
     freeMission: { title: 'Survival Medio',        desc: 'Sobrevive 50 rondas en Survival',                                enabled: true  },
     freeReward:  { type: 'title',          name: 'Bear Hunter' },
     proMission:  { title: 'Campeón Torneo',        desc: 'Gana un torneo semanal',                                         enabled: true  },
-    proReward:   { type: 'mechanic',       name: 'Insignia Verificada' },
+    proReward:   { type: 'mechanic', id: 'mechanic_verified_badge',   name: 'Insignia Verificada' },
   },
   {
     level: 21,
@@ -176,7 +176,7 @@ export const SEASON1_LEVELS = [
     freeMission: null,
     freeReward:  null,
     proMission:  { title: 'Desafíos Masivos',      desc: 'Completa 50 Daily Challenges',                                   enabled: true  },
-    proReward:   { type: 'mechanic',       name: 'Portfolio Duplicado' },
+    proReward:   { type: 'mechanic', id: 'mechanic_portfolio_double', name: 'Portfolio Duplicado' },
   },
   {
     level: 26,

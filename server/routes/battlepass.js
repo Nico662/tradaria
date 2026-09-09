@@ -209,6 +209,15 @@ router.post('/claim/:level', requireAuth, async (req, res) => {
             user.purchases.push(reward.itemId);
           break;
 
+        case 'mechanic':
+          // Register the mechanic as unlocked. Idempotent — skips if already present.
+          // Effects (portfolio view, verified badge, etc.) are enforced at use-time.
+          user.battlePassMechanics = user.battlePassMechanics || [];
+          if (reward.itemId && !user.battlePassMechanics.includes(reward.itemId)) {
+            user.battlePassMechanics.push(reward.itemId);
+          }
+          break;
+
         case 'ticket':
           // Fase 6d: mechanic logic not yet implemented.
           // Reserve the slot in battlePassItems so the item is trackable.
