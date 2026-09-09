@@ -45,6 +45,7 @@ import BattlePass from './BattlePass.jsx';
 import TradingMode from './TradingMode.jsx';
 import BattlePassNotification from './BattlePassNotification.jsx';
 import { useBattlePass } from './BattlePassContext.jsx';
+import Inventory from './Inventory.jsx';
 
 
 const CATEGORIES = [
@@ -640,6 +641,7 @@ export default function App() {
           else if (mode === 'portfolio') setScreen('portfolio');
           else if (mode === 'friends')   setScreen('friends');
           else if (mode === 'settings')  setScreen('settings');
+          else if (mode === 'inventory') setScreen('inventory');
           else if (mode === 'battle_pass')        setScreen('battle_pass');
           else if (mode === 'pricing')          setScreen('pricing');
           else if (mode === 'join_academy')      setScreen('join_academy');
@@ -680,6 +682,7 @@ export default function App() {
   if (screen === 'survival')   return <><Survival   onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'shop')       return <><Shop       onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'settings')   return <><Settings   onBack={() => setScreen('home')} />{challengeOverlay}</>;
+  if (screen === 'inventory')  return <AppLayout currentScreen={screen} onSelect={handleSelect}><Inventory onBack={() => setScreen('stats')} /></AppLayout>;
   if (screen === 'portfolio')  return <AppLayout currentScreen={screen} onSelect={handleSelect}><Portfolio  onBack={() => setScreen('home')} onViewProfile={(uname) => { setPublicProfileUsername(uname); setScreen('public_profile'); window.history.pushState({}, '', `/u/${uname}`); }} onOpenLeague={(id) => { setLeagueId(id); setPrevScreen('portfolio'); setScreen('league'); }} onGoPricing={() => setScreen('pricing')} />{challengeOverlay}</AppLayout>;
   if (screen === 'league')          return <AppLayout currentScreen={screen} onSelect={handleSelect}><League leagueId={leagueId} onBack={() => setScreen(prevScreen === 'portfolio' ? 'portfolio' : 'home')} />{challengeOverlay}</AppLayout>;
   if (screen === 'join_academy')     return <JoinAcademy onBack={() => setScreen('home')} />;

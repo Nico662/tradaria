@@ -778,11 +778,12 @@ app.get('/auth/me', async (req, res) => {
       username: user.username || null,
       dailyResult:     user.dailyResult  || null,
       customAvatar:    user.customAvatar || null,
-      activeCosmetics: user.activeCosmetics || {},
-      isPro:           user.isPro || false,
-      role:            user.role        || 'student',
+      activeCosmetics:  user.activeCosmetics || {},
+      isPro:            user.isPro || false,
+      role:             user.role || 'student',
       academyId,
       isAcademyPro,
+      battlePassItems:  user.battlePassItems || [],
     });
   } catch (err) {
     res.status(401).json({ error: 'Invalid token' });

@@ -4,7 +4,7 @@ import { getUnlocked, BADGES } from './badges.js';
 import { useLang } from './LangContext.jsx';
 import { useAuth } from './AuthContext';
 import { ModeIcon } from './components/AppIcons';
-import { User } from 'lucide-react';
+import { User, Package } from 'lucide-react';
 
 function AccuracyGraph({ trend }) {
   if (!trend || trend.length < 2) return null;
@@ -91,7 +91,41 @@ export default function Stats({ onBack, onSelect }) {
         </div>
       </div>
 
-      <div style={{ height: '20px' }} />
+      <div style={{ height: '12px' }} />
+
+      {/* Inventory quick access */}
+      <div style={{ padding: '0 16px 12px' }}>
+        <button
+          onClick={() => onSelect?.('inventory')}
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            background: 'var(--bg-surface)',
+            border: '0.5px solid var(--border-default)',
+            borderRadius: 'var(--radius-md)',
+            padding: '14px 16px',
+            cursor: 'pointer',
+            textAlign: 'left',
+            transition: 'border-color 0.15s',
+            fontFamily: 'var(--font-body)',
+          }}
+          onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--border-green)'}
+          onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-default)'}
+        >
+          <Package size={18} strokeWidth={1.8} color="var(--green)" aria-hidden />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 800, fontSize: '14px', color: 'var(--text-primary)', letterSpacing: '0.02em' }}>
+              {t.inventory?.inventoryBtn ?? 'Inventario'}
+            </div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '1px', fontWeight: 700 }}>
+              {t.inventory?.subtitle ?? 'Tus cosméticos y recompensas'}
+            </div>
+          </div>
+          <div style={{ fontSize: '16px', color: 'var(--text-muted)' }}>›</div>
+        </button>
+      </div>
 
       {loading && (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
