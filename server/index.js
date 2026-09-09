@@ -935,6 +935,27 @@ app.post('/auth/cosmetics', async (req, res) => {
   }
 });
 
+app.post('/tickets/use', async (req, res) => {
+  const decoded = await verifyTokenBlacklisted(req);
+  if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
+  try {
+    const user = await User.findById(decoded.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const ticketIdx = (user.battlePassItems || []).findIndex(t => !t.used);
+    if (ticketIdx === -1) return res.status(400).json({ error: 'No tickets available' });
+
+    user.battlePassItems[ticketIdx].used = true;
+    // TODO: Fase 6d — apply streak restoration here once logic is approved
+    await user.save();
+
+    const remaining = user.battlePassItems.filter(t => !t.used).length;
+    res.json({ success: true, remaining });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/auth/username/check/:username', async (req, res) => {
   try {
     const { username } = req.params;

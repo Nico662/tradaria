@@ -64,7 +64,7 @@ export const SEASON1_LEVELS = [
     freeMission: null,
     freeReward:  null,
     proMission:  { title: 'Survival Avanzado',     desc: 'Sobrevive 75 rondas en Survival',                                enabled: true  },
-    proReward:   { type: 'avatar',         name: 'Fox' },
+    proReward:   { type: 'avatar', id: 'avatar_fox',    name: 'Fox' },
   },
   {
     level: 10,
@@ -190,7 +190,7 @@ export const SEASON1_LEVELS = [
     freeMission: null,
     freeReward:  null,
     proMission:  { title: 'Survival Épico',        desc: 'Sobrevive 150 rondas en Survival',                               enabled: true  },
-    proReward:   { type: 'avatar',         name: 'Dragon' },
+    proReward:   { type: 'avatar', id: 'avatar_dragon', name: 'Dragon' },
   },
   {
     level: 28,

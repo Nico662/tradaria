@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { ChevronLeft, User } from 'lucide-react';
 import { useAuth } from './AuthContext';
 import { useLang } from './LangContext';
+import { SERVER } from './config';
 import { FRAME_STYLES } from './UserAvatar';
 import { AvatarSVG } from './components/AvatarSVGs';
 import { BADGES, getUnlocked } from './badges';
@@ -29,10 +30,12 @@ const EFFECT_META = {
 };
 
 const AVATAR_META = {
-  avatar_bull:  'Bull',
-  avatar_bear:  'Bear',
-  avatar_whale: 'Whale',
-  avatar_robot: 'AlgoBot',
+  avatar_bull:   'Bull',
+  avatar_bear:   'Bear',
+  avatar_whale:  'Whale',
+  avatar_robot:  'AlgoBot',
+  avatar_fox:    'Fox',
+  avatar_dragon: 'Dragon',
 };
 
 const MINI_HEIGHTS = [0.4, 0.7, 0.3, 0.6, 0.9, 0.5, 0.65, 0.35];
@@ -41,6 +44,8 @@ export default function Inventory({ onBack }) {
   const { purchases, activeCosmetics, equipCosmetic, unequipCosmetic, user } = useAuth();
   const { t } = useLang();
   const [filter, setFilter] = useState('all');
+  const [tickets, setTickets] = useState(user?.battlePassItems || []);
+  const [busyTicket, setBusyTicket] = useState(false);
 
   const ti = t.inventory;
 
@@ -50,7 +55,29 @@ export default function Inventory({ onBack }) {
   const ownedEffects  = purchases.filter(id => id && EFFECT_META[id]);
   const ownedColors   = purchases.filter(id => id && USERNAME_COLORS[id]);
   const ownedBadges   = getUnlocked().map(id => BADGES.find(b => b.id === id)).filter(Boolean);
-  const unusedTickets = (user?.battlePassItems || []).filter(item => !item.used).length;
+  const unusedTickets = tickets.filter(item => !item.used).length;
+
+  const useTicket = useCallback(async () => {
+    if (busyTicket || unusedTickets === 0) return;
+    setBusyTicket(true);
+    const tok = localStorage.getItem('tradaria_token');
+    try {
+      const res = await fetch(`${SERVER}/tickets/use`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${tok}` },
+      });
+      if (res.ok) {
+        setTickets(prev => {
+          const idx = prev.findIndex(t => !t.used);
+          if (idx === -1) return prev;
+          const next = [...prev];
+          next[idx] = { ...next[idx], used: true };
+          return next;
+        });
+      }
+    } catch {}
+    setBusyTicket(false);
+  }, [busyTicket, unusedTickets]);
 
   const isEmpty =
     ownedFrames.length === 0 && ownedThemes.length === 0 &&
@@ -267,22 +294,22 @@ export default function Inventory({ onBack }) {
                   {ti.youHave} {unusedTickets}
                 </div>
               </div>
-              <button disabled style={{
+              <button onClick={useTicket} disabled={busyTicket} style={{
                 padding: '8px 14px',
                 borderRadius: '8px',
-                border: '1px solid var(--border-default)',
-                background: 'var(--bg-elevated)',
-                color: 'var(--text-muted)',
+                border: '1px solid var(--green)',
+                background: 'var(--green-dim)',
+                color: 'var(--green)',
                 fontFamily: 'var(--font-body)',
                 fontSize: '11px',
                 fontWeight: 800,
                 letterSpacing: '0.08em',
                 textTransform: 'uppercase',
-                cursor: 'not-allowed',
-                opacity: 0.5,
+                cursor: busyTicket ? 'not-allowed' : 'pointer',
+                opacity: busyTicket ? 0.6 : 1,
                 flexShrink: 0,
               }}>
-                {ti.ticketSoon}
+                {busyTicket ? '...' : ti.ticketUse}
               </button>
             </div>
           </Section>
