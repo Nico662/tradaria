@@ -1,5 +1,6 @@
 import { BADGES, getUnlocked } from './badges.js';
 import { useLang } from './LangContext.jsx';
+import BadgeIcon from './BadgeIcon.jsx';
 
 export default function Badges({ onBack, onSelect }) {
   const unlocked = getUnlocked();
@@ -38,8 +39,8 @@ export default function Badges({ onBack, onSelect }) {
               opacity: isUnlocked ? 1 : 0.45,
               transition: 'opacity 0.2s',
             }}>
-              <div style={{ fontSize: '28px', flexShrink: 0, filter: isUnlocked ? 'none' : 'grayscale(1)' }}>
-                {badge.icon}
+              <div style={{ flexShrink: 0, color: isUnlocked ? 'var(--green)' : 'var(--text-muted)', display: 'flex' }}>
+                <BadgeIcon id={badge.id} size={28} />
               </div>
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '12px', color: isUnlocked ? 'var(--green)' : 'var(--text-muted)', marginBottom: '2px', lineHeight: 1.2 }}>

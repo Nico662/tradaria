@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import BadgeIcon from './BadgeIcon.jsx';
 
 export default function BadgeNotification({ badge, onDone }) {
   const [visible, setVisible] = useState(false);
@@ -30,7 +31,9 @@ export default function BadgeNotification({ badge, onDone }) {
       boxShadow: '0 0 24px rgba(0,229,160,0.2)',
       minWidth: '220px',
     }}>
-      <div style={{ fontSize: '28px', lineHeight: 1 }}>{badge.icon}</div>
+      <div style={{ color: 'var(--green)', display: 'flex' }}>
+        <BadgeIcon id={badge.id} size={28} />
+      </div>
       <div>
         <div style={{ fontSize: '12px', color: 'var(--green)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '2px' }}>
           badge unlocked

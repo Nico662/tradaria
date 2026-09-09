@@ -8,6 +8,7 @@ import UserAvatar from './UserAvatar.jsx';
 import FounderBadge, { isFounder } from './FounderBadge.jsx';
 import { LevelIcon } from './components/AppIcons';
 import { User, Flame, Medal, Briefcase, Zap } from 'lucide-react';
+import BadgeIcon from './BadgeIcon.jsx';
 
 export default function PublicProfile({ username, onBack, onChallenge }) {
   const { user } = useAuth();
@@ -141,8 +142,8 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
               {unlockedBadges.map(b => (
                 <div key={b.id} title={`${b.name}: ${b.desc}`}
-                  style={{ width: '40px', height: '40px', background: 'var(--bg-page)', border: '1px solid var(--bd)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
-                  {b.icon}
+                  style={{ width: '40px', height: '40px', background: 'var(--bg-page)', border: '1px solid var(--bd)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--green)' }}>
+                  <BadgeIcon id={b.id} size={20} />
                 </div>
               ))}
             </div>
