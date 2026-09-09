@@ -1589,13 +1589,14 @@ app.get('/tournament/leaderboard', async (req, res) => {
   try {
     const weekId = getWeekId();
     const scores = await Score.find({ weekId }).sort({ score: -1 }).limit(100)
-      .populate('userId', 'username name avatar customAvatar activeCosmetics');
+      .populate('userId', 'username name avatar customAvatar activeCosmetics battlePassMechanics');
     const allScores = scores.map(s => ({
       ...s.toObject(),
-      name:            s.userId?.username ? `@${s.userId.username}` : (s.name || s.userId?.name),
-      avatar:          s.userId?.avatar || s.avatar,
-      customAvatar:    s.userId?.customAvatar || null,
-      activeCosmetics: s.userId?.activeCosmetics || {},
+      name:             s.userId?.username ? `@${s.userId.username}` : (s.name || s.userId?.name),
+      avatar:           s.userId?.avatar || s.avatar,
+      customAvatar:     s.userId?.customAvatar || null,
+      activeCosmetics:  s.userId?.activeCosmetics || {},
+      hasVerifiedBadge: s.userId?.battlePassMechanics?.includes('mechanic_verified_badge') || false,
     }));
     const top10 = allScores.slice(0, 10);
     let userPosition = null;
@@ -1604,7 +1605,7 @@ app.get('/tournament/leaderboard', async (req, res) => {
       const idx = allScores.findIndex(s => String(s.userId?._id || s.userId) === String(userId));
       if (idx >= 10) {
         const u = allScores[idx];
-        userPosition = { rank: idx + 1, score: u.score, name: u.name, username: u.username, avatar: u.avatar, customAvatar: u.customAvatar, activeCosmetics: u.activeCosmetics };
+        userPosition = { rank: idx + 1, score: u.score, name: u.name, username: u.username, avatar: u.avatar, customAvatar: u.customAvatar, activeCosmetics: u.activeCosmetics, hasVerifiedBadge: u.hasVerifiedBadge || false };
       }
     }
     res.json({ weekId, scores: top10, userPosition });
@@ -3039,7 +3040,7 @@ app.get('/leagues/:leagueId/ranking', async (req, res) => {
     const memberIds = league.members.map(m => m.userId);
     const [portfolios, users] = await Promise.all([
       Portfolio.find({ userId: { $in: memberIds } }),
-      User.find({ _id: { $in: memberIds } }).select('name username avatar customAvatar activeCosmetics'),
+      User.find({ _id: { $in: memberIds } }).select('name username avatar customAvatar activeCosmetics battlePassMechanics'),
     ]);
     const pMap = {}; portfolios.forEach(p => { pMap[p.userId.toString()] = p; });
     const uMap = {}; users.forEach(u => { uMap[u._id.toString()] = u; });
@@ -3055,7 +3056,8 @@ app.get('/leagues/:leagueId/ranking', async (req, res) => {
       return {
         userId: m.userId, name: u?.name || 'Anonymous', username: u?.username || null,
         avatar: u?.avatar || null, customAvatar: u?.customAvatar || null,
-        activeCosmetics: u?.activeCosmetics || {},
+        activeCosmetics:  u?.activeCosmetics || {},
+        hasVerifiedBadge: u?.battlePassMechanics?.includes('mechanic_verified_badge') || false,
         startValue: m.startValue, totalValue,
         returnPct: ((totalValue - m.startValue) / m.startValue) * 100,
         isYou: uid === decoded.id,
@@ -3667,11 +3669,11 @@ app.get('/friends/list', async (req, res) => {
     const friendships = await Friendship.find({
       $or: [{ requester: decoded.id }, { recipient: decoded.id }],
       status: 'accepted',
-    }).populate('requester', 'name avatar customAvatar username xp badges activeCosmetics')
-      .populate('recipient', 'name avatar customAvatar username xp badges activeCosmetics');
+    }).populate('requester', 'name avatar customAvatar username xp badges activeCosmetics battlePassMechanics')
+      .populate('recipient', 'name avatar customAvatar username xp badges activeCosmetics battlePassMechanics');
     const friends = friendships.map(f => {
       const friend = f.requester._id.equals(decoded.id) ? f.recipient : f.requester;
-      return { friendshipId: f._id, id: friend._id, name: friend.name, avatar: friend.avatar, customAvatar: friend.customAvatar || null, activeCosmetics: friend.activeCosmetics || {}, username: friend.username, xp: friend.xp, badges: friend.badges };
+      return { friendshipId: f._id, id: friend._id, name: friend.name, avatar: friend.avatar, customAvatar: friend.customAvatar || null, activeCosmetics: friend.activeCosmetics || {}, username: friend.username, xp: friend.xp, badges: friend.badges, hasVerifiedBadge: friend.battlePassMechanics?.includes('mechanic_verified_badge') || false };
     });
     res.json(friends);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -3682,7 +3684,7 @@ app.get('/friends/pending', async (req, res) => {
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const pending = await Friendship.find({ recipient: decoded.id, status: 'pending' })
-      .populate('requester', 'name avatar customAvatar username xp activeCosmetics');
+      .populate('requester', 'name avatar customAvatar username xp activeCosmetics battlePassMechanics');
     const requests = pending.map(f => ({
       friendshipId:    f._id,
       id:              f.requester._id,
@@ -3693,6 +3695,7 @@ app.get('/friends/pending', async (req, res) => {
       username:        f.requester.username,
       xp:              f.requester.xp,
       createdAt:       f.createdAt,
+      hasVerifiedBadge: f.requester.battlePassMechanics?.includes('mechanic_verified_badge') || false,
     }));
     res.json(requests);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -3732,6 +3735,7 @@ app.get('/friends/profile/:username', async (req, res) => {
       xp:              target.xp,
       badges:          target.badges,
       portfolioReturn,
+      hasVerifiedBadge: target.battlePassMechanics?.includes('mechanic_verified_badge') || false,
       friendshipStatus: friendship?.status || null,
       friendshipId: friendship?._id || null,
       isRequester: friendship ? friendship.requester.equals(decoded.id) : null,
@@ -3745,7 +3749,7 @@ app.get('/u/:username', async (req, res) => {
     const target = await User.findOne({ username: req.params.username.toLowerCase() });
     if (!target) return res.status(404).json({ error: 'User not found' });
 
-    let portfolioReturn = null, totalValue = null;
+    let portfolioReturn = null, totalValue = null, enrichedPositions = null;
     try {
       const portfolio = await Portfolio.findOne({ userId: target._id });
       if (portfolio) {
@@ -3759,17 +3763,29 @@ app.get('/u/:username', async (req, res) => {
         const invested = portfolio.positions.reduce((s, pos) => s + (priceMap[pos.symbol] || pos.avgPrice) * pos.qty, 0);
         totalValue = portfolio.cash + invested;
         portfolioReturn = ((totalValue - 50000) / 50000) * 100;
+        enrichedPositions = portfolio.positions.map(pos => {
+          const currentPrice = priceMap[pos.symbol] || pos.avgPrice;
+          const currentValue = currentPrice * pos.qty;
+          const costBasis    = pos.avgPrice * pos.qty;
+          const pnl          = currentValue - costBasis;
+          return { symbol: pos.symbol, name: pos.name, type: pos.type, qty: pos.qty, avgPrice: pos.avgPrice, currentPrice, currentValue, pnl, pnlPct: costBasis > 0 ? (pnl / costBasis) * 100 : 0 };
+        });
       }
     } catch {}
 
     let friendshipStatus = null;
+    let requesterMechanics = [];
     const decoded = verifyToken(req);
-    if (decoded && decoded.id !== target._id.toString()) {
+    if (decoded) {
       try {
-        const fr = await Friendship.findOne({
-          $or: [{ requester: decoded.id, recipient: target._id }, { requester: target._id, recipient: decoded.id }],
-        });
-        friendshipStatus = fr?.status || null;
+        if (decoded.id !== target._id.toString()) {
+          const fr = await Friendship.findOne({
+            $or: [{ requester: decoded.id, recipient: target._id }, { requester: target._id, recipient: decoded.id }],
+          });
+          friendshipStatus = fr?.status || null;
+        }
+        const requester = await User.findById(decoded.id).select('battlePassMechanics');
+        requesterMechanics = requester?.battlePassMechanics || [];
       } catch {}
     }
 
@@ -3784,9 +3800,11 @@ app.get('/u/:username', async (req, res) => {
       dailyStreak:     target.dailyStreak,
       portfolioReturn,
       totalValue,
+      positions:       requesterMechanics.includes('mechanic_portfolio_view') ? enrichedPositions : null,
       joinedAt:        target.createdAt,
       friendshipStatus,
       isPro:           target.isPro || false,
+      hasVerifiedBadge: target.battlePassMechanics?.includes('mechanic_verified_badge') || false,
     });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });

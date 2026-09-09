@@ -10,6 +10,7 @@ import FounderBadge, { isFounder } from './FounderBadge.jsx';
 import { LevelIcon } from './components/AppIcons';
 import { Handshake, Link, Swords, Clock } from 'lucide-react';
 import { getUsernameColor } from './cosmeticColors';
+import VerifiedBadge from './VerifiedBadge.jsx';
 
 function authHeaders() {
   return {
@@ -39,6 +40,7 @@ function FriendCard({ f, onChallenge, isChallenging, challengeStatus, onViewProf
         <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: getUsernameColor(f.activeCosmetics) || 'var(--t1)', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
           {f.username ? `@${f.username}` : f.name}
           {isFounder(f.username) && <FounderBadge size={11} />}
+          {f.hasVerifiedBadge && <VerifiedBadge size={11} />}
         </div>
         <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)', marginTop: '2px' }}>
           <LevelIcon id={level.id} size={12} style={{ verticalAlign: 'middle' }} /> {level.name} · {f.xp || 0} XP
@@ -76,6 +78,7 @@ function PendingCard({ req, onAccept, onReject }) {
         <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: getUsernameColor(req.activeCosmetics) || 'var(--t1)', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
           {req.username ? `@${req.username}` : req.name}
           {isFounder(req.username) && <FounderBadge size={11} />}
+          {req.hasVerifiedBadge && <VerifiedBadge size={11} />}
         </div>
         <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)', marginTop: '2px' }}>
           <LevelIcon id={level.id} size={12} style={{ verticalAlign: 'middle' }} /> {level.name}
@@ -117,6 +120,7 @@ function SearchResultCard({ profile, onSendRequest }) {
           <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: getUsernameColor(profile.activeCosmetics) || 'var(--t1)', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
             @{profile.username}
             {isFounder(profile.username) && <FounderBadge size={12} />}
+            {profile.hasVerifiedBadge && <VerifiedBadge size={12} />}
           </div>
           <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)', marginTop: '2px' }}>
             <LevelIcon id={level.id} size={12} style={{ verticalAlign: 'middle' }} /> {level.name} · {profile.xp || 0} XP

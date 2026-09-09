@@ -9,6 +9,7 @@ import FounderBadge, { isFounder } from './FounderBadge.jsx';
 import { LevelIcon } from './components/AppIcons';
 import { User, Flame, Medal, Briefcase, Zap } from 'lucide-react';
 import { getUsernameColor } from './cosmeticColors';
+import VerifiedBadge from './VerifiedBadge.jsx';
 
 export default function PublicProfile({ username, onBack, onChallenge }) {
   const { user } = useAuth();
@@ -93,6 +94,7 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
           <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '22px', color: getUsernameColor(profile.activeCosmetics) || 'var(--t1)', marginBottom: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
             @{profile.username}
             {isFounder(profile.username) && <FounderBadge size={18} />}
+            {profile.hasVerifiedBadge && <VerifiedBadge size={18} />}
             {profile.isPro && (
               <span style={{ fontSize: '12px', color: 'var(--green)', background: 'rgba(0,229,160,0.1)', border: '1px solid var(--green)', borderRadius: '20px', padding: '2px 7px', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
                 <Zap size={12} strokeWidth={2} aria-hidden /> Pro
@@ -132,6 +134,29 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
               </div>
               <div style={{ fontSize: '12px', color: 'var(--t5)' }}>{t.profile.vsInitial}</div>
             </div>
+          </div>
+        )}
+
+        {/* Detailed positions — only visible to viewers with mechanic_portfolio_view */}
+        {profile.positions && profile.positions.length > 0 && (
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '14px', marginBottom: '16px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Briefcase size={12} strokeWidth={2} aria-hidden /> {t.profile.positions}
+            </div>
+            {profile.positions.map((pos, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: i < profile.positions.length - 1 ? '0.5px solid var(--bd)' : 'none' }}>
+                <div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>{pos.symbol}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--t5)', marginTop: '1px' }}>{pos.qty} × ${pos.currentPrice?.toFixed(2)}</div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: pos.pnl >= 0 ? 'var(--green)' : 'var(--color-down)' }}>
+                    {pos.pnl >= 0 ? '+' : ''}{pos.pnlPct?.toFixed(2)}%
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--t5)' }}>${pos.currentValue?.toFixed(0)}</div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 

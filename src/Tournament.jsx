@@ -15,6 +15,7 @@ import UserAvatar from './UserAvatar.jsx';
 import { incrementMission, recordModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
 import { getUsernameColor } from './cosmeticColors';
+import VerifiedBadge from './VerifiedBadge.jsx';
 
 export default function Tournament({ onBack, onViewProfile, onGoPricing, academyTournamentId = null, academyId = null }) {
   const { user, syncProgress, activeCosmetics } = useAuth();
@@ -351,6 +352,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                     <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
                       <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: isMe ? 'var(--green)' : (getUsernameColor(entry.activeCosmetics) || 'var(--text-primary)'), overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{displayName}</span>
                       {isFounder(entry.username) && <FounderBadge size={11} />}
+                      {entry.hasVerifiedBadge && <VerifiedBadge size={11} />}
                       {isMe && <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>{t.common.you}</span>}
                     </div>
                     <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--green)' }}>{entry.score}</div>
@@ -371,6 +373,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                       <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: getUsernameColor(userPosition.activeCosmetics) || 'var(--green)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
                         {userPosition.username ? `@${userPosition.username}` : userPosition.name}
                       </span>
+                      {userPosition.hasVerifiedBadge && <VerifiedBadge size={11} />}
                       <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>{t.common.you}</span>
                     </div>
                     <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--green)' }}>{userPosition.score}</div>
