@@ -5,7 +5,7 @@ import { useLang } from './LangContext.jsx';
 import { useAuth } from './AuthContext';
 import { ModeIcon } from './components/AppIcons';
 import { User } from 'lucide-react';
-import BadgeIcon from './BadgeIcon.jsx';
+import BadgeIcon, { RARITY_COLORS } from './BadgeIcon.jsx';
 
 function AccuracyGraph({ trend }) {
   if (!trend || trend.length < 2) return null;
@@ -176,14 +176,17 @@ export default function Stats({ onBack, onSelect }) {
                 </button>
               </div>
               <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: '4px' }}>
-                {recentBadges.map(badge => (
-                  <div key={badge.id} style={{ flexShrink: 0, background: 'var(--bg-surface)', border: '0.5px solid var(--border-green)', borderRadius: 'var(--radius-md)', padding: '10px', textAlign: 'center', minWidth: '72px' }}>
-                    <div style={{ marginBottom: '4px', display: 'flex', justifyContent: 'center', color: 'var(--green)' }}>
-                      <BadgeIcon id={badge.id} size={24} />
+                {recentBadges.map(badge => {
+                  const color = RARITY_COLORS[badge.rarity] ?? RARITY_COLORS.common;
+                  return (
+                    <div key={badge.id} style={{ flexShrink: 0, background: `radial-gradient(ellipse at 90% 10%, ${color}18 0%, transparent 60%), var(--bg-surface)`, border: `0.5px solid ${color}55`, borderRadius: 'var(--radius-md)', padding: '10px', textAlign: 'center', minWidth: '72px' }}>
+                      <div style={{ marginBottom: '4px', display: 'flex', justifyContent: 'center', color }}>
+                        <BadgeIcon id={badge.id} size={24} />
+                      </div>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, color, letterSpacing: '0.04em', lineHeight: 1.3 }}>{badge.name}</div>
                     </div>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--green)', letterSpacing: '0.06em', lineHeight: 1.3 }}>{badge.name}</div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}

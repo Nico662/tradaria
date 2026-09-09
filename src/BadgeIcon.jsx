@@ -71,6 +71,13 @@ const BADGE_ICONS = {
   secret_comeback:    RotateCcw,
 };
 
+export const RARITY_COLORS = {
+  common: '#5f9a8b',
+  rare:   '#5dc9f0',
+  epic:   '#a855f7',
+  legend: '#e0a955',
+};
+
 export default function BadgeIcon({ id, size = 24 }) {
   const Icon = BADGE_ICONS[id];
   if (!Icon) return null;

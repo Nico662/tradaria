@@ -117,6 +117,7 @@ export const LANGS = {
     },
     badges: {
       title: 'Achievements', unlocked: 'unlocked', back: '← Back', of: 'of',
+      rarity: { common: 'Common', rare: 'Rare', epic: 'Epic', legend: 'Legendary' },
       items: {
         sniper:          { name: 'Sniper',              desc: '5 correct in a row' },
         on_fire:         { name: 'On Fire',             desc: '10 correct in a row' },
@@ -734,6 +735,7 @@ export const LANGS = {
     },
     badges: {
       title: 'Logros', unlocked: 'desbloqueados', back: '← Volver', of: 'de',
+      rarity: { common: 'Común', rare: 'Raro', epic: 'Épico', legend: 'Legendario' },
       items: {
         sniper:          { name: 'Francotirador',       desc: '5 aciertos seguidos' },
         on_fire:         { name: 'En llamas',           desc: '10 aciertos seguidos' },
@@ -1351,6 +1353,7 @@ export const LANGS = {
     },
     badges: {
       title: 'Erfolge', unlocked: 'freigeschaltet', back: '← Zurück', of: 'von',
+      rarity: { common: 'Gewöhnlich', rare: 'Selten', epic: 'Episch', legend: 'Legendär' },
       items: {
         sniper:          { name: 'Scharfschütze',       desc: '5 richtige in Folge' },
         on_fire:         { name: 'In Flammen',          desc: '10 richtige in Folge' },

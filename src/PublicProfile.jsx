@@ -8,7 +8,7 @@ import UserAvatar from './UserAvatar.jsx';
 import FounderBadge, { isFounder } from './FounderBadge.jsx';
 import { LevelIcon } from './components/AppIcons';
 import { User, Flame, Medal, Briefcase, Zap } from 'lucide-react';
-import BadgeIcon from './BadgeIcon.jsx';
+import BadgeIcon, { RARITY_COLORS } from './BadgeIcon.jsx';
 
 export default function PublicProfile({ username, onBack, onChallenge }) {
   const { user } = useAuth();
@@ -140,12 +140,15 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '14px', marginBottom: '16px' }}>
             <div style={{ fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '12px' }}>{t.profile.badges}</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-              {unlockedBadges.map(b => (
-                <div key={b.id} title={`${b.name}: ${b.desc}`}
-                  style={{ width: '40px', height: '40px', background: 'var(--bg-page)', border: '1px solid var(--bd)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--green)' }}>
-                  <BadgeIcon id={b.id} size={20} />
-                </div>
-              ))}
+              {unlockedBadges.map(b => {
+                const color = RARITY_COLORS[b.rarity] ?? RARITY_COLORS.common;
+                return (
+                  <div key={b.id} title={`${b.name}: ${b.desc}`}
+                    style={{ width: '40px', height: '40px', background: `${color}15`, border: `1px solid ${color}55`, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color, boxShadow: `0 0 8px ${color}30` }}>
+                    <BadgeIcon id={b.id} size={20} />
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
