@@ -125,8 +125,9 @@ const UserSchema = new mongoose.Schema({
   xp:        { type: Number, default: 0 },
   badges:    { type: [String], default: [] },
   purchases: { type: [String], default: [] },
-  dailyStreak: { type: Number, default: 0 },
-  lastPlayed:  { type: String, default: null },
+  dailyStreak:      { type: Number, default: 0 },
+  lastPlayed:       { type: String, default: null },
+  streakBeforeLoss: { type: Number, default: 0 },
   dailyResult: {
     date:      { type: String,  default: null },
     win:       { type: Boolean, default: null },
@@ -816,17 +817,24 @@ app.post('/daily/complete', async (req, res) => {
   yesterday.setDate(yesterday.getDate() - 1);
   const yesterdayStr = yesterday.toISOString().split('T')[0];
 
-  const newStreak = lastPlayed === yesterdayStr ? user.dailyStreak + 1 : 1;
+  const streakContinues = lastPlayed === yesterdayStr;
+  const newStreak = streakContinues ? user.dailyStreak + 1 : 1;
+
+  const dailyUpdate = {
+    dailyStreak: newStreak,
+    lastPlayed: new Date(),
+    xp: Math.max(user.xp || 0, xp || 0),
+    badges: [...new Set([...(user.badges || []), ...(badges || [])])],
+    dailyResult,
+  };
+  // Snapshot current streak before it resets so a restore ticket can recover it
+  if (!streakContinues && user.dailyStreak > 1) {
+    dailyUpdate.streakBeforeLoss = user.dailyStreak;
+  }
 
   const updatedUser = await User.findByIdAndUpdate(
     decoded.id,
-    {
-      dailyStreak: newStreak,
-      lastPlayed: new Date(),
-      xp: Math.max(user.xp || 0, xp || 0),
-      badges: [...new Set([...(user.badges || []), ...(badges || [])])],
-      dailyResult,
-    },
+    dailyUpdate,
     { new: true, returnDocument: 'after' }
   );
 
@@ -942,15 +950,32 @@ app.post('/tickets/use', async (req, res) => {
     const user = await User.findById(decoded.id);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const ticketIdx = (user.battlePassItems || []).findIndex(t => !t.used);
+    // Must have at least one unused streak-restore ticket
+    const ticketIdx = (user.battlePassItems || []).findIndex(
+      t => !t.used && t.itemId === 'ticket_restore_streak'
+    );
     if (ticketIdx === -1) return res.status(400).json({ error: 'No tickets available' });
 
+    // Must have a streak worth restoring
+    const snapshot = user.streakBeforeLoss || 0;
+    if (snapshot === 0 || snapshot <= user.dailyStreak) {
+      return res.status(400).json({ error: 'NO_STREAK_TO_RESTORE' });
+    }
+
+    // Compute yesterday string for lastPlayed adjustment
+    const yd = new Date();
+    yd.setDate(yd.getDate() - 1);
+    const yesterdayStr = yd.toISOString().split('T')[0];
+
+    // Atomically restore streak, consume ticket, clear snapshot
     user.battlePassItems[ticketIdx].used = true;
-    // TODO: Fase 6d — apply streak restoration here once logic is approved
+    user.dailyStreak      = snapshot;
+    user.lastPlayed       = yesterdayStr;
+    user.streakBeforeLoss = 0;
     await user.save();
 
     const remaining = user.battlePassItems.filter(t => !t.used).length;
-    res.json({ success: true, remaining });
+    res.json({ success: true, restoredTo: snapshot, remaining });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

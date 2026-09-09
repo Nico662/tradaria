@@ -46,6 +46,7 @@ export default function Inventory({ onBack }) {
   const [filter, setFilter] = useState('all');
   const [tickets, setTickets] = useState(user?.battlePassItems || []);
   const [busyTicket, setBusyTicket] = useState(false);
+  const [ticketMsg, setTicketMsg] = useState(null); // { type: 'success'|'error', text: string }
 
   const ti = t.inventory;
 
@@ -60,12 +61,14 @@ export default function Inventory({ onBack }) {
   const useTicket = useCallback(async () => {
     if (busyTicket || unusedTickets === 0) return;
     setBusyTicket(true);
+    setTicketMsg(null);
     const tok = localStorage.getItem('tradaria_token');
     try {
       const res = await fetch(`${SERVER}/tickets/use`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${tok}` },
       });
+      const data = await res.json();
       if (res.ok) {
         setTickets(prev => {
           const idx = prev.findIndex(t => !t.used);
@@ -74,10 +77,13 @@ export default function Inventory({ onBack }) {
           next[idx] = { ...next[idx], used: true };
           return next;
         });
+        setTicketMsg({ type: 'success', text: ti.ticketRestored.replace('{n}', data.restoredTo) });
+      } else if (data.error === 'NO_STREAK_TO_RESTORE') {
+        setTicketMsg({ type: 'error', text: ti.ticketNoStreak });
       }
     } catch {}
     setBusyTicket(false);
-  }, [busyTicket, unusedTickets]);
+  }, [busyTicket, unusedTickets, ti]);
 
   const isEmpty =
     ownedFrames.length === 0 && ownedThemes.length === 0 &&
@@ -312,6 +318,22 @@ export default function Inventory({ onBack }) {
                 {busyTicket ? '...' : ti.ticketUse}
               </button>
             </div>
+            {ticketMsg && (
+              <div style={{
+                gridColumn: '1 / -1',
+                marginTop: '8px',
+                padding: '10px 14px',
+                borderRadius: '8px',
+                fontSize: '12px',
+                fontWeight: 700,
+                fontFamily: 'var(--font-body)',
+                background: ticketMsg.type === 'success' ? 'var(--green-dim)' : 'var(--pink-dim)',
+                color: ticketMsg.type === 'success' ? 'var(--green)' : 'var(--pink)',
+                border: `0.5px solid ${ticketMsg.type === 'success' ? 'var(--border-green)' : 'var(--border-pink)'}`,
+              }}>
+                {ticketMsg.text}
+              </div>
+            )}
           </Section>
         )}
 
