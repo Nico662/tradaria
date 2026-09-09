@@ -14,6 +14,7 @@ import { SERVER } from './config.js';
 import UserAvatar from './UserAvatar.jsx';
 import { incrementMission, recordModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
+import { getUsernameColor } from './cosmeticColors';
 
 export default function Tournament({ onBack, onViewProfile, onGoPricing, academyTournamentId = null, academyId = null }) {
   const { user, syncProgress, activeCosmetics } = useAuth();
@@ -348,7 +349,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                     </div>
                     <UserAvatar user={entry} size={24} showBadge style={{ marginLeft: '8px' }} />
                     <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
-                      <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: isMe ? 'var(--green)' : 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{displayName}</span>
+                      <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: isMe ? 'var(--green)' : (getUsernameColor(entry.activeCosmetics) || 'var(--text-primary)'), overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{displayName}</span>
                       {isFounder(entry.username) && <FounderBadge size={11} />}
                       {isMe && <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>{t.common.you}</span>}
                     </div>
@@ -367,7 +368,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                     <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--text-muted)', width: '40px', flexShrink: 0, textAlign: 'center' }}>#{userPosition.rank}</div>
                     <UserAvatar user={userPosition} size={24} showBadge style={{ marginLeft: '8px' }} />
                     <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
-                      <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: 'var(--green)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
+                      <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: getUsernameColor(userPosition.activeCosmetics) || 'var(--green)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
                         {userPosition.username ? `@${userPosition.username}` : userPosition.name}
                       </span>
                       <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>{t.common.you}</span>

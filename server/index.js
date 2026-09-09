@@ -917,7 +917,7 @@ app.post('/auth/cosmetics', async (req, res) => {
     const user = await User.findById(decoded.id).select('purchases');
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const VALID_TYPES = new Set(['theme', 'frame', 'avatar', 'effect']);
+    const VALID_TYPES = new Set(['theme', 'frame', 'avatar', 'effect', 'username_color']);
     const owned = new Set(user.purchases);
     const safe = {};
     if (activeCosmetics && typeof activeCosmetics === 'object' && !Array.isArray(activeCosmetics)) {
@@ -3636,15 +3636,17 @@ app.get('/friends/pending', async (req, res) => {
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const pending = await Friendship.find({ recipient: decoded.id, status: 'pending' })
-      .populate('requester', 'name avatar username xp');
+      .populate('requester', 'name avatar customAvatar username xp activeCosmetics');
     const requests = pending.map(f => ({
-      friendshipId: f._id,
-      id: f.requester._id,
-      name: f.requester.name,
-      avatar: f.requester.avatar,
-      username: f.requester.username,
-      xp: f.requester.xp,
-      createdAt: f.createdAt,
+      friendshipId:    f._id,
+      id:              f.requester._id,
+      name:            f.requester.name,
+      avatar:          f.requester.avatar,
+      customAvatar:    f.requester.customAvatar || null,
+      activeCosmetics: f.requester.activeCosmetics || {},
+      username:        f.requester.username,
+      xp:              f.requester.xp,
+      createdAt:       f.createdAt,
     }));
     res.json(requests);
   } catch (err) { res.status(500).json({ error: err.message }); }

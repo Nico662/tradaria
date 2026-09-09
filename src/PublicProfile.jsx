@@ -8,6 +8,7 @@ import UserAvatar from './UserAvatar.jsx';
 import FounderBadge, { isFounder } from './FounderBadge.jsx';
 import { LevelIcon } from './components/AppIcons';
 import { User, Flame, Medal, Briefcase, Zap } from 'lucide-react';
+import { getUsernameColor } from './cosmeticColors';
 
 export default function PublicProfile({ username, onBack, onChallenge }) {
   const { user } = useAuth();
@@ -89,7 +90,7 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
           <div style={{ marginBottom: '14px' }}>
             <UserAvatar user={profile} size={80} showBadge />
           </div>
-          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '22px', color: 'var(--t1)', marginBottom: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '22px', color: getUsernameColor(profile.activeCosmetics) || 'var(--t1)', marginBottom: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
             @{profile.username}
             {isFounder(profile.username) && <FounderBadge size={18} />}
             {profile.isPro && (

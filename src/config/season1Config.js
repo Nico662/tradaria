@@ -22,7 +22,7 @@ export const SEASON1_LEVELS = [
     freeMission: null,
     freeReward:  null,
     proMission:  { title: 'Victorias Classic',     desc: 'Gana 15 rondas en Classic Mode',                                 enabled: true  },
-    proReward:   { type: 'username_color', name: 'Verde',               hex: '#22c55e' },
+    proReward:   { type: 'username_color', id: 'color_green',  name: 'Verde',  hex: '#22c55e' },
   },
   {
     level: 4,
@@ -57,7 +57,7 @@ export const SEASON1_LEVELS = [
     freeMission: { title: 'Survival Básico',       desc: 'Sobrevive 20 rondas en Survival',                                enabled: true  },
     freeReward:  { type: 'title',          name: 'Chart Reader' },
     proMission:  { title: 'Ranking Semanal',       desc: 'Llega al top 50 del ranking semanal',                            enabled: true  },
-    proReward:   { type: 'username_color', name: 'Dorado',              hex: '#f5c842' },
+    proReward:   { type: 'username_color', id: 'color_gold',   name: 'Dorado', hex: '#f5c842' },
   },
   {
     level: 9,
@@ -113,7 +113,7 @@ export const SEASON1_LEVELS = [
     freeMission: { title: 'Racha Classic',         desc: 'Acierta 5 rondas seguidas en Classic',                           enabled: true  },
     freeReward:  { type: 'title',          name: 'Bull Runner' },
     proMission:  { title: 'Duelos en Arena',       desc: 'Gana 20 duelos en Arena contra jugadores reales',                 enabled: true  },
-    proReward:   { type: 'username_color', name: 'Rojo',                hex: '#e05555' },
+    proReward:   { type: 'username_color', id: 'color_red',    name: 'Rojo',   hex: '#e05555' },
   },
   {
     level: 17,
@@ -162,7 +162,7 @@ export const SEASON1_LEVELS = [
     freeMission: null,
     freeReward:  null,
     proMission:  { title: 'Racha 45 Días',         desc: 'Mantén una racha de 45 días',                                    enabled: true  },
-    proReward:   { type: 'username_color', name: 'Morado',              hex: '#a855f7' },
+    proReward:   { type: 'username_color', id: 'color_purple', name: 'Morado', hex: '#a855f7' },
   },
   {
     level: 24,

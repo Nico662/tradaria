@@ -5,6 +5,7 @@ import { useLang } from './LangContext';
 import { FRAME_STYLES } from './UserAvatar';
 import { AvatarSVG } from './components/AvatarSVGs';
 import { BADGES, getUnlocked } from './badges';
+import { USERNAME_COLORS } from './cosmeticColors';
 
 const FRAME_META = {
   frame_gold:    { name: 'Gold Frame',    emoji: '🥇' },
@@ -27,13 +28,6 @@ const EFFECT_META = {
   effect_stars:     { name: 'Stars',     emoji: '⭐' },
 };
 
-const USERNAME_COLOR_META = {
-  username_color_verde:  { name: 'Verde',  hex: '#22c55e' },
-  username_color_dorado: { name: 'Dorado', hex: '#f5c842' },
-  username_color_rojo:   { name: 'Rojo',   hex: '#e05555' },
-  username_color_morado: { name: 'Morado', hex: '#a855f7' },
-};
-
 const AVATAR_META = {
   avatar_bull:  'Bull',
   avatar_bear:  'Bear',
@@ -54,7 +48,7 @@ export default function Inventory({ onBack }) {
   const ownedThemes   = purchases.filter(id => id && THEME_META[id]);
   const ownedAvatars  = purchases.filter(id => id && AVATAR_META[id]);
   const ownedEffects  = purchases.filter(id => id && EFFECT_META[id]);
-  const ownedColors   = purchases.filter(id => id && USERNAME_COLOR_META[id]);
+  const ownedColors   = purchases.filter(id => id && USERNAME_COLORS[id]);
   const ownedBadges   = getUnlocked().map(id => BADGES.find(b => b.id === id)).filter(Boolean);
   const unusedTickets = (user?.battlePassItems || []).filter(item => !item.used).length;
 
@@ -207,7 +201,7 @@ export default function Inventory({ onBack }) {
         {show('colors') && ownedColors.length > 0 && (
           <Section title={ti.colors}>
             {ownedColors.map(id => {
-              const meta = USERNAME_COLOR_META[id];
+              const meta = USERNAME_COLORS[id];
               const equipped = activeCosmetics.username_color === id;
               return (
                 <ItemCard key={id} equipped={equipped} onClick={() => toggle('username_color', id)}>

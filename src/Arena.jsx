@@ -15,6 +15,7 @@ import { incrementMission, recordModePlayed, incrementWeeklyMission, recordWeekl
 import MissionNotification from './MissionNotification.jsx';
 import BattlePassNotification from './BattlePassNotification.jsx';
 import { useBattlePass } from './BattlePassContext.jsx';
+import { getUsernameColor } from './cosmeticColors';
 const SOCKET_URL = SERVER;
 
 const BOT_NAMES = ['AlgoBot', 'TradeAI', 'MarketBot', 'CryptoBot', 'NeuralBot'];
@@ -997,7 +998,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
         ) : status !== 'JOINING_CHALLENGE' ? (
           <>
             <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '32px' }}>
-              {t.arena.playingAs} <span style={{ color: 'var(--green)' }}>{name}</span>
+              {t.arena.playingAs} <span style={{ color: getUsernameColor(activeCosmetics) || 'var(--green)' }}>{name}</span>
             </div>
             <div style={{ marginBottom: '24px', padding: '20px', background: 'var(--bg-surface)', border: '1px solid var(--bd2)', borderRadius: '10px' }}>
               <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '12px' }}>{t.arena.noOpponents}</div>

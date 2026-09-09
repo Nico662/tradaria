@@ -5,6 +5,7 @@ import { useLang } from './LangContext.jsx';
 import { useAuth } from './AuthContext';
 import { ModeIcon } from './components/AppIcons';
 import { User, Package } from 'lucide-react';
+import { getUsernameColor } from './cosmeticColors';
 
 function AccuracyGraph({ trend }) {
   if (!trend || trend.length < 2) return null;
@@ -84,7 +85,7 @@ export default function Stats({ onBack, onSelect }) {
             )}
           </div>
           {user?.username && (
-            <div style={{ position: 'absolute', bottom: '-16px', left: '50%', transform: 'translateX(-50%)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--text-muted)', whiteSpace: 'nowrap', letterSpacing: '0.04em' }}>
+            <div style={{ position: 'absolute', bottom: '-16px', left: '50%', transform: 'translateX(-50%)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: getUsernameColor(activeCosmetics) || 'var(--text-muted)', whiteSpace: 'nowrap', letterSpacing: '0.04em' }}>
               @{user.username}
             </div>
           )}
