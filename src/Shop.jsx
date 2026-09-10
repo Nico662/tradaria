@@ -84,6 +84,14 @@ if (!document.getElementById('shop-preview-css')) {
       15%  { opacity: 1; }
       100% { transform: translateY(-72px) scale(1.1); opacity: 0; }
     }
+    @keyframes theme-matrix-fall {
+      0%   { transform: translateY(-100%); }
+      100% { transform: translateY(200%); }
+    }
+    @keyframes theme-gold-float {
+      0%, 100% { transform: translateY(0px); }
+      50%      { transform: translateY(-4px); }
+    }
   `;
   document.head.appendChild(el);
 }
@@ -101,6 +109,97 @@ const CATEGORIES = [
   { id: 'avatars', icon: <User     size={14} strokeWidth={2} aria-hidden /> },
   { id: 'effects', icon: <Sparkles size={14} strokeWidth={2} aria-hidden /> },
 ];
+
+const MATRIX_BG_COLS = [
+  { chars: ['1','0','1','1','0','1'], x: '8%',  delay: '0s',    dur: '2.8s' },
+  { chars: ['0','1','0','0','1','0'], x: '22%', delay: '-0.9s', dur: '2.4s' },
+  { chars: ['1','1','0','1','0','0'], x: '36%', delay: '-1.7s', dur: '3.0s' },
+  { chars: ['0','0','1','0','1','1'], x: '55%', delay: '-0.4s', dur: '2.6s' },
+  { chars: ['1','0','0','1','1','0'], x: '70%', delay: '-1.3s', dur: '2.9s' },
+  { chars: ['0','1','1','0','0','1'], x: '85%', delay: '-2.1s', dur: '2.5s' },
+];
+
+const GOLD_PARTICLES = [
+  { cx: 18,  cy: 22,  r: 2,   delay: '0s',    dur: '3.2s' },
+  { cx: 45,  cy: 78,  r: 1.5, delay: '-1.1s', dur: '4.0s' },
+  { cx: 80,  cy: 38,  r: 3,   delay: '-2.0s', dur: '3.5s' },
+  { cx: 110, cy: 88,  r: 2,   delay: '-0.5s', dur: '4.5s' },
+  { cx: 145, cy: 18,  r: 2.5, delay: '-1.8s', dur: '3.0s' },
+  { cx: 168, cy: 65,  r: 1.5, delay: '-2.8s', dur: '3.8s' },
+  { cx: 32,  cy: 100, r: 2,   delay: '-3.2s', dur: '4.2s' },
+  { cx: 185, cy: 42,  r: 3,   delay: '-1.5s', dur: '3.6s' },
+  { cx: 65,  cy: 55,  r: 1.5, delay: '-0.8s', dur: '4.8s' },
+  { cx: 130, cy: 48,  r: 2,   delay: '-2.3s', dur: '3.3s' },
+];
+
+const MIDNIGHT_STARS = [
+  { x: 15,  y: 14 }, { x: 48,  y: 7  }, { x: 90,  y: 20 },
+  { x: 135, y: 10 }, { x: 178, y: 26 }, { x: 28,  y: 50 },
+  { x: 82,  y: 62 }, { x: 128, y: 45 }, { x: 168, y: 70 },
+  { x: 10,  y: 85 }, { x: 62,  y: 92 }, { x: 112, y: 98 },
+  { x: 185, y: 82 }, { x: 145, y: 108 },
+];
+
+const MIDNIGHT_LINES = [
+  [0, 1], [1, 2], [2, 3], [3, 4],
+  [5, 6], [6, 7], [7, 8],
+  [9, 10], [10, 11],
+];
+
+function ThemeBgMotif({ id, c }) {
+  return (
+    <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: -1 }}>
+      {id === 'theme_matrix' && MATRIX_BG_COLS.map((col, i) => (
+        <div key={i} style={{
+          position: 'absolute', left: col.x, top: 0,
+          color: c.accent, fontSize: '7px', fontFamily: 'monospace',
+          lineHeight: '10px', opacity: 0.18, userSelect: 'none',
+          animation: `theme-matrix-fall ${col.dur} linear ${col.delay} infinite`,
+        }}>
+          {col.chars.map((ch, j) => <div key={j}>{ch}</div>)}
+        </div>
+      ))}
+
+      {id === 'theme_blood' && (
+        <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" style={{ display: 'block' }}>
+          <path
+            d="M-5,50 L18,50 L21,50 L24,18 L27,82 L31,30 L34,50 L58,50 L61,50 L64,18 L67,82 L71,30 L74,50 L105,50"
+            fill="none" stroke={c.accent} strokeWidth="1.5" opacity="0.35"
+            strokeLinecap="round" strokeLinejoin="round"
+          />
+        </svg>
+      )}
+
+      {id === 'theme_gold' && (
+        <svg width="100%" height="100%" viewBox="0 0 200 120" preserveAspectRatio="xMidYMid slice" style={{ display: 'block' }}>
+          {GOLD_PARTICLES.map((p, i) => (
+            <circle key={i} cx={p.cx} cy={p.cy} r={p.r} fill={c.accent} opacity="0.65"
+              style={{
+                animation: `theme-gold-float ${p.dur} ease-in-out ${p.delay} infinite`,
+                transformBox: 'fill-box', transformOrigin: 'center',
+              }}
+            />
+          ))}
+        </svg>
+      )}
+
+      {id === 'theme_midnight' && (
+        <svg width="100%" height="100%" viewBox="0 0 200 120" preserveAspectRatio="xMidYMid slice" style={{ display: 'block' }}>
+          {MIDNIGHT_LINES.map(([a, b], i) => (
+            <line key={i}
+              x1={MIDNIGHT_STARS[a].x} y1={MIDNIGHT_STARS[a].y}
+              x2={MIDNIGHT_STARS[b].x} y2={MIDNIGHT_STARS[b].y}
+              stroke={c.accent} strokeWidth="0.5" opacity="0.3"
+            />
+          ))}
+          {MIDNIGHT_STARS.map((s, i) => (
+            <circle key={i} cx={s.x} cy={s.y} r="1.5" fill={c.accent} opacity="0.35" />
+          ))}
+        </svg>
+      )}
+    </div>
+  );
+}
 
 function PreviewFrame({ item, userAvatar }) {
   return (
@@ -129,7 +228,9 @@ function PreviewTheme({ item }) {
       background: c.bg,
       display: 'flex', flexDirection: 'column',
       margin: '4px 0',
+      position: 'relative', isolation: 'isolate',
     }}>
+      <ThemeBgMotif id={item.id} c={c} />
       <div style={{ padding: '3px 6px', borderBottom: `1px solid ${c.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
         <span style={{ fontSize: '12px', color: c.accent, fontFamily: 'var(--font-body)', fontWeight: 700, letterSpacing: '0.08em' }}>TRADIKO</span>
         <div style={{ display: 'flex', gap: '6px' }}>
