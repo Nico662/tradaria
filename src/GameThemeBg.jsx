@@ -25,21 +25,59 @@ const GOLD_SPARKS = [
   { left: '93%', color: '#e8b93c', dur: '2.6s', delay: '0.7s' },
 ];
 
+// 3 cracks: diagonal upper-left, left-side vertical, right-side diagonal
+const BLOOD_CRACKS = [
+  {
+    d: 'M 8,5 L 18,35 L 5,58 L 22,82 L 10,108 L 32,128 L 18,152 L 40,170',
+    breathDur: '3.0s', breathDelay: '0s',
+    dashArr: '25 300', flashDur: '3.6s', flashDelay: '0s',
+  },
+  {
+    d: 'M 15,75 L 5,108 L 20,135 L 6,165 L 22,192 L 8,228 L 25,255',
+    breathDur: '3.3s', breathDelay: '0.8s',
+    dashArr: '30 340', flashDur: '4.0s', flashDelay: '1.2s',
+  },
+  {
+    d: 'M 88,20 L 72,55 L 90,88 L 68,118 L 85,152 L 72,185 L 92,215 L 75,248',
+    breathDur: '3.4s', breathDelay: '1.5s',
+    dashArr: '28 370', flashDur: '4.2s', flashDelay: '0.6s',
+  },
+];
+
 function BloodMotif() {
   return (
-    <svg width="100%" height="100%" style={{ position: 'absolute', inset: 0, display: 'block' }}>
-      <defs>
-        <pattern id="ecg-game" x="0" y="0" width="120" height="50" patternUnits="userSpaceOnUse">
-          <path
-            d="M0,25 L18,25 L21,25 L24,7 L27,43 L31,16 L34,25 L60,25 L63,25 L66,7 L69,43 L73,16 L76,25 L120,25"
-            fill="none" stroke="#d4547e" strokeWidth="1"
-            strokeLinecap="round" strokeLinejoin="round"
-          />
-        </pattern>
-      </defs>
-      <rect width="100%" height="100%" fill="url(#ecg-game)"
-        style={{ animation: 'game-blood-pulse 1.8s ease-in-out infinite' }}
-      />
+    <svg
+      width="100%" height="100%"
+      viewBox="0 0 100 265"
+      preserveAspectRatio="none"
+      style={{ position: 'absolute', inset: 0, display: 'block' }}
+    >
+      {/* Base cracks — breathing opacity */}
+      {BLOOD_CRACKS.map((c, i) => (
+        <path
+          key={`base-${i}`}
+          d={c.d}
+          fill="none" stroke="#5a1a28" strokeWidth="1.2"
+          strokeLinecap="round" strokeLinejoin="round"
+          vectorEffect="non-scaling-stroke"
+          style={{ animation: `game-blood-crack-breath ${c.breathDur} ease-in-out ${c.breathDelay} infinite` }}
+        />
+      ))}
+      {/* Glow streaks — traveling dashoffset flash */}
+      {BLOOD_CRACKS.map((c, i) => (
+        <path
+          key={`glow-${i}`}
+          d={c.d}
+          fill="none" stroke="#ff85a8" strokeWidth="1.5"
+          strokeLinecap="round" strokeLinejoin="round"
+          strokeDasharray={c.dashArr}
+          vectorEffect="non-scaling-stroke"
+          style={{
+            filter: 'drop-shadow(0 0 3px #ff85a8)',
+            animation: `game-blood-crack-flash ${c.flashDur} linear ${c.flashDelay} infinite`,
+          }}
+        />
+      ))}
     </svg>
   );
 }

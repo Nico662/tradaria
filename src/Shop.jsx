@@ -147,19 +147,27 @@ function ThemeBgMotif({ id, c }) {
       ))}
 
       {id === 'theme_blood' && (
-        <svg width="100%" height="100%" style={{ display: 'block', position: 'absolute', inset: 0 }}>
-          <defs>
-            <pattern id="ecg-shop" x="0" y="0" width="120" height="50" patternUnits="userSpaceOnUse">
-              <path
-                d="M0,25 L18,25 L21,25 L24,7 L27,43 L31,16 L34,25 L60,25 L63,25 L66,7 L69,43 L73,16 L76,25 L120,25"
-                fill="none" stroke="#d4547e" strokeWidth="1"
-                strokeLinecap="round" strokeLinejoin="round"
-              />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#ecg-shop)"
-            style={{ animation: 'game-blood-pulse 1.8s ease-in-out infinite' }}
-          />
+        <svg
+          width="100%" height="100%"
+          viewBox="0 0 100 265"
+          preserveAspectRatio="none"
+          style={{ display: 'block', position: 'absolute', inset: 0 }}
+        >
+          {[
+            { d: 'M 8,5 L 18,35 L 5,58 L 22,82 L 10,108 L 32,128 L 18,152 L 40,170',     bDur: '3.0s', bDel: '0s',    da: '25 300', fDur: '3.6s', fDel: '0s'   },
+            { d: 'M 15,75 L 5,108 L 20,135 L 6,165 L 22,192 L 8,228 L 25,255',            bDur: '3.3s', bDel: '0.8s', da: '30 340', fDur: '4.0s', fDel: '1.2s' },
+            { d: 'M 88,20 L 72,55 L 90,88 L 68,118 L 85,152 L 72,185 L 92,215 L 75,248', bDur: '3.4s', bDel: '1.5s', da: '28 370', fDur: '4.2s', fDel: '0.6s' },
+          ].map((c, i) => (
+            <g key={i}>
+              <path d={c.d} fill="none" stroke="#5a1a28" strokeWidth="1.2"
+                strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"
+                style={{ animation: `game-blood-crack-breath ${c.bDur} ease-in-out ${c.bDel} infinite` }} />
+              <path d={c.d} fill="none" stroke="#ff85a8" strokeWidth="1.5"
+                strokeLinecap="round" strokeLinejoin="round" strokeDasharray={c.da}
+                vectorEffect="non-scaling-stroke"
+                style={{ filter: 'drop-shadow(0 0 3px #ff85a8)', animation: `game-blood-crack-flash ${c.fDur} linear ${c.fDel} infinite` }} />
+            </g>
+          ))}
         </svg>
       )}
 

@@ -403,12 +403,13 @@ html, body {
 }
 
 /* Keyframes shared by GameThemeBg (blood/gold/midnight) and shop preview */
-@keyframes game-blood-pulse {
-  0%, 100% { opacity: 0.3; }
-  15%      { opacity: 0.8; }
-  30%      { opacity: 0.3; }
-  45%      { opacity: 0.6; }
-  60%      { opacity: 0.3; }
+@keyframes game-blood-crack-breath {
+  0%, 100% { opacity: 0.25; }
+  50%      { opacity: 0.4;  }
+}
+@keyframes game-blood-crack-flash {
+  from { stroke-dashoffset: 0; }
+  to   { stroke-dashoffset: -600; }
 }
 @keyframes game-gold-spark {
   0%   { opacity: 0;   transform: translateY(0); }
