@@ -117,13 +117,18 @@ const MATRIX_BG_COLS = [
 
 const PHI = (1 + Math.sqrt(5)) / 2;
 
-// Golden ratio distribution — deterministic, adapts to any card size via %
-const SHOP_PARTICLES = Array.from({ length: 12 }, (_, i) => ({
-  x:     `${((i * 61.8 + 5) % 94 + 3).toFixed(1)}%`,
-  y:     `${((i * 38.2 + 7) % 94 + 3).toFixed(1)}%`,
-  dur:   `${(2.2 + (i % 5) * 0.2).toFixed(1)}s`,
-  delay: `-${((i * PHI) % 2.4).toFixed(2)}s`,
-}));
+// 9 Bitcoin symbols for Gold Rush shop preview card
+const SHOP_BTC_SYMBOLS = [
+  { x: '7%',  y: '12%', size: '14px', color: '#e8b93c', dur: '2.6s', delay: '0s'   },
+  { x: '22%', y: '72%', size: '11px', color: '#ffd77a', dur: '3.1s', delay: '0.4s' },
+  { x: '38%', y: '28%', size: '16px', color: '#e8b93c', dur: '2.4s', delay: '1.1s' },
+  { x: '54%', y: '85%', size: '12px', color: '#ffd77a', dur: '3.4s', delay: '0.7s' },
+  { x: '67%', y: '18%', size: '10px', color: '#e8b93c', dur: '2.9s', delay: '1.5s' },
+  { x: '80%', y: '55%', size: '15px', color: '#ffd77a', dur: '2.2s', delay: '0.2s' },
+  { x: '15%', y: '45%', size: '13px', color: '#e8b93c', dur: '3.6s', delay: '1.0s' },
+  { x: '90%', y: '32%', size: '11px', color: '#ffd77a', dur: '2.8s', delay: '1.7s' },
+  { x: '46%', y: '58%', size: '14px', color: '#e8b93c', dur: '3.2s', delay: '0.9s' },
+];
 
 const SHOP_STARS = Array.from({ length: 10 }, (_, i) => ({
   x:     `${((i * 61.8 + 5) % 94 + 3).toFixed(1)}%`,
@@ -163,16 +168,16 @@ function ThemeBgMotif({ id, c }) {
         </svg>
       )}
 
-      {id === 'theme_gold' && SHOP_PARTICLES.map((p, i) => (
+      {id === 'theme_gold' && SHOP_BTC_SYMBOLS.map((s, i) => (
         <div key={i} style={{
           position: 'absolute',
-          left: p.x, top: p.y,
-          width: '6px', height: '6px',
-          borderRadius: '50%',
-          background: i % 3 === 0 ? '#ffd77a' : '#e8b93c',
-          transform: 'translate(-50%, -50%)',
-          animation: `game-gold-twinkle ${p.dur} ease-in-out ${p.delay} infinite`,
-        }} />
+          left: s.x, top: s.y,
+          fontSize: s.size,
+          color: s.color,
+          lineHeight: 1,
+          userSelect: 'none',
+          animation: `floatrotate ${s.dur} ease-in-out ${s.delay} infinite`,
+        }}>₿</div>
       ))}
 
       {id === 'theme_midnight' && (
