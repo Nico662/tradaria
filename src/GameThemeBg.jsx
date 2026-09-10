@@ -101,13 +101,14 @@ export default function GameThemeBg({ screen }) {
   const [target, setTarget] = useState(null);
 
   useEffect(() => {
-    // Prefer #app-shell-bg (AppLayout screens: Home, Stats, etc.) — it is always
-    // 100dvh × app-width because scroll is confined inside .app-main, not the shell.
-    // Fall back to #gtm-root for pure game screens (Arena, Tournament…) that render
-    // outside AppLayout and have no #app-shell-bg.
+    // Prefer #gtm-root — every screen renders one, and it has isolation:isolate so
+    // the portal div (zIndex:-1) paints above its background, making the motif visible.
+    // #app-shell-bg is behind every screen's #gtm-root (which has an opaque background),
+    // so using it as primary target hides the motif. Only fall back to #app-shell-bg on
+    // screens that have AppLayout but no #gtm-root (none currently, kept as safety net).
     setTarget(
-      document.getElementById('app-shell-bg') ||
-      document.getElementById('gtm-root')
+      document.getElementById('gtm-root') ||
+      document.getElementById('app-shell-bg')
     );
   }, [screen]);
 
