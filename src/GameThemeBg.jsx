@@ -12,17 +12,21 @@ const PARTICLES = Array.from({ length: 28 }, (_, i) => ({
   delay: `-${((i * PHI) % 2.4).toFixed(2)}s`,
 }));
 
-// 9 Bitcoin symbols scattered across the full background for Gold Rush
+// 9 Bitcoin symbols in viewport margins — left edge, right edge, bottom strip
+// Avoids the central content column (15-80% x, 0-75% y) where text lives
 const BTC_SYMBOLS = [
-  { x: '10%', y: '12%', size: '36px', color: '#e8b93c', dur: '2.6s', delay: '0s'   },
-  { x: '25%', y: '74%', size: '30px', color: '#ffd77a', dur: '3.1s', delay: '0.4s' },
-  { x: '40%', y: '22%', size: '44px', color: '#e8b93c', dur: '2.4s', delay: '1.1s' },
-  { x: '57%', y: '83%', size: '32px', color: '#ffd77a', dur: '3.4s', delay: '0.7s' },
-  { x: '68%', y: '15%', size: '28px', color: '#e8b93c', dur: '2.9s', delay: '1.5s' },
-  { x: '78%', y: '52%', size: '52px', color: '#ffd77a', dur: '2.2s', delay: '0.2s' },
-  { x: '18%', y: '43%', size: '38px', color: '#e8b93c', dur: '3.6s', delay: '1.0s' },
-  { x: '85%', y: '28%', size: '30px', color: '#ffd77a', dur: '2.8s', delay: '1.7s' },
-  { x: '48%', y: '56%', size: '48px', color: '#e8b93c', dur: '3.2s', delay: '0.9s' },
+  // Left margin
+  { x: '6%',  y: '8%',  size: '36px', color: '#e8b93c', dur: '2.6s', delay: '0s'   },
+  { x: '8%',  y: '40%', size: '44px', color: '#e8b93c', dur: '2.4s', delay: '1.1s' },
+  { x: '5%',  y: '72%', size: '30px', color: '#ffd77a', dur: '3.1s', delay: '0.4s' },
+  // Right margin
+  { x: '88%', y: '14%', size: '28px', color: '#e8b93c', dur: '2.9s', delay: '1.5s' },
+  { x: '85%', y: '48%', size: '52px', color: '#ffd77a', dur: '3.6s', delay: '1.0s' },
+  { x: '87%', y: '74%', size: '38px', color: '#ffd77a', dur: '2.2s', delay: '0.2s' },
+  // Bottom strip (below main content block)
+  { x: '28%', y: '84%', size: '32px', color: '#ffd77a', dur: '3.4s', delay: '0.7s' },
+  { x: '58%', y: '88%', size: '48px', color: '#e8b93c', dur: '3.2s', delay: '0.9s' },
+  { x: '72%', y: '82%', size: '30px', color: '#ffd77a', dur: '2.8s', delay: '1.7s' },
 ];
 
 function BloodMotif() {
@@ -55,6 +59,7 @@ function GoldMotif() {
           color: s.color,
           lineHeight: 1,
           userSelect: 'none',
+          pointerEvents: 'none',
           animation: `floatrotate ${s.dur} ease-in-out ${s.delay} infinite`,
         }}>₿</div>
       ))}
@@ -109,7 +114,7 @@ export default function GameThemeBg({ screen }) {
   if (!target || !motif) return null;
 
   return createPortal(
-    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: -1, overflow: 'hidden' }}>
+    <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: -1, overflow: 'hidden' }}>
       {motif}
     </div>,
     target
