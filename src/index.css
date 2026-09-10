@@ -411,8 +411,8 @@ html, body {
   60%      { opacity: 0.3; }
 }
 @keyframes game-gold-twinkle {
-  0%, 100% { opacity: 0.25; }
-  50%      { opacity: 0.9;  }
+  0%, 100% { opacity: 0.45; }
+  50%      { opacity: 1;    }
 }
 @keyframes game-gold-glow {
   0%, 100% { opacity: 0.5; }

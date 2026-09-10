@@ -15,20 +15,20 @@ const PARTICLES = Array.from({ length: 28 }, (_, i) => ({
 // 14 small ₿ — explicit positions in left/right margins and bottom strip so they
 // land in the transparent areas outside content cards, never in the central column.
 const BTC_SMALL_SYMBOLS = [
-  { top: '10%', left:  '4%', size: '14px', color: '#e8b93c', delay: '0s'   },
-  { top: '18%', left: '88%', size: '13px', color: '#ffd77a', delay: '0.3s' },
-  { top: '26%', left: '10%', size: '15px', color: '#e8b93c', delay: '0.6s' },
-  { top: '32%', left: '92%', size: '14px', color: '#ffd77a', delay: '0.9s' },
-  { top: '40%', left:  '6%', size: '13px', color: '#e8b93c', delay: '1.2s' },
-  { top: '46%', left: '90%', size: '15px', color: '#ffd77a', delay: '1.5s' },
-  { top: '54%', left: '12%', size: '14px', color: '#e8b93c', delay: '0.2s' },
-  { top: '60%', left: '86%', size: '13px', color: '#ffd77a', delay: '0.7s' },
-  { top: '68%', left:  '8%', size: '15px', color: '#e8b93c', delay: '1.1s' },
-  { top: '74%', left: '92%', size: '14px', color: '#ffd77a', delay: '1.4s' },
-  { top: '82%', left: '20%', size: '13px', color: '#e8b93c', delay: '0.4s' },
-  { top: '86%', left: '45%', size: '15px', color: '#ffd77a', delay: '0.8s' },
-  { top: '90%', left: '65%', size: '14px', color: '#e8b93c', delay: '1.3s' },
-  { top: '84%', left: '80%', size: '13px', color: '#ffd77a', delay: '0.5s' },
+  { top: '10%', left:  '4%', size: '25px', color: '#e8b93c', delay: '0s'   },
+  { top: '18%', left: '88%', size: '22px', color: '#ffd77a', delay: '0.3s' },
+  { top: '26%', left: '10%', size: '28px', color: '#e8b93c', delay: '0.6s' },
+  { top: '32%', left: '92%', size: '25px', color: '#ffd77a', delay: '0.9s' },
+  { top: '40%', left:  '6%', size: '22px', color: '#e8b93c', delay: '1.2s' },
+  { top: '46%', left: '90%', size: '28px', color: '#ffd77a', delay: '1.5s' },
+  { top: '54%', left: '12%', size: '25px', color: '#e8b93c', delay: '0.2s' },
+  { top: '60%', left: '86%', size: '22px', color: '#ffd77a', delay: '0.7s' },
+  { top: '68%', left:  '8%', size: '28px', color: '#e8b93c', delay: '1.1s' },
+  { top: '74%', left: '92%', size: '25px', color: '#ffd77a', delay: '1.4s' },
+  { top: '82%', left: '20%', size: '22px', color: '#e8b93c', delay: '0.4s' },
+  { top: '86%', left: '45%', size: '28px', color: '#ffd77a', delay: '0.8s' },
+  { top: '90%', left: '65%', size: '25px', color: '#e8b93c', delay: '1.3s' },
+  { top: '84%', left: '80%', size: '22px', color: '#ffd77a', delay: '0.5s' },
 ];
 
 function BloodMotif() {
@@ -78,6 +78,7 @@ function GoldMotif() {
           userSelect: 'none',
           pointerEvents: 'none',
           transform: 'translate(-50%, -50%)',
+          textShadow: '0 0 6px rgba(232,185,60,0.4)',
           animationFillMode: 'backwards',
           animation: `game-gold-twinkle ${(2.0 + (i % 5) * 0.22).toFixed(2)}s ease-in-out ${p.delay} infinite`,
         }}>₿</div>
