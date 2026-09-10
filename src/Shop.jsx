@@ -89,8 +89,8 @@ if (!document.getElementById('shop-preview-css')) {
       100% { transform: translateY(200%); }
     }
     @keyframes theme-gold-float {
-      0%, 100% { transform: translateY(0px); }
-      50%      { transform: translateY(-4px); }
+      0%, 100% { transform: translateY(0px);  opacity: 0.5; }
+      50%      { transform: translateY(-4px); opacity: 0.9; }
     }
   `;
   document.head.appendChild(el);
@@ -133,11 +133,20 @@ const GOLD_PARTICLES = [
 ];
 
 const MIDNIGHT_STARS = [
-  { x: 15,  y: 14 }, { x: 48,  y: 7  }, { x: 90,  y: 20 },
-  { x: 135, y: 10 }, { x: 178, y: 26 }, { x: 28,  y: 50 },
-  { x: 82,  y: 62 }, { x: 128, y: 45 }, { x: 168, y: 70 },
-  { x: 10,  y: 85 }, { x: 62,  y: 92 }, { x: 112, y: 98 },
-  { x: 185, y: 82 }, { x: 145, y: 108 },
+  { x: 15,  y: 14,  dur: '1.8s', delay: '0s'    },
+  { x: 48,  y: 7,   dur: '2.4s', delay: '-0.7s' },
+  { x: 90,  y: 20,  dur: '2.0s', delay: '-1.3s' },
+  { x: 135, y: 10,  dur: '2.8s', delay: '-0.4s' },
+  { x: 178, y: 26,  dur: '1.6s', delay: '-1.6s' },
+  { x: 28,  y: 50,  dur: '2.2s', delay: '-0.9s' },
+  { x: 82,  y: 62,  dur: '2.6s', delay: '-1.1s' },
+  { x: 128, y: 45,  dur: '2.0s', delay: '-0.3s' },
+  { x: 168, y: 70,  dur: '2.8s', delay: '-1.5s' },
+  { x: 10,  y: 85,  dur: '1.6s', delay: '-0.6s' },
+  { x: 62,  y: 92,  dur: '2.4s', delay: '-1.2s' },
+  { x: 112, y: 98,  dur: '2.0s', delay: '-0.8s' },
+  { x: 185, y: 82,  dur: '1.8s', delay: '-1.4s' },
+  { x: 145, y: 108, dur: '2.6s', delay: '-0.2s' },
 ];
 
 const MIDNIGHT_LINES = [
@@ -161,19 +170,29 @@ function ThemeBgMotif({ id, c }) {
       ))}
 
       {id === 'theme_blood' && (
-        <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" style={{ display: 'block' }}>
-          <path
-            d="M-5,50 L18,50 L21,50 L24,18 L27,82 L31,30 L34,50 L58,50 L61,50 L64,18 L67,82 L71,30 L74,50 L105,50"
-            fill="none" stroke={c.accent} strokeWidth="1.5" opacity="0.35"
-            strokeLinecap="round" strokeLinejoin="round"
-          />
-        </svg>
+        <>
+          <div style={{
+            position: 'absolute', left: '10%', top: '20%',
+            width: '80%', height: '60%',
+            background: `radial-gradient(ellipse, ${c.accent}28 0%, transparent 70%)`,
+            animation: 'game-blood-pulse 1.8s ease-in-out infinite',
+          }} />
+          <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none"
+            style={{ display: 'block', position: 'absolute', inset: 0, animation: 'game-blood-pulse 1.8s ease-in-out infinite' }}>
+            <path
+              d="M-5,50 L18,50 L21,50 L24,18 L27,82 L31,30 L34,50 L58,50 L61,50 L64,18 L67,82 L71,30 L74,50 L105,50"
+              fill="none" stroke={c.accent} strokeWidth="1.5"
+              strokeLinecap="round" strokeLinejoin="round"
+            />
+            <circle cx="24" cy="18" r="2.5" fill={c.accent} />
+          </svg>
+        </>
       )}
 
       {id === 'theme_gold' && (
         <svg width="100%" height="100%" viewBox="0 0 200 120" preserveAspectRatio="xMidYMid slice" style={{ display: 'block' }}>
           {GOLD_PARTICLES.map((p, i) => (
-            <circle key={i} cx={p.cx} cy={p.cy} r={p.r} fill={c.accent} opacity="0.65"
+            <circle key={i} cx={p.cx} cy={p.cy} r={p.r} fill={c.accent}
               style={{
                 animation: `theme-gold-float ${p.dur} ease-in-out ${p.delay} infinite`,
                 transformBox: 'fill-box', transformOrigin: 'center',
@@ -184,18 +203,30 @@ function ThemeBgMotif({ id, c }) {
       )}
 
       {id === 'theme_midnight' && (
-        <svg width="100%" height="100%" viewBox="0 0 200 120" preserveAspectRatio="xMidYMid slice" style={{ display: 'block' }}>
-          {MIDNIGHT_LINES.map(([a, b], i) => (
-            <line key={i}
-              x1={MIDNIGHT_STARS[a].x} y1={MIDNIGHT_STARS[a].y}
-              x2={MIDNIGHT_STARS[b].x} y2={MIDNIGHT_STARS[b].y}
-              stroke={c.accent} strokeWidth="0.5" opacity="0.3"
-            />
-          ))}
-          {MIDNIGHT_STARS.map((s, i) => (
-            <circle key={i} cx={s.x} cy={s.y} r="1.5" fill={c.accent} opacity="0.35" />
-          ))}
-        </svg>
+        <>
+          <svg width="100%" height="100%" viewBox="0 0 200 120" preserveAspectRatio="xMidYMid slice"
+            style={{ display: 'block', position: 'absolute', inset: 0 }}>
+            {MIDNIGHT_LINES.map(([a, b], i) => (
+              <line key={i}
+                x1={MIDNIGHT_STARS[a].x} y1={MIDNIGHT_STARS[a].y}
+                x2={MIDNIGHT_STARS[b].x} y2={MIDNIGHT_STARS[b].y}
+                stroke={c.accent} strokeWidth="0.5" opacity="0.25"
+              />
+            ))}
+            {MIDNIGHT_STARS.map((s, i) => (
+              <circle key={i} cx={s.x} cy={s.y} r="1.5" fill={c.accent}
+                style={{ animation: `game-star-twinkle ${s.dur} ease-in-out ${s.delay} infinite` }}
+              />
+            ))}
+          </svg>
+          <div style={{
+            position: 'absolute', top: '22%', left: 0,
+            width: '36px', height: '1.5px',
+            background: `linear-gradient(90deg, transparent, ${c.accent}, transparent)`,
+            borderRadius: '1px',
+            animation: 'game-shooting-star 5s ease-in-out infinite',
+          }} />
+        </>
       )}
     </div>
   );
