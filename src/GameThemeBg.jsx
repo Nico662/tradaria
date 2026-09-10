@@ -12,23 +12,16 @@ const PARTICLES = Array.from({ length: 28 }, (_, i) => ({
   delay: `-${((i * PHI) % 2.4).toFixed(2)}s`,
 }));
 
-// 9 Bitcoin symbols — left/right margins + bottom strip, avoiding central text column.
-// Negative delays (mid-cycle start, same technique as PARTICLES/Midnight) so symbols
-// are always at their animated transform from frame 0, with no positional jump.
-const BTC_SYMBOLS = [
-  // Left margin
-  { x: '6%',  y: '8%',  size: '36px', color: '#e8b93c', dur: '2.6s', delay: '-0.0s'  },
-  { x: '8%',  y: '40%', size: '44px', color: '#e8b93c', dur: '2.4s', delay: '-1.1s'  },
-  { x: '5%',  y: '72%', size: '30px', color: '#ffd77a', dur: '3.1s', delay: '-0.4s'  },
-  // Right margin
-  { x: '88%', y: '14%', size: '28px', color: '#e8b93c', dur: '2.9s', delay: '-1.5s'  },
-  { x: '85%', y: '48%', size: '52px', color: '#ffd77a', dur: '3.6s', delay: '-1.0s'  },
-  { x: '87%', y: '74%', size: '38px', color: '#ffd77a', dur: '2.2s', delay: '-0.2s'  },
-  // Bottom strip (below main content block)
-  { x: '28%', y: '84%', size: '32px', color: '#ffd77a', dur: '3.4s', delay: '-0.7s'  },
-  { x: '58%', y: '88%', size: '48px', color: '#e8b93c', dur: '3.2s', delay: '-0.9s'  },
-  { x: '72%', y: '82%', size: '30px', color: '#ffd77a', dur: '2.8s', delay: '-1.7s'  },
-];
+// 14 Gold particles — same golden-ratio generation as PARTICLES/Midnight, half the count.
+// Alternating gold colors; sizes 13–15px (consistent, unlike the old big-symbol approach).
+const GOLD_PARTICLES = Array.from({ length: 14 }, (_, i) => ({
+  x:     `${((i * 61.8 + 5) % 94 + 3).toFixed(1)}%`,
+  y:     `${((i * 38.2 + 7) % 94 + 3).toFixed(1)}%`,
+  dur:   `${(2.0 + (i % 5) * 0.18).toFixed(2)}s`,
+  delay: `-${((i * PHI) % 2.4).toFixed(2)}s`,
+  color: i % 2 === 0 ? '#e8b93c' : '#ffd77a',
+  size:  `${13 + (i % 3)}px`,
+}));
 
 function BloodMotif() {
   return (
@@ -52,17 +45,32 @@ function BloodMotif() {
 function GoldMotif() {
   return (
     <>
-      {BTC_SYMBOLS.map((s, i) => (
+      {/* Focal ₿ — upper-right corner, same role as the moon in a night-sky motif */}
+      <div style={{
+        position: 'absolute',
+        left: '88%', top: '6%',
+        fontSize: '52px',
+        color: '#ffe9a8',
+        lineHeight: 1,
+        userSelect: 'none',
+        pointerEvents: 'none',
+        transform: 'translate(-50%, -50%)',
+        textShadow: '0 0 16px rgba(232,185,60,0.6)',
+        animation: 'game-gold-glow 4s ease-in-out -0.8s infinite',
+      }}>₿</div>
+
+      {/* Field of 14 small ₿ — same golden-ratio positions as Midnight's star field */}
+      {GOLD_PARTICLES.map((p, i) => (
         <div key={i} style={{
           position: 'absolute',
-          left: s.x, top: s.y,
-          fontSize: s.size,
-          color: s.color,
+          left: p.x, top: p.y,
+          fontSize: p.size,
+          color: p.color,
           lineHeight: 1,
           userSelect: 'none',
           pointerEvents: 'none',
           transform: 'translate(-50%, -50%)',
-          animation: `floatrotate ${s.dur} ease-in-out ${s.delay} infinite`,
+          animation: `game-gold-twinkle ${p.dur} ease-in-out ${p.delay} infinite`,
         }}>₿</div>
       ))}
     </>
