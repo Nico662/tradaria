@@ -88,10 +88,6 @@ if (!document.getElementById('shop-preview-css')) {
       0%   { transform: translateY(-100%); }
       100% { transform: translateY(200%); }
     }
-    @keyframes theme-gold-float {
-      0%, 100% { transform: translateY(0px);  opacity: 0.5; }
-      50%      { transform: translateY(-4px); opacity: 0.9; }
-    }
   `;
   document.head.appendChild(el);
 }
@@ -119,41 +115,22 @@ const MATRIX_BG_COLS = [
   { chars: ['0','1','1','0','0','1'], x: '85%', delay: '-2.1s', dur: '2.5s' },
 ];
 
-const GOLD_PARTICLES = [
-  { cx: 18,  cy: 22,  r: 2,   delay: '0s',    dur: '3.2s' },
-  { cx: 45,  cy: 78,  r: 1.5, delay: '-1.1s', dur: '4.0s' },
-  { cx: 80,  cy: 38,  r: 3,   delay: '-2.0s', dur: '3.5s' },
-  { cx: 110, cy: 88,  r: 2,   delay: '-0.5s', dur: '4.5s' },
-  { cx: 145, cy: 18,  r: 2.5, delay: '-1.8s', dur: '3.0s' },
-  { cx: 168, cy: 65,  r: 1.5, delay: '-2.8s', dur: '3.8s' },
-  { cx: 32,  cy: 100, r: 2,   delay: '-3.2s', dur: '4.2s' },
-  { cx: 185, cy: 42,  r: 3,   delay: '-1.5s', dur: '3.6s' },
-  { cx: 65,  cy: 55,  r: 1.5, delay: '-0.8s', dur: '4.8s' },
-  { cx: 130, cy: 48,  r: 2,   delay: '-2.3s', dur: '3.3s' },
-];
+const PHI = (1 + Math.sqrt(5)) / 2;
 
-const MIDNIGHT_STARS = [
-  { x: 15,  y: 14,  dur: '1.8s', delay: '0s'    },
-  { x: 48,  y: 7,   dur: '2.4s', delay: '-0.7s' },
-  { x: 90,  y: 20,  dur: '2.0s', delay: '-1.3s' },
-  { x: 135, y: 10,  dur: '2.8s', delay: '-0.4s' },
-  { x: 178, y: 26,  dur: '1.6s', delay: '-1.6s' },
-  { x: 28,  y: 50,  dur: '2.2s', delay: '-0.9s' },
-  { x: 82,  y: 62,  dur: '2.6s', delay: '-1.1s' },
-  { x: 128, y: 45,  dur: '2.0s', delay: '-0.3s' },
-  { x: 168, y: 70,  dur: '2.8s', delay: '-1.5s' },
-  { x: 10,  y: 85,  dur: '1.6s', delay: '-0.6s' },
-  { x: 62,  y: 92,  dur: '2.4s', delay: '-1.2s' },
-  { x: 112, y: 98,  dur: '2.0s', delay: '-0.8s' },
-  { x: 185, y: 82,  dur: '1.8s', delay: '-1.4s' },
-  { x: 145, y: 108, dur: '2.6s', delay: '-0.2s' },
-];
+// Golden ratio distribution — deterministic, adapts to any card size via %
+const SHOP_PARTICLES = Array.from({ length: 12 }, (_, i) => ({
+  x:     `${((i * 61.8 + 5) % 94 + 3).toFixed(1)}%`,
+  y:     `${((i * 38.2 + 7) % 94 + 3).toFixed(1)}%`,
+  dur:   `${(2.2 + (i % 5) * 0.2).toFixed(1)}s`,
+  delay: `-${((i * PHI) % 2.4).toFixed(2)}s`,
+}));
 
-const MIDNIGHT_LINES = [
-  [0, 1], [1, 2], [2, 3], [3, 4],
-  [5, 6], [6, 7], [7, 8],
-  [9, 10], [10, 11],
-];
+const SHOP_STARS = Array.from({ length: 10 }, (_, i) => ({
+  x:     `${((i * 61.8 + 5) % 94 + 3).toFixed(1)}%`,
+  y:     `${((i * 38.2 + 7) % 94 + 3).toFixed(1)}%`,
+  dur:   `${(2.0 + (i % 5) * 0.2).toFixed(1)}s`,
+  delay: `-${((i * PHI) % 2.0).toFixed(2)}s`,
+}));
 
 function ThemeBgMotif({ id, c }) {
   return (
@@ -170,59 +147,52 @@ function ThemeBgMotif({ id, c }) {
       ))}
 
       {id === 'theme_blood' && (
-        <>
-          <div style={{
-            position: 'absolute', left: '10%', top: '20%',
-            width: '80%', height: '60%',
-            background: `radial-gradient(ellipse, ${c.accent}28 0%, transparent 70%)`,
-            animation: 'game-blood-pulse 1.8s ease-in-out infinite',
-          }} />
-          <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none"
-            style={{ display: 'block', position: 'absolute', inset: 0, animation: 'game-blood-pulse 1.8s ease-in-out infinite' }}>
-            <path
-              d="M-5,50 L18,50 L21,50 L24,18 L27,82 L31,30 L34,50 L58,50 L61,50 L64,18 L67,82 L71,30 L74,50 L105,50"
-              fill="none" stroke={c.accent} strokeWidth="1.5"
-              strokeLinecap="round" strokeLinejoin="round"
-            />
-            <circle cx="24" cy="18" r="2.5" fill={c.accent} />
-          </svg>
-        </>
-      )}
-
-      {id === 'theme_gold' && (
-        <svg width="100%" height="100%" viewBox="0 0 200 120" preserveAspectRatio="xMidYMid slice" style={{ display: 'block' }}>
-          {GOLD_PARTICLES.map((p, i) => (
-            <circle key={i} cx={p.cx} cy={p.cy} r={p.r} fill={c.accent}
-              style={{
-                animation: `theme-gold-float ${p.dur} ease-in-out ${p.delay} infinite`,
-                transformBox: 'fill-box', transformOrigin: 'center',
-              }}
-            />
-          ))}
+        <svg width="100%" height="100%" style={{ display: 'block', position: 'absolute', inset: 0 }}>
+          <defs>
+            <pattern id="ecg-shop" x="0" y="0" width="120" height="50" patternUnits="userSpaceOnUse">
+              <path
+                d="M0,25 L18,25 L21,25 L24,7 L27,43 L31,16 L34,25 L60,25 L63,25 L66,7 L69,43 L73,16 L76,25 L120,25"
+                fill="none" stroke="#d4547e" strokeWidth="1"
+                strokeLinecap="round" strokeLinejoin="round"
+              />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#ecg-shop)"
+            style={{ animation: 'game-blood-pulse 1.8s ease-in-out infinite' }}
+          />
         </svg>
       )}
 
+      {id === 'theme_gold' && SHOP_PARTICLES.map((p, i) => (
+        <div key={i} style={{
+          position: 'absolute',
+          left: p.x, top: p.y,
+          width: '6px', height: '6px',
+          borderRadius: '50%',
+          background: i % 3 === 0 ? '#ffd77a' : '#e8b93c',
+          transform: 'translate(-50%, -50%)',
+          animation: `game-gold-twinkle ${p.dur} ease-in-out ${p.delay} infinite`,
+        }} />
+      ))}
+
       {id === 'theme_midnight' && (
         <>
-          <svg width="100%" height="100%" viewBox="0 0 200 120" preserveAspectRatio="xMidYMid slice"
-            style={{ display: 'block', position: 'absolute', inset: 0 }}>
-            {MIDNIGHT_LINES.map(([a, b], i) => (
-              <line key={i}
-                x1={MIDNIGHT_STARS[a].x} y1={MIDNIGHT_STARS[a].y}
-                x2={MIDNIGHT_STARS[b].x} y2={MIDNIGHT_STARS[b].y}
-                stroke={c.accent} strokeWidth="0.5" opacity="0.25"
-              />
-            ))}
-            {MIDNIGHT_STARS.map((s, i) => (
-              <circle key={i} cx={s.x} cy={s.y} r="1.5" fill={c.accent}
-                style={{ animation: `game-star-twinkle ${s.dur} ease-in-out ${s.delay} infinite` }}
-              />
-            ))}
-          </svg>
+          {SHOP_STARS.map((s, i) => (
+            <div key={i} style={{
+              position: 'absolute',
+              left: s.x, top: s.y,
+              width: '5px', height: '5px',
+              borderRadius: '50%',
+              background: '#cfe0fa',
+              transform: 'translate(-50%, -50%)',
+              animation: `game-star-twinkle ${s.dur} ease-in-out ${s.delay} infinite`,
+            }} />
+          ))}
           <div style={{
-            position: 'absolute', top: '22%', left: 0,
-            width: '36px', height: '1.5px',
-            background: `linear-gradient(90deg, transparent, ${c.accent}, transparent)`,
+            position: 'absolute',
+            top: '25%', left: '-5%',
+            width: '30px', height: '1.5px',
+            background: 'linear-gradient(90deg, transparent, #cfe0fa, transparent)',
             borderRadius: '1px',
             animation: 'game-shooting-star 5s ease-in-out infinite',
           }} />
