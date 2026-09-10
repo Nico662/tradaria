@@ -12,16 +12,24 @@ const PARTICLES = Array.from({ length: 28 }, (_, i) => ({
   delay: `-${((i * PHI) % 2.4).toFixed(2)}s`,
 }));
 
-// 14 Gold particles — same golden-ratio generation as PARTICLES/Midnight, half the count.
-// Alternating gold colors; sizes 13–15px (consistent, unlike the old big-symbol approach).
-const GOLD_PARTICLES = Array.from({ length: 14 }, (_, i) => ({
-  x:     `${((i * 61.8 + 5) % 94 + 3).toFixed(1)}%`,
-  y:     `${((i * 38.2 + 7) % 94 + 3).toFixed(1)}%`,
-  dur:   `${(2.0 + (i % 5) * 0.18).toFixed(2)}s`,
-  delay: `-${((i * PHI) % 2.4).toFixed(2)}s`,
-  color: i % 2 === 0 ? '#e8b93c' : '#ffd77a',
-  size:  `${13 + (i % 3)}px`,
-}));
+// 14 small ₿ — explicit positions in left/right margins and bottom strip so they
+// land in the transparent areas outside content cards, never in the central column.
+const BTC_SMALL_SYMBOLS = [
+  { top: '10%', left:  '4%', size: '14px', color: '#e8b93c', delay: '0s'   },
+  { top: '18%', left: '88%', size: '13px', color: '#ffd77a', delay: '0.3s' },
+  { top: '26%', left: '10%', size: '15px', color: '#e8b93c', delay: '0.6s' },
+  { top: '32%', left: '92%', size: '14px', color: '#ffd77a', delay: '0.9s' },
+  { top: '40%', left:  '6%', size: '13px', color: '#e8b93c', delay: '1.2s' },
+  { top: '46%', left: '90%', size: '15px', color: '#ffd77a', delay: '1.5s' },
+  { top: '54%', left: '12%', size: '14px', color: '#e8b93c', delay: '0.2s' },
+  { top: '60%', left: '86%', size: '13px', color: '#ffd77a', delay: '0.7s' },
+  { top: '68%', left:  '8%', size: '15px', color: '#e8b93c', delay: '1.1s' },
+  { top: '74%', left: '92%', size: '14px', color: '#ffd77a', delay: '1.4s' },
+  { top: '82%', left: '20%', size: '13px', color: '#e8b93c', delay: '0.4s' },
+  { top: '86%', left: '45%', size: '15px', color: '#ffd77a', delay: '0.8s' },
+  { top: '90%', left: '65%', size: '14px', color: '#e8b93c', delay: '1.3s' },
+  { top: '84%', left: '80%', size: '13px', color: '#ffd77a', delay: '0.5s' },
+];
 
 function BloodMotif() {
   return (
@@ -59,18 +67,19 @@ function GoldMotif() {
         animation: 'game-gold-glow 4s ease-in-out -0.8s infinite',
       }}>₿</div>
 
-      {/* Field of 14 small ₿ — same golden-ratio positions as Midnight's star field */}
-      {GOLD_PARTICLES.map((p, i) => (
+      {/* Field of 14 small ₿ — explicit margin/bottom positions, twinkle only */}
+      {BTC_SMALL_SYMBOLS.map((p, i) => (
         <div key={i} style={{
           position: 'absolute',
-          left: p.x, top: p.y,
+          left: p.left, top: p.top,
           fontSize: p.size,
           color: p.color,
           lineHeight: 1,
           userSelect: 'none',
           pointerEvents: 'none',
           transform: 'translate(-50%, -50%)',
-          animation: `game-gold-twinkle ${p.dur} ease-in-out ${p.delay} infinite`,
+          animationFillMode: 'backwards',
+          animation: `game-gold-twinkle ${(2.0 + (i % 5) * 0.22).toFixed(2)}s ease-in-out ${p.delay} infinite`,
         }}>₿</div>
       ))}
     </>
