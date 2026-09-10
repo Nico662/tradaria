@@ -410,13 +410,15 @@ html, body {
   45%      { opacity: 0.6; }
   60%      { opacity: 0.3; }
 }
-@keyframes game-gold-twinkle {
-  0%, 100% { opacity: 0.45; }
-  50%      { opacity: 1;    }
+@keyframes game-gold-spark {
+  0%   { opacity: 0;   transform: translateY(0); }
+  15%  { opacity: 1; }
+  85%  { opacity: 0.8; }
+  100% { opacity: 0;   transform: translateY(-70px); }
 }
-@keyframes game-gold-glow {
-  0%, 100% { opacity: 0.5; }
-  50%      { opacity: 0.8; }
+@keyframes game-gold-shimmer {
+  0%, 70% { transform: translateX(-100%); }
+  100%    { transform: translateX(100%); }
 }
 @keyframes game-star-twinkle {
   0%, 100% { opacity: 0.15; }

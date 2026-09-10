@@ -12,23 +12,17 @@ const PARTICLES = Array.from({ length: 28 }, (_, i) => ({
   delay: `-${((i * PHI) % 2.4).toFixed(2)}s`,
 }));
 
-// 14 small ₿ — explicit positions in left/right margins and bottom strip so they
-// land in the transparent areas outside content cards, never in the central column.
-const BTC_SMALL_SYMBOLS = [
-  { top: '10%', left:  '4%', size: '25px', color: '#e8b93c', delay: '0s'   },
-  { top: '18%', left: '88%', size: '22px', color: '#ffd77a', delay: '0.3s' },
-  { top: '26%', left: '10%', size: '28px', color: '#e8b93c', delay: '0.6s' },
-  { top: '32%', left: '92%', size: '25px', color: '#ffd77a', delay: '0.9s' },
-  { top: '40%', left:  '6%', size: '22px', color: '#e8b93c', delay: '1.2s' },
-  { top: '46%', left: '90%', size: '28px', color: '#ffd77a', delay: '1.5s' },
-  { top: '54%', left: '12%', size: '25px', color: '#e8b93c', delay: '0.2s' },
-  { top: '60%', left: '86%', size: '22px', color: '#ffd77a', delay: '0.7s' },
-  { top: '68%', left:  '8%', size: '28px', color: '#e8b93c', delay: '1.1s' },
-  { top: '74%', left: '92%', size: '25px', color: '#ffd77a', delay: '1.4s' },
-  { top: '82%', left: '20%', size: '22px', color: '#e8b93c', delay: '0.4s' },
-  { top: '86%', left: '45%', size: '28px', color: '#ffd77a', delay: '0.8s' },
-  { top: '90%', left: '65%', size: '25px', color: '#e8b93c', delay: '1.3s' },
-  { top: '84%', left: '80%', size: '22px', color: '#ffd77a', delay: '0.5s' },
+// 9 gold sparks — horizontal spread across full width, rise from bottom
+const GOLD_SPARKS = [
+  { left:  '8%', color: '#e8b93c', dur: '2.4s', delay: '0s'   },
+  { left: '19%', color: '#ffd77a', dur: '3.1s', delay: '0.3s' },
+  { left: '30%', color: '#e8b93c', dur: '2.7s', delay: '0.9s' },
+  { left: '42%', color: '#ffd77a', dur: '3.4s', delay: '0.6s' },
+  { left: '53%', color: '#e8b93c', dur: '2.5s', delay: '1.5s' },
+  { left: '64%', color: '#ffd77a', dur: '3.0s', delay: '1.1s' },
+  { left: '75%', color: '#e8b93c', dur: '2.8s', delay: '0.4s' },
+  { left: '85%', color: '#ffd77a', dur: '3.6s', delay: '1.8s' },
+  { left: '93%', color: '#e8b93c', dur: '2.6s', delay: '0.7s' },
 ];
 
 function BloodMotif() {
@@ -53,35 +47,46 @@ function BloodMotif() {
 function GoldMotif() {
   return (
     <>
-      {/* Focal ₿ — upper-right corner, same role as the moon in a night-sky motif */}
+      {/* Static radial glow — upper-right corner */}
       <div style={{
         position: 'absolute',
-        left: '88%', top: '6%',
-        fontSize: '52px',
-        color: '#ffe9a8',
-        lineHeight: 1,
-        userSelect: 'none',
+        inset: 0,
+        background: 'radial-gradient(ellipse 45% 35% at 92% 6%, rgba(232,185,60,0.14), transparent)',
         pointerEvents: 'none',
-        transform: 'translate(-50%, -50%)',
-        textShadow: '0 0 16px rgba(232,185,60,0.6)',
-        animation: 'game-gold-glow 4s ease-in-out -0.8s infinite',
-      }}>₿</div>
+      }} />
 
-      {/* Field of 14 small ₿ — explicit margin/bottom positions, twinkle only */}
-      {BTC_SMALL_SYMBOLS.map((p, i) => (
+      {/* Diagonal shimmer sweep — wrapper translates, inner strip is statically rotated */}
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        animation: 'game-gold-shimmer 5s linear infinite',
+        pointerEvents: 'none',
+      }}>
+        <div style={{
+          position: 'absolute',
+          top: '-50%',
+          left: '25%',
+          width: '14%',
+          height: '250%',
+          background: 'linear-gradient(to right, transparent, rgba(255,231,166,0.22), transparent)',
+          transform: 'rotate(25deg)',
+        }} />
+      </div>
+
+      {/* Rising gold sparks */}
+      {GOLD_SPARKS.map((p, i) => (
         <div key={i} style={{
           position: 'absolute',
-          left: p.left, top: p.top,
-          fontSize: p.size,
-          color: p.color,
-          lineHeight: 1,
-          userSelect: 'none',
+          bottom: 0,
+          left: p.left,
+          width: i % 3 === 0 ? '3px' : '2px',
+          height: i % 3 === 0 ? '3px' : '2px',
+          borderRadius: '50%',
+          background: p.color,
+          boxShadow: `0 0 ${i % 2 === 0 ? 4 : 5}px 1px ${p.color}b3`,
+          animation: `game-gold-spark ${p.dur} ease-in ${p.delay} infinite`,
           pointerEvents: 'none',
-          transform: 'translate(-50%, -50%)',
-          textShadow: '0 0 6px rgba(232,185,60,0.4)',
-          animationFillMode: 'backwards',
-          animation: `game-gold-twinkle ${(2.0 + (i % 5) * 0.22).toFixed(2)}s ease-in-out ${p.delay} infinite`,
-        }}>₿</div>
+        }} />
       ))}
     </>
   );

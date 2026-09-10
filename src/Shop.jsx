@@ -117,14 +117,13 @@ const MATRIX_BG_COLS = [
 
 const PHI = (1 + Math.sqrt(5)) / 2;
 
-// Gold Rush shop preview — 8 particles, same golden-ratio generation as SHOP_STARS/Midnight
-const SHOP_GOLD_PARTICLES = Array.from({ length: 8 }, (_, i) => ({
-  x:     `${((i * 61.8 + 5) % 94 + 3).toFixed(1)}%`,
-  y:     `${((i * 38.2 + 7) % 94 + 3).toFixed(1)}%`,
-  dur:   `${(2.0 + (i % 5) * 0.18).toFixed(2)}s`,
-  delay: `-${((i * PHI) % 2.0).toFixed(2)}s`,
-  color: i % 2 === 0 ? '#e8b93c' : '#ffd77a',
-}));
+const SHOP_GOLD_SPARKS = [
+  { left: '12%', color: '#e8b93c', dur: '2.4s', delay: '0s'   },
+  { left: '32%', color: '#ffd77a', dur: '3.0s', delay: '0.5s' },
+  { left: '52%', color: '#e8b93c', dur: '2.7s', delay: '1.0s' },
+  { left: '70%', color: '#ffd77a', dur: '3.3s', delay: '0.3s' },
+  { left: '88%', color: '#e8b93c', dur: '2.5s', delay: '1.6s' },
+];
 
 const SHOP_STARS = Array.from({ length: 10 }, (_, i) => ({
   x:     `${((i * 61.8 + 5) % 94 + 3).toFixed(1)}%`,
@@ -166,28 +165,44 @@ function ThemeBgMotif({ id, c }) {
 
       {id === 'theme_gold' && (
         <>
+          {/* Radial glow */}
           <div style={{
             position: 'absolute',
-            left: '88%', top: '14%',
-            fontSize: '22px',
-            color: '#ffe9a8',
-            lineHeight: 1,
-            userSelect: 'none',
-            transform: 'translate(-50%, -50%)',
-            textShadow: '0 0 10px rgba(232,185,60,0.6)',
-            animation: 'game-gold-glow 4s ease-in-out -0.8s infinite',
-          }}>₿</div>
-          {SHOP_GOLD_PARTICLES.map((p, i) => (
+            inset: 0,
+            background: 'radial-gradient(ellipse 50% 40% at 90% 8%, rgba(232,185,60,0.18), transparent)',
+            pointerEvents: 'none',
+          }} />
+          {/* Diagonal shimmer sweep */}
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            animation: 'game-gold-shimmer 5s linear infinite',
+            pointerEvents: 'none',
+          }}>
+            <div style={{
+              position: 'absolute',
+              top: '-50%',
+              left: '25%',
+              width: '20%',
+              height: '250%',
+              background: 'linear-gradient(to right, transparent, rgba(255,231,166,0.22), transparent)',
+              transform: 'rotate(25deg)',
+            }} />
+          </div>
+          {/* Rising sparks */}
+          {SHOP_GOLD_SPARKS.map((p, i) => (
             <div key={i} style={{
               position: 'absolute',
-              left: p.x, top: p.y,
-              fontSize: '9px',
-              color: p.color,
-              lineHeight: 1,
-              userSelect: 'none',
-              transform: 'translate(-50%, -50%)',
-              animation: `game-gold-twinkle ${p.dur} ease-in-out ${p.delay} infinite`,
-            }}>₿</div>
+              bottom: 0,
+              left: p.left,
+              width: '2px',
+              height: '2px',
+              borderRadius: '50%',
+              background: p.color,
+              boxShadow: `0 0 4px 1px ${p.color}b3`,
+              animation: `game-gold-spark ${p.dur} ease-in ${p.delay} infinite`,
+              pointerEvents: 'none',
+            }} />
           ))}
         </>
       )}
