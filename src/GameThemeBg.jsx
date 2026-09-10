@@ -99,10 +99,13 @@ export default function GameThemeBg({ screen }) {
   const [target, setTarget] = useState(null);
 
   useEffect(() => {
-    // Prefer #gtm-root (game screens); fall back to #app-shell-bg (Home / AppLayout screens)
+    // Prefer #app-shell-bg (AppLayout screens: Home, Stats, etc.) — it is always
+    // 100dvh × app-width because scroll is confined inside .app-main, not the shell.
+    // Fall back to #gtm-root for pure game screens (Arena, Tournament…) that render
+    // outside AppLayout and have no #app-shell-bg.
     setTarget(
-      document.getElementById('gtm-root') ||
-      document.getElementById('app-shell-bg')
+      document.getElementById('app-shell-bg') ||
+      document.getElementById('gtm-root')
     );
   }, [screen]);
 
@@ -114,7 +117,7 @@ export default function GameThemeBg({ screen }) {
   if (!target || !motif) return null;
 
   return createPortal(
-    <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: -1, overflow: 'hidden' }}>
+    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: -1, overflow: 'hidden' }}>
       {motif}
     </div>,
     target
