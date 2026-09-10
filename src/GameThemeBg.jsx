@@ -12,21 +12,22 @@ const PARTICLES = Array.from({ length: 28 }, (_, i) => ({
   delay: `-${((i * PHI) % 2.4).toFixed(2)}s`,
 }));
 
-// 9 Bitcoin symbols in viewport margins — left edge, right edge, bottom strip
-// Avoids the central content column (15-80% x, 0-75% y) where text lives
+// 9 Bitcoin symbols — left/right margins + bottom strip, avoiding central text column.
+// Negative delays (mid-cycle start, same technique as PARTICLES/Midnight) so symbols
+// are always at their animated transform from frame 0, with no positional jump.
 const BTC_SYMBOLS = [
   // Left margin
-  { x: '6%',  y: '8%',  size: '36px', color: '#e8b93c', dur: '2.6s', delay: '0s'   },
-  { x: '8%',  y: '40%', size: '44px', color: '#e8b93c', dur: '2.4s', delay: '1.1s' },
-  { x: '5%',  y: '72%', size: '30px', color: '#ffd77a', dur: '3.1s', delay: '0.4s' },
+  { x: '6%',  y: '8%',  size: '36px', color: '#e8b93c', dur: '2.6s', delay: '-0.0s'  },
+  { x: '8%',  y: '40%', size: '44px', color: '#e8b93c', dur: '2.4s', delay: '-1.1s'  },
+  { x: '5%',  y: '72%', size: '30px', color: '#ffd77a', dur: '3.1s', delay: '-0.4s'  },
   // Right margin
-  { x: '88%', y: '14%', size: '28px', color: '#e8b93c', dur: '2.9s', delay: '1.5s' },
-  { x: '85%', y: '48%', size: '52px', color: '#ffd77a', dur: '3.6s', delay: '1.0s' },
-  { x: '87%', y: '74%', size: '38px', color: '#ffd77a', dur: '2.2s', delay: '0.2s' },
+  { x: '88%', y: '14%', size: '28px', color: '#e8b93c', dur: '2.9s', delay: '-1.5s'  },
+  { x: '85%', y: '48%', size: '52px', color: '#ffd77a', dur: '3.6s', delay: '-1.0s'  },
+  { x: '87%', y: '74%', size: '38px', color: '#ffd77a', dur: '2.2s', delay: '-0.2s'  },
   // Bottom strip (below main content block)
-  { x: '28%', y: '84%', size: '32px', color: '#ffd77a', dur: '3.4s', delay: '0.7s' },
-  { x: '58%', y: '88%', size: '48px', color: '#e8b93c', dur: '3.2s', delay: '0.9s' },
-  { x: '72%', y: '82%', size: '30px', color: '#ffd77a', dur: '2.8s', delay: '1.7s' },
+  { x: '28%', y: '84%', size: '32px', color: '#ffd77a', dur: '3.4s', delay: '-0.7s'  },
+  { x: '58%', y: '88%', size: '48px', color: '#e8b93c', dur: '3.2s', delay: '-0.9s'  },
+  { x: '72%', y: '82%', size: '30px', color: '#ffd77a', dur: '2.8s', delay: '-1.7s'  },
 ];
 
 function BloodMotif() {
@@ -60,6 +61,7 @@ function GoldMotif() {
           lineHeight: 1,
           userSelect: 'none',
           pointerEvents: 'none',
+          transform: 'translate(-50%, -50%)',
           animation: `floatrotate ${s.dur} ease-in-out ${s.delay} infinite`,
         }}>₿</div>
       ))}
