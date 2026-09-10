@@ -119,15 +119,15 @@ const PHI = (1 + Math.sqrt(5)) / 2;
 
 // 9 Bitcoin symbols for Gold Rush shop preview card
 const SHOP_BTC_SYMBOLS = [
-  { x: '7%',  y: '12%', size: '14px', color: '#e8b93c', dur: '2.6s', delay: '0s'   },
-  { x: '22%', y: '72%', size: '11px', color: '#ffd77a', dur: '3.1s', delay: '0.4s' },
-  { x: '38%', y: '28%', size: '16px', color: '#e8b93c', dur: '2.4s', delay: '1.1s' },
-  { x: '54%', y: '85%', size: '12px', color: '#ffd77a', dur: '3.4s', delay: '0.7s' },
-  { x: '67%', y: '18%', size: '10px', color: '#e8b93c', dur: '2.9s', delay: '1.5s' },
-  { x: '80%', y: '55%', size: '15px', color: '#ffd77a', dur: '2.2s', delay: '0.2s' },
-  { x: '15%', y: '45%', size: '13px', color: '#e8b93c', dur: '3.6s', delay: '1.0s' },
-  { x: '90%', y: '32%', size: '11px', color: '#ffd77a', dur: '2.8s', delay: '1.7s' },
-  { x: '46%', y: '58%', size: '14px', color: '#e8b93c', dur: '3.2s', delay: '0.9s' },
+  { x: '10%', y: '12%', size: '36px', color: '#e8b93c', dur: '2.6s', delay: '0s'   },
+  { x: '25%', y: '74%', size: '30px', color: '#ffd77a', dur: '3.1s', delay: '0.4s' },
+  { x: '40%', y: '22%', size: '44px', color: '#e8b93c', dur: '2.4s', delay: '1.1s' },
+  { x: '57%', y: '83%', size: '32px', color: '#ffd77a', dur: '3.4s', delay: '0.7s' },
+  { x: '68%', y: '15%', size: '28px', color: '#e8b93c', dur: '2.9s', delay: '1.5s' },
+  { x: '78%', y: '52%', size: '52px', color: '#ffd77a', dur: '2.2s', delay: '0.2s' },
+  { x: '18%', y: '43%', size: '38px', color: '#e8b93c', dur: '3.6s', delay: '1.0s' },
+  { x: '85%', y: '28%', size: '30px', color: '#ffd77a', dur: '2.8s', delay: '1.7s' },
+  { x: '48%', y: '56%', size: '48px', color: '#e8b93c', dur: '3.2s', delay: '0.9s' },
 ];
 
 const SHOP_STARS = Array.from({ length: 10 }, (_, i) => ({
