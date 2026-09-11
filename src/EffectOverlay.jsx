@@ -179,25 +179,17 @@ function Lightning({ base }) {
         viewBox="0 0 100 100"
         preserveAspectRatio="none"
       >
-        <defs>
-          <filter id="bolt-glow">
-            <feGaussianBlur stdDeviation="1.5" result="blur" />
-            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-          </filter>
-        </defs>
-        {bolts.map((b, i) => (
-          <polyline
-            key={i}
-            points={b.points.map(([x, y]) => `${x},${y}`).join(' ')}
-            fill="none"
-            stroke={b.color}
-            strokeWidth={b.w}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            filter="url(#bolt-glow)"
-            style={{ animation: `lightning-flash 0.85s ${b.delay}s ease-out forwards` }}
-          />
-        ))}
+        {bolts.map((b, i) => {
+          const pts = b.points.map(([x, y]) => `${x},${y}`).join(' ');
+          return (
+            <g key={i} style={{ animation: `lightning-flash 0.85s ${b.delay}s ease-out forwards` }}>
+              <polyline points={pts} fill="none" stroke={b.color} strokeWidth={b.w * 5}
+                strokeLinecap="round" strokeLinejoin="round" opacity="0.18" />
+              <polyline points={pts} fill="none" stroke={b.color} strokeWidth={b.w}
+                strokeLinecap="round" strokeLinejoin="round" />
+            </g>
+          );
+        })}
       </svg>
     </div>
   );

@@ -396,23 +396,16 @@ function PreviewLightning() {
         viewBox="0 0 100 80"
         preserveAspectRatio="none"
       >
-        <defs>
-          <filter id="preview-bolt-glow">
-            <feGaussianBlur stdDeviation="1" result="blur" />
-            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-          </filter>
-        </defs>
-        <polyline
-          points="5,74 18,74 18,55 35,55 35,35 55,35 55,18 75,18 75,6 95,6"
-          fill="none" stroke="#e8b93c" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
-          filter="url(#preview-bolt-glow)"
-        />
-        <polyline
-          points="0,78 13,78 13,60 30,60 30,40 50,40 50,22 70,22 70,10 90,10"
-          fill="none" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
-          filter="url(#preview-bolt-glow)"
-          style={{ opacity: 0.5, animation: 'preview-lightning-flash 0.9s 0.05s ease forwards' }}
-        />
+        <polyline points="5,74 18,74 18,55 35,55 35,35 55,35 55,18 75,18 75,6 95,6"
+          fill="none" stroke="#e8b93c" strokeWidth="15" strokeLinecap="round" strokeLinejoin="round" opacity="0.18" />
+        <polyline points="5,74 18,74 18,55 35,55 35,35 55,35 55,18 75,18 75,6 95,6"
+          fill="none" stroke="#e8b93c" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        <g style={{ opacity: 0.5, animation: 'preview-lightning-flash 0.9s 0.05s ease forwards' }}>
+          <polyline points="0,78 13,78 13,60 30,60 30,40 50,40 50,22 70,22 70,10 90,10"
+            fill="none" stroke="#ffffff" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" opacity="0.18" />
+          <polyline points="0,78 13,78 13,60 30,60 30,40 50,40 50,22 70,22 70,10 90,10"
+            fill="none" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </g>
       </svg>
     </div>
   );
