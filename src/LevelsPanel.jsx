@@ -1,229 +1,260 @@
 import { X, Check } from 'lucide-react';
 import { LEVELS, getXP, getLevel, getNextLevel, getProgress } from './levels.js';
 import { LevelIcon } from './components/AppIcons.jsx';
+import { useLang } from './LangContext';
+
+const TIER_COLOR = {
+  rookie:      '#9ca3af',
+  trader:      '#60a5fa',
+  pro:         '#22d3a5',
+  expert:      '#a78bfa',
+  legend:      '#facc15',
+  legend_2:    '#fbbf24',
+  legend_3:    '#f97316',
+  master:      '#e05585',
+  grandmaster: '#c9a227',
+  goat:        '#ffd700',
+};
 
 export default function LevelsPanel({ onClose }) {
-  const xp       = getXP();
-  const level    = getLevel(xp);
-  const next     = getNextLevel(xp);
+  const { t } = useLang();
+  const tr      = t.levels;
+  const xp      = getXP();
+  const level   = getLevel(xp);
+  const next    = getNextLevel(xp);
   const progress = getProgress(xp);
+  const color   = TIER_COLOR[level.id] ?? '#22d3a5';
 
   return (
-    <>
-      <div
-        onClick={onClose}
-        style={{
-          position: 'fixed', inset: 0,
-          background: 'rgba(0,0,0,0.65)',
-          zIndex: 9000,
-          backdropFilter: 'blur(4px)',
-          WebkitBackdropFilter: 'blur(4px)',
-        }}
-      />
+    <div style={{
+      position: 'fixed',
+      inset: 0,
+      zIndex: 9001,
+      background: 'var(--bg-card)',
+      display: 'flex',
+      flexDirection: 'column',
+      animation: 'lpSlideUp 0.32s cubic-bezier(0.34,1.2,0.64,1) both',
+    }}>
+      <style>{`
+        @keyframes lpSlideUp {
+          from { transform: translateY(100%); opacity: 0 }
+          to   { transform: translateY(0);    opacity: 1 }
+        }
+      `}</style>
 
+      {/* ── Header ── */}
       <div style={{
-        position: 'fixed',
-        left: 0, right: 0, bottom: 0,
-        zIndex: 9001,
-        background: 'var(--bg-card)',
-        borderTopLeftRadius: '20px',
-        borderTopRightRadius: '20px',
-        border: '1px solid var(--border-default)',
-        borderBottom: 'none',
-        minHeight: '80vh',
-        maxHeight: '92vh',
         display: 'flex',
-        flexDirection: 'column',
-        animation: 'lpSlideUp 0.32s cubic-bezier(0.34,1.2,0.64,1) both',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: 'calc(env(safe-area-inset-top, 0px) + 18px) 20px 16px',
+        borderBottom: '1px solid var(--border-default)',
+        flexShrink: 0,
       }}>
-        <style>{`
-          @keyframes lpSlideUp {
-            from { transform: translateY(100%); opacity: 0 }
-            to   { transform: translateY(0);    opacity: 1 }
-          }
-        `}</style>
+        <span style={{
+          fontWeight: 900,
+          fontSize: '18px',
+          color: 'var(--text-primary)',
+          letterSpacing: '0.03em',
+        }}>
+          {tr.title}
+        </span>
+        <button
+          onClick={onClose}
+          style={{
+            background: 'transparent',
+            border: '1px solid var(--border-default)',
+            borderRadius: '50%',
+            width: '32px', height: '32px',
+            cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          <X size={14} strokeWidth={2} style={{ stroke: 'var(--text-muted)' }} />
+        </button>
+      </div>
 
-        {/* Drag handle */}
-        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '12px', paddingBottom: '4px', flexShrink: 0 }}>
-          <div style={{ width: '36px', height: '4px', borderRadius: '2px', background: 'var(--border-default)' }} />
+      {/* ── Scrollable body ── */}
+      <div style={{
+        flex: 1,
+        overflowY: 'auto',
+        padding: '20px 18px',
+        paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 32px)',
+      }}>
+
+        {/* ── Hero card — current tier ── */}
+        <div style={{
+          borderRadius: '16px',
+          border: `1px solid ${color}40`,
+          background: `linear-gradient(135deg, ${color}12 0%, ${color}06 100%)`,
+          padding: '18px 18px 16px',
+          marginBottom: '20px',
+          position: 'relative',
+          overflow: 'hidden',
+        }}>
+          <div style={{
+            position: 'absolute',
+            top: -28, right: -28,
+            width: 110, height: 110,
+            borderRadius: '50%',
+            background: `radial-gradient(circle, ${color}28 0%, transparent 70%)`,
+            pointerEvents: 'none',
+          }} />
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px' }}>
+            <div style={{
+              width: '54px', height: '54px',
+              borderRadius: '14px',
+              background: `${color}20`,
+              border: `1.5px solid ${color}55`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              <LevelIcon id={level.id} size={26} style={{ stroke: color }} />
+            </div>
+            <div>
+              <div style={{
+                fontWeight: 900,
+                fontSize: '24px',
+                color: 'var(--text-primary)',
+                lineHeight: 1.1,
+              }}>
+                {level.name}
+              </div>
+              <div style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '12px',
+                color,
+                fontWeight: 700,
+                marginTop: '4px',
+                letterSpacing: '0.03em',
+              }}>
+                {xp.toLocaleString()} XP
+              </div>
+            </div>
+          </div>
+
+          <div style={{ height: '7px', background: 'rgba(255,255,255,0.08)', borderRadius: '4px', overflow: 'hidden', marginBottom: '8px' }}>
+            <div style={{
+              height: '100%',
+              width: `${progress}%`,
+              background: `linear-gradient(90deg, ${color}cc, ${color})`,
+              borderRadius: '4px',
+              transition: 'width 0.6s ease',
+            }} />
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color, fontWeight: 700 }}>
+              {progress}%
+            </span>
+            {next ? (
+              <span style={{ fontSize: '11px', color: 'var(--text-hint)', fontWeight: 600 }}>
+                {(next.xp - xp).toLocaleString()} XP → {next.name}
+              </span>
+            ) : (
+              <span style={{ fontSize: '11px', color, fontWeight: 700 }}>
+                {tr.maxLevel}
+              </span>
+            )}
+          </div>
         </div>
 
-        <div style={{ padding: '16px 20px 0', flexShrink: 0 }}>
+        {/* ── Tier list ── */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          {LEVELS.map(l => {
+            const achieved  = xp >= l.xp && l.id !== level.id;
+            const isCurrent = l.id === level.id;
+            const locked    = xp < l.xp;
+            const c         = TIER_COLOR[l.id] ?? '#22d3a5';
 
-          {/* ── Header ── */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px' }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '14px' }}>
+            return (
+              <div
+                key={l.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '10px 12px',
+                  paddingLeft: isCurrent ? '10px' : '12px',
+                  borderRadius: '10px',
+                  border: isCurrent ? `1px solid ${c}50` : '1px solid var(--border-default)',
+                  borderLeft: isCurrent ? `3px solid ${c}` : undefined,
+                  background: isCurrent
+                    ? `${c}0c`
+                    : achieved
+                      ? 'rgba(255,255,255,0.015)'
+                      : 'transparent',
+                  opacity: locked ? 0.42 : 1,
+                }}
+              >
                 <div style={{
-                  width: '60px', height: '60px',
-                  borderRadius: '16px',
-                  background: 'var(--green-dim)',
-                  border: '1px solid var(--border-green)',
+                  width: '36px', height: '36px',
+                  borderRadius: '9px',
+                  background: locked ? 'transparent' : `${c}18`,
+                  border: locked ? '1px solid var(--border-default)' : `1px solid ${c}40`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   flexShrink: 0,
                 }}>
-                  <LevelIcon id={level.id} size={28} style={{ stroke: 'var(--green)' }} />
+                  <LevelIcon
+                    id={l.id}
+                    size={17}
+                    style={{ stroke: locked ? 'var(--text-hint)' : c }}
+                  />
                 </div>
-                <div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '24px', color: 'var(--text-primary)', lineHeight: 1.1 }}>
-                    {level.name}
-                  </div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px', letterSpacing: '0.04em' }}>
-                    {xp.toLocaleString()} XP
-                    {next ? ` · faltan ${(next.xp - xp).toLocaleString()} XP` : ' · Nivel máximo'}
-                  </div>
-                </div>
-              </div>
 
-              {/* Progress bar */}
-              <div style={{ height: '6px', background: 'var(--border-default)', borderRadius: '3px', overflow: 'hidden' }}>
-                <div style={{
-                  height: '100%',
-                  width: `${progress}%`,
-                  background: 'linear-gradient(90deg, var(--green), #22d3a5)',
-                  borderRadius: '3px',
-                  transition: 'width 0.6s ease',
-                }} />
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--green)', fontWeight: 700 }}>
-                  {progress}%
-                </span>
-                {next && (
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-hint)' }}>
-                    {next.name} · {next.xp.toLocaleString()} XP
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    fontWeight: 800,
+                    fontSize: '13px',
+                    color: locked ? 'var(--text-hint)' : isCurrent ? c : 'var(--text-primary)',
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    marginBottom: '2px',
+                  }}>
+                    {l.name}
+                    {isCurrent && (
+                      <span style={{
+                        fontSize: '9px',
+                        fontWeight: 700,
+                        color: c,
+                        background: `${c}20`,
+                        border: `1px solid ${c}50`,
+                        borderRadius: '3px',
+                        padding: '1px 5px',
+                        letterSpacing: '0.1em',
+                        textTransform: 'uppercase',
+                      }}>
+                        {tr.current}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{
+                    fontSize: '11px',
+                    color: 'var(--text-hint)',
+                  }}>
+                    {l.xp === 0 ? tr.startingLevel : `${l.xp.toLocaleString()} XP`}
+                  </div>
+                </div>
+
+                {achieved && (
+                  <Check size={15} strokeWidth={2.5} style={{ stroke: '#22d3a5', flexShrink: 0 }} />
+                )}
+                {locked && (
+                  <span style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '11px',
+                    color: 'var(--text-hint)',
+                    flexShrink: 0,
+                    whiteSpace: 'nowrap',
+                  }}>
+                    +{(l.xp - xp).toLocaleString()} XP
                   </span>
                 )}
               </div>
-            </div>
-
-            <button
-              onClick={onClose}
-              style={{
-                background: 'transparent',
-                border: '1px solid var(--border-default)',
-                borderRadius: '50%',
-                width: '32px', height: '32px',
-                cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                flexShrink: 0,
-                marginLeft: '14px',
-                marginTop: '2px',
-              }}
-            >
-              <X size={14} strokeWidth={2} style={{ stroke: 'var(--text-muted)' }} />
-            </button>
-          </div>
-
-        </div>
-
-        {/* ── Scrollable levels list ── */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 32px)' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingBottom: '8px' }}>
-            {LEVELS.map(l => {
-              const unlocked  = xp >= l.xp;
-              const isCurrent = l.id === level.id;
-              const xpToGo    = l.xp - xp;
-
-              return (
-                <div
-                  key={l.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    padding: '12px 14px',
-                    borderRadius: '10px',
-                    border: isCurrent ? '1px solid var(--green)' : '1px solid var(--border-default)',
-                    background: isCurrent
-                      ? 'rgba(0,229,160,0.05)'
-                      : unlocked
-                        ? 'rgba(255,255,255,0.02)'
-                        : 'transparent',
-                    opacity: (!unlocked && !isCurrent) ? 0.45 : 1,
-                  }}
-                >
-                  {/* Icon box */}
-                  <div style={{
-                    width: '38px', height: '38px',
-                    borderRadius: '10px',
-                    background: isCurrent ? 'var(--green-dim)' : unlocked ? 'rgba(255,255,255,0.04)' : 'transparent',
-                    border: isCurrent ? '1px solid var(--border-green)' : '1px solid var(--border-default)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    flexShrink: 0,
-                  }}>
-                    <LevelIcon
-                      id={l.id}
-                      size={18}
-                      style={{ stroke: isCurrent ? 'var(--green)' : unlocked ? 'var(--text-muted)' : 'var(--text-hint)' }}
-                    />
-                  </div>
-
-                  {/* Text */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: isCurrent ? '4px' : '2px' }}>
-                      <span style={{
-                        fontFamily: 'var(--font-body)',
-                        fontWeight: 800,
-                        fontSize: '13px',
-                        color: isCurrent ? 'var(--green)' : unlocked ? 'var(--text-primary)' : 'var(--text-hint)',
-                      }}>
-                        {l.name}
-                      </span>
-                      {isCurrent && (
-                        <span style={{
-                          fontFamily: 'var(--font-body)',
-                          fontSize: '10px',
-                          fontWeight: 800,
-                          color: 'var(--green)',
-                          background: 'var(--green-dim)',
-                          border: '1px solid var(--border-green)',
-                          borderRadius: '4px',
-                          padding: '1px 6px',
-                          letterSpacing: '0.08em',
-                        }}>
-                          ACTUAL
-                        </span>
-                      )}
-                    </div>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-hint)' }}>
-                      {l.xp === 0 ? 'Nivel inicial' : `${l.xp.toLocaleString()} XP`}
-                    </div>
-                    {/* Mini progress bar for current level */}
-                    {isCurrent && next && (
-                      <div style={{ marginTop: '6px', height: '3px', background: 'var(--border-default)', borderRadius: '2px', overflow: 'hidden' }}>
-                        <div style={{
-                          height: '100%',
-                          width: `${progress}%`,
-                          background: 'var(--green)',
-                          borderRadius: '2px',
-                          transition: 'width 0.6s ease',
-                        }} />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Right badge */}
-                  {unlocked && !isCurrent && (
-                    <Check size={16} strokeWidth={2.5} style={{ stroke: 'var(--green)', flexShrink: 0 }} />
-                  )}
-                  {!unlocked && (
-                    <span style={{
-                      fontFamily: 'var(--font-body)',
-                      fontSize: '11px',
-                      color: 'var(--text-hint)',
-                      flexShrink: 0,
-                      whiteSpace: 'nowrap',
-                    }}>
-                      +{xpToGo.toLocaleString()} XP
-                    </span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+            );
+          })}
         </div>
       </div>
-    </>
+    </div>
   );
 }

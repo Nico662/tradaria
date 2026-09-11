@@ -500,6 +500,8 @@ export default function App() {
     const progress = getProgress(xp);
 
     return (
+      <>
+      <GameThemeBg screen={screen} />
       <div id="gtm-root" className={activeCosmetics?.theme || ''} style={{ position: 'relative' }}>
         <div className="scanlines" />
         <div style={{ padding: '40px 28px 36px', position: 'relative', zIndex: 2 }}>
@@ -609,6 +611,7 @@ export default function App() {
         {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
         {challengeOverlay}
       </div>
+      </>
     );
   }
 
@@ -666,6 +669,7 @@ export default function App() {
 
   if (screen === 'arena') return (
     <>
+      <GameThemeBg screen={screen} />
       <Arena onBack={() => { setScreen('home'); setChallengeRoomCode(null); setAsyncDuelCode(null); }} challengeRoomCode={challengeRoomCode} asyncDuelCode={asyncDuelCode} />
       {challengeOverlay}
     </>
@@ -676,10 +680,10 @@ export default function App() {
   if (screen === 'support')    return <><Support    onSelect={setScreen} />{challengeOverlay}</>;
   if (screen === 'badges')     return <><Badges     onBack={() => setScreen('home')} onSelect={handleSelect} />{challengeOverlay}</>;
   if (screen === 'stats')      return <AppLayout currentScreen={screen} onSelect={handleSelect}><Stats      onBack={() => setScreen('home')} onSelect={handleSelect} />{challengeOverlay}</AppLayout>;
-  if (screen === 'daily')      return <><Daily      onBack={() => setScreen('home')} />{challengeOverlay}</>;
-  if (screen === 'historical') return <><Historical onBack={() => setScreen('home')} />{challengeOverlay}</>;
-  if (screen === 'tournament') return <><Tournament onBack={() => { setAcademyTournamentCtx(null); setScreen(academyTournamentCtx ? 'student_dashboard' : 'home'); }} onViewProfile={(uname) => { setPublicProfileUsername(uname); setScreen('public_profile'); window.history.pushState({}, '', `/u/${uname}`); }} onGoPricing={() => { setPricingFromTournament(true); setScreen('pricing'); }} academyTournamentId={academyTournamentCtx?.tournamentId ?? null} academyId={academyTournamentCtx?.academyId ?? null} />{challengeOverlay}</>;
-  if (screen === 'survival')   return <><Survival   onBack={() => setScreen('home')} />{challengeOverlay}</>;
+  if (screen === 'daily')      return <><GameThemeBg screen={screen} /><Daily      onBack={() => setScreen('home')} />{challengeOverlay}</>;
+  if (screen === 'historical') return <><GameThemeBg screen={screen} /><Historical onBack={() => setScreen('home')} />{challengeOverlay}</>;
+  if (screen === 'tournament') return <><GameThemeBg screen={screen} /><Tournament onBack={() => { setAcademyTournamentCtx(null); setScreen(academyTournamentCtx ? 'student_dashboard' : 'home'); }} onViewProfile={(uname) => { setPublicProfileUsername(uname); setScreen('public_profile'); window.history.pushState({}, '', `/u/${uname}`); }} onGoPricing={() => { setPricingFromTournament(true); setScreen('pricing'); }} academyTournamentId={academyTournamentCtx?.tournamentId ?? null} academyId={academyTournamentCtx?.academyId ?? null} />{challengeOverlay}</>;
+  if (screen === 'survival')   return <><GameThemeBg screen={screen} /><Survival   onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'shop')       return <><Shop       onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'settings')   return <><Settings   onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'inventory')  return <AppLayout currentScreen={screen} onSelect={handleSelect}><Inventory onBack={() => setScreen('stats')} /></AppLayout>;
@@ -729,6 +733,8 @@ export default function App() {
   const dirLabel = result ? (result.direction === 'up' ? t.game.up : result.direction === 'down' ? t.game.down : t.game.flatDir) : '';
 
   return (
+    <>
+    <GameThemeBg screen={screen} />
     <div id="gtm-root" className={activeCosmetics?.theme || ''} style={{ position: 'relative' }}>
 
       {/* Header */}
@@ -918,5 +924,6 @@ export default function App() {
       {challengeOverlay}
       {showTutorial && <Tutorial onDone={() => setShowTutorial(false)} />}
     </div>
+    </>
   );
 }

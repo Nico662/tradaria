@@ -57,19 +57,32 @@ const MINI_CANDLES = [
 ];
 
 const CONFETTI_COLORS = ['var(--color-neutral)', 'var(--green)', 'var(--color-down)', '#6b9fff', '#ff9800', '#e040fb', '#00ff41'];
+const STAR_GOLD_COLORS = ['#ffd700', '#ffe566', '#ffa500', '#ffcc00', '#ffec8b'];
 
 if (!document.getElementById('shop-preview-css')) {
   const el = document.createElement('style');
   el.id = 'shop-preview-css';
   el.textContent = `
     @keyframes preview-confetti-fall {
-      0%   { transform: translateY(-8px) rotate(0deg); opacity: 1; }
-      100% { transform: translateY(92px) rotate(400deg); opacity: 0; }
+      0%   { transform: translateY(-8px) translateX(0px) rotate(0deg); opacity: 1; filter: brightness(1); }
+      30%  { transform: translateY(28px) translateX(var(--sx-a)) rotate(120deg); filter: brightness(1); }
+      47%  { filter: brightness(1); }
+      50%  { transform: translateY(46px) translateX(var(--sx-b)) rotate(200deg); filter: brightness(2.5); opacity: 1; }
+      53%  { filter: brightness(1); }
+      80%  { transform: translateY(80px) translateX(var(--sx-a)) rotate(350deg); }
+      100% { transform: translateY(92px) translateX(0px) rotate(400deg); opacity: 0; filter: brightness(1); }
     }
     @keyframes preview-lightning-flash {
       0%, 45%, 100% { opacity: 0; }
       5%, 25%       { opacity: 1; }
       15%, 35%      { opacity: 0.2; }
+    }
+    @keyframes preview-lightning-shake {
+      0%   { transform: translate(0, 0); }
+      15%  { transform: translate(-2px, 1px); }
+      35%  { transform: translate(2px, -1px); }
+      60%  { transform: translate(-1px, 1px); }
+      100% { transform: translate(0, 0); }
     }
     @keyframes preview-explosion-ring {
       0%   { transform: scale(0.1); opacity: 1; }
@@ -79,10 +92,21 @@ if (!document.getElementById('shop-preview-css')) {
       0%   { transform: translate(0, 0) scale(1); opacity: 1; }
       100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
     }
-    @keyframes preview-star-rise {
-      0%   { transform: translateY(0) scale(0.5); opacity: 0; }
-      15%  { opacity: 1; }
-      100% { transform: translateY(-72px) scale(1.1); opacity: 0; }
+    @keyframes preview-sunburst-ray {
+      0%   { transform: rotate(var(--ray-angle)) scaleX(0); opacity: 1; }
+      50%  { transform: rotate(var(--ray-angle)) scaleX(1); opacity: 0.8; }
+      100% { transform: rotate(var(--ray-angle)) scaleX(1); opacity: 0; }
+    }
+    @keyframes preview-star-twinkle {
+      0%   { transform: translateY(0) scale(0);    opacity: 0; }
+      15%  { transform: translateY(-8px) scale(1.2); opacity: 1; }
+      40%  { transform: translateY(-28px) scale(0.9); opacity: 0.8; }
+      60%  { transform: translateY(-48px) scale(1.2); opacity: 1; }
+      100% { transform: translateY(-72px) scale(0.6); opacity: 0; }
+    }
+    @keyframes theme-matrix-fall {
+      0%   { transform: translateY(-100%); }
+      100% { transform: translateY(200%); }
     }
   `;
   document.head.appendChild(el);
@@ -101,6 +125,142 @@ const CATEGORIES = [
   { id: 'avatars', icon: <User     size={14} strokeWidth={2} aria-hidden /> },
   { id: 'effects', icon: <Sparkles size={14} strokeWidth={2} aria-hidden /> },
 ];
+
+const MATRIX_BG_COLS = [
+  { chars: ['1','0','1','1','0','1'], x: '8%',  delay: '0s',    dur: '2.8s' },
+  { chars: ['0','1','0','0','1','0'], x: '22%', delay: '-0.9s', dur: '2.4s' },
+  { chars: ['1','1','0','1','0','0'], x: '36%', delay: '-1.7s', dur: '3.0s' },
+  { chars: ['0','0','1','0','1','1'], x: '55%', delay: '-0.4s', dur: '2.6s' },
+  { chars: ['1','0','0','1','1','0'], x: '70%', delay: '-1.3s', dur: '2.9s' },
+  { chars: ['0','1','1','0','0','1'], x: '85%', delay: '-2.1s', dur: '2.5s' },
+];
+
+const PHI = (1 + Math.sqrt(5)) / 2;
+
+const SHOP_GOLD_SPARKS = [
+  { left: '12%', color: '#e8b93c', dur: '2.4s', delay: '0s'   },
+  { left: '32%', color: '#ffd77a', dur: '3.0s', delay: '0.5s' },
+  { left: '52%', color: '#e8b93c', dur: '2.7s', delay: '1.0s' },
+  { left: '70%', color: '#ffd77a', dur: '3.3s', delay: '0.3s' },
+  { left: '88%', color: '#e8b93c', dur: '2.5s', delay: '1.6s' },
+];
+
+const SHOP_STARS = Array.from({ length: 10 }, (_, i) => ({
+  x:     `${((i * 61.8 + 5) % 94 + 3).toFixed(1)}%`,
+  y:     `${((i * 38.2 + 7) % 94 + 3).toFixed(1)}%`,
+  dur:   `${(2.0 + (i % 5) * 0.2).toFixed(1)}s`,
+  delay: `-${((i * PHI) % 2.0).toFixed(2)}s`,
+}));
+
+function ThemeBgMotif({ id, c }) {
+  return (
+    <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: -1 }}>
+      {id === 'theme_matrix' && MATRIX_BG_COLS.map((col, i) => (
+        <div key={i} style={{
+          position: 'absolute', left: col.x, top: 0,
+          color: c.accent, fontSize: '7px', fontFamily: 'monospace',
+          lineHeight: '10px', opacity: 0.18, userSelect: 'none',
+          animation: `theme-matrix-fall ${col.dur} linear ${col.delay} infinite`,
+        }}>
+          {col.chars.map((ch, j) => <div key={j}>{ch}</div>)}
+        </div>
+      ))}
+
+      {id === 'theme_blood' && (
+        <svg
+          width="100%" height="100%"
+          viewBox="0 0 100 265"
+          preserveAspectRatio="none"
+          style={{ display: 'block', position: 'absolute', inset: 0 }}
+        >
+          {[
+            { d: 'M 8,5 L 18,35 L 5,58 L 22,82 L 10,108 L 32,128 L 18,152 L 40,170',     bDur: '3.0s', bDel: '0s',    da: '25 300', fDur: '3.6s', fDel: '0s'   },
+            { d: 'M 15,75 L 5,108 L 20,135 L 6,165 L 22,192 L 8,228 L 25,255',            bDur: '3.3s', bDel: '0.8s', da: '30 340', fDur: '4.0s', fDel: '1.2s' },
+            { d: 'M 88,20 L 72,55 L 90,88 L 68,118 L 85,152 L 72,185 L 92,215 L 75,248', bDur: '3.4s', bDel: '1.5s', da: '28 370', fDur: '4.2s', fDel: '0.6s' },
+          ].map((c, i) => (
+            <g key={i}>
+              <path d={c.d} fill="none" stroke="#5a1a28" strokeWidth="1.2"
+                strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"
+                style={{ animation: `game-blood-crack-breath ${c.bDur} ease-in-out ${c.bDel} infinite` }} />
+              <path d={c.d} fill="none" stroke="#ff85a8" strokeWidth="1.5"
+                strokeLinecap="round" strokeLinejoin="round" strokeDasharray={c.da}
+                vectorEffect="non-scaling-stroke"
+                style={{ filter: 'drop-shadow(0 0 3px #ff85a8)', animation: `game-blood-crack-flash ${c.fDur} linear ${c.fDel} infinite` }} />
+            </g>
+          ))}
+        </svg>
+      )}
+
+      {id === 'theme_gold' && (
+        <>
+          {/* Radial glow */}
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'radial-gradient(ellipse 50% 40% at 90% 8%, rgba(232,185,60,0.18), transparent)',
+            pointerEvents: 'none',
+          }} />
+          {/* Diagonal shimmer sweep */}
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            animation: 'game-gold-shimmer 5s linear infinite',
+            pointerEvents: 'none',
+          }}>
+            <div style={{
+              position: 'absolute',
+              top: '-50%',
+              left: '25%',
+              width: '20%',
+              height: '250%',
+              background: 'linear-gradient(to right, transparent, rgba(255,231,166,0.22), transparent)',
+              transform: 'rotate(25deg)',
+            }} />
+          </div>
+          {/* Rising sparks */}
+          {SHOP_GOLD_SPARKS.map((p, i) => (
+            <div key={i} style={{
+              position: 'absolute',
+              bottom: 0,
+              left: p.left,
+              width: '2px',
+              height: '2px',
+              borderRadius: '50%',
+              background: p.color,
+              boxShadow: `0 0 4px 1px ${p.color}b3`,
+              animation: `game-gold-spark ${p.dur} ease-in ${p.delay} infinite`,
+              pointerEvents: 'none',
+            }} />
+          ))}
+        </>
+      )}
+
+      {id === 'theme_midnight' && (
+        <>
+          {SHOP_STARS.map((s, i) => (
+            <div key={i} style={{
+              position: 'absolute',
+              left: s.x, top: s.y,
+              width: '5px', height: '5px',
+              borderRadius: '50%',
+              background: '#cfe0fa',
+              transform: 'translate(-50%, -50%)',
+              animation: `game-star-twinkle ${s.dur} ease-in-out ${s.delay} infinite`,
+            }} />
+          ))}
+          <div style={{
+            position: 'absolute',
+            top: '25%', left: '-5%',
+            width: '30px', height: '1.5px',
+            background: 'linear-gradient(90deg, transparent, #cfe0fa, transparent)',
+            borderRadius: '1px',
+            animation: 'game-shooting-star 5s ease-in-out infinite',
+          }} />
+        </>
+      )}
+    </div>
+  );
+}
 
 function PreviewFrame({ item, userAvatar }) {
   return (
@@ -129,7 +289,9 @@ function PreviewTheme({ item }) {
       background: c.bg,
       display: 'flex', flexDirection: 'column',
       margin: '4px 0',
+      position: 'relative', isolation: 'isolate',
     }}>
+      <ThemeBgMotif id={item.id} c={c} />
       <div style={{ padding: '3px 6px', borderBottom: `1px solid ${c.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
         <span style={{ fontSize: '12px', color: c.accent, fontFamily: 'var(--font-body)', fontWeight: 700, letterSpacing: '0.08em' }}>TRADIKO</span>
         <div style={{ display: 'flex', gap: '6px' }}>
@@ -189,6 +351,8 @@ function PreviewConfetti() {
       h:     4 + Math.random() * 5,
       delay: Math.random() * 0.7,
       dur:   1.0 + Math.random() * 0.8,
+      sxa:   `${(Math.random() - 0.5) * 16}px`,
+      sxb:   `${(Math.random() - 0.5) * 12}px`,
     })), []
   );
   return (
@@ -198,6 +362,8 @@ function PreviewConfetti() {
           position: 'absolute', left: `${p.x}%`, top: '-8px',
           width: `${p.w}px`, height: `${p.h}px`,
           background: p.color, borderRadius: '1px',
+          '--sx-a': p.sxa,
+          '--sx-b': p.sxb,
           animation: `preview-confetti-fall ${p.dur}s ${p.delay}s ease-in forwards`,
         }} />
       ))}
@@ -207,7 +373,7 @@ function PreviewConfetti() {
 
 function PreviewLightning() {
   return (
-    <>
+    <div style={{ position: 'absolute', inset: 0, animation: 'preview-lightning-shake 0.15s ease-out forwards' }}>
       <div style={{
         position: 'absolute', inset: 0,
         background: 'rgba(232,184,75,0.15)',
@@ -222,8 +388,13 @@ function PreviewLightning() {
           fill="none" stroke="var(--color-neutral)" strokeWidth="2.5" strokeLinejoin="round"
           style={{ filter: 'drop-shadow(0 0 5px var(--color-neutral))' }}
         />
+        <polyline
+          points="26,36 34,48 39,56"
+          fill="none" stroke="rgba(255,255,180,0.7)" strokeWidth="1" strokeLinejoin="round"
+          style={{ animation: 'preview-lightning-flash 0.9s 0.07s ease forwards' }}
+        />
       </svg>
-    </>
+    </div>
   );
 }
 
@@ -239,16 +410,32 @@ function PreviewExplosion() {
       };
     }), []
   );
+  const rays = useMemo(() =>
+    Array.from({ length: 6 }, (_, i) => ({ angle: `${i * 60}deg`, len: 22 + Math.random() * 8 })), []
+  );
   return (
     <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{
-        position: 'absolute', width: '44px', height: '44px', borderRadius: '50%',
-        border: '2px solid var(--color-down)',
-        animation: 'preview-explosion-ring 0.9s ease-out forwards',
-      }} />
+      {/* Sunburst rays */}
+      {rays.map((r, i) => (
+        <div key={`ray-${i}`} style={{
+          position: 'absolute', left: '50%', top: '50%', marginTop: '-1px',
+          width: `${r.len}px`, height: '1.5px',
+          background: 'linear-gradient(to right, rgba(255,255,220,0.9), transparent)',
+          transformOrigin: '0 50%',
+          '--ray-angle': r.angle,
+          animation: 'preview-sunburst-ray 0.2s ease-out forwards',
+        }} />
+      ))}
+      {/* Inner ring: hot white/yellow core */}
       <div style={{
         position: 'absolute', width: '22px', height: '22px', borderRadius: '50%',
-        border: '1px solid rgba(255,126,179,0.5)',
+        border: '2px solid #fffde0',
+        animation: 'preview-explosion-ring 0.9s ease-out forwards',
+      }} />
+      {/* Outer ring: cool red */}
+      <div style={{
+        position: 'absolute', width: '44px', height: '44px', borderRadius: '50%',
+        border: '1px solid var(--color-down)',
         animation: 'preview-explosion-ring 0.9s 0.12s ease-out forwards',
       }} />
       {particles.map((p, i) => (
@@ -265,12 +452,13 @@ function PreviewExplosion() {
 
 function PreviewStars() {
   const stars = useMemo(() =>
-    Array.from({ length: 9 }, () => ({
+    Array.from({ length: 9 }, (_, i) => ({
       x:     8 + Math.random() * 84,
       y:     55 + Math.random() * 20,
       delay: Math.random() * 0.5,
       dur:   1.0 + Math.random() * 0.8,
       size:  10 + Math.random() * 8,
+      color: STAR_GOLD_COLORS[i % STAR_GOLD_COLORS.length],
     })), []
   );
   return (
@@ -278,9 +466,9 @@ function PreviewStars() {
       {stars.map((s, i) => (
         <div key={i} style={{
           position: 'absolute', left: `${s.x}%`, top: `${s.y}px`,
-          fontSize: `${s.size}px`,
-          animation: `preview-star-rise ${s.dur}s ${s.delay}s ease-out forwards`,
-        }}><Star size={14} strokeWidth={2} aria-hidden /></div>
+          color: s.color, display: 'flex',
+          animation: `preview-star-twinkle ${s.dur}s ${s.delay}s ease-out forwards`,
+        }}><Star size={s.size} strokeWidth={1.5} fill={s.color} aria-hidden /></div>
       ))}
     </>
   );

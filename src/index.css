@@ -42,6 +42,7 @@ html, body {
   border-radius: 0;
   overflow: hidden;
   position: relative;
+  isolation: isolate;
   min-height: 100vh;
   min-height: 100dvh;
   display: flex;
@@ -377,6 +378,61 @@ html, body {
 #root.theme_matrix #gtm-root .result-detail      { color: rgba(0,255,65,0.35); }
 #root.theme_matrix #gtm-root .mode-sub           { color: rgba(0,255,65,0.35); }
 #root.theme_matrix #gtm-root .streak-label       { color: rgba(0,255,65,0.35); }
+
+/* ── Theme background motifs (game screen, all modes) ───── */
+/* Matrix ::before handled here; blood/gold/midnight rendered by GameThemeBg.jsx */
+#root.theme_matrix #gtm-root::before {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Matrix — binary columns scrolling down (GPU: transform) */
+@keyframes theme-game-matrix-scroll {
+  from { transform: translateY(0); }
+  to   { transform: translateY(96px); }
+}
+#root.theme_matrix #gtm-root::before {
+  left: 0; right: 0; top: -96px; height: calc(100% + 96px);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='96'%3E%3Ctext x='4' y='12' fill='%2300ff41' font-family='monospace' font-size='9'%3E1%3C/text%3E%3Ctext x='4' y='26' fill='%2300ff41' font-family='monospace' font-size='9'%3E0%3C/text%3E%3Ctext x='4' y='40' fill='%2300ff41' font-family='monospace' font-size='9'%3E1%3C/text%3E%3Ctext x='4' y='54' fill='%2300ff41' font-family='monospace' font-size='9'%3E1%3C/text%3E%3Ctext x='4' y='68' fill='%2300ff41' font-family='monospace' font-size='9'%3E0%3C/text%3E%3Ctext x='4' y='82' fill='%2300ff41' font-family='monospace' font-size='9'%3E1%3C/text%3E%3Ctext x='22' y='6' fill='%2300ff41' font-family='monospace' font-size='9'%3E0%3C/text%3E%3Ctext x='22' y='20' fill='%2300ff41' font-family='monospace' font-size='9'%3E1%3C/text%3E%3Ctext x='22' y='34' fill='%2300ff41' font-family='monospace' font-size='9'%3E0%3C/text%3E%3Ctext x='22' y='48' fill='%2300ff41' font-family='monospace' font-size='9'%3E0%3C/text%3E%3Ctext x='22' y='62' fill='%2300ff41' font-family='monospace' font-size='9'%3E1%3C/text%3E%3Ctext x='22' y='76' fill='%2300ff41' font-family='monospace' font-size='9'%3E0%3C/text%3E%3Ctext x='22' y='90' fill='%2300ff41' font-family='monospace' font-size='9'%3E1%3C/text%3E%3Ctext x='44' y='10' fill='%2300ff41' font-family='monospace' font-size='9'%3E1%3C/text%3E%3Ctext x='44' y='24' fill='%2300ff41' font-family='monospace' font-size='9'%3E0%3C/text%3E%3Ctext x='44' y='38' fill='%2300ff41' font-family='monospace' font-size='9'%3E0%3C/text%3E%3Ctext x='44' y='52' fill='%2300ff41' font-family='monospace' font-size='9'%3E1%3C/text%3E%3Ctext x='44' y='66' fill='%2300ff41' font-family='monospace' font-size='9'%3E1%3C/text%3E%3Ctext x='44' y='80' fill='%2300ff41' font-family='monospace' font-size='9'%3E0%3C/text%3E%3Ctext x='44' y='94' fill='%2300ff41' font-family='monospace' font-size='9'%3E1%3C/text%3E%3Ctext x='63' y='16' fill='%2300ff41' font-family='monospace' font-size='9'%3E0%3C/text%3E%3Ctext x='63' y='30' fill='%2300ff41' font-family='monospace' font-size='9'%3E1%3C/text%3E%3Ctext x='63' y='44' fill='%2300ff41' font-family='monospace' font-size='9'%3E0%3C/text%3E%3Ctext x='63' y='58' fill='%2300ff41' font-family='monospace' font-size='9'%3E1%3C/text%3E%3Ctext x='63' y='72' fill='%2300ff41' font-family='monospace' font-size='9'%3E0%3C/text%3E%3Ctext x='63' y='86' fill='%2300ff41' font-family='monospace' font-size='9'%3E1%3C/text%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 80px 96px;
+  opacity: 0.18;
+  animation: theme-game-matrix-scroll 4s linear infinite;
+}
+
+/* Keyframes shared by GameThemeBg (blood/gold/midnight) and shop preview */
+@keyframes game-blood-crack-breath {
+  0%, 100% { opacity: 0.25; }
+  50%      { opacity: 0.4;  }
+}
+@keyframes game-blood-crack-flash {
+  from { stroke-dashoffset: 0; }
+  to   { stroke-dashoffset: -600; }
+}
+@keyframes game-gold-spark {
+  0%   { opacity: 0;   transform: translateY(0); }
+  15%  { opacity: 1; }
+  85%  { opacity: 0.8; }
+  100% { opacity: 0;   transform: translateY(-70px); }
+}
+@keyframes game-gold-shimmer {
+  0%, 70% { transform: translateX(-100%); }
+  100%    { transform: translateX(100%); }
+}
+@keyframes game-star-twinkle {
+  0%, 100% { opacity: 0.15; }
+  50%      { opacity: 0.9;  }
+}
+@keyframes game-shooting-star {
+  0%   { opacity: 0;    transform: rotate(20deg) translateX(-150px); }
+  12%  { opacity: 0;    }
+  18%  { opacity: 0.85; }
+  38%  { opacity: 0.85; transform: rotate(20deg) translateX(650px); }
+  45%  { opacity: 0;    transform: rotate(20deg) translateX(650px); }
+  100% { opacity: 0;    transform: rotate(20deg) translateX(650px); }
+}
 
 /* ─── Design enhancements ───────────────────────── */
 

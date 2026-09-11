@@ -381,7 +381,7 @@ export default function Home({ onSelect }) {
           {new Date() >= new Date('2026-07-20') && new Date() <= new Date('2026-07-27') && (
             <button
               onClick={() => onSelect('tournament')}
-              style={{ width: '100%', background: 'linear-gradient(135deg, rgba(198,11,30,0.15), rgba(0,0,0,0))', border: '1px solid #c60b1e', borderRadius: 'var(--radius-lg)', padding: '18px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', transition: 'transform 0.1s', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.02s both', boxShadow: '0 0 20px rgba(198,11,30,0.2)' }}
+              style={{ width: '100%', background: 'linear-gradient(135deg, rgba(198,11,30,0.18), var(--bg-surface))', border: '1px solid #c60b1e', borderRadius: 'var(--radius-lg)', padding: '18px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', transition: 'transform 0.1s', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.02s both', boxShadow: '0 0 20px rgba(198,11,30,0.2)' }}
               onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
               onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
               onTouchStart={e => e.currentTarget.style.transform = 'scale(0.98)'}
@@ -459,7 +459,7 @@ export default function Home({ onSelect }) {
           {/* Torneos */}
           <button
             onClick={() => onSelect('tournament')}
-            style={{ width: '100%', background: 'linear-gradient(135deg, rgba(248,113,113,0.06), transparent)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-lg)', padding: '18px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', transition: 'transform 0.1s', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.13s both', boxShadow: '0 0 16px rgba(248,113,113,0.08)' }}
+            style={{ width: '100%', background: 'linear-gradient(135deg, rgba(248,113,113,0.10), var(--bg-surface))', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-lg)', padding: '18px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', transition: 'transform 0.1s', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.13s both', boxShadow: '0 0 16px rgba(248,113,113,0.08)' }}
             onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
             onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
             onTouchStart={e => e.currentTarget.style.transform = 'scale(0.98)'}

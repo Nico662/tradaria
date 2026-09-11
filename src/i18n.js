@@ -117,6 +117,7 @@ export const LANGS = {
     },
     badges: {
       title: 'Achievements', unlocked: 'unlocked', back: '← Back', of: 'of',
+      rarity: { common: 'Common', rare: 'Rare', epic: 'Epic', legend: 'Legendary' },
       items: {
         sniper:          { name: 'Sniper',              desc: '5 correct in a row' },
         on_fire:         { name: 'On Fire',             desc: '10 correct in a row' },
@@ -554,8 +555,10 @@ export const LANGS = {
       signInFirst: 'Sign in first', errorSession: 'Error creating session',
       networkError: 'Network error. Please try again.',
       planFree: 'Free', cancelAnytime: 'Cancel anytime',
-      upgradeBtn: 'Go Pro — €3.99/mo', redirecting: 'Redirecting...',
+      upgradeBtn: 'Go Pro · €3.99/mo', redirecting: 'Redirecting...',
       recommended: 'RECOMMENDED',
+      popularBadge: 'MOST POPULAR',
+      priceHook: 'Less than a coffee · cancel anytime',
       freeFeat1: 'Guess The Market', freeFeat2: 'Daily Challenge', freeFeat3: 'Arena 1vs1',
       freeFeat4: 'Survival — 3 lives', freeFeat5: 'Free tournaments', freeFeat6: 'Virtual Portfolio',
       proFeat1: 'Everything in Free', proFeat2: 'Survival — 5 lives (Free: 3)',
@@ -594,6 +597,7 @@ export const LANGS = {
       ctaSub: 'No sign-up · Free forever',
     },
     common: { back: '← back', menu: '← menu', you: 'YOU', streak: 'streak', days: 'days', logout: 'logout', signIn: 'Sign in', signInApple: 'Sign in with Apple', signInGoogle: 'Sign in with Google', privacy: 'Privacy', support: 'Support', legal: 'Legal', error: 'Connection error', close: 'Close', levelUp: '✦ level up ✦', skip: 'Skip →', shareCopied: 'COPIED!', shareError: 'ERROR', shareBtn: 'SHARE' },
+    levels: { title: 'Levels', current: 'CURRENT', startingLevel: 'Starting level', maxLevel: 'Max level' },
     league: {
       back: '← back', daysLeft: 'days left', finished: 'Finished', players: 'players',
       you: 'you', copied: '✓ Copied', shareCode: 'Share code', delete: 'Delete', leave: 'Leave',
@@ -793,6 +797,7 @@ export const LANGS = {
     },
     badges: {
       title: 'Logros', unlocked: 'desbloqueados', back: '← Volver', of: 'de',
+      rarity: { common: 'Común', rare: 'Raro', epic: 'Épico', legend: 'Legendario' },
       items: {
         sniper:          { name: 'Francotirador',       desc: '5 aciertos seguidos' },
         on_fire:         { name: 'En llamas',           desc: '10 aciertos seguidos' },
@@ -1230,8 +1235,10 @@ export const LANGS = {
       signInFirst: 'Inicia sesión primero', errorSession: 'Error al crear sesión',
       networkError: 'Error de red. Inténtalo de nuevo.',
       planFree: 'Free', cancelAnytime: 'Cancela cuando quieras',
-      upgradeBtn: 'Hazte Pro — €3.99/mes', redirecting: 'Redirigiendo...',
+      upgradeBtn: 'Hazte Pro · €3.99/mes', redirecting: 'Redirigiendo...',
       recommended: 'RECOMENDADO',
+      popularBadge: 'MÁS POPULAR',
+      priceHook: 'Menos que un café · cancela cuando quieras',
       freeFeat1: 'Adivina el Mercado', freeFeat2: 'Desafío Diario', freeFeat3: 'Arena 1vs1',
       freeFeat4: 'Survival — 3 vidas', freeFeat5: 'Torneos gratuitos', freeFeat6: 'Portfolio virtual',
       proFeat1: 'Todo lo de Free', proFeat2: 'Survival — 5 vidas (Free: 3)',
@@ -1270,6 +1277,7 @@ export const LANGS = {
       ctaSub: 'Sin registro · Gratis para siempre',
     },
     common: { back: '← volver', menu: '← menú', you: 'TÚ', streak: 'racha', days: 'días', logout: 'logout', signIn: 'Iniciar sesión', signInApple: 'Iniciar sesión con Apple', signInGoogle: 'Iniciar sesión con Google', privacy: 'Privacidad', support: 'Soporte', legal: 'Legal', error: 'Error de conexión', close: 'Cerrar', levelUp: '✦ level up ✦', skip: 'Omitir →', shareCopied: '¡COPIADO!', shareError: 'ERROR', shareBtn: 'COMPARTIR' },
+    levels: { title: 'Niveles', current: 'ACTUAL', startingLevel: 'Nivel inicial', maxLevel: 'Nivel máximo' },
     league: {
       back: '← Volver', daysLeft: 'días restantes', finished: 'Finalizada', players: 'jugadores',
       you: 'tú', copied: '✓ Copiado', shareCode: 'Compartir código', delete: 'Eliminar', leave: 'Salir',
@@ -1469,6 +1477,7 @@ export const LANGS = {
     },
     badges: {
       title: 'Erfolge', unlocked: 'freigeschaltet', back: '← Zurück', of: 'von',
+      rarity: { common: 'Gewöhnlich', rare: 'Selten', epic: 'Episch', legend: 'Legendär' },
       items: {
         sniper:          { name: 'Scharfschütze',       desc: '5 richtige in Folge' },
         on_fire:         { name: 'In Flammen',          desc: '10 richtige in Folge' },
@@ -1906,8 +1915,10 @@ export const LANGS = {
       signInFirst: 'Zuerst anmelden', errorSession: 'Fehler beim Erstellen der Sitzung',
       networkError: 'Netzwerkfehler. Bitte erneut versuchen.',
       planFree: 'Free', cancelAnytime: 'Jederzeit kündbar',
-      upgradeBtn: 'Pro werden — €3,99/Monat', redirecting: 'Weiterleitung...',
+      upgradeBtn: 'Pro werden · €3,99/Monat', redirecting: 'Weiterleitung...',
       recommended: 'EMPFOHLEN',
+      popularBadge: 'BELIEBTESTER',
+      priceHook: 'Weniger als ein Kaffee · jederzeit kündbar',
       freeFeat1: 'Markt raten', freeFeat2: 'Tägliche Challenge', freeFeat3: 'Arena 1vs1',
       freeFeat4: 'Survival — 3 Leben', freeFeat5: 'Kostenlose Turniere', freeFeat6: 'Virtuelles Portfolio',
       proFeat1: 'Alles aus Free', proFeat2: 'Survival — 5 Leben (Free: 3)',
@@ -1946,6 +1957,7 @@ export const LANGS = {
       ctaSub: 'Kein Konto · Kostenlos für immer',
     },
     common: { back: '← zurück', menu: '← Menü', you: 'DU', streak: 'Serie', days: 'Tage', logout: 'Abmelden', signIn: 'Anmelden', signInApple: 'Mit Apple anmelden', signInGoogle: 'Mit Google anmelden', privacy: 'Datenschutz', support: 'Support', legal: 'Impressum', error: 'Verbindungsfehler', close: 'Schließen', levelUp: '✦ level up ✦', skip: 'Überspringen →', shareCopied: 'KOPIERT!', shareError: 'FEHLER', shareBtn: 'TEILEN' },
+    levels: { title: 'Level', current: 'AKTUELL', startingLevel: 'Anfangslevel', maxLevel: 'Maximallevel' },
     league: {
       back: '← zurück', daysLeft: 'Tage übrig', finished: 'Beendet', players: 'Spieler',
       you: 'du', copied: '✓ Kopiert', shareCode: 'Code teilen', delete: 'Löschen', leave: 'Verlassen',
