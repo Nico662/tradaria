@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Star } from 'lucide-react';
 
 const CSS = `
 @keyframes confetti-fall {
@@ -106,7 +105,7 @@ export default function EffectOverlay({ effect, active }) {
 
 /* ── Confetti ─────────────────────────────────────────────────────── */
 function Confetti({ base }) {
-  const COLORS = ['var(--color-down)', 'var(--green)', 'var(--color-neutral)', '#378ADD', '#ff8c00', '#e879f9', '#ffffff'];
+  const COLORS = ['#2dd4a0', '#ff6ea8', '#e8b93c', '#ffffff', '#2dd4a0', '#ff6ea8', '#e8b93c'];
   const pieces = useMemo(() =>
     Array.from({ length: 44 }, (_, i) => ({
       id:    i,
@@ -116,8 +115,9 @@ function Confetti({ base }) {
       color: COLORS[Math.floor(Math.random() * COLORS.length)],
       delay: Math.random() * 0.7,
       dur:   1.9 + Math.random() * 1.3,
-      round: Math.random() > 0.55,
-      sxa:   `${(Math.random() - 0.5) * 28}px`,
+      round:    Math.random() > 0.55,
+      isCandle: i % 4 === 0,
+      sxa:      `${(Math.random() - 0.5) * 28}px`,
       sxb:   `${(Math.random() - 0.5) * 22}px`,
     })), []
   );
@@ -125,18 +125,35 @@ function Confetti({ base }) {
   return (
     <div style={base}>
       {pieces.map(p => (
-        <div key={p.id} style={{
-          position:     'absolute',
-          left:         `${p.x}vw`,
-          top:          '-20px',
-          width:        `${p.w}px`,
-          height:       `${p.h}px`,
-          background:   p.color,
-          borderRadius: p.round ? '50%' : '2px',
-          '--sx-a':     p.sxa,
-          '--sx-b':     p.sxb,
-          animation:    `confetti-fall ${p.dur}s ${p.delay}s ease-in both`,
-        }} />
+        p.isCandle ? (
+          <div key={p.id} style={{
+            position:      'absolute',
+            left:          `${p.x}vw`,
+            top:           '-20px',
+            display:       'flex',
+            flexDirection: 'column',
+            alignItems:    'center',
+            '--sx-a':      p.sxa,
+            '--sx-b':      p.sxb,
+            animation:     `confetti-fall ${p.dur}s ${p.delay}s ease-in both`,
+          }}>
+            <div style={{ width: '1px', height: '5px', background: p.color }} />
+            <div style={{ width: '3px', height: `${p.h}px`, background: p.color, borderRadius: '1px' }} />
+          </div>
+        ) : (
+          <div key={p.id} style={{
+            position:     'absolute',
+            left:         `${p.x}vw`,
+            top:          '-20px',
+            width:        `${p.w}px`,
+            height:       `${p.h}px`,
+            background:   p.color,
+            borderRadius: p.round ? '50%' : '2px',
+            '--sx-a':     p.sxa,
+            '--sx-b':     p.sxb,
+            animation:    `confetti-fall ${p.dur}s ${p.delay}s ease-in both`,
+          }} />
+        )
       ))}
     </div>
   );
@@ -145,16 +162,16 @@ function Confetti({ base }) {
 /* ── Lightning ────────────────────────────────────────────────────── */
 function Lightning({ base }) {
   const bolts = [
-    { points: [[12,0],[24,18],[6,34],[28,52],[10,68],[30,85],[18,100]],  color: '#ffffff', w: 4,   delay: 0     },
-    { points: [[50,0],[62,14],[43,32],[64,48],[48,65],[66,82],[53,100]], color: 'var(--color-neutral)', w: 2.5, delay: 0.04  },
-    { points: [[82,0],[70,22],[88,40],[68,58],[84,74],[72,100]],         color: '#ffffff', w: 2,   delay: 0.09  },
+    { points: [[5,92],[20,92],[20,72],[38,72],[38,50],[58,50],[58,28],[75,28],[75,10],[95,10]], color: '#e8b93c', w: 3,   delay: 0    },
+    { points: [[0,98],[15,98],[15,78],[33,78],[33,55],[53,55],[53,33],[70,33],[70,15],[90,15]], color: '#ffffff',  w: 1.5, delay: 0.04 },
+    { points: [[10,88],[25,88],[25,68],[42,68],[42,45],[62,45],[62,23],[80,23],[80,6],[98,6]],  color: '#e8b93c', w: 1,   delay: 0.09 },
   ];
 
   return (
     <div style={{ ...base, animation: 'lightning-shake 0.15s ease-out forwards' }}>
       <div style={{
         position: 'absolute', inset: 0,
-        background: 'rgba(255,255,180,0.45)',
+        background: 'rgba(45,212,160,0.12)',
         animation: 'screen-flash 0.75s ease-out forwards',
       }} />
       <svg
@@ -181,16 +198,6 @@ function Lightning({ base }) {
             style={{ animation: `lightning-flash 0.85s ${b.delay}s ease-out forwards` }}
           />
         ))}
-        <polyline
-          points="64,48 76,60 83,68"
-          fill="none"
-          stroke="rgba(255,255,180,0.75)"
-          strokeWidth="1"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          filter="url(#bolt-glow)"
-          style={{ animation: 'lightning-flash 0.85s 0.07s ease-out forwards' }}
-        />
       </svg>
     </div>
   );
@@ -198,28 +205,30 @@ function Lightning({ base }) {
 
 /* ── Explosion ────────────────────────────────────────────────────── */
 function Explosion({ base }) {
-  const COLORS = ['var(--color-down)', 'var(--color-neutral)', '#ff8c00', '#ffffff', '#ff6b35', 'var(--green)'];
+  const COLORS = ['#2dd4a0', '#ff6ea8', '#e8b93c', '#ffffff', '#2dd4a0', '#ff6ea8'];
   const particles = useMemo(() =>
     Array.from({ length: 28 }, (_, i) => {
-      const angle = (i / 28) * Math.PI * 2;
-      const dist  = 110 + Math.random() * 110;
+      const angle   = (i / 28) * Math.PI * 2;
+      const dist    = 110 + Math.random() * 110;
+      const isArrow = i % 4 === 1 || i % 7 === 0;
       return {
-        id:    i,
-        tx:    `${Math.cos(angle) * dist}px`,
-        ty:    `${Math.sin(angle) * dist}px`,
-        color: COLORS[Math.floor(Math.random() * COLORS.length)],
-        size:  5 + Math.random() * 9,
-        delay: Math.random() * 0.07,
-        dur:   0.65 + Math.random() * 0.35,
+        id:      i,
+        tx:      `${Math.cos(angle) * dist}px`,
+        ty:      `${Math.sin(angle) * dist}px`,
+        color:   COLORS[Math.floor(Math.random() * COLORS.length)],
+        size:    isArrow ? 12 + Math.random() * 6 : 5 + Math.random() * 9,
+        delay:   Math.random() * 0.07,
+        dur:     0.65 + Math.random() * 0.35,
+        isArrow,
       };
     }), []
   );
 
   const rings = [
-    { size: 40,  border: 4, color: '#fffde0',              delay: 0,    dur: 0.9 },
-    { size: 60,  border: 3, color: 'var(--color-neutral)', delay: 0.07, dur: 1.0 },
-    { size: 90,  border: 2, color: '#ff8c00',              delay: 0.14, dur: 1.1 },
-    { size: 130, border: 1, color: 'var(--color-down)',    delay: 0.21, dur: 1.2 },
+    { size: 40,  border: 4, color: '#ff6ea8', delay: 0,    dur: 0.9 },
+    { size: 60,  border: 3, color: '#e8b93c', delay: 0.07, dur: 1.0 },
+    { size: 90,  border: 2, color: '#2dd4a0', delay: 0.14, dur: 1.1 },
+    { size: 130, border: 1, color: '#ffffff',  delay: 0.21, dur: 1.2 },
   ];
 
   const rays = useMemo(() =>
@@ -234,7 +243,7 @@ function Explosion({ base }) {
       {/* Flash */}
       <div style={{
         position: 'absolute', inset: 0,
-        background: 'radial-gradient(circle, rgba(255,255,200,0.7) 0%, rgba(255,140,0,0.4) 40%, transparent 70%)',
+        background: 'radial-gradient(circle, rgba(45,212,160,0.5) 0%, rgba(232,185,60,0.3) 40%, transparent 70%)',
         animation: 'screen-flash 0.4s ease-out forwards',
       }} />
       {/* Sunburst rays */}
@@ -246,7 +255,7 @@ function Explosion({ base }) {
           marginTop:       '-1px',
           width:           `${r.len}px`,
           height:          '2px',
-          background:      'linear-gradient(to right, rgba(255,255,220,0.9), transparent)',
+          background:      'linear-gradient(to right, rgba(45,212,160,0.9), transparent)',
           transformOrigin: '0 50%',
           '--ray-angle':   r.angle,
           animation:       'sunburst-ray 0.2s ease-out forwards',
@@ -266,27 +275,54 @@ function Explosion({ base }) {
       ))}
       {/* Particles */}
       {particles.map(p => (
-        <div key={p.id} style={{
-          position:    'absolute',
-          top:         '50%',
-          left:        '50%',
-          width:       `${p.size}px`,
-          height:      `${p.size}px`,
-          marginTop:   `-${p.size / 2}px`,
-          marginLeft:  `-${p.size / 2}px`,
-          borderRadius: '50%',
-          background:  p.color,
-          '--tx': p.tx,
-          '--ty': p.ty,
-          animation: `particle-out ${p.dur}s ${p.delay}s ease-out forwards`,
-        }} />
+        p.isArrow ? (
+          <div key={p.id} style={{
+            position:   'absolute',
+            top:        '50%',
+            left:       '50%',
+            fontSize:   `${p.size}px`,
+            lineHeight: 1,
+            marginTop:  `-${p.size / 2}px`,
+            marginLeft: `-${p.size / 2}px`,
+            color:      p.color,
+            '--tx':     p.tx,
+            '--ty':     p.ty,
+            animation:  `particle-out ${p.dur}s ${p.delay}s ease-out forwards`,
+          }}>▲</div>
+        ) : (
+          <div key={p.id} style={{
+            position:     'absolute',
+            top:          '50%',
+            left:         '50%',
+            width:        `${p.size}px`,
+            height:       `${p.size}px`,
+            marginTop:    `-${p.size / 2}px`,
+            marginLeft:   `-${p.size / 2}px`,
+            borderRadius: '50%',
+            background:   p.color,
+            '--tx':       p.tx,
+            '--ty':       p.ty,
+            animation:    `particle-out ${p.dur}s ${p.delay}s ease-out forwards`,
+          }} />
+        )
       ))}
     </div>
   );
 }
 
 /* ── Stars ────────────────────────────────────────────────────────── */
-const STAR_GOLD = ['#ffd700', '#ffe566', '#ffa500', '#ffcc00', '#ffec8b'];
+const STAR_COLORS = ['#e8b93c', '#2dd4a0', '#ff6ea8'];
+
+function MiniCandle({ color, size }) {
+  const wickH = Math.round(size * 0.25);
+  const bodyH = Math.round(size * 0.65);
+  return (
+    <svg width="7" height={size} viewBox={`0 0 7 ${size}`} fill="none">
+      <line x1="3.5" y1="0" x2="3.5" y2={wickH} stroke={color} strokeWidth="1" strokeLinecap="round" />
+      <rect x="0.5" y={wickH} width="6" height={bodyH} fill={color} rx="0.5" />
+    </svg>
+  );
+}
 
 function Stars({ base }) {
   const stars = useMemo(() =>
@@ -294,10 +330,10 @@ function Stars({ base }) {
       id:    i,
       x:     4  + Math.random() * 92,
       y:     8  + Math.random() * 76,
-      size:  18 + Math.random() * 22,
+      size:  15 + Math.random() * 5,
       delay: Math.random() * 0.85,
       dur:   1.6 + Math.random() * 0.9,
-      color: STAR_GOLD[i % STAR_GOLD.length],
+      color: STAR_COLORS[i % STAR_COLORS.length],
     })), []
   );
 
@@ -308,11 +344,10 @@ function Stars({ base }) {
           position:  'absolute',
           left:      `${s.x}vw`,
           top:       `${s.y}vh`,
-          color:     s.color,
           display:   'flex',
           animation: `star-twinkle ${s.dur}s ${s.delay}s ease-out forwards`,
         }}>
-          <Star size={s.size} strokeWidth={1.5} fill={s.color} aria-hidden />
+          <MiniCandle color={s.color} size={s.size} />
         </div>
       ))}
     </div>

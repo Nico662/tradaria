@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Frame, Palette, User, Sparkles, Star, ShoppingBag } from 'lucide-react';
+import { Frame, Palette, User, Sparkles, ShoppingBag } from 'lucide-react';
 import { useLang } from './LangContext.jsx';
 import { useAuth, isIOSApp } from './AuthContext.jsx';
 import { SERVER } from './config.js';
@@ -56,8 +56,8 @@ const MINI_CANDLES = [
   { x: 74, oy: 14, cy: 10, hy: 6,  ly: 18 },
 ];
 
-const CONFETTI_COLORS = ['var(--color-neutral)', 'var(--green)', 'var(--color-down)', '#6b9fff', '#ff9800', '#e040fb', '#00ff41'];
-const STAR_GOLD_COLORS = ['#ffd700', '#ffe566', '#ffa500', '#ffcc00', '#ffec8b'];
+const CONFETTI_COLORS = ['#2dd4a0', '#ff6ea8', '#e8b93c', '#ffffff', '#2dd4a0', '#ff6ea8', '#e8b93c'];
+const STAR_GOLD_COLORS = ['#e8b93c', '#2dd4a0', '#ff6ea8'];
 
 if (!document.getElementById('shop-preview-css')) {
   const el = document.createElement('style');
@@ -345,27 +345,39 @@ function PreviewAvatar({ item }) {
 function PreviewConfetti() {
   const pieces = useMemo(() =>
     Array.from({ length: 12 }, (_, i) => ({
-      x:     5 + Math.random() * 90,
-      color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
-      w:     3 + Math.random() * 4,
-      h:     4 + Math.random() * 5,
-      delay: Math.random() * 0.7,
-      dur:   1.0 + Math.random() * 0.8,
-      sxa:   `${(Math.random() - 0.5) * 16}px`,
-      sxb:   `${(Math.random() - 0.5) * 12}px`,
+      x:        5 + Math.random() * 90,
+      color:    CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+      w:        3 + Math.random() * 4,
+      h:        4 + Math.random() * 5,
+      delay:    Math.random() * 0.7,
+      dur:      1.0 + Math.random() * 0.8,
+      sxa:      `${(Math.random() - 0.5) * 16}px`,
+      sxb:      `${(Math.random() - 0.5) * 12}px`,
+      isCandle: i % 4 === 0,
     })), []
   );
   return (
     <>
       {pieces.map((p, i) => (
-        <div key={i} style={{
-          position: 'absolute', left: `${p.x}%`, top: '-8px',
-          width: `${p.w}px`, height: `${p.h}px`,
-          background: p.color, borderRadius: '1px',
-          '--sx-a': p.sxa,
-          '--sx-b': p.sxb,
-          animation: `preview-confetti-fall ${p.dur}s ${p.delay}s ease-in forwards`,
-        }} />
+        p.isCandle ? (
+          <div key={i} style={{
+            position: 'absolute', left: `${p.x}%`, top: '-8px',
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            '--sx-a': p.sxa, '--sx-b': p.sxb,
+            animation: `preview-confetti-fall ${p.dur}s ${p.delay}s ease-in forwards`,
+          }}>
+            <div style={{ width: '1px', height: '3px', background: p.color }} />
+            <div style={{ width: '3px', height: `${p.h}px`, background: p.color, borderRadius: '1px' }} />
+          </div>
+        ) : (
+          <div key={i} style={{
+            position: 'absolute', left: `${p.x}%`, top: '-8px',
+            width: `${p.w}px`, height: `${p.h}px`,
+            background: p.color, borderRadius: '1px',
+            '--sx-a': p.sxa, '--sx-b': p.sxb,
+            animation: `preview-confetti-fall ${p.dur}s ${p.delay}s ease-in forwards`,
+          }} />
+        )
       ))}
     </>
   );
@@ -376,22 +388,30 @@ function PreviewLightning() {
     <div style={{ position: 'absolute', inset: 0, animation: 'preview-lightning-shake 0.15s ease-out forwards' }}>
       <div style={{
         position: 'absolute', inset: 0,
-        background: 'rgba(232,184,75,0.15)',
+        background: 'rgba(45,212,160,0.1)',
         animation: 'preview-lightning-flash 0.9s ease forwards',
       }} />
       <svg
-        style={{ position: 'absolute', left: '28%', top: '4px', width: '44%', height: '72px', animation: 'preview-lightning-flash 0.9s ease forwards' }}
-        viewBox="0 0 48 72"
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', animation: 'preview-lightning-flash 0.9s ease forwards' }}
+        viewBox="0 0 100 80"
+        preserveAspectRatio="none"
       >
+        <defs>
+          <filter id="preview-bolt-glow">
+            <feGaussianBlur stdDeviation="1" result="blur" />
+            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
+        </defs>
         <polyline
-          points="30,3 16,36 26,36 12,69"
-          fill="none" stroke="var(--color-neutral)" strokeWidth="2.5" strokeLinejoin="round"
-          style={{ filter: 'drop-shadow(0 0 5px var(--color-neutral))' }}
+          points="5,74 18,74 18,55 35,55 35,35 55,35 55,18 75,18 75,6 95,6"
+          fill="none" stroke="#e8b93c" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
+          filter="url(#preview-bolt-glow)"
         />
         <polyline
-          points="26,36 34,48 39,56"
-          fill="none" stroke="rgba(255,255,180,0.7)" strokeWidth="1" strokeLinejoin="round"
-          style={{ animation: 'preview-lightning-flash 0.9s 0.07s ease forwards' }}
+          points="0,78 13,78 13,60 30,60 30,40 50,40 50,22 70,22 70,10 90,10"
+          fill="none" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+          filter="url(#preview-bolt-glow)"
+          style={{ opacity: 0.5, animation: 'preview-lightning-flash 0.9s 0.05s ease forwards' }}
         />
       </svg>
     </div>
@@ -401,12 +421,14 @@ function PreviewLightning() {
 function PreviewExplosion() {
   const particles = useMemo(() =>
     Array.from({ length: 8 }, (_, i) => {
-      const angle = (i / 8) * Math.PI * 2;
+      const angle   = (i / 8) * Math.PI * 2;
+      const isArrow = i % 3 === 0;
       return {
-        tx:    Math.round(Math.cos(angle) * 30),
-        ty:    Math.round(Math.sin(angle) * 26),
-        color: ['var(--color-down)', 'var(--color-neutral)', 'var(--green)', '#ff9800'][i % 4],
-        delay: i * 0.02,
+        tx:      Math.round(Math.cos(angle) * 30),
+        ty:      Math.round(Math.sin(angle) * 26),
+        color:   ['#2dd4a0', '#e8b93c', '#ff6ea8', '#ffffff'][i % 4],
+        delay:   i * 0.02,
+        isArrow,
       };
     }), []
   );
@@ -420,31 +442,40 @@ function PreviewExplosion() {
         <div key={`ray-${i}`} style={{
           position: 'absolute', left: '50%', top: '50%', marginTop: '-1px',
           width: `${r.len}px`, height: '1.5px',
-          background: 'linear-gradient(to right, rgba(255,255,220,0.9), transparent)',
+          background: 'linear-gradient(to right, rgba(45,212,160,0.9), transparent)',
           transformOrigin: '0 50%',
           '--ray-angle': r.angle,
           animation: 'preview-sunburst-ray 0.2s ease-out forwards',
         }} />
       ))}
-      {/* Inner ring: hot white/yellow core */}
+      {/* Inner ring */}
       <div style={{
         position: 'absolute', width: '22px', height: '22px', borderRadius: '50%',
-        border: '2px solid #fffde0',
+        border: '2px solid #ff6ea8',
         animation: 'preview-explosion-ring 0.9s ease-out forwards',
       }} />
-      {/* Outer ring: cool red */}
+      {/* Outer ring */}
       <div style={{
         position: 'absolute', width: '44px', height: '44px', borderRadius: '50%',
-        border: '1px solid var(--color-down)',
+        border: '1px solid #2dd4a0',
         animation: 'preview-explosion-ring 0.9s 0.12s ease-out forwards',
       }} />
       {particles.map((p, i) => (
-        <div key={i} style={{
-          position: 'absolute', width: '5px', height: '5px', borderRadius: '50%',
-          background: p.color,
-          '--tx': `${p.tx}px`, '--ty': `${p.ty}px`,
-          animation: `preview-particle-out 0.8s ${p.delay}s ease-out forwards`,
-        }} />
+        p.isArrow ? (
+          <div key={i} style={{
+            position: 'absolute', fontSize: '10px', lineHeight: 1,
+            color: p.color,
+            '--tx': `${p.tx}px`, '--ty': `${p.ty}px`,
+            animation: `preview-particle-out 0.8s ${p.delay}s ease-out forwards`,
+          }}>▲</div>
+        ) : (
+          <div key={i} style={{
+            position: 'absolute', width: '5px', height: '5px', borderRadius: '50%',
+            background: p.color,
+            '--tx': `${p.tx}px`, '--ty': `${p.ty}px`,
+            animation: `preview-particle-out 0.8s ${p.delay}s ease-out forwards`,
+          }} />
+        )
       ))}
     </div>
   );
@@ -457,19 +488,28 @@ function PreviewStars() {
       y:     55 + Math.random() * 20,
       delay: Math.random() * 0.5,
       dur:   1.0 + Math.random() * 0.8,
-      size:  10 + Math.random() * 8,
+      size:  12 + Math.random() * 6,
       color: STAR_GOLD_COLORS[i % STAR_GOLD_COLORS.length],
     })), []
   );
   return (
     <>
-      {stars.map((s, i) => (
-        <div key={i} style={{
-          position: 'absolute', left: `${s.x}%`, top: `${s.y}px`,
-          color: s.color, display: 'flex',
-          animation: `preview-star-twinkle ${s.dur}s ${s.delay}s ease-out forwards`,
-        }}><Star size={s.size} strokeWidth={1.5} fill={s.color} aria-hidden /></div>
-      ))}
+      {stars.map((s, i) => {
+        const wickH = Math.round(s.size * 0.25);
+        const bodyH = Math.round(s.size * 0.65);
+        return (
+          <div key={i} style={{
+            position: 'absolute', left: `${s.x}%`, top: `${s.y}px`,
+            display: 'flex',
+            animation: `preview-star-twinkle ${s.dur}s ${s.delay}s ease-out forwards`,
+          }}>
+            <svg width="6" height={s.size} viewBox={`0 0 6 ${s.size}`} fill="none">
+              <line x1="3" y1="0" x2="3" y2={wickH} stroke={s.color} strokeWidth="1" strokeLinecap="round" />
+              <rect x="0.5" y={wickH} width="5" height={bodyH} fill={s.color} rx="0.5" />
+            </svg>
+          </div>
+        );
+      })}
     </>
   );
 }
