@@ -57,19 +57,32 @@ const MINI_CANDLES = [
 ];
 
 const CONFETTI_COLORS = ['var(--color-neutral)', 'var(--green)', 'var(--color-down)', '#6b9fff', '#ff9800', '#e040fb', '#00ff41'];
+const STAR_GOLD_COLORS = ['#ffd700', '#ffe566', '#ffa500', '#ffcc00', '#ffec8b'];
 
 if (!document.getElementById('shop-preview-css')) {
   const el = document.createElement('style');
   el.id = 'shop-preview-css';
   el.textContent = `
     @keyframes preview-confetti-fall {
-      0%   { transform: translateY(-8px) rotate(0deg); opacity: 1; }
-      100% { transform: translateY(92px) rotate(400deg); opacity: 0; }
+      0%   { transform: translateY(-8px) translateX(0px) rotate(0deg); opacity: 1; filter: brightness(1); }
+      30%  { transform: translateY(28px) translateX(var(--sx-a)) rotate(120deg); filter: brightness(1); }
+      47%  { filter: brightness(1); }
+      50%  { transform: translateY(46px) translateX(var(--sx-b)) rotate(200deg); filter: brightness(2.5); opacity: 1; }
+      53%  { filter: brightness(1); }
+      80%  { transform: translateY(80px) translateX(var(--sx-a)) rotate(350deg); }
+      100% { transform: translateY(92px) translateX(0px) rotate(400deg); opacity: 0; filter: brightness(1); }
     }
     @keyframes preview-lightning-flash {
       0%, 45%, 100% { opacity: 0; }
       5%, 25%       { opacity: 1; }
       15%, 35%      { opacity: 0.2; }
+    }
+    @keyframes preview-lightning-shake {
+      0%   { transform: translate(0, 0); }
+      15%  { transform: translate(-2px, 1px); }
+      35%  { transform: translate(2px, -1px); }
+      60%  { transform: translate(-1px, 1px); }
+      100% { transform: translate(0, 0); }
     }
     @keyframes preview-explosion-ring {
       0%   { transform: scale(0.1); opacity: 1; }
@@ -79,10 +92,17 @@ if (!document.getElementById('shop-preview-css')) {
       0%   { transform: translate(0, 0) scale(1); opacity: 1; }
       100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
     }
-    @keyframes preview-star-rise {
-      0%   { transform: translateY(0) scale(0.5); opacity: 0; }
-      15%  { opacity: 1; }
-      100% { transform: translateY(-72px) scale(1.1); opacity: 0; }
+    @keyframes preview-sunburst-ray {
+      0%   { transform: rotate(var(--ray-angle)) scaleX(0); opacity: 1; }
+      50%  { transform: rotate(var(--ray-angle)) scaleX(1); opacity: 0.8; }
+      100% { transform: rotate(var(--ray-angle)) scaleX(1); opacity: 0; }
+    }
+    @keyframes preview-star-twinkle {
+      0%   { transform: translateY(0) scale(0);    opacity: 0; }
+      15%  { transform: translateY(-8px) scale(1.2); opacity: 1; }
+      40%  { transform: translateY(-28px) scale(0.9); opacity: 0.8; }
+      60%  { transform: translateY(-48px) scale(1.2); opacity: 1; }
+      100% { transform: translateY(-72px) scale(0.6); opacity: 0; }
     }
     @keyframes theme-matrix-fall {
       0%   { transform: translateY(-100%); }
@@ -331,6 +351,8 @@ function PreviewConfetti() {
       h:     4 + Math.random() * 5,
       delay: Math.random() * 0.7,
       dur:   1.0 + Math.random() * 0.8,
+      sxa:   `${(Math.random() - 0.5) * 16}px`,
+      sxb:   `${(Math.random() - 0.5) * 12}px`,
     })), []
   );
   return (
@@ -340,6 +362,8 @@ function PreviewConfetti() {
           position: 'absolute', left: `${p.x}%`, top: '-8px',
           width: `${p.w}px`, height: `${p.h}px`,
           background: p.color, borderRadius: '1px',
+          '--sx-a': p.sxa,
+          '--sx-b': p.sxb,
           animation: `preview-confetti-fall ${p.dur}s ${p.delay}s ease-in forwards`,
         }} />
       ))}
@@ -349,7 +373,7 @@ function PreviewConfetti() {
 
 function PreviewLightning() {
   return (
-    <>
+    <div style={{ position: 'absolute', inset: 0, animation: 'preview-lightning-shake 0.15s ease-out forwards' }}>
       <div style={{
         position: 'absolute', inset: 0,
         background: 'rgba(232,184,75,0.15)',
@@ -364,8 +388,13 @@ function PreviewLightning() {
           fill="none" stroke="var(--color-neutral)" strokeWidth="2.5" strokeLinejoin="round"
           style={{ filter: 'drop-shadow(0 0 5px var(--color-neutral))' }}
         />
+        <polyline
+          points="26,36 34,48 39,56"
+          fill="none" stroke="rgba(255,255,180,0.7)" strokeWidth="1" strokeLinejoin="round"
+          style={{ animation: 'preview-lightning-flash 0.9s 0.07s ease forwards' }}
+        />
       </svg>
-    </>
+    </div>
   );
 }
 
@@ -381,16 +410,32 @@ function PreviewExplosion() {
       };
     }), []
   );
+  const rays = useMemo(() =>
+    Array.from({ length: 6 }, (_, i) => ({ angle: `${i * 60}deg`, len: 22 + Math.random() * 8 })), []
+  );
   return (
     <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{
-        position: 'absolute', width: '44px', height: '44px', borderRadius: '50%',
-        border: '2px solid var(--color-down)',
-        animation: 'preview-explosion-ring 0.9s ease-out forwards',
-      }} />
+      {/* Sunburst rays */}
+      {rays.map((r, i) => (
+        <div key={`ray-${i}`} style={{
+          position: 'absolute', left: '50%', top: '50%', marginTop: '-1px',
+          width: `${r.len}px`, height: '1.5px',
+          background: 'linear-gradient(to right, rgba(255,255,220,0.9), transparent)',
+          transformOrigin: '0 50%',
+          '--ray-angle': r.angle,
+          animation: 'preview-sunburst-ray 0.2s ease-out forwards',
+        }} />
+      ))}
+      {/* Inner ring: hot white/yellow core */}
       <div style={{
         position: 'absolute', width: '22px', height: '22px', borderRadius: '50%',
-        border: '1px solid rgba(255,126,179,0.5)',
+        border: '2px solid #fffde0',
+        animation: 'preview-explosion-ring 0.9s ease-out forwards',
+      }} />
+      {/* Outer ring: cool red */}
+      <div style={{
+        position: 'absolute', width: '44px', height: '44px', borderRadius: '50%',
+        border: '1px solid var(--color-down)',
         animation: 'preview-explosion-ring 0.9s 0.12s ease-out forwards',
       }} />
       {particles.map((p, i) => (
@@ -407,12 +452,13 @@ function PreviewExplosion() {
 
 function PreviewStars() {
   const stars = useMemo(() =>
-    Array.from({ length: 9 }, () => ({
+    Array.from({ length: 9 }, (_, i) => ({
       x:     8 + Math.random() * 84,
       y:     55 + Math.random() * 20,
       delay: Math.random() * 0.5,
       dur:   1.0 + Math.random() * 0.8,
       size:  10 + Math.random() * 8,
+      color: STAR_GOLD_COLORS[i % STAR_GOLD_COLORS.length],
     })), []
   );
   return (
@@ -420,9 +466,9 @@ function PreviewStars() {
       {stars.map((s, i) => (
         <div key={i} style={{
           position: 'absolute', left: `${s.x}%`, top: `${s.y}px`,
-          fontSize: `${s.size}px`,
-          animation: `preview-star-rise ${s.dur}s ${s.delay}s ease-out forwards`,
-        }}><Star size={14} strokeWidth={2} aria-hidden /></div>
+          color: s.color, display: 'flex',
+          animation: `preview-star-twinkle ${s.dur}s ${s.delay}s ease-out forwards`,
+        }}><Star size={s.size} strokeWidth={1.5} fill={s.color} aria-hidden /></div>
       ))}
     </>
   );
