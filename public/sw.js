@@ -1,4 +1,6 @@
-const CACHE_NAME = 'tradiko-v5';
+// Auto-replaced with 'tradiko-<timestamp>' by the Vite build plugin on every build.
+// In dev the placeholder string is used as-is — intentional.
+const CACHE_NAME = '__SW_CACHE_VERSION__';
 
 const STATIC_ASSETS = [
   '/',
@@ -11,19 +13,21 @@ const STATIC_ASSETS = [
 // Instalar — cachear assets estáticos
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(STATIC_ASSETS))
+      .then(() => self.skipWaiting())
   );
-  self.skipWaiting();
 });
 
-// Activar — limpiar caches antiguos
+// Activar — limpiar caches antiguos y tomar control inmediatamente
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    )
+    caches.keys()
+      .then((keys) =>
+        Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+      )
+      .then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 // Fetch — network first, fallback a cache
