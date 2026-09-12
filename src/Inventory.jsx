@@ -482,6 +482,8 @@ function ItemCard({ equipped, onClick, children }) {
       display: 'flex',
       flexDirection: 'column',
       width: '100%',
+      WebkitAppearance: 'none',
+      appearance: 'none',
     }}>
       {children}
       {equipped && <ActiveBadge />}
