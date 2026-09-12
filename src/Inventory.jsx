@@ -480,16 +480,15 @@ function ItemCard({ equipped, onClick, children }) {
       padding: 0,
       overflow: 'hidden',
       cursor: 'pointer',
-      textAlign: 'center',
+      width: '100%',
       transition: 'border-color 0.15s, box-shadow 0.15s',
       boxShadow: equipped ? '0 0 14px rgba(0,192,135,0.18)' : 'none',
-      display: 'flex',
-      flexDirection: 'column',
-      width: '100%',
       WebkitAppearance: 'none',
       appearance: 'none',
     }}>
-      {children}
+      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+        {children}
+      </div>
       {equipped && <ActiveBadge />}
     </button>
   );
