@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { ChevronLeft, User, PackageOpen, Lock, Ticket } from 'lucide-react';
+import { ChevronLeft, User, PackageOpen, Lock, Ticket, Sparkles, Trophy, Star, Crown, Medal } from 'lucide-react';
 import { useAuth } from './AuthContext';
 import { useLang } from './LangContext';
 import { SERVER } from './config';
@@ -45,15 +45,15 @@ const COMING_SOON = [
   { type: 'avatar', id: 'avatar_fox',      name: 'Fox',          hasPreview: true },
   { type: 'avatar', id: 'avatar_dragon',   name: 'Dragon',       hasPreview: true },
   { type: 'theme',  id: 'theme_midnight',  name: 'Midnight',     emoji: '🌙', accent: '#6b9fff', bg: '#0a0d14', hasPreview: true },
-  { type: 'theme',  id: 'theme_aurora',    name: 'Aurora',       emoji: '🌌', hasPreview: false },
+  { type: 'theme',  id: 'theme_aurora',    name: 'Aurora',       lucideIcon: Sparkles, iconColor: '#6b9fff', hasPreview: false },
   { type: 'color',  id: 'color_green',     name: 'Verde',        hex: '#22c55e' },
   { type: 'color',  id: 'color_gold',      name: 'Dorado',       hex: '#f5c842' },
   { type: 'color',  id: 'color_red',       name: 'Rojo',         hex: '#e05555' },
   { type: 'color',  id: 'color_purple',    name: 'Morado',       hex: '#a855f7' },
-  { type: 'frame',  id: 'frame_season1',   name: 'Season 1',     emoji: '🏆', hasPreview: false },
-  { type: 'badge',  id: 'badge_early',     name: 'Early Trader', icon: '⭐' },
-  { type: 'badge',  id: 'badge_elite',     name: 'Elite',        icon: '👑' },
-  { type: 'badge',  id: 'badge_season1',   name: 'Season 1',     icon: '🏅' },
+  { type: 'frame',  id: 'frame_season1',   name: 'Season 1',     lucideIcon: Trophy, iconColor: 'var(--color-neutral)', hasPreview: false },
+  { type: 'badge',  id: 'badge_early',     name: 'Early Trader', lucideIcon: Star,   iconColor: 'var(--color-neutral)' },
+  { type: 'badge',  id: 'badge_elite',     name: 'Elite',        lucideIcon: Crown,  iconColor: 'var(--color-neutral)' },
+  { type: 'badge',  id: 'badge_season1',   name: 'Season 1',     lucideIcon: Medal,  iconColor: 'var(--color-neutral)' },
 ];
 
 export default function Inventory({ onBack }) {
@@ -468,13 +468,16 @@ function LockedPreview({ item }) {
       </div>
     );
   }
-  // Generic icon for: theme without preview, frame without preview, badge
-  const icon = item.icon || item.emoji || '🔒';
-  return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '68px', fontSize: '36px' }}>
-      {icon}
-    </div>
-  );
+  // Lucide icon (Aurora, frame Season 1, badges)
+  if (item.lucideIcon) {
+    const IconComp = item.lucideIcon;
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '68px' }}>
+        <IconComp size={36} color={item.iconColor || 'var(--text-muted)'} strokeWidth={1.5} aria-hidden />
+      </div>
+    );
+  }
+  return null;
 }
 
 function Section({ title, children }) {
