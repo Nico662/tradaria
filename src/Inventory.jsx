@@ -1,32 +1,31 @@
 import { useState, useCallback } from 'react';
-import { ChevronLeft, User, PackageOpen, Lock, Ticket, Sparkles, Trophy, Star, Crown, Medal } from 'lucide-react';
+import { ChevronLeft, User, PackageOpen, Lock, Ticket, Sparkles, Trophy, Star, Crown, Medal, PartyPopper, Zap, Flame } from 'lucide-react';
 import { useAuth } from './AuthContext';
 import { useLang } from './LangContext';
 import { SERVER } from './config';
 import { FRAME_STYLES } from './UserAvatar';
 import { AvatarSVG } from './components/AvatarSVGs';
-import { BADGES, getUnlocked } from './badges';
 import { USERNAME_COLORS } from './cosmeticColors';
 
 const FRAME_META = {
-  frame_gold:    { name: 'Gold Frame',    emoji: '🥇' },
-  frame_neon:    { name: 'Neon Frame',    emoji: '💚' },
-  frame_fire:    { name: 'Fire Frame',    emoji: '🔥' },
-  frame_diamond: { name: 'Diamond Frame', emoji: '💎' },
+  frame_gold:    { name: 'Gold Frame'    },
+  frame_neon:    { name: 'Neon Frame'    },
+  frame_fire:    { name: 'Fire Frame'    },
+  frame_diamond: { name: 'Diamond Frame' },
 };
 
 const THEME_META = {
-  theme_matrix:   { name: 'Matrix',       emoji: '🟩', accent: '#00ff41', bg: '#0a100c' },
-  theme_blood:    { name: 'Blood Market', emoji: '🩸', accent: '#f05454', bg: '#120c0c' },
-  theme_gold:     { name: 'Gold Rush',    emoji: '✨', accent: '#e6b432', bg: '#120f0a' },
-  theme_midnight: { name: 'Midnight',     emoji: '🌙', accent: '#6b9fff', bg: '#0a0d14' },
+  theme_matrix:   { name: 'Matrix',       accent: '#00ff41', bg: '#0a100c' },
+  theme_blood:    { name: 'Blood Market', accent: '#f05454', bg: '#120c0c' },
+  theme_gold:     { name: 'Gold Rush',    accent: '#e6b432', bg: '#120f0a' },
+  theme_midnight: { name: 'Midnight',     accent: '#6b9fff', bg: '#0a0d14' },
 };
 
 const EFFECT_META = {
-  effect_confetti:  { name: 'Confetti',  emoji: '🎉' },
-  effect_lightning: { name: 'Lightning', emoji: '⚡' },
-  effect_explosion: { name: 'Explosion', emoji: '💥' },
-  effect_stars:     { name: 'Stars',     emoji: '⭐' },
+  effect_confetti:  { name: 'Confetti',  Icon: PartyPopper, color: '#f5c842' },
+  effect_lightning: { name: 'Lightning', Icon: Zap,         color: '#6b9fff' },
+  effect_explosion: { name: 'Explosion', Icon: Flame,       color: '#e05555' },
+  effect_stars:     { name: 'Stars',     Icon: Sparkles,    color: '#f5c842' },
 };
 
 const AVATAR_META = {
@@ -44,7 +43,7 @@ const MINI_HEIGHTS = [0.4, 0.7, 0.3, 0.6, 0.9, 0.5, 0.65, 0.35];
 const COMING_SOON = [
   { type: 'avatar', id: 'avatar_fox',      name: 'Fox',          hasPreview: true },
   { type: 'avatar', id: 'avatar_dragon',   name: 'Dragon',       hasPreview: true },
-  { type: 'theme',  id: 'theme_midnight',  name: 'Midnight',     emoji: '🌙', accent: '#6b9fff', bg: '#0a0d14', hasPreview: true },
+  { type: 'theme',  id: 'theme_midnight',  name: 'Midnight',     accent: '#6b9fff', bg: '#0a0d14', hasPreview: true },
   { type: 'theme',  id: 'theme_aurora',    name: 'Aurora',       lucideIcon: Sparkles, iconColor: '#6b9fff', hasPreview: false },
   { type: 'color',  id: 'color_green',     name: 'Verde',        hex: '#22c55e' },
   { type: 'color',  id: 'color_gold',      name: 'Dorado',       hex: '#f5c842' },
@@ -71,7 +70,6 @@ export default function Inventory({ onBack }) {
   const ownedAvatars  = purchases.filter(id => id && AVATAR_META[id]);
   const ownedEffects  = purchases.filter(id => id && EFFECT_META[id]);
   const ownedColors   = purchases.filter(id => id && USERNAME_COLORS[id]);
-  const ownedBadges   = getUnlocked().map(id => BADGES.find(b => b.id === id)).filter(Boolean);
   const unusedTickets = tickets.filter(item => !item.used).length;
 
   const useTicket = useCallback(async () => {
@@ -104,7 +102,7 @@ export default function Inventory({ onBack }) {
   const isEmpty =
     ownedFrames.length === 0 && ownedThemes.length === 0 &&
     ownedAvatars.length === 0 && ownedEffects.length === 0 &&
-    ownedColors.length === 0 && ownedBadges.length === 0 &&
+    ownedColors.length === 0 &&
     unusedTickets === 0;
 
   const chips = [
@@ -114,7 +112,6 @@ export default function Inventory({ onBack }) {
     ownedAvatars.length  > 0 && { id: 'avatars', label: ti.avatars, n: ownedAvatars.length },
     ownedEffects.length  > 0 && { id: 'effects', label: ti.effects, n: ownedEffects.length },
     ownedColors.length   > 0 && { id: 'colors',  label: ti.colors,  n: ownedColors.length },
-    ownedBadges.length   > 0 && { id: 'badges',  label: ti.badges,  n: ownedBadges.length },
     unusedTickets        > 0 && { id: 'tickets', label: ti.tickets, n: unusedTickets },
   ].filter(Boolean);
 
@@ -236,8 +233,8 @@ export default function Inventory({ onBack }) {
               const equipped = activeCosmetics.effect === id;
               return (
                 <ItemCard key={id} equipped={equipped} onClick={() => toggle('effect', id)}>
-                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '68px', fontSize: '38px' }}>
-                    {meta.emoji}
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '68px' }}>
+                    <meta.Icon size={38} color={meta.color} strokeWidth={1.5} aria-hidden />
                   </div>
                   <ItemLabel name={meta.name} equipped={equipped} ti={ti} />
                 </ItemCard>
@@ -271,28 +268,6 @@ export default function Inventory({ onBack }) {
                 </ItemCard>
               );
             })}
-          </Section>
-        )}
-
-        {/* BADGES */}
-        {show('badges') && ownedBadges.length > 0 && (
-          <Section title={ti.badges}>
-            {ownedBadges.map(badge => (
-              <div key={badge.id} style={{
-                background: 'var(--bg-surface)',
-                border: '0.5px solid var(--border-default)',
-                borderRadius: '12px',
-                padding: '14px 8px 12px',
-                textAlign: 'center',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '6px',
-              }}>
-                <div style={{ fontSize: '30px', lineHeight: 1 }}>{badge.icon}</div>
-                <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.04em', lineHeight: 1.3 }}>{badge.name}</div>
-              </div>
-            ))}
           </Section>
         )}
 
@@ -508,6 +483,7 @@ function ItemCard({ equipped, onClick, children }) {
       boxShadow: equipped ? '0 0 14px rgba(0,192,135,0.18)' : 'none',
       display: 'flex',
       flexDirection: 'column',
+      width: '100%',
     }}>
       {children}
       {equipped && <ActiveBadge />}
