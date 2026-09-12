@@ -124,37 +124,41 @@ export function DragonAvatar({ size = 48 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 120 120">
       <g transform="translate(60,60)">
-        {/* Background */}
-        <circle cx="0" cy="0" r="56" fill="#0e0a1a"/>
+        {/* BG — near-black deep purple */}
+        <circle cx="0" cy="0" r="56" fill="#0a0612"/>
         <circle cx="0" cy="0" r="56" fill="none" stroke="#a855f7" strokeWidth="2"/>
-        {/* Horns — two-layer (dark back + lighter front) like Fox ears */}
-        <path d="M-12,-24 Q-22,-38 -16,-52 Q-10,-36 -4,-24 Z" fill="#5b21b6"/>
-        <path d="M12,-24 Q22,-38 16,-52 Q10,-36 4,-24 Z" fill="#5b21b6"/>
-        <path d="M-11,-25 Q-18,-38 -13,-50 Q-8,-36 -5,-25 Z" fill="#7c3aed"/>
-        <path d="M11,-25 Q18,-38 13,-50 Q8,-36 5,-25 Z" fill="#7c3aed"/>
-        {/* Face */}
-        <path d="M-26,-18 Q-32,-4 -28,12 Q-18,28 0,30 Q18,28 28,12 Q32,-4 26,-18 Q18,-30 0,-28 Q-18,-30 -26,-18 Z" fill="#7c3aed"/>
-        {/* Muzzle */}
-        <ellipse cx="0" cy="13" rx="15" ry="12" fill="#a855f7"/>
-        {/* Fierce brow ridges — slope down toward center (angry V) */}
-        <path d="M-18,-14 L-8,-11" stroke="#5b21b6" strokeWidth="2.5" strokeLinecap="round"/>
-        <path d="M18,-14 L8,-11" stroke="#5b21b6" strokeWidth="2.5" strokeLinecap="round"/>
-        {/* Amber iris */}
-        <ellipse cx="-11" cy="-7" rx="4.5" ry="4.5" fill="#e8b93c"/>
-        <ellipse cx="11" cy="-7" rx="4.5" ry="4.5" fill="#e8b93c"/>
-        {/* Vertical slit pupils */}
-        <ellipse cx="-11" cy="-7" rx="1.5" ry="3.6" fill="#0d0d0d"/>
-        <ellipse cx="11" cy="-7" rx="1.5" ry="3.6" fill="#0d0d0d"/>
-        {/* Eye highlights */}
-        <circle cx="-9.5" cy="-8.5" r="1.2" fill="#fff"/>
-        <circle cx="12.5" cy="-8.5" r="1.2" fill="#fff"/>
-        {/* Forehead scale ridge */}
-        <path d="M0,-23 L3.5,-18 L0,-15 L-3.5,-18 Z" fill="#5b21b6"/>
+        {/* Horns — two triangles each, same Fox technique but swept outward (≈20° from horizontal).
+            Behind face so base gets naturally covered, tips protrude */}
+        <path d="M-16,-26 L-50,-40 L-8,-34 Z" fill="#1e0a3c"/>
+        <path d="M-16,-26 L-46,-37 L-11,-33 Z" fill="#4c1d95"/>
+        <path d="M16,-26 L50,-40 L8,-34 Z" fill="#1e0a3c"/>
+        <path d="M16,-26 L46,-37 L11,-33 Z" fill="#4c1d95"/>
+        {/* Face — same bezier as Fox, deep purple */}
+        <path d="M-28,-22 Q-34,-8 -30,8 Q-20,26 0,28 Q20,26 30,8 Q34,-8 28,-22 Q20,-34 0,-32 Q-20,-34 -28,-22 Z" fill="#2d1457"/>
+        {/* Muzzle — smaller and darker than Fox's, less cute */}
+        <ellipse cx="0" cy="10" rx="14" ry="11" fill="#4c1d95"/>
+        {/* Fierce brow ridges: outer HIGH (y=-16), inner LOWER (y=-12) = angry slope */}
+        <path d="M-20,-16 L-8,-12" stroke="#1e0a3c" strokeWidth="2.5" strokeLinecap="round"/>
+        <path d="M20,-16 L8,-12" stroke="#1e0a3c" strokeWidth="2.5" strokeLinecap="round"/>
+        {/* Eyes — same position as Fox, dark base */}
+        <ellipse cx="-12" cy="-8" rx="5" ry="6" fill="#0d0d0d"/>
+        <ellipse cx="12" cy="-8" rx="5" ry="6" fill="#0d0d0d"/>
+        {/* Fuchsia slit iris — reptile read, "brasa" accent */}
+        <ellipse cx="-12" cy="-8" rx="1.4" ry="3.4" fill="#d946ef"/>
+        <ellipse cx="12" cy="-8" rx="1.4" ry="3.4" fill="#d946ef"/>
+        {/* Eye highlights — same offsets as Fox */}
+        <circle cx="-10" cy="-10" r="1.5" fill="#fff"/>
+        <circle cx="14" cy="-10" r="1.5" fill="#fff"/>
+        {/* Forehead crest — two angular spikes drawn over face */}
+        <path d="M-6,-26 L-3,-38 L0,-26 Z" fill="#4c1d95"/>
+        <path d="M0,-26 L3,-38 L6,-26 Z" fill="#4c1d95"/>
+        {/* Nose ridge */}
+        <ellipse cx="0" cy="4" rx="3.5" ry="2" fill="#0a0612"/>
         {/* Nostrils */}
-        <ellipse cx="-5" cy="16" rx="2" ry="1.4" fill="#5b21b6"/>
-        <ellipse cx="5" cy="16" rx="2" ry="1.4" fill="#5b21b6"/>
-        {/* Mouth */}
-        <path d="M-7,21 Q0,26 7,21" fill="none" stroke="#5b21b6" strokeWidth="2" strokeLinecap="round"/>
+        <circle cx="-5" cy="14" r="1.6" fill="#1e0a3c"/>
+        <circle cx="5" cy="14" r="1.6" fill="#1e0a3c"/>
+        {/* Mouth — grim, less arc than Fox */}
+        <path d="M-5,19 Q0,23 5,19" fill="none" stroke="#1e0a3c" strokeWidth="1.6" strokeLinecap="round"/>
       </g>
     </svg>
   );
