@@ -233,7 +233,7 @@ export default function Inventory({ onBack }) {
               const equipped = activeCosmetics.effect === id;
               return (
                 <ItemCard key={id} equipped={equipped} onClick={() => toggle('effect', id)}>
-                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '68px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '12px 0 6px' }}>
                     <meta.Icon size={38} color={meta.color} strokeWidth={1.5} aria-hidden />
                   </div>
                   <ItemLabel name={meta.name} equipped={equipped} ti={ti} />
@@ -251,20 +251,14 @@ export default function Inventory({ onBack }) {
               const equipped = activeCosmetics.username_color === id;
               return (
                 <ItemCard key={id} equipped={equipped} onClick={() => toggle('username_color', id)}>
-                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '68px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '12px 0 6px' }}>
                     <div style={{
                       width: '46px', height: '46px', borderRadius: '12px',
                       background: meta.hex,
                       boxShadow: `0 0 16px ${meta.hex}55`,
                     }} />
                   </div>
-                  <div style={{ padding: '0 8px 10px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '13px', fontWeight: 800, color: meta.hex, letterSpacing: '0.04em' }}>{meta.name}</div>
-                    <div style={{ fontSize: '10px', color: equipped ? 'var(--green)' : 'var(--t5)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '3px' }}>
-                      {equipped ? ti.equipped : ti.tap}
-                    </div>
-                  </div>
-                  {equipped && <ActiveBadge />}
+                  <ItemLabel name={meta.name} equipped={equipped} ti={ti} />
                 </ItemCard>
               );
             })}
@@ -409,32 +403,36 @@ function LockedPreview({ item }) {
   }
   if (item.type === 'theme' && item.hasPreview) {
     return (
-      <div style={{
-        height: '70px',
-        background: item.bg,
-        borderRadius: '10px 10px 0 0',
-        display: 'flex',
-        alignItems: 'flex-end',
-        justifyContent: 'center',
-        gap: '3px',
-        padding: '0 10px 8px',
-        overflow: 'hidden',
-      }}>
-        {[0.4, 0.7, 0.3, 0.6, 0.9, 0.5, 0.65, 0.35].map((h, i) => (
-          <div key={i} style={{
-            width: '8px',
-            height: `${Math.round(h * 36) + 8}px`,
-            background: i % 3 === 2 ? `${item.accent}55` : item.accent,
-            borderRadius: '2px 2px 0 0',
-            opacity: 0.85 + (i % 2) * 0.15,
-          }} />
-        ))}
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '12px 0 6px' }}>
+        <div style={{
+          width: '64px',
+          height: '48px',
+          background: item.bg,
+          borderRadius: '8px',
+          border: `1.5px solid ${item.accent}44`,
+          display: 'flex',
+          alignItems: 'flex-end',
+          justifyContent: 'center',
+          gap: '2px',
+          padding: '0 6px 5px',
+          overflow: 'hidden',
+        }}>
+          {MINI_HEIGHTS.slice(0, 6).map((h, i) => (
+            <div key={i} style={{
+              width: '6px',
+              height: `${Math.round(h * 26) + 5}px`,
+              background: i % 3 === 2 ? `${item.accent}55` : item.accent,
+              borderRadius: '1px 1px 0 0',
+              opacity: 0.85 + (i % 2) * 0.15,
+            }} />
+          ))}
+        </div>
       </div>
     );
   }
   if (item.type === 'color') {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '68px' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '12px 0 6px' }}>
         <div style={{
           width: '46px', height: '46px', borderRadius: '12px',
           background: item.hex,
@@ -447,7 +445,7 @@ function LockedPreview({ item }) {
   if (item.lucideIcon) {
     const IconComp = item.lucideIcon;
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '68px' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '12px 0 6px' }}>
         <IconComp size={36} color={item.iconColor || 'var(--text-muted)'} strokeWidth={1.5} aria-hidden />
       </div>
     );
@@ -478,7 +476,7 @@ function ItemCard({ equipped, onClick, children }) {
       padding: 0,
       overflow: 'hidden',
       cursor: 'pointer',
-      textAlign: 'left',
+      textAlign: 'center',
       transition: 'border-color 0.15s, box-shadow 0.15s',
       boxShadow: equipped ? '0 0 14px rgba(0,192,135,0.18)' : 'none',
       display: 'flex',
@@ -528,7 +526,7 @@ function ItemLabel({ name, equipped, ti }) {
 function FramePreview({ id }) {
   const frameStyle = FRAME_STYLES[id] || {};
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', padding: '14px 0 10px' }}>
+    <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 6px' }}>
       <div style={{
         width: '52px', height: '52px', borderRadius: '50%',
         background: 'var(--bg-card2)',
@@ -543,26 +541,30 @@ function FramePreview({ id }) {
 
 function ThemePreview({ meta }) {
   return (
-    <div style={{
-      height: '70px',
-      background: meta.bg,
-      borderRadius: '10px 10px 0 0',
-      display: 'flex',
-      alignItems: 'flex-end',
-      justifyContent: 'center',
-      gap: '3px',
-      padding: '0 10px 8px',
-      overflow: 'hidden',
-    }}>
-      {MINI_HEIGHTS.map((h, i) => (
-        <div key={i} style={{
-          width: '8px',
-          height: `${Math.round(h * 36) + 8}px`,
-          background: i % 3 === 2 ? `${meta.accent}55` : meta.accent,
-          borderRadius: '2px 2px 0 0',
-          opacity: 0.85 + (i % 2) * 0.15,
-        }} />
-      ))}
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '12px 0 6px' }}>
+      <div style={{
+        width: '64px',
+        height: '48px',
+        background: meta.bg,
+        borderRadius: '8px',
+        border: `1.5px solid ${meta.accent}44`,
+        display: 'flex',
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+        gap: '2px',
+        padding: '0 6px 5px',
+        overflow: 'hidden',
+      }}>
+        {MINI_HEIGHTS.slice(0, 6).map((h, i) => (
+          <div key={i} style={{
+            width: '6px',
+            height: `${Math.round(h * 26) + 5}px`,
+            background: i % 3 === 2 ? `${meta.accent}55` : meta.accent,
+            borderRadius: '1px 1px 0 0',
+            opacity: 0.85 + (i % 2) * 0.15,
+          }} />
+        ))}
+      </div>
     </div>
   );
 }
