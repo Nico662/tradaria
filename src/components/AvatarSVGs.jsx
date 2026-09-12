@@ -124,20 +124,37 @@ export function DragonAvatar({ size = 48 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 120 120">
       <g transform="translate(60,60)">
+        {/* Background */}
         <circle cx="0" cy="0" r="56" fill="#0e0a1a"/>
         <circle cx="0" cy="0" r="56" fill="none" stroke="#a855f7" strokeWidth="2"/>
-        <path d="M-20,-8 Q-52,-28 -54,-52 Q-28,-28 -18,-8 Z" fill="#7c3aed" opacity="0.85"/>
-        <path d="M20,-8 Q52,-28 54,-52 Q28,-28 18,-8 Z" fill="#7c3aed" opacity="0.85"/>
-        <path d="M-26,-20 Q-32,-4 -28,12 Q-18,30 0,32 Q18,30 28,12 Q32,-4 26,-20 Q18,-32 0,-30 Q-18,-32 -26,-20 Z" fill="#a855f7"/>
-        <path d="M-9,-30 L-14,-50 L-4,-32 Z" fill="#7c3aed"/>
-        <path d="M9,-30 L14,-50 L4,-32 Z" fill="#7c3aed"/>
-        <ellipse cx="-11" cy="-9" rx="5.5" ry="5.5" fill="#22d3ee"/>
-        <ellipse cx="11" cy="-9" rx="5.5" ry="5.5" fill="#22d3ee"/>
-        <ellipse cx="-11" cy="-9" rx="2" ry="2.5" fill="#0d0d0d"/>
-        <ellipse cx="11" cy="-9" rx="2" ry="2.5" fill="#0d0d0d"/>
-        <path d="M-10,6 Q0,14 10,6 Q8,18 0,20 Q-8,18 -10,6 Z" fill="#7c3aed"/>
-        <circle cx="-4" cy="12" r="2.2" fill="#f97316"/>
-        <circle cx="4" cy="12" r="2.2" fill="#f97316"/>
+        {/* Horns — two-layer (dark back + lighter front) like Fox ears */}
+        <path d="M-12,-24 Q-22,-38 -16,-52 Q-10,-36 -4,-24 Z" fill="#5b21b6"/>
+        <path d="M12,-24 Q22,-38 16,-52 Q10,-36 4,-24 Z" fill="#5b21b6"/>
+        <path d="M-11,-25 Q-18,-38 -13,-50 Q-8,-36 -5,-25 Z" fill="#7c3aed"/>
+        <path d="M11,-25 Q18,-38 13,-50 Q8,-36 5,-25 Z" fill="#7c3aed"/>
+        {/* Face */}
+        <path d="M-26,-18 Q-32,-4 -28,12 Q-18,28 0,30 Q18,28 28,12 Q32,-4 26,-18 Q18,-30 0,-28 Q-18,-30 -26,-18 Z" fill="#7c3aed"/>
+        {/* Muzzle */}
+        <ellipse cx="0" cy="13" rx="15" ry="12" fill="#a855f7"/>
+        {/* Fierce brow ridges — slope down toward center (angry V) */}
+        <path d="M-18,-14 L-8,-11" stroke="#5b21b6" strokeWidth="2.5" strokeLinecap="round"/>
+        <path d="M18,-14 L8,-11" stroke="#5b21b6" strokeWidth="2.5" strokeLinecap="round"/>
+        {/* Amber iris */}
+        <ellipse cx="-11" cy="-7" rx="4.5" ry="4.5" fill="#e8b93c"/>
+        <ellipse cx="11" cy="-7" rx="4.5" ry="4.5" fill="#e8b93c"/>
+        {/* Vertical slit pupils */}
+        <ellipse cx="-11" cy="-7" rx="1.5" ry="3.6" fill="#0d0d0d"/>
+        <ellipse cx="11" cy="-7" rx="1.5" ry="3.6" fill="#0d0d0d"/>
+        {/* Eye highlights */}
+        <circle cx="-9.5" cy="-8.5" r="1.2" fill="#fff"/>
+        <circle cx="12.5" cy="-8.5" r="1.2" fill="#fff"/>
+        {/* Forehead scale ridge */}
+        <path d="M0,-23 L3.5,-18 L0,-15 L-3.5,-18 Z" fill="#5b21b6"/>
+        {/* Nostrils */}
+        <ellipse cx="-5" cy="16" rx="2" ry="1.4" fill="#5b21b6"/>
+        <ellipse cx="5" cy="16" rx="2" ry="1.4" fill="#5b21b6"/>
+        {/* Mouth */}
+        <path d="M-7,21 Q0,26 7,21" fill="none" stroke="#5b21b6" strokeWidth="2" strokeLinecap="round"/>
       </g>
     </svg>
   );
