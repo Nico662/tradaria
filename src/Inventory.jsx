@@ -127,7 +127,7 @@ export default function Inventory({ onBack }) {
 
       {/* Header */}
       <div style={{ padding: '16px 16px 8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <button onClick={onBack} style={{ background: 'none', border: 'none', padding: '6px', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', borderRadius: '8px' }}>
+        <button onClick={onBack} style={{ background: 'none', border: 'none', padding: '6px', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', borderRadius: '8px', WebkitAppearance: 'none', appearance: 'none' }}>
           <ChevronLeft size={22} />
         </button>
         <div>
@@ -157,6 +157,8 @@ export default function Inventory({ onBack }) {
                 textTransform: 'uppercase',
                 transition: 'all 0.15s',
                 whiteSpace: 'nowrap',
+                WebkitAppearance: 'none',
+                appearance: 'none',
               }}>
                 {chip.label}{chip.n ? ` · ${chip.n}` : ''}
               </button>
@@ -299,6 +301,8 @@ export default function Inventory({ onBack }) {
                 cursor: busyTicket ? 'not-allowed' : 'pointer',
                 opacity: busyTicket ? 0.6 : 1,
                 flexShrink: 0,
+                WebkitAppearance: 'none',
+                appearance: 'none',
               }}>
                 {busyTicket ? '...' : ti.ticketUse}
               </button>
