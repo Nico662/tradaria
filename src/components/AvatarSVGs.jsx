@@ -97,12 +97,60 @@ export function RobotAvatar({ size = 48 }) {
   );
 }
 
+export function FoxAvatar({ size = 48 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 120 120">
+      <g transform="translate(60,60)">
+        <circle cx="0" cy="0" r="56" fill="#1a0f04"/>
+        <circle cx="0" cy="0" r="56" fill="none" stroke="#f97316" strokeWidth="2"/>
+        <path d="M-26,-28 L-44,-52 L-8,-36 Z" fill="#f97316"/>
+        <path d="M-26,-28 L-40,-48 L-12,-36 Z" fill="#fbbf24"/>
+        <path d="M26,-28 L44,-52 L8,-36 Z" fill="#f97316"/>
+        <path d="M26,-28 L40,-48 L12,-36 Z" fill="#fbbf24"/>
+        <path d="M-28,-22 Q-34,-8 -30,8 Q-20,26 0,28 Q20,26 30,8 Q34,-8 28,-22 Q20,-34 0,-32 Q-20,-34 -28,-22 Z" fill="#f97316"/>
+        <ellipse cx="0" cy="10" rx="17" ry="14" fill="#fbbf24"/>
+        <ellipse cx="-12" cy="-8" rx="5" ry="6.5" fill="#0d0d0d"/>
+        <ellipse cx="12" cy="-8" rx="5" ry="6.5" fill="#0d0d0d"/>
+        <circle cx="-10" cy="-10" r="1.5" fill="#fff"/>
+        <circle cx="14" cy="-10" r="1.5" fill="#fff"/>
+        <ellipse cx="0" cy="3" rx="4" ry="2.5" fill="#1a0f04"/>
+        <path d="M-5,8 Q0,13 5,8" fill="none" stroke="#1a0f04" strokeWidth="1.5" strokeLinecap="round"/>
+      </g>
+    </svg>
+  );
+}
+
+export function DragonAvatar({ size = 48 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 120 120">
+      <g transform="translate(60,60)">
+        <circle cx="0" cy="0" r="56" fill="#0e0a1a"/>
+        <circle cx="0" cy="0" r="56" fill="none" stroke="#a855f7" strokeWidth="2"/>
+        <path d="M-20,-8 Q-52,-28 -54,-52 Q-28,-28 -18,-8 Z" fill="#7c3aed" opacity="0.85"/>
+        <path d="M20,-8 Q52,-28 54,-52 Q28,-28 18,-8 Z" fill="#7c3aed" opacity="0.85"/>
+        <path d="M-26,-20 Q-32,-4 -28,12 Q-18,30 0,32 Q18,30 28,12 Q32,-4 26,-20 Q18,-32 0,-30 Q-18,-32 -26,-20 Z" fill="#a855f7"/>
+        <path d="M-9,-30 L-14,-50 L-4,-32 Z" fill="#7c3aed"/>
+        <path d="M9,-30 L14,-50 L4,-32 Z" fill="#7c3aed"/>
+        <ellipse cx="-11" cy="-9" rx="5.5" ry="5.5" fill="#22d3ee"/>
+        <ellipse cx="11" cy="-9" rx="5.5" ry="5.5" fill="#22d3ee"/>
+        <ellipse cx="-11" cy="-9" rx="2" ry="2.5" fill="#0d0d0d"/>
+        <ellipse cx="11" cy="-9" rx="2" ry="2.5" fill="#0d0d0d"/>
+        <path d="M-10,6 Q0,14 10,6 Q8,18 0,20 Q-8,18 -10,6 Z" fill="#7c3aed"/>
+        <circle cx="-4" cy="12" r="2.2" fill="#f97316"/>
+        <circle cx="4" cy="12" r="2.2" fill="#f97316"/>
+      </g>
+    </svg>
+  );
+}
+
 export function AvatarSVG({ id, size = 48 }) {
   const map = {
-    avatar_bull: BullAvatar,
-    avatar_bear: BearAvatar,
-    avatar_whale: WhaleAvatar,
-    avatar_robot: RobotAvatar,
+    avatar_bull:   BullAvatar,
+    avatar_bear:   BearAvatar,
+    avatar_whale:  WhaleAvatar,
+    avatar_robot:  RobotAvatar,
+    avatar_fox:    FoxAvatar,
+    avatar_dragon: DragonAvatar,
   };
   const Comp = map[id];
   return Comp ? <Comp size={size} /> : null;

@@ -94,6 +94,33 @@ export default function Stats({ onBack, onSelect }) {
 
       <div style={{ height: '20px' }} />
 
+      {/* Inventory shortcut */}
+      <div style={{ padding: '0 16px 16px' }}>
+        <button
+          onClick={() => onSelect?.('inventory')}
+          style={{
+            width: '100%',
+            padding: '13px 16px',
+            background: 'var(--bg-surface)',
+            border: '0.5px solid var(--border-default)',
+            borderRadius: 'var(--radius-md)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            cursor: 'pointer',
+            fontFamily: 'var(--font-body)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '20px', lineHeight: 1 }}>🎒</span>
+            <span style={{ fontWeight: 800, fontSize: '14px', color: 'var(--text-primary)', letterSpacing: '0.02em' }}>
+              {t.inventory.inventoryBtn}
+            </span>
+          </div>
+          <span style={{ fontSize: '16px', color: 'var(--text-muted)' }}>›</span>
+        </button>
+      </div>
+
       {loading && (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
           <div className="spinner" />

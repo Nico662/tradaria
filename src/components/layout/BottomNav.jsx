@@ -20,7 +20,7 @@ export default function BottomNav({ currentScreen, onSelect }) {
     if (screen === 'modes')  return currentScreen === 'modes';
     if (screen === 'game')   return ['game', 'arena', 'tournament', 'survival', 'daily', 'historical'].includes(currentScreen);
     if (screen === 'league') return ['league', 'portfolio'].includes(currentScreen);
-    if (screen === 'stats')  return ['stats', 'badges', 'settings', 'friends', 'shop'].includes(currentScreen);
+    if (screen === 'stats')  return ['stats', 'badges', 'settings', 'friends', 'shop', 'inventory'].includes(currentScreen);
     return false;
   };
 

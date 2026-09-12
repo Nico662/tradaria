@@ -32,6 +32,7 @@ import PublicProfile from './PublicProfile.jsx';
 import Tutorial from './Tutorial.jsx';
 import Landing from './Landing.jsx';
 import Stats from './Stats.jsx';
+import Inventory from './Inventory.jsx';
 import { incrementMission, recordModePlayed, incrementWeeklyMission, recordWeeklyModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
 import Settings from './Settings.jsx';
@@ -665,6 +666,7 @@ export default function App() {
   if (screen === 'support')    return <><Support    onSelect={setScreen} />{challengeOverlay}</>;
   if (screen === 'badges')     return <><Badges     onBack={() => setScreen('home')} onSelect={handleSelect} />{challengeOverlay}</>;
   if (screen === 'stats')      return <AppLayout currentScreen={screen} onSelect={handleSelect}><Stats      onBack={() => setScreen('home')} onSelect={handleSelect} />{challengeOverlay}</AppLayout>;
+  if (screen === 'inventory')  return <AppLayout currentScreen={screen} onSelect={handleSelect}><Inventory  onBack={() => setScreen('stats')} />{challengeOverlay}</AppLayout>;
   if (screen === 'daily')      return <><GameThemeBg screen={screen} /><Daily      onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'historical') return <><GameThemeBg screen={screen} /><Historical onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'tournament') return <><GameThemeBg screen={screen} /><Tournament onBack={() => { setAcademyTournamentCtx(null); setScreen(academyTournamentCtx ? 'student_dashboard' : 'home'); }} onViewProfile={(uname) => { setPublicProfileUsername(uname); setScreen('public_profile'); window.history.pushState({}, '', `/u/${uname}`); }} onGoPricing={() => { setPricingFromTournament(true); setScreen('pricing'); }} academyTournamentId={academyTournamentCtx?.tournamentId ?? null} academyId={academyTournamentCtx?.academyId ?? null} />{challengeOverlay}</>;
