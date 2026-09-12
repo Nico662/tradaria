@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react';
-import { ChevronLeft, User, PackageOpen, Lock, Ticket, Sparkles, Trophy, Star, Crown, Medal, PartyPopper, Zap, Flame } from 'lucide-react';
+import { ChevronLeft, PackageOpen, Lock, Ticket, Sparkles, Trophy, Star, Crown, Medal, PartyPopper, Zap, Flame } from 'lucide-react';
 import { useAuth } from './AuthContext';
 import { useLang } from './LangContext';
 import { SERVER } from './config';
-import { FRAME_STYLES } from './UserAvatar';
+import UserAvatar from './UserAvatar';
 import { AvatarSVG } from './components/AvatarSVGs';
 import { USERNAME_COLORS } from './cosmeticColors';
 
@@ -529,17 +529,11 @@ function ItemLabel({ name, equipped, ti }) {
 }
 
 function FramePreview({ id }) {
-  const frameStyle = FRAME_STYLES[id] || {};
+  const { user } = useAuth();
+  const previewUser = { ...user, activeCosmetics: { ...(user?.activeCosmetics || {}), frame: id } };
   return (
     <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 6px' }}>
-      <div style={{
-        width: '52px', height: '52px', borderRadius: '50%',
-        background: 'var(--bg-card2)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        ...frameStyle,
-      }}>
-        <User size={26} strokeWidth={1.5} color="var(--text-muted)" aria-hidden />
-      </div>
+      <UserAvatar user={previewUser} size={52} />
     </div>
   );
 }
