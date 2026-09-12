@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { ChevronLeft, User } from 'lucide-react';
+import { ChevronLeft, User, PackageOpen, Lock, Ticket } from 'lucide-react';
 import { useAuth } from './AuthContext';
 import { useLang } from './LangContext';
 import { SERVER } from './config';
@@ -171,7 +171,7 @@ export default function Inventory({ onBack }) {
       {/* Empty state */}
       {isEmpty && (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '70px 32px 24px', textAlign: 'center', gap: '12px' }}>
-          <div style={{ fontSize: '52px', lineHeight: 1 }}>📦</div>
+          <PackageOpen size={52} strokeWidth={1.2} color="var(--text-muted)" aria-hidden />
           <div style={{ fontWeight: 900, fontSize: '18px', color: 'var(--text-primary)', marginTop: '4px' }}>{ti.empty}</div>
           <div style={{ fontSize: '13px', color: 'var(--text-muted)', maxWidth: '260px', lineHeight: 1.55 }}>{ti.emptySub}</div>
         </div>
@@ -309,7 +309,7 @@ export default function Inventory({ onBack }) {
               alignItems: 'center',
               gap: '14px',
             }}>
-              <div style={{ fontSize: '30px', flexShrink: 0, lineHeight: 1 }}>🎫</div>
+              <Ticket size={28} strokeWidth={1.5} color="var(--text-muted)" aria-hidden style={{ flexShrink: 0 }} />
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 800, fontSize: '14px', color: 'var(--text-primary)', letterSpacing: '0.02em' }}>{ti.ticketStreak}</div>
                 <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '3px', fontWeight: 700 }}>
@@ -418,7 +418,7 @@ function LockedCard({ item, locked }) {
         alignItems: 'center',
         gap: '3px',
       }}>
-        🔒 {locked}
+        <Lock size={9} strokeWidth={2.5} aria-hidden /> {locked}
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import { getUnlocked, BADGES } from './badges.js';
 import { useLang } from './LangContext.jsx';
 import { useAuth } from './AuthContext';
 import { ModeIcon } from './components/AppIcons';
-import { User } from 'lucide-react';
+import { User, Backpack } from 'lucide-react';
 import BadgeIcon, { RARITY_COLORS } from './BadgeIcon.jsx';
 
 function AccuracyGraph({ trend }) {
@@ -112,7 +112,7 @@ export default function Stats({ onBack, onSelect }) {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '20px', lineHeight: 1 }}>🎒</span>
+            <Backpack size={20} strokeWidth={1.8} color="var(--text-muted)" aria-hidden />
             <span style={{ fontWeight: 800, fontSize: '14px', color: 'var(--text-primary)', letterSpacing: '0.02em' }}>
               {t.inventory.inventoryBtn}
             </span>
