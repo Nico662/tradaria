@@ -3477,7 +3477,8 @@ app.get('/friends/list', async (req, res) => {
       status: 'accepted',
     }).populate('requester', 'name avatar customAvatar username xp badges activeCosmetics')
       .populate('recipient', 'name avatar customAvatar username xp badges activeCosmetics');
-    const friends = friendships.map(f => {
+    const validFriendships = friendships.filter(f => f.requester && f.recipient);
+    const friends = validFriendships.map(f => {
       const friend = f.requester._id.equals(decoded.id) ? f.recipient : f.requester;
       return { friendshipId: f._id, id: friend._id, name: friend.name, avatar: friend.avatar, customAvatar: friend.customAvatar || null, activeCosmetics: friend.activeCosmetics || {}, username: friend.username, xp: friend.xp, badges: friend.badges };
     });
@@ -3491,7 +3492,8 @@ app.get('/friends/pending', async (req, res) => {
   try {
     const pending = await Friendship.find({ recipient: decoded.id, status: 'pending' })
       .populate('requester', 'name avatar username xp');
-    const requests = pending.map(f => ({
+    const validPending = pending.filter(f => f.requester);
+    const requests = validPending.map(f => ({
       friendshipId: f._id,
       id: f.requester._id,
       name: f.requester.name,
