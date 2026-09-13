@@ -14,6 +14,7 @@ const session        = require('express-session');
 const jwt            = require('jsonwebtoken');
 const Stripe         = require('stripe');
 const rateLimit      = require('express-rate-limit');
+const cookieParser   = require('cookie-parser');
 const { Redis }      = require('@upstash/redis');
 const { ApnsClient, Notification } = require('apns2');
 
@@ -521,6 +522,7 @@ app.use(cors({
   origin: ['https://tradiko.dev', 'https://www.tradiko.dev'],
   credentials: true,
 }));
+app.use(cookieParser());
 
 app.use((req, res, next) => {
   if (req.originalUrl === '/shop/webhook') {
@@ -633,6 +635,12 @@ app.post('/auth/exchange', async (req, res) => {
     const token = await redis.get(`oauth_code:${code}`);
     if (!token) return res.status(400).json({ error: 'Code expired or invalid' });
     await redis.del(`oauth_code:${code}`);
+    res.cookie('tradaria_session', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      maxAge: 30 * 24 * 3600 * 1000,
+    });
     res.json({ token });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -690,8 +698,10 @@ app.post('/auth/apple', async (req, res) => {
 
 app.post('/auth/logout', async (req, res) => {
   const auth = req.headers.authorization;
-  if (!auth) return res.json({ ok: true });
-  const token = auth.replace('Bearer ', '');
+  const cookieToken = req.cookies?.tradaria_session;
+  const token = auth ? auth.replace('Bearer ', '') : cookieToken;
+  res.clearCookie('tradaria_session', { httpOnly: true, secure: true, sameSite: 'none' });
+  if (!token) return res.json({ ok: true });
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     const ttl = decoded.exp - Math.floor(Date.now() / 1000);
@@ -1596,21 +1606,8 @@ app.get('/tournament/session', async (req, res) => {
   }
 });
 
-app.post('/tournament/progress', async (req, res) => {
-  const auth = req.headers.authorization;
-  if (!auth) return res.status(401).json({ error: 'No token' });
-  try {
-    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const weekId  = getWeekId();
-    const { currentRound, score, history } = req.body;
-    await TournamentSession.findOneAndUpdate(
-      { weekId, userId: decoded.id },
-      { currentRound, score, history },
-    );
-    res.json({ ok: true });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+app.post('/tournament/progress', (req, res) => {
+  res.status(410).json({ error: 'Gone — use /tournament/progress/round' });
 });
 
 app.post('/tournament/progress/round', async (req, res) => {
@@ -2519,8 +2516,19 @@ cron.schedule('0 0 * * *', async () => {
   }
 });
 
- app.get('/stats/dashboard', async (req, res) => {
-  res.header('Access-Control-Allow-Origin', '*');
+const ADMIN_STATS_CORS = {
+  'Access-Control-Allow-Origin':  '*',
+  'Access-Control-Allow-Headers': 'x-admin-secret, Content-Type',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+};
+
+app.options('/stats/dashboard', (req, res) => res.set(ADMIN_STATS_CORS).sendStatus(200));
+app.options('/stats/revenue',   (req, res) => res.set(ADMIN_STATS_CORS).sendStatus(200));
+
+app.get('/stats/dashboard', async (req, res) => {
+  res.set(ADMIN_STATS_CORS);
+  const key = req.headers['x-admin-secret'];
+  if (!ADMIN_SECRET || key !== ADMIN_SECRET) return res.status(403).json({ error: 'Forbidden' });
   try {
     const users  = await User.aggregate([
       { $group: {
@@ -2559,7 +2567,9 @@ let revenueCacheAt = 0;
 const REVENUE_CACHE_TTL = 5 * 60 * 1000;
 
 app.get('/stats/revenue', async (req, res) => {
-  res.header('Access-Control-Allow-Origin', '*');
+  res.set(ADMIN_STATS_CORS);
+  const key = req.headers['x-admin-secret'];
+  if (!ADMIN_SECRET || key !== ADMIN_SECRET) return res.status(403).json({ error: 'Forbidden' });
   try {
     if (revenueCache && Date.now() - revenueCacheAt < REVENUE_CACHE_TTL) {
       return res.json(revenueCache);
@@ -3381,8 +3391,10 @@ app.get('/portfolio/duel/active', async (req, res) => {
 // ── Auth helpers ──────────────────────────────────────────────────
 function verifyToken(req) {
   const auth = req.headers.authorization;
-  if (!auth) return null;
-  try { return jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET); } catch { return null; }
+  const cookieToken = req.cookies?.tradaria_session;
+  const token = auth ? auth.replace('Bearer ', '') : cookieToken;
+  if (!token) return null;
+  try { return jwt.verify(token, JWT_SECRET); } catch { return null; }
 }
 
 async function verifyTokenBlacklisted(req) {
