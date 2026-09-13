@@ -6,10 +6,7 @@ export function purchaseWithStoreKit(productID) {
       if (window.__iapResult !== null) {
         clearInterval(interval);
         if (window.__iapResult.success) {
-          resolve({
-            productID: window.__iapResult.productID,
-            receiptData: window.__iapResult.receiptData || null,
-          });
+          resolve(window.__iapResult.productID);
         } else {
           reject(new Error(window.__iapResult.error || 'Purchase cancelled'));
         }

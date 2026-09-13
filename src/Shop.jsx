@@ -536,14 +536,14 @@ export default function Shop({ onBack }) {
   const items = SHOP_ITEMS[activeCategory];
   const cosmeticType = CATEGORY_TYPES[activeCategory];
 
-  async function handlePurchaseSuccess(itemId, receiptData = null) {
+  async function handlePurchaseSuccess(itemId) {
     const token = localStorage.getItem('tradaria_token');
     if (!token) return;
     try {
       await fetch(`${SERVER}/shop/iap-confirm`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ itemId, receiptData }),
+        body: JSON.stringify({ itemId }),
       });
       await refreshPurchases();
     } catch (err) {
@@ -573,8 +573,8 @@ export default function Shop({ onBack }) {
       setLoading(itemId);
       try {
         const productID = `dev.tradiko.${itemId.replace('_', '.')}`;
-        const { receiptData } = await purchaseWithStoreKit(productID);
-        await handlePurchaseSuccess(itemId, receiptData);
+        await purchaseWithStoreKit(productID);
+        await handlePurchaseSuccess(itemId);
       } catch (err) {
         console.log('IAP error:', err.message);
       } finally {

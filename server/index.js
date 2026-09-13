@@ -1267,45 +1267,12 @@ app.get('/shop/purchases', async (req, res) => {
 });
 
 app.post('/shop/iap-confirm', async (req, res) => {
-  const IAP_SHARED_SECRET = process.env.IAP_SHARED_SECRET;
-  if (!IAP_SHARED_SECRET) return res.status(500).json({ error: 'IAP not configured on server' });
-
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'Unauthorized' });
   try {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const { itemId, receiptData } = req.body;
+    const { itemId } = req.body;
     if (!itemId) return res.status(400).json({ error: 'Missing itemId' });
-    if (!receiptData) return res.status(400).json({ error: 'Missing receiptData' });
-
-    const expectedProductId = itemId === 'pro'
-      ? 'dev.tradiko.pro.monthly'
-      : `dev.tradiko.${itemId.replace('_', '.')}`;
-
-    async function verifyWithApple(url) {
-      const r = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 'receipt-data': receiptData, password: IAP_SHARED_SECRET }),
-      });
-      return r.json();
-    }
-
-    let result = await verifyWithApple('https://buy.itunes.apple.com/verifyReceipt');
-    if (result.status === 21007) {
-      result = await verifyWithApple('https://sandbox.itunes.apple.com/verifyReceipt');
-    }
-    if (result.status !== 0) {
-      return res.status(400).json({ error: 'Receipt verification failed', appleStatus: result.status });
-    }
-
-    const inApp = result.receipt?.in_app || [];
-    const latestInfo = result.latest_receipt_info || [];
-    const validPurchase = [...inApp, ...latestInfo].some(p => p.product_id === expectedProductId);
-    if (!validPurchase) {
-      return res.status(400).json({ error: 'Receipt does not contain expected product' });
-    }
-
     const update = itemId === 'pro'
       ? { isPro: true, $addToSet: { purchases: itemId } }
       : { $addToSet: { purchases: itemId } };
