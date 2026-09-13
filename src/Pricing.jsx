@@ -28,13 +28,14 @@ export default function Pricing({ onBack, fromTournament }) {
     setLoading(true);
     if (isIOSApp()) {
       try {
-        await purchaseWithStoreKit('dev.tradiko.pro.monthly');
+        const { receiptData } = await purchaseWithStoreKit('dev.tradiko.pro.monthly');
         const token = localStorage.getItem('tradaria_token');
-        await fetch(`${SERVER}/shop/iap-confirm`, {
+        const confirmRes = await fetch(`${SERVER}/shop/iap-confirm`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ itemId: 'pro' }),
+          body: JSON.stringify({ itemId: 'pro', receiptData }),
         });
+        if (!confirmRes.ok) throw new Error('Receipt verification failed');
         updateUser({ isPro: true });
       } catch (err) {
         if (err.message !== 'Purchase cancelled') setMsg(t.pricing.networkError);

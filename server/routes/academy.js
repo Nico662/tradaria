@@ -154,7 +154,11 @@ router.get('/:id/dashboard', requireAuth, async (req, res) => {
     }));
 
     const tournaments = await AcademyTournament.find({ academyId: req.params.id }).sort({ startsAt: -1 });
-    res.json({ ...academy.toObject(), students: studentStats, tournaments });
+    const academyObj = academy.toObject();
+    delete academyObj.students;
+    delete academyObj.stripeCustomerId;
+    delete academyObj.stripeSubscriptionId;
+    res.json({ ...academyObj, students: studentStats, tournaments });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 

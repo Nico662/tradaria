@@ -215,13 +215,6 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
       return;
     }
     const nextRoundIdx = round + 1;
-    if (!academyTournamentId && token) {
-      fetch(`${SERVER}/tournament/progress`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ currentRound: nextRoundIdx, score, history }),
-      }).catch(() => {});
-    }
     setRound(nextRoundIdx);
     setResult(null);
     setRevealing(false);
