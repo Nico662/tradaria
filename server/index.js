@@ -518,6 +518,17 @@ async function getPrice(asset) {
   });
 }
 // ── Middlewares ───────────────────────────────────────────────────
+// OPTIONS preflight for admin-only stat endpoints must be registered before
+// the global cors() middleware, which intercepts OPTIONS and responds 204
+// (bypassing route-level handlers) when the origin is not in the whitelist.
+app.options(['/stats/dashboard', '/stats/revenue'], (req, res) => {
+  res.set({
+    'Access-Control-Allow-Origin':  '*',
+    'Access-Control-Allow-Headers': 'x-admin-secret, Content-Type',
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  }).sendStatus(200);
+});
+
 app.use(cors({
   origin: ['https://tradiko.dev', 'https://www.tradiko.dev'],
   credentials: true,
