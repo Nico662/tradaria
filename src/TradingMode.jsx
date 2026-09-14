@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import TradikoCandleLogo from './components/TradikoCandleLogo';
 import { createChart, CandlestickSeries } from 'lightweight-charts';
 import { useLang } from './LangContext';
 import { isIOSApp } from './AuthContext';
@@ -432,6 +433,13 @@ export default function TradingMode({ onBack }) {
   const [closedPositions, setClosedPositions] = useState(MOCK_HISTORY);
   const [socialTab,       setSocialTab]       = useState('ranking');
   const [rankingPeriod,   setRankingPeriod]   = useState('global');
+  const [splash,          setSplash]          = useState(true);
+
+  // ── Splash ───────────────────────────────────────────────────────────────
+  useEffect(() => {
+    const t = setTimeout(() => setSplash(false), 750);
+    return () => clearTimeout(t);
+  }, []);
 
   // ── Mock price blinking ───────────────────────────────────────────────────
   useEffect(() => {
@@ -936,7 +944,7 @@ export default function TradingMode({ onBack }) {
           {AccountHeader}
           {Separator}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '0 32px 48px' }}>
-            <Activity size={46} style={{ stroke: '#222' }} />
+            <TradikoCandleLogo width={40} style={{ opacity: 0.35 }} />
             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 14, color: 'var(--text-muted)', textAlign: 'center' }}>
               {tr.noPositions ?? 'Sin posiciones abiertas'}
             </div>
@@ -1032,9 +1040,9 @@ export default function TradingMode({ onBack }) {
           {histTab === 'positions' && (
             <>
               {closedPositions.length === 0 ? (
-                <div style={{ padding: 48, textAlign: 'center' }}>
-                  <Clock size={38} style={{ stroke: '#222' }} />
-                  <div style={{ marginTop: 12, fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 14, color: 'var(--text-muted)' }}>
+                <div style={{ padding: 48, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+                  <TradikoCandleLogo width={36} style={{ opacity: 0.35 }} />
+                  <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 14, color: 'var(--text-muted)' }}>
                     {tr.noHistory ?? 'Sin historial'}
                   </div>
                 </div>
@@ -1315,6 +1323,12 @@ export default function TradingMode({ onBack }) {
 
     return (
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {/* Brand strip */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px 6px', borderBottom: '0.5px solid var(--border-subtle)', flexShrink: 0 }}>
+          <TradikoCandleLogo width={11} />
+          <span style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 9, color: 'var(--pink)', letterSpacing: '0.18em', textTransform: 'uppercase' }}>Tradiko</span>
+          <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 9, color: 'var(--text-hint)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Social</span>
+        </div>
         {/* Sub-tab bar */}
         <div style={{ display: 'flex', borderBottom: '1px solid var(--border-default)', flexShrink: 0 }}>
           {subTabs.map(st => {
@@ -1366,7 +1380,11 @@ export default function TradingMode({ onBack }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', maxWidth: 480, margin: '0 auto', background: 'var(--bg-base)', fontFamily: 'var(--font-body)', overflow: 'hidden' }}>
-      <style>{`@keyframes qt-flash { 0%,100%{opacity:1} 25%{opacity:0.1} }`}</style>
+      <style>{`
+        @keyframes qt-flash { 0%,100%{opacity:1} 25%{opacity:0.1} }
+        @keyframes tm-splash-in { 0%{opacity:0;transform:scale(0.88)} 60%{opacity:1;transform:scale(1.04)} 100%{opacity:1;transform:scale(1)} }
+        @keyframes tm-splash-out { 0%{opacity:1} 100%{opacity:0} }
+      `}</style>
 
       {/* ── Account Header ─────────────────────────────────────────────── */}
       <div style={{ background: 'var(--bg-surface)', borderBottom: '0.5px solid var(--border-default)', padding: '10px 14px 10px', flexShrink: 0 }}>
@@ -1374,8 +1392,11 @@ export default function TradingMode({ onBack }) {
           <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, padding: 0, fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 12, letterSpacing: '0.06em' }}>
             <ChevronLeft size={16} /> {tr.back ?? 'Back'}
           </button>
-          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 13, color: 'var(--text-primary)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-            {tr.title ?? 'Trading Mode'}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <TradikoCandleLogo width={14} />
+            <span style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 13, color: 'var(--text-primary)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              {tr.title ?? 'Trading Mode'}
+            </span>
           </div>
           <button onClick={() => setShowTutorial(true)} style={{ background: 'transparent', border: 'none', color: 'var(--text-hint)', cursor: 'pointer', padding: 4 }}>
             <Info size={16} />
@@ -1400,11 +1421,22 @@ export default function TradingMode({ onBack }) {
 
       {/* ── Tab content ────────────────────────────────────────────────── */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        {tab === 'symbols'   && renderSymbols()}
-        {tab === 'chart'     && renderChart()}
-        {tab === 'positions' && renderPositions()}
-        {tab === 'ticket'    && renderHistorial()}
-        {tab === 'social'    && renderSocial()}
+        {splash ? (
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, animation: 'tm-splash-out 0.3s ease 0.45s both' }}>
+            <TradikoCandleLogo width={52} style={{ animation: 'tm-splash-in 0.5s ease-out forwards' }} />
+            <span style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 12, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--text-hint)', animation: 'tm-splash-in 0.5s ease-out 0.1s both' }}>
+              Trading Mode
+            </span>
+          </div>
+        ) : (
+          <>
+            {tab === 'symbols'   && renderSymbols()}
+            {tab === 'chart'     && renderChart()}
+            {tab === 'positions' && renderPositions()}
+            {tab === 'ticket'    && renderHistorial()}
+            {tab === 'social'    && renderSocial()}
+          </>
+        )}
       </div>
 
       {/* ── Bottom tab bar ──────────────────────────────────────────────── */}
