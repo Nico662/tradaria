@@ -580,6 +580,8 @@ app.use('/friends/request',           writeLimiter);
 app.use('/portfolio/duel/challenge',  writeLimiter);
 app.use('/arena/async/create',        writeLimiter);
 app.use('/api/alerts',                writeLimiter);
+app.use('/academy/create',            writeLimiter);
+app.use('/academy/join',              writeLimiter);
 
 // ── Passport ──────────────────────────────────────────────────────
 passport.use(new GoogleStrategy({
@@ -765,7 +767,7 @@ app.get('/auth/me', async (req, res) => {
 });
 
 app.post('/daily/complete', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
 
   const { xp, badges, dailyResult } = req.body;
@@ -807,17 +809,17 @@ app.post('/daily/complete', async (req, res) => {
 });
 
 app.post('/auth/sync', async (req, res) => {
-  const decoded = await verifyTokenBlacklisted(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const current = await User.findById(decoded.id);
     if (!current) return res.status(404).json({ error: 'User not found' });
     const { xp, badges, dailyStreak, lastPlayed, dailyResult } = req.body;
 
-    // XP: only allow increase, cap delta at 2000 per sync
+    // XP: only allow increase, cap delta at 2000 per sync, never below current
     const newXP = Number(xp);
     const safeXP = Number.isFinite(newXP) && newXP >= 0
-      ? Math.min(newXP, current.xp + 2000)
+      ? Math.max(Math.min(newXP, current.xp + 2000), current.xp)
       : current.xp;
 
     // Badges: only known IDs, only additive
@@ -876,7 +878,7 @@ app.post('/auth/avatar', async (req, res) => {
 });
 
 app.post('/auth/cosmetics', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const { activeCosmetics } = req.body;
@@ -934,7 +936,7 @@ app.post('/auth/username/set', async (req, res) => {
 
 app.delete('/auth/account', async (req, res) => {
   try {
-    const decoded = verifyToken(req);
+    const decoded = await verifyToken(req);
     if (!decoded) return res.status(401).json({ error: 'No token' });
     await User.findByIdAndDelete(decoded.id);
     res.json({ success: true });
@@ -1310,7 +1312,7 @@ app.get('/stats/share', async (req, res) => {
 });
 
 app.post('/stats/share', async (req, res) => {
-  if (!verifyToken(req)) return res.status(401).json({ error: 'No token' });
+  if (!(await verifyToken(req))) return res.status(401).json({ error: 'No token' });
   try {
     await Stats.findByIdAndUpdate('shares', { $inc: { daily: 1 } }, { upsert: true, new: true });
     res.json({ ok: true });
@@ -1318,7 +1320,7 @@ app.post('/stats/share', async (req, res) => {
 });
 
 app.post('/stats/game', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const { mode, score, correct, wrong, accuracy, streak, rounds } = req.body;
@@ -1337,7 +1339,7 @@ app.post('/stats/game', async (req, res) => {
 });
 
 app.get('/stats/personal', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const games = await GameHistory.find({ userId: decoded.id }).sort({ createdAt: -1 }).limit(200);
@@ -1437,6 +1439,8 @@ async function getDailyChallenge() {
 }
 
 app.get('/daily', async (req, res) => {
+  const decoded = await verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const challenge = await getDailyChallenge();
     res.json({
@@ -1860,7 +1864,7 @@ app.get('/arena/async/:code/status', async (req, res) => {
 
 // ── Push routes ───────────────────────────────────────────────────
 app.post('/push/subscribe', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
   const { userId, ...sub } = req.body;
   if (!sub || !sub.endpoint) return res.status(400).json({ error: 'Invalid subscription' });
@@ -1897,7 +1901,7 @@ app.post('/push/send', async (req, res) => {
 });
 
 app.post('/push/apns-register', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
   const { deviceToken } = req.body;
   if (!deviceToken) return res.status(400).json({ error: 'No token' });
@@ -1906,7 +1910,7 @@ app.post('/push/apns-register', async (req, res) => {
 });
 
 app.get('/push/apns-token', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
   const token = await redis.get(`apns_token:${decoded.id}`);
   res.json({ token: token || null });
@@ -3316,7 +3320,7 @@ async function getPortfolioValue(userId) {
 
 // ── Portfolio duels ───────────────────────────────────────────────
 app.post('/portfolio/duel/challenge', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const { username } = req.body;
@@ -3338,7 +3342,7 @@ app.post('/portfolio/duel/challenge', async (req, res) => {
 });
 
 app.post('/portfolio/duel/accept/:duelId', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const duel = await PortfolioDuel.findOne({ _id: req.params.duelId, opponent: decoded.id, status: 'pending' });
@@ -3355,7 +3359,7 @@ app.post('/portfolio/duel/accept/:duelId', async (req, res) => {
 });
 
 app.post('/portfolio/duel/reject/:duelId', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     await PortfolioDuel.findOneAndDelete({ _id: req.params.duelId, opponent: decoded.id, status: 'pending' });
@@ -3364,7 +3368,7 @@ app.post('/portfolio/duel/reject/:duelId', async (req, res) => {
 });
 
 app.get('/portfolio/duel/pending', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const duels = await PortfolioDuel.find({ opponent: decoded.id, status: 'pending' })
@@ -3378,7 +3382,7 @@ app.get('/portfolio/duel/pending', async (req, res) => {
 });
 
 app.get('/portfolio/duel/active', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const duel = await PortfolioDuel.findOne({
@@ -3400,18 +3404,11 @@ app.get('/portfolio/duel/active', async (req, res) => {
 });
 
 // ── Auth helpers ──────────────────────────────────────────────────
-function verifyToken(req) {
+async function verifyToken(req) {
   const auth = req.headers.authorization;
   const cookieToken = req.cookies?.tradaria_session;
   const token = auth ? auth.replace('Bearer ', '') : cookieToken;
   if (!token) return null;
-  try { return jwt.verify(token, JWT_SECRET); } catch { return null; }
-}
-
-async function verifyTokenBlacklisted(req) {
-  const auth = req.headers.authorization;
-  if (!auth) return null;
-  const token = auth.replace('Bearer ', '');
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     const blacklisted = await redis.get(`blacklist:${token}`);
@@ -3423,7 +3420,7 @@ async function verifyTokenBlacklisted(req) {
 // ── Friends routes ────────────────────────────────────────────────
 
 app.post('/friends/request', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const { username } = req.body;
@@ -3444,7 +3441,7 @@ app.post('/friends/request', async (req, res) => {
 });
 
 app.post('/friends/accept', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const { friendshipId } = req.body;
@@ -3457,7 +3454,7 @@ app.post('/friends/accept', async (req, res) => {
 });
 
 app.post('/friends/reject', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const { friendshipId } = req.body;
@@ -3469,7 +3466,7 @@ app.post('/friends/reject', async (req, res) => {
 });
 
 app.get('/friends/list', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const friendships = await Friendship.find({
@@ -3487,7 +3484,7 @@ app.get('/friends/list', async (req, res) => {
 });
 
 app.get('/friends/pending', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const pending = await Friendship.find({ recipient: decoded.id, status: 'pending' })
@@ -3507,7 +3504,7 @@ app.get('/friends/pending', async (req, res) => {
 });
 
 app.get('/friends/profile/:username', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const target = await User.findOne({ username: req.params.username.toLowerCase() });
@@ -3571,7 +3568,7 @@ app.get('/u/:username', async (req, res) => {
     } catch {}
 
     let friendshipStatus = null;
-    const decoded = verifyToken(req);
+    const decoded = await verifyToken(req);
     if (decoded && decoded.id !== target._id.toString()) {
       try {
         const fr = await Friendship.findOne({
@@ -3647,7 +3644,7 @@ setInterval(async () => {
 
 // ── Price alerts ──────────────────────────────────────────────────
 app.get('/api/alerts', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
   const user = await User.findById(decoded.id).select('isPro');
   if (!user?.isPro) return res.status(403).json({ error: 'Pro required' });
@@ -3656,7 +3653,7 @@ app.get('/api/alerts', async (req, res) => {
 });
 
 app.post('/api/alerts', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
   const user = await User.findById(decoded.id).select('isPro');
   if (!user?.isPro) return res.status(403).json({ error: 'Pro required' });
@@ -3670,7 +3667,7 @@ app.post('/api/alerts', async (req, res) => {
 });
 
 app.delete('/api/alerts/:id', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
   await PriceAlert.deleteOne({ _id: req.params.id, userId: decoded.id });
   res.json({ ok: true });
@@ -3678,7 +3675,7 @@ app.delete('/api/alerts/:id', async (req, res) => {
 
 // ── Position notes (Pro) ─────────────────────────────────────────
 app.get('/api/portfolio/notes', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const user = await User.findById(decoded.id).select('isPro');
@@ -3689,7 +3686,7 @@ app.get('/api/portfolio/notes', async (req, res) => {
 });
 
 app.post('/api/portfolio/note', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const user = await User.findById(decoded.id).select('isPro');
@@ -3706,7 +3703,7 @@ app.post('/api/portfolio/note', async (req, res) => {
 });
 
 app.delete('/api/portfolio/note/:ticker', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     await PositionNote.deleteOne({ userId: decoded.id, ticker: req.params.ticker });
@@ -3716,7 +3713,7 @@ app.delete('/api/portfolio/note/:ticker', async (req, res) => {
 
 // ── Portfolio compare vs #1 (Pro) ─────────────────────────────────
 app.get('/api/portfolio/compare', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const user = await User.findById(decoded.id).select('isPro');

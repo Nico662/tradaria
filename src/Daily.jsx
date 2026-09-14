@@ -93,7 +93,8 @@ export default function Daily({ onBack }) {
     if (fetchedRef.current) return;
     fetchedRef.current = true;
 
-    fetch(`${SERVER}/daily`)
+    const tok = localStorage.getItem('tradaria_token');
+    fetch(`${SERVER}/daily`, { headers: tok ? { Authorization: `Bearer ${tok}` } : {} })
       .then(r => r.json())
       .then(data => {
         setDailyAsset({
