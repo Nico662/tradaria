@@ -2095,10 +2095,24 @@ function generateCode() {
   return privateLobby[code] ? generateCode() : code;
 }
 
+// ── Socket.IO auth middleware ─────────────────────────────────────
+io.use((socket, next) => {
+  const token = socket.handshake.auth?.token;
+  if (!token) return next(new Error('Authentication required'));
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    socket.userId = decoded.id;
+    next();
+  } catch {
+    next(new Error('Invalid token'));
+  }
+});
+
 io.on('connection', (socket) => {
   console.log('Connected:', socket.id);
 
   socket.on('matchmaking:join', ({ name }) => {
+    if (!socket.userId) return;
     socket.playerName = name || 'Player';
     if (waiting && waiting.id !== socket.id) {
       const opponent = waiting; waiting = null;
@@ -2132,6 +2146,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('room:create', ({ name }) => {
+    if (!socket.userId) { socket.emit('room:error', { message: 'Not authenticated' }); return; }
     socket.playerName = name || 'Player';
     const code = generateCode();
     privateLobby[code] = { host: socket, name };
@@ -2140,6 +2155,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('room:join', ({ name, code }) => {
+    if (!socket.userId) { socket.emit('room:error', { message: 'Not authenticated' }); return; }
     socket.playerName = name || 'Player';
     const lobby = privateLobby[code.toUpperCase()];
     if (!lobby) { socket.emit('room:error', { message: 'Sala no encontrada' }); return; }
@@ -2199,14 +2215,13 @@ io.on('connection', (socket) => {
   });
 
   // ── Challenge system ────────────────────────────────────────────────
-  socket.on('user:register', async ({ username, token }) => {
-    if (!username || !token) return;
+  // userId already verified by io.use() middleware — just validate the username claim
+  socket.on('user:register', async ({ username }) => {
+    if (!username || !socket.userId) return;
     try {
-      const decoded = jwt.verify(token, JWT_SECRET);
-      const user = await User.findById(decoded.id).select('username');
+      const user = await User.findById(socket.userId).select('username');
       if (!user || user.username !== username) return;
       socket.username = username;
-      socket.userId   = decoded.id;
       userSockets[username] = socket;
     } catch {}
   });
@@ -2248,6 +2263,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('challenge:join', ({ name, code }) => {
+    if (!socket.userId) { socket.emit('room:error', { message: 'Not authenticated' }); return; }
     socket.playerName = name || 'Player';
     const challenge = challengeRooms[code];
     if (!challenge?.accepted) {
@@ -3404,6 +3420,7 @@ app.get('/portfolio/duel/active', async (req, res) => {
 });
 
 // ── Auth helpers ──────────────────────────────────────────────────
+const REDIS_TIMEOUT_MS = 250;
 async function verifyToken(req) {
   const auth = req.headers.authorization;
   const cookieToken = req.cookies?.tradaria_session;
@@ -3411,7 +3428,12 @@ async function verifyToken(req) {
   if (!token) return null;
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    const blacklisted = await redis.get(`blacklist:${token}`);
+    const blacklisted = await Promise.race([
+      redis.get(`blacklist:${token}`),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Redis blacklist timeout')), REDIS_TIMEOUT_MS)
+      ),
+    ]);
     if (blacklisted) return null;
     return decoded;
   } catch { return null; }
