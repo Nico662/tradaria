@@ -114,10 +114,11 @@ export default function App() {
 
   useEffect(() => {
     if (!user?.username) return;
-    const socket = io(SERVER, { reconnection: true });
+    const tok = localStorage.getItem('tradaria_token') || '';
+    const socket = io(SERVER, { reconnection: true, auth: { token: tok } });
     challengeSocketRef.current = socket;
     setChallengeSocket(socket);
-    socket.on('connect', () => socket.emit('user:register', { username: user.username, token: localStorage.getItem('tradaria_token') }));
+    socket.on('connect', () => socket.emit('user:register', { username: user.username }));
     socket.on('friend:challenged', ({ challengerUsername, roomCode }) => {
       setPendingChallenge({ challengerUsername, roomCode });
     });

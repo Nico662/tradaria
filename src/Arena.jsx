@@ -339,7 +339,8 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
       socketRef.current.disconnect();
       socketRef.current = null;
     }
-    const socket = io(SOCKET_URL, { reconnection: false });
+    const token = localStorage.getItem('tradaria_token') || '';
+    const socket = io(SOCKET_URL, { reconnection: false, auth: { token } });
     socketRef.current = socket;
 
     socket.on('connect_error',             () => setStatus(t.arena.connError));
