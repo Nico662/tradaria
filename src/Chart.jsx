@@ -1,6 +1,6 @@
 import { createChart, CandlestickSeries } from "lightweight-charts";
 import { useEffect, useRef, useImperativeHandle, forwardRef } from "react";
-import { SERVER, ALPHA_VANTAGE_KEY } from './config.js';
+import { SERVER } from './config.js';
 
 const FOREX = ['EUR/USD','GBP/USD','AUD/USD','USD/JPY','USD/CHF','USD/CAD'];
 
@@ -40,22 +40,10 @@ async function fetchYahooCandles(symbol, interval) {
 }
 
 async function fetchAlphaVantageCandles(symbol, interval) {
-  const apiKey = ALPHA_VANTAGE_KEY;
-  const url = `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${symbol}&interval=${interval}&outputsize=full&apikey=${apiKey}`;
-  const res  = await fetch(url);
+  const res  = await fetch(`${SERVER}/candles/alpha-vantage?symbol=${encodeURIComponent(symbol)}&interval=${interval}`);
   const data = await res.json();
-  const key    = `Time Series (${interval})`;
-  const series = data[key];
-  if (!series) throw new Error('No data from Alpha Vantage');
-  return Object.entries(series)
-    .map(([time, v]) => ({
-      time:  Math.floor(new Date(time).getTime() / 1000),
-      open:  parseFloat(v['1. open']),
-      high:  parseFloat(v['2. high']),
-      low:   parseFloat(v['3. low']),
-      close: parseFloat(v['4. close']),
-    }))
-    .reverse();
+  if (data.error) throw new Error(data.error);
+  return data;
 }
 
 function toChartData(candles, startIndex = 0) {
