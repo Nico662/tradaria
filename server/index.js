@@ -17,6 +17,7 @@ const rateLimit      = require('express-rate-limit');
 const cookieParser   = require('cookie-parser');
 const { Redis }      = require('@upstash/redis');
 const { ApnsClient, Notification } = require('apns2');
+const sharp          = require('sharp');
 
 const apnsClient = new ApnsClient({
   team: 'KA99F6SRW4',
@@ -29,7 +30,9 @@ const apnsClient = new ApnsClient({
 // ── Config ────────────────────────────────────────────────────────
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) { console.error('FATAL: JWT_SECRET env var is not set'); process.exit(1); }
-const ADMIN_SECRET = process.env.ADMIN_SECRET; // protects /push/send against spam
+const ADMIN_SECRET = process.env.ADMIN_SECRET;
+if (!ADMIN_SECRET) { console.error('FATAL: ADMIN_SECRET env var is not set'); process.exit(1); }
+const ALPHA_VANTAGE_KEY = process.env.ALPHA_VANTAGE_KEY;
 
 const VALID_BADGE_IDS = new Set([
   'first_trade','sniper','on_fire','diamond_hands','consistent','dedicated','legend',
@@ -543,8 +546,10 @@ app.use((req, res, next) => {
   }
 });
 
+const SESSION_SECRET = process.env.SESSION_SECRET;
+if (!SESSION_SECRET) { console.warn('WARNING: SESSION_SECRET not set — falling back to JWT_SECRET. Add SESSION_SECRET to Railway before next deploy.'); }
 app.use(session({
-  secret: JWT_SECRET,
+  secret: SESSION_SECRET || JWT_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: { secure: true, httpOnly: true, sameSite: 'strict' },
@@ -656,7 +661,7 @@ app.post('/auth/exchange', async (req, res) => {
     });
     res.json({ token });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -870,6 +875,12 @@ app.post('/auth/avatar', async (req, res) => {
     const SAFE_AVATAR = /^data:image\/(jpeg|png|webp|gif);base64,/;
     if (typeof avatar !== 'string' || !SAFE_AVATAR.test(avatar)) return res.status(400).json({ error: 'Invalid image format' });
     if (avatar.length > 700000) return res.status(400).json({ error: 'Image too large (max 500KB)' });
+    const base64Data = avatar.replace(/^data:image\/[a-z]+;base64,/, '');
+    try {
+      await sharp(Buffer.from(base64Data, 'base64')).metadata();
+    } catch {
+      return res.status(400).json({ error: 'Invalid image content' });
+    }
     await User.findByIdAndUpdate(decoded.id, { customAvatar: avatar });
     res.json({ ok: true });
   } catch (err) {
@@ -899,7 +910,7 @@ app.post('/auth/cosmetics', async (req, res) => {
     await User.findByIdAndUpdate(decoded.id, { activeCosmetics: safe });
     res.json({ ok: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -912,7 +923,7 @@ app.get('/auth/username/check/:username', async (req, res) => {
     const existing = await User.findOne({ username: username.toLowerCase() });
     res.json({ available: !existing });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -930,7 +941,7 @@ app.post('/auth/username/set', async (req, res) => {
     await User.findByIdAndUpdate(decoded.id, { username: username.toLowerCase() });
     res.json({ ok: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1193,7 +1204,7 @@ app.get('/tournaments', async (req, res) => {
     }
     res.json({ paid });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1263,7 +1274,7 @@ app.post('/tournament/paid/:id/winner', async (req, res) => {
     }, { new: true });
     res.json({ ok: true, tournament: pt });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1334,7 +1345,7 @@ app.post('/stats/game', async (req, res) => {
     await GameHistory.create({ userId: decoded.id, mode, score: safeScore, correct: safeCorrect, wrong: safeWrong, accuracy: safeAccuracy, streak: safeStreak, rounds: safeRounds });
     res.json({ ok: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1366,7 +1377,7 @@ app.get('/stats/personal', async (req, res) => {
     const betterThan = avgAccuracy >= globalAvg ? Math.round(((avgAccuracy - globalAvg) / (100 - globalAvg)) * 50 + 50) : Math.round((avgAccuracy / globalAvg) * 50);
     res.json({ totalGames, totalCorrect, totalWrong, avgAccuracy, bestScore, bestStreak, favoriteMode, winRate, dailyStreak, gamesThisWeek, accuracyTrend, betterThan: Math.min(99, Math.max(1, betterThan)), modeCounts });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1396,7 +1407,36 @@ app.get('/candles', async (req, res) => {
     res.json(candles);
   } catch (err) {
     console.error(err.message);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/candles/alpha-vantage', async (req, res) => {
+  const { symbol, interval } = req.query;
+  if (!symbol || !/^[A-Z0-9]{1,10}$/i.test(symbol)) return res.status(400).json({ error: 'Invalid symbol' });
+  const validIntervals = new Set(['1min', '5min', '15min', '30min', '60min']);
+  if (!interval || !validIntervals.has(interval)) return res.status(400).json({ error: 'Invalid interval' });
+  if (!ALPHA_VANTAGE_KEY) return res.status(503).json({ error: 'Service unavailable' });
+  try {
+    const url = `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${encodeURIComponent(symbol)}&interval=${interval}&outputsize=full&apikey=${ALPHA_VANTAGE_KEY}`;
+    const response = await fetch(url);
+    const data     = await response.json();
+    const seriesKey = `Time Series (${interval})`;
+    const series    = data[seriesKey];
+    if (!series) return res.status(502).json({ error: 'No data from Alpha Vantage' });
+    const candles = Object.entries(series)
+      .map(([time, v]) => ({
+        time:  Math.floor(new Date(time).getTime() / 1000),
+        open:  parseFloat(v['1. open']),
+        high:  parseFloat(v['2. high']),
+        low:   parseFloat(v['3. low']),
+        close: parseFloat(v['4. close']),
+      }))
+      .reverse();
+    res.json(candles);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1450,7 +1490,7 @@ app.get('/daily', async (req, res) => {
       visible:  challenge.visible,
       future:   challenge.future,
     });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 // ── Tournament routes ─────────────────────────────────────────────
@@ -1503,7 +1543,7 @@ app.get('/tournament', async (req, res) => {
     }
     res.json({ weekId, rounds });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1531,7 +1571,7 @@ app.get('/tournament/leaderboard', async (req, res) => {
     }
     res.json({ weekId, scores: top10, userPosition });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1563,7 +1603,7 @@ app.post('/tournament/score', async (req, res) => {
     await TournamentSession.findOneAndUpdate({ weekId, userId: user._id }, { completed: true });
     res.json({ ok: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1617,7 +1657,7 @@ app.get('/tournament/session', async (req, res) => {
       completed:    session.completed,
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1662,7 +1702,7 @@ app.post('/tournament/progress/round', async (req, res) => {
 
     res.json({ ok: true, win, pts, pctMove, direction });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1716,7 +1756,7 @@ app.post('/arena/async/create', async (req, res) => {
     });
     res.json({ code: duel.code, charts: duel.charts, challengerName });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1754,12 +1794,15 @@ app.get('/arena/async/my-duels', async (req, res) => {
     });
     res.json({ duels: result });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 app.get('/arena/async/:code', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
   try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
     const duel = await AsyncDuel.findOne({ code: req.params.code.toUpperCase() });
     if (!duel) return res.status(404).json({ error: 'Duel not found' });
     if (duel.status === 'waiting_rival' && new Date() > duel.expiresAt) {
@@ -1767,11 +1810,15 @@ app.get('/arena/async/:code', async (req, res) => {
       return res.json({ duel: { code: duel.code, status: 'expired', challenger: { name: duel.challenger.name }, rival: { name: '' }, charts: [], expiresAt: duel.expiresAt } });
     }
     const completed = duel.status === 'completed';
+    // Strip future candles until the duel is completed — rivals must earn them via /round
+    const safeCharts = completed
+      ? duel.charts
+      : duel.charts.map(c => ({ asset: c.asset, interval: c.interval, visible: c.visible }));
     res.json({
       duel: {
         code:             duel.code,
         status:           duel.status,
-        charts:           duel.charts,
+        charts:           safeCharts,
         challengerUserId: String(duel.challenger.userId || ''),
         challenger: { name: duel.challenger.name, score: completed ? duel.challenger.score : null, answers: completed ? duel.challenger.answers : [] },
         rival:      { name: duel.rival.name,       score: completed ? duel.rival.score       : null, answers: completed ? duel.rival.answers       : [] },
@@ -1780,7 +1827,43 @@ app.get('/arena/async/:code', async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/arena/async/:code/round', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const code    = req.params.code.toUpperCase();
+    const duel    = await AsyncDuel.findOne({ code });
+    if (!duel) return res.status(404).json({ error: 'Duel not found' });
+    if (duel.status !== 'waiting_rival') return res.status(400).json({ error: 'Duel not waiting for rival' });
+    // Only the rival plays this; the challenger cannot use this endpoint
+    if (decoded.id === duel.challenger.userId?.toString()) return res.status(403).json({ error: 'Forbidden' });
+
+    const { roundIndex, choice } = req.body;
+    if (typeof roundIndex !== 'number' || roundIndex < 0 || roundIndex >= duel.charts.length) {
+      return res.status(400).json({ error: 'Invalid round index' });
+    }
+    if (!['long', 'short', 'skip'].includes(choice)) {
+      return res.status(400).json({ error: 'Invalid choice' });
+    }
+
+    const chart      = duel.charts[roundIndex];
+    const lastClose  = chart.visible[chart.visible.length - 1].close;
+    const lastFuture = chart.future[chart.future.length - 1].close;
+    const pctMove    = (lastFuture - lastClose) / lastClose * 100;
+    const direction  = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
+    const win = (choice === 'long'  && direction === 'up')
+             || (choice === 'short' && direction === 'down')
+             || (choice === 'skip'  && direction === 'flat');
+    const pts = win && choice !== 'skip' ? 100 : win && choice === 'skip' ? 50 : 0;
+
+    res.json({ ok: true, win, direction, pctMove: +pctMove.toFixed(2), pts, future: chart.future });
+  } catch (err) {
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1824,8 +1907,35 @@ app.post('/arena/async/:code/submit', async (req, res) => {
 
       await AsyncDuel.findByIdAndUpdate(duel._id, { 'challenger.answers': safeAnswers, 'challenger.score': serverScore, 'challenger.completedAt': new Date(), status: 'waiting_rival' });
     } else {
+      if (!userId) return res.status(401).json({ error: 'Authentication required' });
+      if (userId === duel.challenger.userId?.toString()) return res.status(403).json({ error: 'Forbidden' });
       if (duel.status !== 'waiting_rival') return res.status(400).json({ error: 'Cannot submit now' });
-      await AsyncDuel.findByIdAndUpdate(duel._id, { 'rival.name': name, 'rival.userId': userId, 'rival.answers': answers, 'rival.score': score, 'rival.completedAt': new Date(), status: 'completed' });
+
+      const serverScore = duel.charts.reduce((total, chart, i) => {
+        const choice = answers?.[i]?.choice;
+        if (!choice) return total;
+        const lastClose  = chart.visible[chart.visible.length - 1].close;
+        const lastFuture = chart.future[chart.future.length - 1].close;
+        const pctMove    = (lastFuture - lastClose) / lastClose * 100;
+        const direction  = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
+        const win = (choice === 'long' && direction === 'up') || (choice === 'short' && direction === 'down') || (choice === 'skip' && direction === 'flat');
+        return total + (win && choice !== 'skip' ? 100 : win && choice === 'skip' ? 50 : 0);
+      }, 0);
+
+      const safeAnswers = (answers || []).map((a, i) => {
+        const chart      = duel.charts[i];
+        if (!chart) return null;
+        const choice     = ['long', 'short', 'skip'].includes(a?.choice) ? a.choice : 'skip';
+        const lastClose  = chart.visible[chart.visible.length - 1].close;
+        const lastFuture = chart.future[chart.future.length - 1].close;
+        const pctMove    = (lastFuture - lastClose) / lastClose * 100;
+        const direction  = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
+        const win = (choice === 'long' && direction === 'up') || (choice === 'short' && direction === 'down') || (choice === 'skip' && direction === 'flat');
+        const pts = win && choice !== 'skip' ? 100 : win && choice === 'skip' ? 50 : 0;
+        return { choice, win, pts, direction, pctMove: +pctMove.toFixed(2) };
+      }).filter(Boolean);
+
+      await AsyncDuel.findByIdAndUpdate(duel._id, { 'rival.name': name, 'rival.userId': userId, 'rival.answers': safeAnswers, 'rival.score': serverScore, 'rival.completedAt': new Date(), status: 'completed' });
       // Push notification to challenger
       if (duel.challenger.userId) {
         try {
@@ -1848,7 +1958,7 @@ app.post('/arena/async/:code/submit', async (req, res) => {
       rival:      { name: updated.rival.name,       score: updated.rival.score,       answers: updated.rival.answers },
     }});
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1858,7 +1968,7 @@ app.get('/arena/async/:code/status', async (req, res) => {
     if (!duel) return res.status(404).json({ error: 'Not found' });
     res.json({ status: duel.status, expiresAt: duel.expiresAt });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1936,7 +2046,7 @@ app.post('/push/send-apns', async (req, res) => {
     await apnsClient.send(notification);
     res.json({ ok: true, token: tokenRaw.substring(0, 10) + '...' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -2589,7 +2699,7 @@ app.get('/stats/dashboard', async (req, res) => {
     ]);
     res.json({ users, scores, purchases, totalUsers, totalScores, totalPurchases: totalPurchases[0]?.total || 0 });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -2640,7 +2750,7 @@ app.get('/stats/revenue', async (req, res) => {
     revenueCacheAt = Date.now();
     res.json(revenueCache);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -2670,7 +2780,7 @@ app.get('/portfolio/prices', async (req, res) => {
       })();
     }
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 // Obtener portfolio del usuario
@@ -2694,7 +2804,7 @@ app.get('/portfolio', async (req, res) => {
     redis.set(cacheKey, JSON.stringify(obj), { ex: 30 }).catch(() => {});
     res.json(obj);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -2706,7 +2816,7 @@ app.post('/portfolio/tutorial-seen', async (req, res) => {
     await User.findByIdAndUpdate(decoded.id, { portfolioTutorialSeen: true });
     res.json({ ok: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -2730,7 +2840,7 @@ app.post('/academias/tutorial-seen', async (req, res) => {
     await User.findByIdAndUpdate(decoded.id, { academiasTutorialSeen: true });
     res.json({ ok: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -2742,7 +2852,7 @@ app.post('/admin/reset-portfolio-tutorial/:username', async (req, res) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
     res.json({ ok: true, username: req.params.username });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -2754,7 +2864,7 @@ app.post('/admin/reset-academias/:username', async (req, res) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
     res.json({ ok: true, username: req.params.username });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -2784,7 +2894,7 @@ app.get('/admin/portfolio/:username', async (req, res) => {
     const totalValue = portfolio.cash + invested;
     const portfolioReturn = ((totalValue - 50000) / 50000) * 100;
     res.json({ username: user.username, name: user.name, cash: portfolio.cash, invested, totalValue, portfolioReturn, positions, transactions: portfolio.transactions.slice(-20) });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 // ── Ligas ─────────────────────────────────────────────────────────────────────
@@ -2812,7 +2922,7 @@ app.post('/leagues/create', async (req, res) => {
       startDate: today, endDate: endDate || null,
     });
     res.json({ leagueId: league._id, code });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.post('/leagues/join', async (req, res) => {
@@ -2829,7 +2939,7 @@ app.post('/leagues/join', async (req, res) => {
     league.members.push({ userId: decoded.id, startValue, joinedAt: new Date() });
     await league.save();
     res.json({ leagueId: league._id, name: league.name });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.get('/leagues/mine', async (req, res) => {
@@ -2843,7 +2953,7 @@ app.get('/leagues/mine', async (req, res) => {
       memberCount: l.members.length, startDate: l.startDate, endDate: l.endDate,
       isOwner: l.owner.toString() === decoded.id,
     })));
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.get('/leagues/:leagueId/ranking', async (req, res) => {
@@ -2898,7 +3008,7 @@ app.get('/leagues/:leagueId/ranking', async (req, res) => {
       owner: league.owner, startDate: league.startDate, endDate: league.endDate,
       isOwner: league.owner.toString() === decoded.id, ranking: top10, userPosition,
     });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.post('/leagues/:leagueId/leave', async (req, res) => {
@@ -2913,7 +3023,7 @@ app.post('/leagues/:leagueId/leave', async (req, res) => {
     league.members = league.members.filter(m => m.userId.toString() !== decoded.id);
     await league.save();
     res.json({ ok: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.delete('/leagues/:leagueId', async (req, res) => {
@@ -2927,7 +3037,7 @@ app.delete('/leagues/:leagueId', async (req, res) => {
       return res.status(403).json({ error: 'Solo el owner puede eliminar la liga' });
     await League.findByIdAndDelete(req.params.leagueId);
     res.json({ ok: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 // Comprar
@@ -3034,7 +3144,7 @@ app.post('/admin/refund-unlisted/:username', async (req, res) => {
 
     res.json({ ok: true, refundedSymbols: stuck.map(p => p.symbol), refund: refund.toFixed(2), newCash: portfolio.cash.toFixed(2) });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -3063,7 +3173,7 @@ app.post('/portfolio/refund-delisted', async (req, res) => {
     }
     res.json({ ok: true, usersAffected, totalRefunded: totalRefunded.toFixed(2) });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -3073,6 +3183,8 @@ function isWeekday() {
 }
 
 app.get('/portfolio/clear-crypto-cache', async (req, res) => {
+  const key = req.headers['x-admin-secret'];
+  if (key !== ADMIN_SECRET) return res.status(403).json({ error: 'Forbidden' });
   await redis.del('price:BTCUSDT');
   await redis.del('price:ETHUSDT');
   await redis.del('price:XRPUSDT');
@@ -3106,7 +3218,7 @@ app.get('/portfolio/candles/:symbol', async (req, res) => {
     }
     res.json(candles);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 app.post('/portfolio/snapshot', async (req, res) => {
@@ -3177,7 +3289,7 @@ app.post('/portfolio/snapshot', async (req, res) => {
       console.error('[leaderboard-notif] error:', e.message);
     }
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -3189,7 +3301,7 @@ app.get('/portfolio/history', async (req, res) => {
     const history = await PortfolioHistory.find({ userId: decoded.id }).sort({ date: 1 });
     res.json(history);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 app.get('/portfolio/clear-cache', async (req, res) => {
@@ -3204,7 +3316,7 @@ app.get('/portfolio/clear-cache', async (req, res) => {
     await Promise.all(keys.map(k => redis.del(k)));
     res.json({ ok: true, cleared: keys.length });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 app.get('/portfolio/weekly/leaderboard', async (req, res) => {
@@ -3268,39 +3380,50 @@ app.get('/portfolio/weekly/leaderboard', async (req, res) => {
     }
     res.json({ leaderboard: top10, userPosition });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 app.get('/portfolio/leaderboard', async (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
   try {
-    const portfolios = await Portfolio.find({}).populate('userId', 'name avatar customAvatar username activeCosmetics');
-    const prices     = await Promise.all(PORTFOLIO_ASSETS.map(a => getPrice(a).catch(() => null)));
-    const priceMap   = {};
-    prices.filter(Boolean).forEach(p => { priceMap[p.symbol] = p.price; });
+    const CACHE_KEY = 'portfolio_leaderboard_v1';
+    const CACHE_TTL = 5 * 60;
 
-    const allLeaderboard = portfolios.map(p => {
-      const invested = p.positions.reduce((s, pos) => {
-        const price = priceMap[pos.symbol] || pos.avgPrice;
-        return s + price * pos.qty;
-      }, 0);
-      const totalValue = p.cash + invested;
-      const returnPct  = ((totalValue - 50000) / 50000) * 100;
-      return {
-        userId:          String(p.userId?._id || ''),
-        name:            p.userId?.username || p.userId?.name || 'Anonymous',
-        username:        p.userId?.username || null,
-        avatar:          p.userId?.avatar || null,
-        customAvatar:    p.userId?.customAvatar || null,
-        activeCosmetics: p.userId?.activeCosmetics || {},
-        totalValue,
-        returnPct,
-        cash:            p.cash,
-      };
-    })
-    .filter(p => p.totalValue !== 50000)
-    .sort((a, b) => b.returnPct - a.returnPct);
+    let allLeaderboard;
+    const cachedRaw = await redis.get(CACHE_KEY);
+    if (cachedRaw) {
+      allLeaderboard = typeof cachedRaw === 'string' ? JSON.parse(cachedRaw) : cachedRaw;
+    } else {
+      const portfolios = await Portfolio.find({}).populate('userId', 'name avatar customAvatar username activeCosmetics');
+      const prices     = await Promise.all(PORTFOLIO_ASSETS.map(a => getPrice(a).catch(() => null)));
+      const priceMap   = {};
+      prices.filter(Boolean).forEach(p => { priceMap[p.symbol] = p.price; });
+
+      allLeaderboard = portfolios.map(p => {
+        const invested = p.positions.reduce((s, pos) => {
+          const price = priceMap[pos.symbol] || pos.avgPrice;
+          return s + price * pos.qty;
+        }, 0);
+        const totalValue = p.cash + invested;
+        const returnPct  = ((totalValue - 50000) / 50000) * 100;
+        return {
+          userId:          String(p.userId?._id || ''),
+          name:            p.userId?.username || p.userId?.name || 'Anonymous',
+          username:        p.userId?.username || null,
+          avatar:          p.userId?.avatar || null,
+          customAvatar:    p.userId?.customAvatar || null,
+          activeCosmetics: p.userId?.activeCosmetics || {},
+          totalValue,
+          returnPct,
+          cash:            p.cash,
+        };
+      })
+      .filter(p => p.totalValue !== 50000)
+      .sort((a, b) => b.returnPct - a.returnPct);
+
+      await redis.set(CACHE_KEY, JSON.stringify(allLeaderboard), { ex: CACHE_TTL }).catch(() => {});
+    }
 
     const top10 = allLeaderboard.slice(0, 10);
     let userPosition = null;
@@ -3314,7 +3437,8 @@ app.get('/portfolio/leaderboard', async (req, res) => {
     }
     res.json({ leaderboard: top10, userPosition });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 async function getPortfolioValue(userId) {
@@ -3354,7 +3478,7 @@ app.post('/portfolio/duel/challenge', async (req, res) => {
     if (existing) return res.status(400).json({ error: 'Already have an active duel' });
     const duel = await PortfolioDuel.create({ challenger: decoded.id, opponent: target._id });
     res.json({ ok: true, duelId: duel._id });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.post('/portfolio/duel/accept/:duelId', async (req, res) => {
@@ -3371,7 +3495,7 @@ app.post('/portfolio/duel/accept/:duelId', async (req, res) => {
     duel.challengerStartValue = cVal; duel.opponentStartValue = oVal;
     await duel.save();
     res.json({ ok: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.post('/portfolio/duel/reject/:duelId', async (req, res) => {
@@ -3380,7 +3504,7 @@ app.post('/portfolio/duel/reject/:duelId', async (req, res) => {
   try {
     await PortfolioDuel.findOneAndDelete({ _id: req.params.duelId, opponent: decoded.id, status: 'pending' });
     res.json({ ok: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.get('/portfolio/duel/pending', async (req, res) => {
@@ -3394,7 +3518,7 @@ app.get('/portfolio/duel/pending', async (req, res) => {
       challenger: { name: d.challenger.name, username: d.challenger.username, avatar: d.challenger.avatar, customAvatar: d.challenger.customAvatar || null },
       createdAt:  d.createdAt,
     })));
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.get('/portfolio/duel/active', async (req, res) => {
@@ -3416,7 +3540,7 @@ app.get('/portfolio/duel/active', async (req, res) => {
       opponent:   { name: duel.opponent.name,   username: duel.opponent.username,   avatar: duel.opponent.avatar,   customAvatar: duel.opponent.customAvatar,   returnPct: ((oVal - duel.opponentStartValue)   / duel.opponentStartValue)   * 100, currentValue: oVal },
       startDate: duel.startDate, endDate: duel.endDate, daysLeft,
     });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 // ── Auth helpers ──────────────────────────────────────────────────
@@ -3459,7 +3583,7 @@ app.post('/friends/request', async (req, res) => {
     if (existing) return res.status(400).json({ error: existing.status === 'accepted' ? 'Already friends' : 'Request already sent' });
     await Friendship.create({ requester: decoded.id, recipient: recipient._id });
     res.json({ ok: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.post('/friends/accept', async (req, res) => {
@@ -3472,7 +3596,7 @@ app.post('/friends/accept', async (req, res) => {
     friendship.status = 'accepted';
     await friendship.save();
     res.json({ ok: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.post('/friends/reject', async (req, res) => {
@@ -3484,7 +3608,7 @@ app.post('/friends/reject', async (req, res) => {
     if (!friendship) return res.status(404).json({ error: 'Request not found' });
     await friendship.deleteOne();
     res.json({ ok: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.get('/friends/list', async (req, res) => {
@@ -3502,7 +3626,7 @@ app.get('/friends/list', async (req, res) => {
       return { friendshipId: f._id, id: friend._id, name: friend.name, avatar: friend.avatar, customAvatar: friend.customAvatar || null, activeCosmetics: friend.activeCosmetics || {}, username: friend.username, xp: friend.xp, badges: friend.badges };
     });
     res.json(friends);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.get('/friends/pending', async (req, res) => {
@@ -3522,7 +3646,7 @@ app.get('/friends/pending', async (req, res) => {
       createdAt: f.createdAt,
     }));
     res.json(requests);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.get('/friends/profile/:username', async (req, res) => {
@@ -3563,7 +3687,7 @@ app.get('/friends/profile/:username', async (req, res) => {
       friendshipId: friendship?._id || null,
       isRequester: friendship ? friendship.requester.equals(decoded.id) : null,
     });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.get('/u/:username', async (req, res) => {
@@ -3615,7 +3739,7 @@ app.get('/u/:username', async (req, res) => {
       friendshipStatus,
       isPro:           target.isPro || false,
     });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.use('/academy', require('./routes/academy'));
@@ -3704,7 +3828,7 @@ app.get('/api/portfolio/notes', async (req, res) => {
     if (!user?.isPro) return res.status(403).json({ error: 'Pro required' });
     const notes = await PositionNote.find({ userId: decoded.id });
     res.json(notes);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.post('/api/portfolio/note', async (req, res) => {
@@ -3721,7 +3845,7 @@ app.post('/api/portfolio/note', async (req, res) => {
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
     res.json({ ok: true, note: saved });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.delete('/api/portfolio/note/:ticker', async (req, res) => {
@@ -3730,7 +3854,7 @@ app.delete('/api/portfolio/note/:ticker', async (req, res) => {
   try {
     await PositionNote.deleteOne({ userId: decoded.id, ticker: req.params.ticker });
     res.json({ ok: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 // ── Portfolio compare vs #1 (Pro) ─────────────────────────────────
@@ -3793,7 +3917,7 @@ app.get('/api/portfolio/compare', async (req, res) => {
         return { symbol: s, name: pos?.name || s, type: pos?.type, myReturn: calcReturn(s, myPortfolio.positions) };
       }),
     });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.get('/', (req, res) => res.json({ status: 'ok' }));

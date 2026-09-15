@@ -166,7 +166,11 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
     if (!asyncDuelCode) return;
     (async () => {
       try {
-        const res  = await fetch(`${SERVER}/arena/async/${asyncDuelCode}`);
+        const token = localStorage.getItem('tradaria_token');
+        if (!token) return; // user must be logged in to access a duel
+        const res  = await fetch(`${SERVER}/arena/async/${asyncDuelCode}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         const data = await res.json();
         if (!data.duel) return;
         setAsyncCode(asyncDuelCode);
@@ -492,25 +496,52 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
     setShowChat(false);
   }
 
-  function makeAsyncChoice(choice) {
+  async function makeAsyncChoice(choice) {
     if (phase !== 'choose') return;
-    const chartIdx  = round - 1;
-    const chartData = asyncCharts[chartIdx];
-    if (!chartData) return;
-    const lastClose  = chartData.visible[chartData.visible.length - 1].close;
-    const lastFuture = chartData.future[chartData.future.length  - 1].close;
-    const pctMove    = (lastFuture - lastClose) / lastClose * 100;
-    const direction  = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
-    const win = (choice === 'long'  && direction === 'up')
-             || (choice === 'short' && direction === 'down')
-             || (choice === 'skip'  && direction === 'flat');
-    const pts = win && choice !== 'skip' ? 100 : win && choice === 'skip' ? 50 : 0;
-    if (win) triggerEffect();
-    asyncAnswersRef.current = [...asyncAnswersRef.current, { choice, win, pts, direction, pctMove: +pctMove.toFixed(2) }];
-    asyncScoreRef.current   = asyncScoreRef.current + pts;
-    setScores(s => ({ ...s, me: asyncScoreRef.current }));
-    setResult({ direction, pctMove: +pctMove.toFixed(2), results: { me: { choice, win } }, scores: { me: asyncScoreRef.current } });
-    setPhase('result');
+    const chartIdx = round - 1;
+    const token = localStorage.getItem('tradaria_token');
+    // Challenger already has future candles from /create — compute locally
+    if (asyncDuelMode === 'challenger') {
+      const chartData  = asyncCharts[chartIdx];
+      if (!chartData) return;
+      const lastClose  = chartData.visible[chartData.visible.length - 1].close;
+      const lastFuture = chartData.future[chartData.future.length  - 1].close;
+      const pctMove    = (lastFuture - lastClose) / lastClose * 100;
+      const direction  = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
+      const win = (choice === 'long'  && direction === 'up')
+               || (choice === 'short' && direction === 'down')
+               || (choice === 'skip'  && direction === 'flat');
+      const pts = win && choice !== 'skip' ? 100 : win && choice === 'skip' ? 50 : 0;
+      if (win) triggerEffect();
+      asyncAnswersRef.current = [...asyncAnswersRef.current, { choice, win, pts, direction, pctMove: +pctMove.toFixed(2) }];
+      asyncScoreRef.current   = asyncScoreRef.current + pts;
+      setScores(s => ({ ...s, me: asyncScoreRef.current }));
+      setResult({ direction, pctMove: +pctMove.toFixed(2), results: { me: { choice, win } }, scores: { me: asyncScoreRef.current } });
+      setPhase('result');
+      return;
+    }
+    // Rival: ask server for result + future candles for reveal animation
+    setPhase('waiting_opponent');
+    try {
+      const res  = await fetch(`${SERVER}/arena/async/${asyncCode}/round`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ roundIndex: chartIdx, choice }),
+      });
+      const data = await res.json();
+      if (!data.ok) { setPhase('choose'); return; }
+      const { win, direction, pctMove, pts, future } = data;
+      if (win) triggerEffect();
+      asyncAnswersRef.current = [...asyncAnswersRef.current, { choice, win, pts, direction, pctMove }];
+      asyncScoreRef.current   = asyncScoreRef.current + pts;
+      setScores(s => ({ ...s, me: asyncScoreRef.current }));
+      // Inject server-provided future into gameData so ArenaChart can animate the reveal
+      setGameData(prev => ({ ...prev, future }));
+      setResult({ direction, pctMove, results: { me: { choice, win } }, scores: { me: asyncScoreRef.current } });
+      setPhase('result');
+    } catch {
+      setPhase('choose');
+    }
   }
 
   async function nextAsyncRound() {
@@ -571,8 +602,11 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
   }
 
   async function openMyDuel(code) {
+    const token = localStorage.getItem('tradaria_token');
     try {
-      const res  = await fetch(`${SERVER}/arena/async/${code}`);
+      const res  = await fetch(`${SERVER}/arena/async/${code}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       const data = await res.json();
       if (!data.duel) return;
       setAsyncCode(code);
