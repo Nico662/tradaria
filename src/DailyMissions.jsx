@@ -30,8 +30,8 @@ export default function DailyMissions() {
 
       {/* ── Header ── */}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '20px' }}>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 200" height="20"
-             style={{ flexShrink: 0, marginTop: '3px' }}>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 200" height="28"
+             style={{ flexShrink: 0, marginTop: '0px' }}>
           <line x1="50" y1="10" x2="50" y2="40" stroke="#ff7eb3" strokeWidth="8" strokeLinecap="round"/>
           <rect x="25" y="40" width="50" height="110" rx="6" fill="url(#candleGradM)"/>
           <line x1="50" y1="150" x2="50" y2="190" stroke="#00e5a0" strokeWidth="8" strokeLinecap="round"/>
