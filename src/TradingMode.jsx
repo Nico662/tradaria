@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import TradikoCandleLogo from './components/TradikoCandleLogo';
 import { createChart, CandlestickSeries } from 'lightweight-charts';
 import { useLang } from './LangContext';
-import { isIOSApp } from './AuthContext';
+import { useAuth, isIOSApp } from './AuthContext';
+import { SERVER } from './config';
 import { ASSETS } from './assets.js';
 import {
   ChevronLeft, Lock, TrendingUp, TrendingDown, X, Info,
@@ -11,42 +12,20 @@ import {
   Flame, Swords,
 } from 'lucide-react';
 
-// ── Mock initial prices ───────────────────────────────────────────────────────
-const INITIAL_PRICES = {
-  'BTC/USD':  { price: 64872.50, change: +2.34 },
-  'ETH/USD':  { price: 3215.80,  change: +1.87 },
-  'SOL/USD':  { price: 152.40,   change: +4.21 },
-  'XRP/USD':  { price: 0.61240,  change: -0.92 },
-  'BNB/USD':  { price: 582.30,   change: +1.10 },
-  'DOGE/USD': { price: 0.13420,  change: +3.20 },
-  'LINK/USD': { price: 14.820,   change: -1.45 },
-  'AVAX/USD': { price: 38.600,   change: +2.80 },
-  'ADA/USD':  { price: 0.45200,  change: +0.95 },
-  'DOT/USD':  { price: 7.3400,   change: -0.62 },
-  'EUR/USD':  { price: 1.08520,  change: +0.12 },
-  'GBP/USD':  { price: 1.27410,  change: -0.08 },
-  'USD/JPY':  { price: 155.420,  change: +0.23 },
-  'USD/CHF':  { price: 0.89320,  change: -0.15 },
-  'AUD/USD':  { price: 0.65840,  change: +0.31 },
-  'USD/CAD':  { price: 1.36500,  change: -0.10 },
-  'S&P 500':  { price: 5280.40,  change: +0.45 },
-  'NASDAQ':   { price: 18420.30, change: +0.82 },
-  'DOW':      { price: 39540.20, change: +0.31 },
-  'GER40':    { price: 18105.80, change: +0.28 },
-  'UK100':    { price: 8185.40,  change: -0.15 },
-  'JPN225':   { price: 38240.50, change: +0.62 },
-  'GOLD':     { price: 2284.50,  change: -0.43 },
-  'SILVER':   { price: 28.540,   change: -0.67 },
-  'OIL/USD':  { price: 78.320,   change: +1.12 },
-  'NGAS':     { price: 2.8420,   change: -2.14 },
-  'COPPER':   { price: 4.5200,   change: +0.87 },
-  'AAPL':     { price: 189.50,   change: +0.73 },
-  'TSLA':     { price: 178.20,   change: -1.24 },
-  'MSFT':     { price: 415.30,   change: +0.95 },
-  'AMZN':     { price: 183.70,   change: +1.42 },
-  'GOOGL':    { price: 172.40,   change: +0.84 },
-  'META':     { price: 508.60,   change: +2.15 },
-  'NVDA':     { price: 875.30,   change: +3.82 },
+// ── Seed prices for deterministic candle generation (not live; stays fixed) ───
+const CANDLE_PRICES = {
+  'BTC/USD':  64872.50, 'ETH/USD':  3215.80,  'SOL/USD':  152.40,
+  'XRP/USD':  0.61240,  'BNB/USD':  582.30,   'DOGE/USD': 0.13420,
+  'LINK/USD': 14.820,   'AVAX/USD': 38.600,   'ADA/USD':  0.45200,
+  'DOT/USD':  7.3400,   'EUR/USD':  1.08520,  'GBP/USD':  1.27410,
+  'USD/JPY':  155.420,  'USD/CHF':  0.89320,  'AUD/USD':  0.65840,
+  'USD/CAD':  1.36500,  'S&P 500':  5280.40,  'NASDAQ':   18420.30,
+  'DOW':      39540.20, 'GER40':    18105.80,  'UK100':    8185.40,
+  'JPN225':   38240.50, 'GOLD':     2284.50,   'SILVER':   28.540,
+  'OIL/USD':  78.320,   'NGAS':     2.8420,    'COPPER':   4.5200,
+  'AAPL':     189.50,   'TSLA':     178.20,    'MSFT':     415.30,
+  'AMZN':     183.70,   'GOOGL':    172.40,    'META':     508.60,
+  'NVDA':     875.30,
 };
 
 // ── Mock spreads (points) and day ranges ─────────────────────────────────────
@@ -59,19 +38,6 @@ const SPREADS = {
   'AAPL': 5,      'TSLA': 8,      'MSFT': 5,     'AMZN': 6,     'GOOGL': 5, 'META': 8, 'NVDA': 10,
 };
 
-const DAY_RANGES = Object.fromEntries(
-  Object.entries(INITIAL_PRICES).map(([name, { price }]) => {
-    const d = price * 0.014;
-    return [name, { low: price - d * 0.6, high: price + d * 0.4 }];
-  })
-);
-
-// ── Mock market open status ───────────────────────────────────────────────────
-const MARKET_OPEN = {
-  crypto: true, forex: true,
-  commodities: true,  // gold/silver/oil trade near-24h
-  indices: false, stocks: false,
-};
 
 // ── Contract sizes (units per 1 lot, used for margin calc) ───────────────────
 function getContractSize(cat, name) {
@@ -157,7 +123,7 @@ function makePRNG(seed) {
 
 function generateCandles(symbol, tf, count = 60) {
   const rng = makePRNG(strHash(symbol + tf));
-  const base = INITIAL_PRICES[symbol]?.price ?? 100;
+  const base = CANDLE_PRICES[symbol] ?? 100;
   const vol   = ASSETS.find(a => a.name === symbol)?.vol ?? 0.02;
   let price = base * (0.90 + rng() * 0.20);
   return Array.from({ length: count }, () => {
@@ -410,10 +376,11 @@ function TradingTutorial({ t, onClose }) {
 export default function TradingMode({ onBack }) {
   const { t } = useLang();
   const tr = t.trading ?? {};
+  const { token } = useAuth();
 
   const [tab,            setTab]            = useState('symbols');
   const [catFilter,      setCatFilter]      = useState('all');
-  const [prices,         setPrices]         = useState(INITIAL_PRICES);
+  const [prices,         setPrices]         = useState({});
   const [blinks,         setBlinks]         = useState({});
   const [selectedSymbol, setSelectedSymbol] = useState(null);
   const [timeframe,      setTimeframe]      = useState('H1');
@@ -434,6 +401,10 @@ export default function TradingMode({ onBack }) {
   const [socialTab,       setSocialTab]       = useState('ranking');
   const [rankingPeriod,   setRankingPeriod]   = useState('global');
   const [splash,          setSplash]          = useState(true);
+  const [catalog,         setCatalog]         = useState({});
+  const [account,         setAccount]         = useState(null);
+  const initPricesRef = useRef({});
+  const prevPricesRef = useRef({});
 
   // ── Splash ───────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -441,31 +412,79 @@ export default function TradingMode({ onBack }) {
     return () => clearTimeout(t);
   }, []);
 
-  // ── Mock price blinking ───────────────────────────────────────────────────
+  // ── Live price polling from backend ──────────────────────────────────────
   useEffect(() => {
-    const interval = setInterval(() => {
-      const keys = Object.keys(prices);
-      const pick = [...keys].sort(() => Math.random() - 0.5).slice(0, 4);
-      const newBlinks = {};
-      setPrices(prev => {
-        const next = { ...prev };
-        pick.forEach(name => {
-          const asset = ASSETS.find(a => a.name === name);
-          const vol = (asset?.vol ?? 0.015) * 0.12;
-          const delta = (Math.random() - 0.5) * 2 * vol * prev[name].price;
-          newBlinks[name] = delta >= 0 ? 'up' : 'down';
-          next[name] = { ...prev[name], price: Math.max(0.00001, prev[name].price + delta) };
-        });
-        return next;
-      });
-      setBlinks(newBlinks);
-      const ts = new Date().toLocaleTimeString('es-ES', { hour12: false });
-      setUpdateTimes(prev => { const n = { ...prev }; pick.forEach(k => { n[k] = ts; }); return n; });
-      setBlinkSeq(prev => { const n = { ...prev }; pick.forEach(k => { n[k] = (n[k] ?? 0) + 1; }); return n; });
-      setTimeout(() => setBlinks({}), 400);
-    }, 1800);
-    return () => clearInterval(interval);
+    let active = true;
+    async function poll() {
+      try {
+        const res  = await fetch(`${SERVER}/api/trading/prices`);
+        if (!res.ok) return;
+        const list = await res.json();
+        if (!active) return;
+
+        const newBlinks   = {};
+        const newTimes    = {};
+        const newSeq      = {};
+        const ts          = new Date().toLocaleTimeString('es-ES', { hour12: false });
+        const isFirst     = Object.keys(prevPricesRef.current).length === 0;
+
+        const next = {};
+        for (const { symbol, price, bid, ask } of list) {
+          const init   = isFirst ? price : (initPricesRef.current[symbol] ?? price);
+          const change = ((price - init) / init) * 100;
+          const prev   = prevPricesRef.current[symbol];
+          if (prev !== undefined && price !== prev.price) {
+            newBlinks[symbol] = price > prev.price ? 'up' : 'down';
+            newTimes[symbol]  = ts;
+            newSeq[symbol]    = (prev.blinkSeq ?? 0) + 1;
+          }
+          next[symbol] = { price, bid, ask, change, blinkSeq: newSeq[symbol] ?? (prevPricesRef.current[symbol]?.blinkSeq ?? 0) };
+        }
+
+        if (isFirst) initPricesRef.current = Object.fromEntries(list.map(({ symbol, price }) => [symbol, price]));
+        prevPricesRef.current = next;
+
+        setPrices(next);
+        if (Object.keys(newBlinks).length > 0) {
+          setBlinks(newBlinks);
+          setUpdateTimes(prev => ({ ...prev, ...newTimes }));
+          setBlinkSeq(prev => { const n = { ...prev }; for (const [k, v] of Object.entries(newSeq)) n[k] = v; return n; });
+          setTimeout(() => setBlinks({}), 400);
+        }
+      } catch (_) {}
+    }
+    poll();
+    const interval = setInterval(poll, 2000);
+    return () => { active = false; clearInterval(interval); };
   }, []);
+
+  // ── Catalog (symbol metadata + tradeable flag) ────────────────────────────
+  useEffect(() => {
+    fetch(`${SERVER}/api/trading/catalog`)
+      .then(r => r.ok ? r.json() : [])
+      .then(list => {
+        const map = {};
+        for (const entry of list) map[entry.symbol] = entry;
+        setCatalog(map);
+      })
+      .catch(() => {});
+  }, []);
+
+  // ── Account summary ───────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!token) return;
+    let active = true;
+    async function fetchAccount() {
+      try {
+        const res  = await fetch(`${SERVER}/api/trading/account`, { headers: { Authorization: `Bearer ${token}` } });
+        if (!res.ok || !active) return;
+        setAccount(await res.json());
+      } catch (_) {}
+    }
+    fetchAccount();
+    const interval = setInterval(fetchAccount, 30000);
+    return () => { active = false; clearInterval(interval); };
+  }, [token]);
 
   // ── Derived: P&L for each position ───────────────────────────────────────
   const positionsLive = positions.map(p => {
@@ -609,13 +628,11 @@ export default function TradingMode({ onBack }) {
             if (!priceData) return null;
             const blink    = blinks[asset.name];
             const seq      = blinkSeq[asset.name] ?? 0;
-            const isOpen   = MARKET_OPEN[asset.cat] ?? false;
-            const is247    = asset.cat === 'crypto';
-            const canTrade = isOpen || is247;
+            const canTrade = catalog[asset.name]?.tradeable ?? asset.cat === 'crypto';
             const up       = priceData.change >= 0;
             const chgColor = up ? 'var(--green)' : 'var(--pink)';
             const { prefix, big, sup } = splitPrice(priceData.price);
-            const range    = DAY_RANGES[asset.name] ?? { low: priceData.price * 0.988, high: priceData.price * 1.012 };
+            const range    = { low: priceData.price * 0.988, high: priceData.price * 1.012 };
             const timeStr  = updateTimes[asset.name] ?? new Date().toLocaleTimeString('es-ES', { hour12: false });
             const spread   = SPREADS[asset.name] ?? 5;
             const pts      = fmtPoints(priceData.price, priceData.change, asset.cat);
@@ -778,12 +795,17 @@ export default function TradingMode({ onBack }) {
     const chgColor   = up ? 'var(--green)' : 'var(--pink)';
     const selCat     = ASSETS.find(a => a.name === selectedSymbol)?.cat ?? 'crypto';
 
-    // Mock bid / ask from spread
-    const spreadPts  = SPREADS[selectedSymbol] ?? 5;
-    const tick       = selCat === 'forex' ? 0.0001 : livePrice > 1000 ? 1 : livePrice > 100 ? 0.1 : 0.01;
-    const halfSpread = (spreadPts * tick) / 2;
-    const bid        = livePrice - halfSpread;
-    const ask        = livePrice + halfSpread;
+    // Bid / ask from backend prices (fall back to spread estimate when not yet loaded)
+    const bid = priceData?.bid ?? (() => {
+      const spreadPts = SPREADS[selectedSymbol] ?? 5;
+      const tick = selCat === 'forex' ? 0.0001 : livePrice > 1000 ? 1 : livePrice > 100 ? 0.1 : 0.01;
+      return livePrice - (spreadPts * tick) / 2;
+    })();
+    const ask = priceData?.ask ?? (() => {
+      const spreadPts = SPREADS[selectedSymbol] ?? 5;
+      const tick = selCat === 'forex' ? 0.0001 : livePrice > 1000 ? 1 : livePrice > 100 ? 0.1 : 0.01;
+      return livePrice + (spreadPts * tick) / 2;
+    })();
     const { prefix: bidPfx, big: bidBig, sup: bidSup } = splitPrice(bid);
     const { prefix: askPfx, big: askBig, sup: askSup } = splitPrice(ask);
 
@@ -884,8 +906,9 @@ export default function TradingMode({ onBack }) {
   // TAB: POSITIONS
   // ─────────────────────────────────────────────────────────────────────────────
   function renderPositions() {
-    const pnlColor    = totalPnl >= 0 ? 'var(--green)' : 'var(--pink)';
-    const equityStr   = Math.abs(MOCK_EQUITY).toFixed(2);
+    const livePnl     = acctEquity - acctBalance;
+    const pnlColor    = livePnl >= 0 ? 'var(--green)' : 'var(--pink)';
+    const equityStr   = acctEquity.toFixed(2);
     const [eInt, eDec] = equityStr.split('.');
     const eFormatted  = parseInt(eInt, 10).toLocaleString('en-US');
 
@@ -906,7 +929,7 @@ export default function TradingMode({ onBack }) {
           <div style={{ textAlign: 'right', paddingBottom: 3 }}>
             <div style={{ fontFamily: 'var(--font-body)', fontSize: 9, fontWeight: 800, color: 'var(--text-hint)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 3 }}>P&L</div>
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: 14, fontWeight: 700, color: pnlColor }}>
-              {totalPnl >= 0 ? '+' : ''}${totalPnl.toFixed(2)}
+              {livePnl >= 0 ? '+' : ''}${livePnl.toFixed(2)}
             </div>
           </div>
         </div>
@@ -914,10 +937,10 @@ export default function TradingMode({ onBack }) {
         {/* 2×2 data matrix */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3px 24px', paddingTop: 8, borderTop: '1px solid var(--border-subtle)' }}>
           {[
-            { label: tr.balance ?? 'Balance',       value: `$${(10000).toFixed(2)}`,      color: 'var(--text-primary)'   },
-            { label: tr.margin  ?? 'Margen',         value: `$${MOCK_MARGIN.toFixed(2)}`,  color: 'var(--text-secondary)' },
-            { label: tr.free    ?? 'Margen libre',   value: `$${MOCK_FREE.toFixed(2)}`,    color: 'var(--text-secondary)' },
-            { label: tr.level   ?? 'Nivel',          value: `${MOCK_LEVEL.toFixed(0)}%`,   color: levelColor              },
+            { label: tr.balance ?? 'Balance',      value: `$${acctBalance.toFixed(2)}`,   color: 'var(--text-primary)'   },
+            { label: tr.margin  ?? 'Margen',        value: `$${acctMargin.toFixed(2)}`,    color: 'var(--text-secondary)' },
+            { label: tr.free    ?? 'Margen libre',  value: `$${acctFree.toFixed(2)}`,      color: 'var(--text-secondary)' },
+            { label: tr.level   ?? 'Nivel',         value: acctLevel != null ? `${acctLevel.toFixed(0)}%` : '—', color: levelColor },
           ].map(({ label, value, color }) => (
             <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '2px 0' }}>
               <span style={{ fontFamily: 'var(--font-body)', fontSize: 9, fontWeight: 700, color: 'var(--text-hint)', letterSpacing: '0.06em' }}>{label}</span>
@@ -1013,9 +1036,9 @@ export default function TradingMode({ onBack }) {
     ];
 
     const totalBenefit = closedPositions.reduce((s, p) => s + Math.max(0, p.pnl), 0);
-    const commission   = closedPositions.length * 2.50;
     const netPnl       = closedPositions.reduce((s, p) => s + p.pnl, 0);
-    const finalBalance = 10000 + netPnl - commission;
+    const finalBalance = acctBalance + netPnl;
+    const commission   = 0;
 
     return (
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -1359,13 +1382,17 @@ export default function TradingMode({ onBack }) {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // Account header
+  // Account values — from backend (or sensible defaults while loading)
   // ─────────────────────────────────────────────────────────────────────────────
-  const MOCK_EQUITY   = 10000 + totalPnl;
-  const MOCK_MARGIN   = 482.00;
-  const MOCK_FREE     = MOCK_EQUITY - MOCK_MARGIN;
-  const MOCK_LEVEL    = (MOCK_EQUITY / MOCK_MARGIN) * 100;
-  const levelColor    = MOCK_LEVEL > 200 ? 'var(--green)' : MOCK_LEVEL > 100 ? 'var(--color-neutral)' : 'var(--color-down)';
+  const acctBalance = account?.balance    ?? 50000;
+  const acctEquity  = account?.equity     ?? acctBalance;
+  const acctMargin  = account?.marginUsed ?? 0;
+  const acctFree    = account?.freeMargin ?? acctEquity;
+  const acctLevel   = account?.marginLevel;
+  const levelColor  = !acctLevel         ? 'var(--text-secondary)'
+                    : acctLevel > 200    ? 'var(--green)'
+                    : acctLevel > 100    ? 'var(--color-neutral)'
+                    : 'var(--color-down)';
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Render
@@ -1405,11 +1432,11 @@ export default function TradingMode({ onBack }) {
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr', gap: 4 }}>
           {[
-            { label: tr.balance ?? 'Balance', value: `$${(10000).toLocaleString('en-US', { minimumFractionDigits: 2 })}`, color: 'var(--text-primary)' },
-            { label: tr.equity  ?? 'Equity',  value: `$${MOCK_EQUITY.toFixed(2)}`,  color: MOCK_EQUITY >= 10000 ? 'var(--green)' : 'var(--color-down)' },
-            { label: tr.margin  ?? 'Margin',  value: `$${MOCK_MARGIN.toFixed(2)}`,  color: 'var(--text-secondary)' },
-            { label: tr.free    ?? 'Free',    value: `$${MOCK_FREE.toFixed(2)}`,    color: 'var(--text-secondary)' },
-            { label: tr.level   ?? 'Level',   value: `${MOCK_LEVEL.toFixed(0)}%`,   color: levelColor },
+            { label: tr.balance ?? 'Balance', value: `$${acctBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}`, color: 'var(--text-primary)' },
+            { label: tr.equity  ?? 'Equity',  value: `$${acctEquity.toFixed(2)}`,  color: acctEquity >= acctBalance ? 'var(--green)' : 'var(--color-down)' },
+            { label: tr.margin  ?? 'Margin',  value: `$${acctMargin.toFixed(2)}`,  color: 'var(--text-secondary)' },
+            { label: tr.free    ?? 'Free',    value: `$${acctFree.toFixed(2)}`,    color: 'var(--text-secondary)' },
+            { label: tr.level   ?? 'Level',   value: acctLevel != null ? `${acctLevel.toFixed(0)}%` : '—', color: levelColor },
           ].map(({ label, value, color }) => (
             <div key={label} style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 8, fontWeight: 800, color: 'var(--text-hint)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 2 }}>{label}</div>
