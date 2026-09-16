@@ -94,11 +94,15 @@ function makePRNG(seed) {
 }
 
 // ── Calcula spread en unidades de precio ──────────────────────────────────────
-function spreadInPrice(symbol) {
-  const raw = SPREADS[symbol] ?? 1;
+// Para forex: raw pips × 0.0001. Para el resto: raw × tick según nivel de precio,
+// igual que la lógica del frontend (price > 1000 → tick 1, > 100 → 0.1, resto 0.01).
+function spreadInPrice(symbol, currentPrice) {
+  const raw   = SPREADS[symbol] ?? 1;
   const entry = SYMBOL_CATALOG.find(s => s.symbol === symbol);
   if (entry?.category === 'forex') return raw * 0.0001;
-  return raw;
+  const p    = currentPrice ?? INITIAL_PRICES[symbol] ?? 1;
+  const tick = p > 1000 ? 1 : p > 100 ? 0.1 : 0.01;
+  return raw * tick;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -148,7 +152,7 @@ class StubPriceProvider extends PriceProvider {
       if (raw !== null && raw !== undefined) {
         const overridePrice = typeof raw === 'string' ? parseFloat(raw) : Number(raw);
         if (isFinite(overridePrice) && overridePrice > 0) {
-          const half = spreadInPrice(symbol) / 2;
+          const half = spreadInPrice(symbol, overridePrice) / 2;
           return {
             symbol,
             price: overridePrice,
@@ -167,7 +171,7 @@ class StubPriceProvider extends PriceProvider {
     const current = this._prices.get(symbol);
     if (!current) throw new Error(`StubPriceProvider: unknown symbol '${symbol}'`);
 
-    const half = spreadInPrice(symbol) / 2;
+    const half = spreadInPrice(symbol, current.price) / 2;
     return {
       symbol,
       price: current.price,
