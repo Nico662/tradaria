@@ -36,6 +36,9 @@ export function AuthProvider({ children }) {
         .then(r => r.ok ? r.json() : Promise.reject())
         .then(({ token }) => {
           localStorage.setItem('tradaria_token', token);
+          if (window.webkit?.messageHandlers?.saveToken) {
+            window.webkit.messageHandlers.saveToken.postMessage(token);
+          }
           fetchUser(token);
           fetchPurchases(token);
         })
@@ -246,6 +249,9 @@ export function AuthProvider({ children }) {
         }
       } else {
         localStorage.removeItem('tradaria_token');
+        if (window.webkit?.messageHandlers?.saveToken) {
+          window.webkit.messageHandlers.saveToken.postMessage('');
+        }
       }
     } catch (e) {}
     setLoading(false);
@@ -285,6 +291,9 @@ export function AuthProvider({ children }) {
         console.log('auth/apple response:', JSON.stringify(data));
         if (!data.token) throw new Error('No token in response');
         localStorage.setItem('tradaria_token', data.token);
+        if (window.webkit?.messageHandlers?.saveToken) {
+          window.webkit.messageHandlers.saveToken.postMessage(data.token);
+        }
         fetchUser(data.token);
         fetchPurchases(data.token);
       })
@@ -302,6 +311,9 @@ export function AuthProvider({ children }) {
       }).catch(() => {});
     }
     localStorage.removeItem('tradaria_token');
+    if (window.webkit?.messageHandlers?.saveToken) {
+      window.webkit.messageHandlers.saveToken.postMessage('');
+    }
     localStorage.removeItem('tradaria_cosmetics');
     setUser(null);
     setPurchases([]);
