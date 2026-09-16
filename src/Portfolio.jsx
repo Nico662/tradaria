@@ -15,6 +15,10 @@ import FounderBadge, { isFounder } from './FounderBadge.jsx';
 import PortfolioTutorial from './PortfolioTutorial.jsx';
 import Leagues from './Leagues.jsx';
 
+// Must match PORTFOLIO_ASSETS.length in server/index.js
+const TOTAL_PORTFOLIO_ASSETS = 46;
+const EXPECTED_COUNTS = { all: 46, stocks: 25, indices: 15, crypto: 4, commodities: 2 };
+
 const TYPE_COLORS = {
   stock:     '#378ADD',
   crypto:    'var(--color-neutral)',
@@ -161,6 +165,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
   const { t, lang } = useLang();
   const [screen, setScreen]                 = useState('main');
   const [prices, setPrices]                 = useState([]);
+  const [pricesReady, setPricesReady]       = useState(false);
   const [portfolio, setPortfolio]           = useState(null);
   const [selected, setSelected]             = useState(null);
   const [action, setAction]                 = useState('buy');
@@ -352,6 +357,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
       }
     }
     setPrices(pricesData);
+    if (pricesData.length >= TOTAL_PORTFOLIO_ASSETS) setPricesReady(true);
     setPortfolio(portfolioData);
     if (!portfolioData.tutorialSeen && !localStorage.getItem('tradaria_portfolio_welcomed')) {
       setShowWelcome(true);
@@ -475,6 +481,23 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
     const interval = setInterval(loadAll, 30000);
     return () => clearInterval(interval);
   }, [user, loadAll]);
+
+  useEffect(() => {
+    if (pricesReady) return;
+    const start = Date.now();
+    let timer;
+    async function poll() {
+      if (Date.now() - start >= 15000) { setPricesReady(true); return; }
+      try {
+        const data = await fetch(`${SERVER}/portfolio/prices`).then(r => r.json());
+        setPrices(data);
+        if (data.length >= TOTAL_PORTFOLIO_ASSETS) { setPricesReady(true); return; }
+      } catch {}
+      timer = setTimeout(poll, 2000);
+    }
+    timer = setTimeout(poll, 2000);
+    return () => clearTimeout(timer);
+  }, [pricesReady]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!portfolio || !prices.length) return;
@@ -967,46 +990,61 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
           </div>
 
           <div style={{ padding: '0 20px 40px' }}>
-            {filteredPrices.map(asset => {
-              const status    = getMarketStatus(asset.type, t);
-              const info      = ASSET_INFO[asset.symbol];
-              const riskDot   = RISK_DOT[asset.type];
-              const infoLang  = t.portfolio.buy === 'Buy' ? 'en' : t.portfolio.buy === 'Comprar' ? 'es' : 'de';
-              const tooltip   = info?.[infoLang]?.split('.')[0];
-              const isHovered = hoveredSymbol === asset.symbol;
-              return (
-                <div key={asset.symbol} style={{ position: 'relative', marginBottom: '6px' }}>
-                  <div onClick={() => openAsset(asset)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.15s' }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = TYPE_COLORS[asset.type]; setHoveredSymbol(asset.symbol); }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--bd)'; setHoveredSymbol(null); }}
-                  >
-                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: `${TYPE_COLORS[asset.type]}15`, border: `1px solid ${TYPE_COLORS[asset.type]}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: TYPE_COLORS[asset.type] }}>
-                      {TYPE_ICONS[asset.type]}
+            {!pricesReady
+              ? Array.from({ length: EXPECTED_COUNTS[filter] }).map((_, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', marginBottom: '6px' }}>
+                    <div className="skeleton-bar" style={{ width: '36px', height: '36px', borderRadius: '50%', flexShrink: 0 }} />
+                    <div style={{ flex: 1 }}>
+                      <div className="skeleton-bar" style={{ height: '12px', width: '80px', marginBottom: '6px' }} />
+                      <div className="skeleton-bar" style={{ height: '10px', width: '120px' }} />
                     </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '12px', color: 'var(--t1)' }}>{asset.name}</div>
-                      <div style={{ fontSize: '12px', color: 'var(--t5)', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        {asset.symbol} · {t.portfolio.types[asset.type]}
-                        <span style={{ fontSize: '12px', color: status.open ? 'var(--green)' : 'var(--color-down)', background: status.open ? 'rgba(0,229,160,0.1)' : 'rgba(255,126,179,0.1)', padding: '1px 5px', borderRadius: '4px', letterSpacing: '0.04em' }}>
-                          {status.label}
-                        </span>
-                        {riskDot && <span style={{ fontSize: '12px', color: riskDot.color, lineHeight: 1 }} title="Risk">{riskDot.label}</span>}
-                      </div>
-                    </div>
-                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                      <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>{formatPrice(asset.price, asset.type)}</div>
-                      <div style={{ fontSize: '12px', color: asset.change >= 0 ? 'var(--green)' : 'var(--color-down)', fontWeight: 700 }}>{formatChange(asset.change)}</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                      <div className="skeleton-bar" style={{ height: '13px', width: '60px' }} />
+                      <div className="skeleton-bar" style={{ height: '10px', width: '40px' }} />
                     </div>
                   </div>
-                  {isHovered && tooltip && (
-                    <div style={{ position: 'absolute', bottom: 'calc(100% + 4px)', left: 0, right: 0, background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '6px', padding: '7px 12px', fontSize: '12px', color: 'var(--t3)', lineHeight: 1.5, zIndex: 50, pointerEvents: 'none' }}>
-                      {tooltip}
+                ))
+              : filteredPrices.map(asset => {
+                  const status    = getMarketStatus(asset.type, t);
+                  const info      = ASSET_INFO[asset.symbol];
+                  const riskDot   = RISK_DOT[asset.type];
+                  const infoLang  = t.portfolio.buy === 'Buy' ? 'en' : t.portfolio.buy === 'Comprar' ? 'es' : 'de';
+                  const tooltip   = info?.[infoLang]?.split('.')[0];
+                  const isHovered = hoveredSymbol === asset.symbol;
+                  return (
+                    <div key={asset.symbol} style={{ position: 'relative', marginBottom: '6px' }}>
+                      <div onClick={() => openAsset(asset)}
+                        style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.15s' }}
+                        onMouseEnter={e => { e.currentTarget.style.borderColor = TYPE_COLORS[asset.type]; setHoveredSymbol(asset.symbol); }}
+                        onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--bd)'; setHoveredSymbol(null); }}
+                      >
+                        <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: `${TYPE_COLORS[asset.type]}15`, border: `1px solid ${TYPE_COLORS[asset.type]}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: TYPE_COLORS[asset.type] }}>
+                          {TYPE_ICONS[asset.type]}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '12px', color: 'var(--t1)' }}>{asset.name}</div>
+                          <div style={{ fontSize: '12px', color: 'var(--t5)', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            {asset.symbol} · {t.portfolio.types[asset.type]}
+                            <span style={{ fontSize: '12px', color: status.open ? 'var(--green)' : 'var(--color-down)', background: status.open ? 'rgba(0,229,160,0.1)' : 'rgba(255,126,179,0.1)', padding: '1px 5px', borderRadius: '4px', letterSpacing: '0.04em' }}>
+                              {status.label}
+                            </span>
+                            {riskDot && <span style={{ fontSize: '12px', color: riskDot.color, lineHeight: 1 }} title="Risk">{riskDot.label}</span>}
+                          </div>
+                        </div>
+                        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>{formatPrice(asset.price, asset.type)}</div>
+                          <div style={{ fontSize: '12px', color: asset.change >= 0 ? 'var(--green)' : 'var(--color-down)', fontWeight: 700 }}>{formatChange(asset.change)}</div>
+                        </div>
+                      </div>
+                      {isHovered && tooltip && (
+                        <div style={{ position: 'absolute', bottom: 'calc(100% + 4px)', left: 0, right: 0, background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '6px', padding: '7px 12px', fontSize: '12px', color: 'var(--t3)', lineHeight: 1.5, zIndex: 50, pointerEvents: 'none' }}>
+                          {tooltip}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              );
-            })}
+                  );
+                })
+            }
           </div>
         </div>
       )}
