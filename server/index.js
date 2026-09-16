@@ -368,6 +368,14 @@ const AsyncDuelSchema = new mongoose.Schema({
 });
 const AsyncDuel = mongoose.model('AsyncDuel', AsyncDuelSchema);
 
+// ── Trading Mode models ───────────────────────────────────────────
+require('./models/TradingAccount');
+require('./models/TradingPosition');
+require('./models/TradingTrade');
+require('./models/TradingAccountHistory');
+require('./models/TradingDuel');
+require('./models/TradingLeague');
+
 // ── VAPID / Push ──────────────────────────────────────────────────
 webpush.setVapidDetails(
   'mailto:nicolasvidalcorrecher@tradaria.dev',
@@ -4037,6 +4045,114 @@ app.get('/api/portfolio/compare', async (req, res) => {
 });
 
 app.get('/', (req, res) => res.json({ status: 'ok' }));
+
+// ── Trading Mode — price adapter + routes (Fase 1-2) ─────────────
+const { priceRouter }         = require('./trading/priceProvider');
+const { StubPriceProvider }   = require('./trading/stubProvider');
+const tradingStub = new StubPriceProvider(redis);
+priceRouter.register('stub', tradingStub);
+console.log('[trading] StubPriceProvider registered');
+
+app.use('/api/trading', require('./routes/trading'));
+
+// ⚠️  DEV-ONLY — price override endpoints (Fase 1 testing).
+// La condición NODE_ENV aquí es la primera capa de seguridad:
+// en producción este router no se monta en absoluto.
+// La segunda capa está dentro del router (x-admin-secret).
+if (process.env.NODE_ENV !== 'production') {
+  const { makeTradingAdminRouter } = require('./routes/tradingAdmin');
+  app.use('/api/admin/trading', makeTradingAdminRouter(redis, ADMIN_SECRET));
+  console.log('[trading] admin override endpoints registered (dev only)');
+}
+
+// ── Trading Mode background worker (Fase 4) ───────────────────────────────────
+const { runTradingWorker } = require('./trading/worker');
+const { checkMarginLevel, checkStopLossTakeProfit, getTradingEquity } = require('./routes/trading');
+runTradingWorker(checkStopLossTakeProfit, checkMarginLevel);
+
+// ── Trading social crons (Fase 5) ─────────────────────────────────────────────
+
+// Daily equity snapshot at 23:30 UTC for all trading accounts
+cron.schedule('30 23 * * *', async () => {
+  try {
+    const TradingAccount        = mongoose.model('TradingAccount');
+    const TradingPosition       = mongoose.model('TradingPosition');
+    const TradingAccountHistory = mongoose.model('TradingAccountHistory');
+
+    const date     = new Date().toISOString().split('T')[0];
+    const accounts = await TradingAccount.find({});
+    const allPositions = await TradingPosition.find({});
+
+    // Group positions by userId
+    const posMap = {};
+    for (const pos of allPositions) {
+      const uid = pos.userId.toString();
+      if (!posMap[uid]) posMap[uid] = [];
+      posMap[uid].push(pos);
+    }
+
+    // Batch price fetch for all unique symbols
+    const uniqueSymbols = [...new Set(allPositions.map(p => p.symbol))];
+    const priceMap = {};
+    await Promise.all(uniqueSymbols.map(async sym => {
+      try {
+        priceMap[sym] = await priceRouter.getPrice(sym);
+      } catch {}
+    }));
+
+    let saved = 0;
+    for (const account of accounts) {
+      try {
+        const uid       = account.userId.toString();
+        const positions = posMap[uid] || [];
+        const totalPnl  = positions.reduce((s, pos) => {
+          const priceObj = priceMap[pos.symbol] || { bid: pos.entryPrice, ask: pos.entryPrice };
+          const close    = pos.direction === 'long' ? priceObj.bid : priceObj.ask;
+          const pnl      = pos.direction === 'long'
+            ? (close - pos.entryPrice) * pos.contractSize * pos.lots
+            : (pos.entryPrice - close) * pos.contractSize * pos.lots;
+          return s + pnl;
+        }, 0);
+        const equity = account.balance + totalPnl;
+        await TradingAccountHistory.findOneAndUpdate(
+          { userId: account.userId, date },
+          { equity },
+          { upsert: true }
+        );
+        saved++;
+      } catch {}
+    }
+    console.log(`[trading-snapshot-cron] ${saved}/${accounts.length} equity snapshots saved for ${date}`);
+  } catch (err) {
+    console.error('[trading-snapshot-cron] Error:', err.message);
+  }
+});
+
+// Daily cron to close expired trading duels (00:05 UTC)
+cron.schedule('5 0 * * *', async () => {
+  try {
+    const TradingDuel = mongoose.model('TradingDuel');
+    const today = new Date().toISOString().split('T')[0];
+    const expired = await TradingDuel.find({ status: 'active', endDate: { $lte: today } });
+    for (const duel of expired) {
+      try {
+        const [cEquity, oEquity] = await Promise.all([
+          getTradingEquity(duel.challenger),
+          getTradingEquity(duel.opponent),
+        ]);
+        const cReturn = (cEquity - duel.challengerStartEquity) / duel.challengerStartEquity;
+        const oReturn = (oEquity - duel.opponentStartEquity)   / duel.opponentStartEquity;
+        duel.status = 'finished';
+        duel.winner = cReturn >= oReturn ? duel.challenger : duel.opponent;
+        await duel.save();
+      } catch {}
+    }
+    if (expired.length > 0)
+      console.log(`[trading-duel-cron] Closed ${expired.length} expired duel(s)`);
+  } catch (err) {
+    console.error('[trading-duel-cron] Error:', err.message);
+  }
+});
 
 // ── Start ─────────────────────────────────────────────────────────
 httpServer.listen(PORT, () => {
