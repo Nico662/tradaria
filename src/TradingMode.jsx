@@ -503,6 +503,34 @@ export default function TradingMode({ onBack }) {
     return () => { active = false; clearInterval(interval); };
   }, [token, positionsKey]);
 
+  // ── Closed trade history from backend ────────────────────────────────────
+  useEffect(() => {
+    if (!token) return;
+    let active = true;
+    async function fetchHistory() {
+      try {
+        const res = await fetch(`${SERVER}/api/trading/history?limit=100`, { headers: { Authorization: `Bearer ${token}` } });
+        if (!res.ok || !active) return;
+        const { trades } = await res.json();
+        setClosedPositions(trades.map(t => ({
+          id:          String(t._id),
+          symbol:      t.symbol,
+          dir:         t.direction === 'long' ? 'BUY' : 'SELL',
+          lots:        t.lots,
+          entry:       t.entryPrice,
+          close:       t.closePrice,
+          pnl:         t.pnl,
+          pnlPct:      t.pnlPct,
+          closeReason: t.closeReason,
+          closeTime:   new Date(t.closedAt).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }),
+        })));
+      } catch (_) {}
+    }
+    fetchHistory();
+    const interval = setInterval(fetchHistory, 10000);
+    return () => { active = false; clearInterval(interval); };
+  }, [token, positionsKey]);
+
   // ── Derived: add liquidation price; P&L already computed by backend ──────
   const positionsLive = positions.map(p => ({
     ...p,
@@ -1136,6 +1164,12 @@ export default function TradingMode({ onBack }) {
                   {closedPositions.map(pos => {
                     const posPnlColor = pos.pnl >= 0 ? 'var(--green)' : 'var(--pink)';
                     const dirColor    = pos.dir === 'BUY' ? 'var(--green)' : 'var(--pink)';
+                    const reasonBadge = {
+                      manual:      { label: '×',   bg: 'rgba(120,120,120,0.12)', border: '#555',       color: '#888'          },
+                      take_profit: { label: 'TP',  bg: 'rgba(0,192,135,0.12)',  border: 'var(--green)', color: 'var(--green)'  },
+                      stop_loss:   { label: 'SL',  bg: 'rgba(245,200,66,0.12)', border: '#f5c842',      color: '#f5c842'       },
+                      liquidation: { label: 'LIQ', bg: 'rgba(224,85,85,0.18)',  border: 'var(--pink)',  color: 'var(--pink)'   },
+                    }[pos.closeReason] ?? { label: '?', bg: 'transparent', border: '#555', color: '#888' };
                     return (
                       <div key={pos.id} style={{ display: 'flex', alignItems: 'center', padding: '10px 14px', borderBottom: '1px solid var(--border-subtle)', minHeight: 62 }}>
                         <div style={{ flex: 1, minWidth: 0 }}>
@@ -1143,6 +1177,9 @@ export default function TradingMode({ onBack }) {
                             <span style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 14, color: 'var(--text-primary)' }}>{pos.symbol}</span>
                             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700, color: dirColor, background: pos.dir === 'BUY' ? 'rgba(0,192,135,0.10)' : 'rgba(224,85,133,0.10)', border: `0.5px solid ${dirColor}`, borderRadius: 2, padding: '1px 5px', letterSpacing: '0.08em' }}>
                               {pos.dir.toLowerCase()}
+                            </span>
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, fontWeight: 800, color: reasonBadge.color, background: reasonBadge.bg, border: `0.5px solid ${reasonBadge.border}`, borderRadius: 2, padding: '1px 5px', letterSpacing: '0.08em' }}>
+                              {reasonBadge.label}
                             </span>
                             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#555' }}>{pos.lots.toFixed(2)}</span>
                           </div>
@@ -1154,6 +1191,11 @@ export default function TradingMode({ onBack }) {
                           <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 17, color: posPnlColor, lineHeight: 1 }}>
                             {pos.pnl >= 0 ? '+' : ''}${Math.abs(pos.pnl).toFixed(2)}
                           </div>
+                          {pos.pnlPct != null && (
+                            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: posPnlColor, opacity: 0.75, marginTop: 2 }}>
+                              {pos.pnlPct >= 0 ? '+' : ''}{pos.pnlPct.toFixed(1)}%
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
