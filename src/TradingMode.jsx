@@ -140,21 +140,6 @@ function generateCandles(symbol, tf, count = 60) {
   });
 }
 
-// ── Initial mock positions ────────────────────────────────────────────────────
-const INITIAL_POSITIONS = [
-  { id: 1, symbol: 'BTC/USD', dir: 'BUY',  lots: 0.10, entry: 64250.00 },
-  { id: 2, symbol: 'GOLD',    dir: 'SELL', lots: 0.05, entry: 2290.00  },
-  { id: 3, symbol: 'EUR/USD', dir: 'BUY',  lots: 0.10, entry: 1.08200  },
-];
-
-// ── Mock closed trade history ─────────────────────────────────────────────────
-const MOCK_HISTORY = [
-  { id: 101, symbol: 'BTC/USD', dir: 'BUY',  lots: 0.05, entry: 61200.00, close: 63850.00, closeTime: '01/09 14:32', pnl: +132.50 },
-  { id: 102, symbol: 'GOLD',    dir: 'SELL', lots: 0.10, entry: 2295.00,  close: 2271.50,  closeTime: '01/09 11:20', pnl: +117.50 },
-  { id: 103, symbol: 'EUR/USD', dir: 'BUY',  lots: 0.20, entry: 1.08650,  close: 1.08420,  closeTime: '31/08 18:45', pnl:  -46.00 },
-  { id: 104, symbol: 'ETH/USD', dir: 'SELL', lots: 0.10, entry: 3280.00,  close: 3195.00,  closeTime: '31/08 09:12', pnl:  +85.00 },
-  { id: 105, symbol: 'NVDA',    dir: 'BUY',  lots: 1.00, entry: 865.20,   close: 879.40,   closeTime: '30/08 15:58', pnl:  +14.20 },
-];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SOCIAL MOCK DATA — Trading Mode
@@ -390,19 +375,22 @@ export default function TradingMode({ onBack }) {
   const [useTakeProfit,  setUseTakeProfit]  = useState(false);
   const [slPrice,        setSlPrice]        = useState('');
   const [tpPrice,        setTpPrice]        = useState('');
-  const [positions,      setPositions]      = useState(INITIAL_POSITIONS);
+  const [positions,      setPositions]      = useState([]);
   const [showTutorial,   setShowTutorial]   = useState(
     () => !localStorage.getItem('tradaria_trading_tutorial_seen')
   );
   const [updateTimes,    setUpdateTimes]    = useState({});
   const [blinkSeq,       setBlinkSeq]       = useState({});
   const [histTab,         setHistTab]        = useState('positions');
-  const [closedPositions, setClosedPositions] = useState(MOCK_HISTORY);
+  const [closedPositions, setClosedPositions] = useState([]);
   const [socialTab,       setSocialTab]       = useState('ranking');
   const [rankingPeriod,   setRankingPeriod]   = useState('global');
   const [splash,          setSplash]          = useState(true);
   const [catalog,         setCatalog]         = useState({});
   const [account,         setAccount]         = useState(null);
+  const [orderError,      setOrderError]      = useState(null);
+  const [orderPending,    setOrderPending]    = useState(false);
+  const [positionsKey,    setPositionsKey]    = useState(0);
   const initPricesRef = useRef({});
   const prevPricesRef = useRef({});
 
@@ -486,20 +474,42 @@ export default function TradingMode({ onBack }) {
     return () => { active = false; clearInterval(interval); };
   }, [token]);
 
-  // ── Derived: P&L for each position ───────────────────────────────────────
-  const positionsLive = positions.map(p => {
-    const curr  = prices[p.symbol]?.price ?? p.entry;
-    const cs    = getContractSize(ASSETS.find(a => a.name === p.symbol)?.cat ?? 'crypto', p.symbol);
-    const pnl   = p.dir === 'BUY'
-      ? (curr - p.entry) * cs * p.lots
-      : (p.entry - curr) * cs * p.lots;
-    const liq   = p.dir === 'BUY'
-      ? p.entry * (1 - 0.9 / 100)
-      : p.entry * (1 + 0.9 / 100);
-    return { ...p, curr, pnl, liq };
-  });
+  // ── Live open positions from backend ─────────────────────────────────────
+  useEffect(() => {
+    if (!token) return;
+    let active = true;
+    async function fetchPositions() {
+      try {
+        const res  = await fetch(`${SERVER}/api/trading/positions`, { headers: { Authorization: `Bearer ${token}` } });
+        if (!res.ok || !active) return;
+        const list = await res.json();
+        setPositions(list.map(p => ({
+          id:         String(p.id),
+          symbol:     p.symbol,
+          dir:        p.direction === 'long' ? 'BUY' : 'SELL',
+          lots:       p.lots,
+          entry:      p.entryPrice,
+          curr:       p.currentPrice,
+          pnl:        p.pnl,
+          marginUsed: p.marginUsed,
+          stopLoss:   p.stopLoss,
+          takeProfit: p.takeProfit,
+          openedAt:   p.openedAt,
+        })));
+      } catch (_) {}
+    }
+    fetchPositions();
+    const interval = setInterval(fetchPositions, 5000);
+    return () => { active = false; clearInterval(interval); };
+  }, [token, positionsKey]);
 
-  const totalPnl = positionsLive.reduce((sum, p) => sum + p.pnl, 0);
+  // ── Derived: add liquidation price; P&L already computed by backend ──────
+  const positionsLive = positions.map(p => ({
+    ...p,
+    liq: p.dir === 'BUY'
+      ? p.entry * (1 - 0.9 / 100)
+      : p.entry * (1 + 0.9 / 100),
+  }));
 
   // ── Ticket calculations ───────────────────────────────────────────────────
   const selAsset   = ASSETS.find(a => a.name === selectedSymbol);
@@ -519,33 +529,38 @@ export default function TradingMode({ onBack }) {
     setSelectedSymbol(name);
     setSlPrice('');
     setTpPrice('');
+    setOrderError(null);
     setTab('chart');
   }
 
-  function handleClosePosition(id) {
-    const pos = positionsLive.find(p => p.id === id);
-    if (pos) {
-      const now = new Date();
-      const dd  = String(now.getDate()).padStart(2, '0');
-      const mm  = String(now.getMonth() + 1).padStart(2, '0');
-      const hh  = String(now.getHours()).padStart(2, '0');
-      const mn  = String(now.getMinutes()).padStart(2, '0');
-      setClosedPositions(prev => [{ ...pos, close: pos.curr, closeTime: `${dd}/${mm} ${hh}:${mn}` }, ...prev]);
-    }
-    setPositions(prev => prev.filter(p => p.id !== id));
+  async function refreshAccountOnce() {
+    try {
+      const res = await fetch(`${SERVER}/api/trading/account`, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.ok) setAccount(await res.json());
+    } catch (_) {}
   }
 
-  function handleConfirmOrder() {
-    if (!selectedSymbol || !selPrice) return;
-    const newPos = {
-      id: Date.now(),
-      symbol: selectedSymbol,
-      dir:    side,
-      lots,
-      entry:  selPrice,
-    };
-    setPositions(prev => [newPos, ...prev]);
-    setTab('positions');
+  async function handleClosePosition(id) {
+    if (orderPending) return;
+    setOrderPending(true);
+    setOrderError(null);
+    try {
+      const res = await fetch(`${SERVER}/api/trading/close/${id}`, {
+        method:  'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setOrderError(data.error ?? 'Error al cerrar posición');
+        return;
+      }
+      setPositionsKey(k => k + 1);
+      refreshAccountOnce();
+    } catch (_) {
+      setOrderError('Error de conexión');
+    } finally {
+      setOrderPending(false);
+    }
   }
 
   function closeTutorial() {
@@ -809,11 +824,38 @@ export default function TradingMode({ onBack }) {
     const { prefix: bidPfx, big: bidBig, sup: bidSup } = splitPrice(bid);
     const { prefix: askPfx, big: askBig, sup: askSup } = splitPrice(ask);
 
-    function openTrade(dir) {
-      const newPos = { id: Date.now(), symbol: selectedSymbol, dir, lots, entry: dir === 'BUY' ? ask : bid };
+    async function openTrade(dir) {
+      if (orderPending) return;
       setSide(dir);
-      setPositions(prev => [newPos, ...prev]);
-      setTab('positions');
+      setOrderError(null);
+      setOrderPending(true);
+      try {
+        const body = {
+          symbol:    selectedSymbol,
+          direction: dir === 'BUY' ? 'long' : 'short',
+          lots,
+        };
+        if (useStopLoss  && slPrice)  body.stopLoss   = Number(slPrice);
+        if (useTakeProfit && tpPrice) body.takeProfit  = Number(tpPrice);
+
+        const res  = await fetch(`${SERVER}/api/trading/open`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body:    JSON.stringify(body),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setOrderError(data.error ?? 'Error al abrir posición');
+          return;
+        }
+        setPositionsKey(k => k + 1);
+        refreshAccountOnce();
+        setTab('positions');
+      } catch (_) {
+        setOrderError('Error de conexión');
+      } finally {
+        setOrderPending(false);
+      }
     }
 
     return (
@@ -855,11 +897,14 @@ export default function TradingMode({ onBack }) {
         <div style={{ flexShrink: 0, borderTop: '1px solid var(--border-default)', background: 'var(--bg-surface)', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
 
           {/* SELL */}
-          <button onClick={() => openTrade('SELL')} style={{
+          <button onClick={() => openTrade('SELL')} disabled={orderPending} style={{
             flex: 1, background: 'rgba(224,85,133,0.10)', border: '1px solid var(--border-pink)',
-            borderRadius: 8, padding: '9px 6px', cursor: 'pointer', textAlign: 'center',
+            borderRadius: 8, padding: '9px 6px', cursor: orderPending ? 'default' : 'pointer',
+            textAlign: 'center', opacity: orderPending ? 0.5 : 1,
           }}>
-            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 11, color: 'var(--pink)', letterSpacing: '0.1em', marginBottom: 4 }}>SELL</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 11, color: 'var(--pink)', letterSpacing: '0.1em', marginBottom: 4 }}>
+              {orderPending ? '…' : 'SELL'}
+            </div>
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center' }}>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--pink)', opacity: 0.65 }}>{bidPfx}</span>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 19, fontWeight: 700, color: 'var(--pink)', lineHeight: 1 }}>{bidBig}</span>
@@ -886,11 +931,14 @@ export default function TradingMode({ onBack }) {
           </div>
 
           {/* BUY */}
-          <button onClick={() => openTrade('BUY')} style={{
+          <button onClick={() => openTrade('BUY')} disabled={orderPending} style={{
             flex: 1, background: 'rgba(0,192,135,0.09)', border: '1px solid var(--border-green)',
-            borderRadius: 8, padding: '9px 6px', cursor: 'pointer', textAlign: 'center',
+            borderRadius: 8, padding: '9px 6px', cursor: orderPending ? 'default' : 'pointer',
+            textAlign: 'center', opacity: orderPending ? 0.5 : 1,
           }}>
-            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 11, color: 'var(--green)', letterSpacing: '0.1em', marginBottom: 4 }}>BUY</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 11, color: 'var(--green)', letterSpacing: '0.1em', marginBottom: 4 }}>
+              {orderPending ? '…' : 'BUY'}
+            </div>
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center' }}>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--green)', opacity: 0.65 }}>{askPfx}</span>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 19, fontWeight: 700, color: 'var(--green)', lineHeight: 1 }}>{askBig}</span>
@@ -898,6 +946,15 @@ export default function TradingMode({ onBack }) {
             </div>
           </button>
         </div>
+
+        {/* Error from backend (insufficient margin, market closed, etc.) */}
+        {orderError && (
+          <div style={{ flexShrink: 0, padding: '6px 12px', background: 'rgba(224,85,133,0.08)', borderTop: '1px solid var(--border-pink)' }}>
+            <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 11, color: 'var(--pink)' }}>
+              {orderError}
+            </span>
+          </div>
+        )}
       </div>
     );
   }
@@ -986,6 +1043,11 @@ export default function TradingMode({ onBack }) {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {AccountHeader}
         {Separator}
+        {orderError && (
+          <div style={{ padding: '6px 14px', background: 'rgba(224,85,133,0.08)', borderBottom: '1px solid var(--border-pink)', flexShrink: 0 }}>
+            <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 11, color: 'var(--pink)' }}>{orderError}</span>
+          </div>
+        )}
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {positionsLive.map(pos => {
             const posPnlColor = pos.pnl >= 0 ? 'var(--green)' : 'var(--pink)';
@@ -1011,8 +1073,8 @@ export default function TradingMode({ onBack }) {
                   <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 19, color: posPnlColor, lineHeight: 1.1 }}>
                     {pos.pnl >= 0 ? '+' : ''}${Math.abs(pos.pnl).toFixed(2)}
                   </div>
-                  <button onClick={() => handleClosePosition(pos.id)}
-                    style={{ marginTop: 5, background: 'rgba(224,85,133,0.08)', border: '0.5px solid var(--border-pink)', borderRadius: 3, color: 'var(--pink)', fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 9, cursor: 'pointer', padding: '2px 7px', letterSpacing: '0.08em' }}>
+                  <button onClick={() => handleClosePosition(pos.id)} disabled={orderPending}
+                    style={{ marginTop: 5, background: 'rgba(224,85,133,0.08)', border: '0.5px solid var(--border-pink)', borderRadius: 3, color: 'var(--pink)', fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 9, cursor: orderPending ? 'default' : 'pointer', padding: '2px 7px', letterSpacing: '0.08em', opacity: orderPending ? 0.5 : 1 }}>
                     {tr.closeBtn ?? 'CERRAR'}
                   </button>
                 </div>
