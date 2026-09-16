@@ -681,12 +681,14 @@ router.get('/duel/active', requireAuth, async (req, res) => {
     res.json({
       id: duel._id,
       challenger: {
+        id: duel.challenger._id,
         name: duel.challenger.name, username: duel.challenger.username,
         avatar: duel.challenger.avatar, customAvatar: duel.challenger.customAvatar,
         returnPct: ((cEquity - duel.challengerStartEquity) / duel.challengerStartEquity) * 100,
         currentEquity: cEquity,
       },
       opponent: {
+        id: duel.opponent._id,
         name: duel.opponent.name, username: duel.opponent.username,
         avatar: duel.opponent.avatar, customAvatar: duel.opponent.customAvatar,
         returnPct: ((oEquity - duel.opponentStartEquity) / duel.opponentStartEquity) * 100,

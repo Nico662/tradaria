@@ -148,63 +148,6 @@ function generateCandles(symbol, tf, count = 60) {
 //   GET /api/trading/duel/active                  → { active, endsAt, me, rival }
 //   GET /api/trading/leagues/me                   → { division, myId, myRank, total, promoteTop, relegateFrom, traders }
 // ─────────────────────────────────────────────────────────────────────────────
-const SOCIAL_ME_ID = 'u3';
-
-const SOCIAL_RANKING = {
-  global: [
-    { id: 'u1',  name: 'AlexTrade',   ops: 52, wr: 63, streak: 5, pct: +18.4 },
-    { id: 'u2',  name: 'MarketWolf',  ops: 41, wr: 58, streak: 2, pct: +14.7 },
-    { id: 'u3',  name: 'Tú',          ops: 37, wr: 59, streak: 3, pct: +12.1 },
-    { id: 'u4',  name: 'CryptoKing',  ops: 29, wr: 52, streak: 1, pct:  +9.8 },
-    { id: 'u5',  name: 'BullRider',   ops: 44, wr: 47, streak: 0, pct:  +5.3 },
-    { id: 'u6',  name: 'FXHunter',    ops: 18, wr: 44, streak: 0, pct:  +1.9 },
-    { id: 'u7',  name: 'ShortSeller', ops: 23, wr: 39, streak: 0, pct:  -2.4 },
-    { id: 'u8',  name: 'LossTaker',   ops: 15, wr: 33, streak: 0, pct:  -7.1 },
-  ],
-  week: [
-    { id: 'u4',  name: 'CryptoKing',  ops: 12, wr: 67, streak: 4, pct:  +6.2 },
-    { id: 'u3',  name: 'Tú',          ops:  9, wr: 56, streak: 2, pct:  +3.8 },
-    { id: 'u1',  name: 'AlexTrade',   ops:  8, wr: 50, streak: 1, pct:  +2.1 },
-    { id: 'u5',  name: 'BullRider',   ops: 14, wr: 43, streak: 0, pct:  +0.7 },
-    { id: 'u2',  name: 'MarketWolf',  ops:  6, wr: 33, streak: 0, pct:  -1.3 },
-    { id: 'u6',  name: 'FXHunter',    ops:  4, wr: 25, streak: 0, pct:  -3.5 },
-  ],
-};
-
-const SOCIAL_DUEL = {
-  active: true,
-  endsAt: '2d 4h',   // TODO: ISO date from backend, compute diff client-side
-  me:    { id: 'u3', name: 'Tú',         pct: +12.1 },
-  rival: { id: 'u2', name: 'MarketWolf', pct: +14.7 },
-};
-
-const SOCIAL_LEAGUE = {
-  division: 'gold',   // TODO: 'gold' | 'silver' | 'bronze' from backend
-  myId: 'u3',
-  myRank: 4,
-  total: 30,
-  promoteTop: 7,    // ranks 1-7 promote
-  relegateFrom: 26, // ranks 26-30 relegate
-  traders: [
-    { id: 'u1',  name: 'AlexTrade',  pct: +18.4 },
-    { id: 'u2',  name: 'MarketWolf', pct: +14.7 },
-    { id: 'u9',  name: 'Prism',      pct: +13.3 },
-    { id: 'u3',  name: 'Tú',         pct: +12.1 },
-    { id: 'u4',  name: 'CryptoKing', pct:  +9.8 },
-    { id: 'u5',  name: 'BullRider',  pct:  +5.3 },
-    { id: 'u10', name: 'FXPro',      pct:  +3.1 },
-    { id: 'u11', name: 'NightSwing', pct:  +1.7 },
-    { id: 'u12', name: 'DayTrader',  pct:  +0.9 },
-    { id: 'u13', name: 'GridBot',    pct:  +0.2 },
-    { id: 'u14', name: 'SlowHands',  pct:  -0.6 },
-    { id: 'u15', name: 'FOMOKing',   pct:  -1.8 },
-    { id: 'u26', name: 'RedAlert',   pct:  -8.4 },
-    { id: 'u27', name: 'DrawDown',   pct: -10.1 },
-    { id: 'u28', name: 'LossStreak', pct: -13.5 },
-    { id: 'u29', name: 'MarginCall', pct: -15.2 },
-    { id: 'u30', name: 'LiqHunter',  pct: -18.7 },
-  ],
-};
 
 // ── Lightweight Charts candlestick — replicates the Chart.jsx pattern ─────────
 function TradingChart({ symbol, timeframe }) {
@@ -361,7 +304,7 @@ function TradingTutorial({ t, onClose }) {
 export default function TradingMode({ onBack }) {
   const { t } = useLang();
   const tr = t.trading ?? {};
-  const { token } = useAuth();
+  const { token, user } = useAuth();
 
   const [tab,            setTab]            = useState('symbols');
   const [catFilter,      setCatFilter]      = useState('all');
@@ -391,6 +334,17 @@ export default function TradingMode({ onBack }) {
   const [orderError,      setOrderError]      = useState(null);
   const [orderPending,    setOrderPending]    = useState(false);
   const [positionsKey,    setPositionsKey]    = useState(0);
+  const [ranking,         setRanking]         = useState([]);
+  const [rankingPos,      setRankingPos]      = useState(null);
+  const [activeDuel,      setActiveDuel]      = useState(null);
+  const [pendingDuels,    setPendingDuels]    = useState([]);
+  const [myLeagues,       setMyLeagues]       = useState([]);
+  const [leagueView,      setLeagueView]      = useState(null);
+  const [challengeInput,  setChallengeInput]  = useState('');
+  const [leagueCodeInput, setLeagueCodeInput] = useState('');
+  const [leagueNameInput, setLeagueNameInput] = useState('');
+  const [socialError,     setSocialError]     = useState(null);
+  const [socialPending,   setSocialPending]   = useState(false);
   const initPricesRef = useRef({});
   const prevPricesRef = useRef({});
 
@@ -531,6 +485,59 @@ export default function TradingMode({ onBack }) {
     return () => { active = false; clearInterval(interval); };
   }, [token, positionsKey]);
 
+  // ── Leaderboard ───────────────────────────────────────────────────────────
+  useEffect(() => {
+    let active = true;
+    async function fetchRanking() {
+      try {
+        const qs  = `period=${rankingPeriod}${user?.id ? `&userId=${user.id}` : ''}`;
+        const res = await fetch(`${SERVER}/api/trading/leaderboard?${qs}`);
+        if (!res.ok || !active) return;
+        const data = await res.json();
+        setRanking(data.leaderboard ?? []);
+        setRankingPos(data.userPosition ?? null);
+      } catch (_) {}
+    }
+    fetchRanking();
+    const interval = setInterval(fetchRanking, 30000);
+    return () => { active = false; clearInterval(interval); };
+  }, [rankingPeriod, user?.id]);
+
+  // ── Duel (active + pending) ───────────────────────────────────────────────
+  useEffect(() => {
+    if (!token) return;
+    let active = true;
+    async function fetchDuel() {
+      try {
+        const [actRes, pendRes] = await Promise.all([
+          fetch(`${SERVER}/api/trading/duel/active`,  { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${SERVER}/api/trading/duel/pending`, { headers: { Authorization: `Bearer ${token}` } }),
+        ]);
+        if (!active) return;
+        if (actRes.ok)  setActiveDuel(await actRes.json());
+        if (pendRes.ok) setPendingDuels(await pendRes.json());
+      } catch (_) {}
+    }
+    fetchDuel();
+    const interval = setInterval(fetchDuel, 15000);
+    return () => { active = false; clearInterval(interval); };
+  }, [token]);
+
+  // ── My leagues ────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!token) return;
+    let active = true;
+    async function fetchMyLeagues() {
+      try {
+        const res = await fetch(`${SERVER}/api/trading/leagues/mine`, { headers: { Authorization: `Bearer ${token}` } });
+        if (!res.ok || !active) return;
+        setMyLeagues(await res.json());
+      } catch (_) {}
+    }
+    fetchMyLeagues();
+    return () => { active = false; };
+  }, [token]);
+
   // ── Derived: add liquidation price; P&L already computed by backend ──────
   const positionsLive = positions.map(p => ({
     ...p,
@@ -589,6 +596,95 @@ export default function TradingMode({ onBack }) {
     } finally {
       setOrderPending(false);
     }
+  }
+
+  async function handleChallenge() {
+    if (!challengeInput.trim() || socialPending) return;
+    setSocialPending(true); setSocialError(null);
+    try {
+      const res = await fetch(`${SERVER}/api/trading/duel/challenge`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ username: challengeInput.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setSocialError(data.error ?? 'Error al retar'); return; }
+      setChallengeInput('');
+      const actRes = await fetch(`${SERVER}/api/trading/duel/active`, { headers: { Authorization: `Bearer ${token}` } });
+      if (actRes.ok) setActiveDuel(await actRes.json());
+    } catch (_) { setSocialError('Error de conexión'); }
+    finally { setSocialPending(false); }
+  }
+
+  async function handleDuelAccept(duelId) {
+    setSocialPending(true);
+    try {
+      const res = await fetch(`${SERVER}/api/trading/duel/accept/${duelId}`, {
+        method: 'POST', headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) { const d = await res.json().catch(() => ({})); setSocialError(d.error ?? 'Error'); return; }
+      const [actRes, pendRes] = await Promise.all([
+        fetch(`${SERVER}/api/trading/duel/active`,  { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${SERVER}/api/trading/duel/pending`, { headers: { Authorization: `Bearer ${token}` } }),
+      ]);
+      if (actRes.ok)  setActiveDuel(await actRes.json());
+      if (pendRes.ok) setPendingDuels(await pendRes.json());
+    } catch (_) { setSocialError('Error de conexión'); }
+    finally { setSocialPending(false); }
+  }
+
+  async function handleDuelReject(duelId) {
+    try {
+      await fetch(`${SERVER}/api/trading/duel/reject/${duelId}`, {
+        method: 'POST', headers: { Authorization: `Bearer ${token}` },
+      });
+      setPendingDuels(prev => prev.filter(d => String(d.id) !== String(duelId)));
+    } catch (_) {}
+  }
+
+  async function handleViewLeague(leagueId) {
+    try {
+      const res = await fetch(`${SERVER}/api/trading/leagues/${leagueId}/ranking`, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.ok) setLeagueView(await res.json());
+    } catch (_) {}
+  }
+
+  async function handleCreateLeague() {
+    if (!leagueNameInput.trim() || socialPending) return;
+    setSocialPending(true); setSocialError(null);
+    try {
+      const res = await fetch(`${SERVER}/api/trading/leagues/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ name: leagueNameInput.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setSocialError(data.error ?? 'Error al crear liga'); return; }
+      setLeagueNameInput('');
+      const mineRes = await fetch(`${SERVER}/api/trading/leagues/mine`, { headers: { Authorization: `Bearer ${token}` } });
+      if (mineRes.ok) setMyLeagues(await mineRes.json());
+      handleViewLeague(data.leagueId);
+    } catch (_) { setSocialError('Error de conexión'); }
+    finally { setSocialPending(false); }
+  }
+
+  async function handleJoinLeague() {
+    if (!leagueCodeInput.trim() || socialPending) return;
+    setSocialPending(true); setSocialError(null);
+    try {
+      const res = await fetch(`${SERVER}/api/trading/leagues/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ code: leagueCodeInput.trim().toUpperCase() }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setSocialError(data.error ?? 'Error al unirse'); return; }
+      setLeagueCodeInput('');
+      const mineRes = await fetch(`${SERVER}/api/trading/leagues/mine`, { headers: { Authorization: `Bearer ${token}` } });
+      if (mineRes.ok) setMyLeagues(await mineRes.json());
+      handleViewLeague(data.leagueId);
+    } catch (_) { setSocialError('Error de conexión'); }
+    finally { setSocialPending(false); }
   }
 
   function closeTutorial() {
@@ -1250,77 +1346,51 @@ export default function TradingMode({ onBack }) {
   // TAB: SOCIAL — Ranking / Duelo / Ligas
   // ─────────────────────────────────────────────────────────────────────────────
   function renderSocial() {
-    const rankList = rankingPeriod === 'global' ? SOCIAL_RANKING.global : SOCIAL_RANKING.week;
-    const { division, myId, myRank, total, promoteTop, relegateFrom, traders: leagueTraders } = SOCIAL_LEAGUE;
-    const divColor = division === 'gold' ? 'var(--color-neutral)' : division === 'silver' ? 'var(--text-secondary)' : '#cd7f32';
-    const divLabel = division === 'gold'
-      ? (tr.leagueDivGold ?? 'División Oro')
-      : division === 'silver'
-        ? (tr.leagueDivSilver ?? 'División Plata')
-        : (tr.leagueDivBronze ?? 'División Bronce');
-
-    // ── Sub-tab bar ────────────────────────────────────────────────────────────
     const subTabs = [
       { id: 'ranking', label: tr.tabRanking ?? 'Ranking', icon: <Trophy size={13} /> },
       { id: 'duel',    label: tr.tabDuelSub ?? 'Duelo',   icon: <Swords size={13} /> },
       { id: 'leagues', label: tr.tabLeagues ?? 'Ligas',   icon: <BarChart3 size={13} /> },
     ];
 
+    const inputStyle = { flex: 1, background: 'var(--bg-elevated)', border: '1px solid var(--border-default)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)', fontSize: 12, padding: '8px 10px', outline: 'none' };
+    const btnPrimary = { padding: '9px 14px', background: 'var(--green)', color: '#0d0d0d', border: 'none', borderRadius: 'var(--radius-sm)', fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap' };
+    const btnGhost   = { padding: '9px 14px', background: 'transparent', color: 'var(--green)', border: '1px solid var(--border-green)', borderRadius: 'var(--radius-sm)', fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap' };
+
     // ── Ranking ────────────────────────────────────────────────────────────────
     function Ranking() {
+      const rows = ranking;
       return (
         <div style={{ flex: 1, overflowY: 'auto' }}>
-          {/* Period toggle */}
           <div style={{ display: 'flex', padding: '10px 14px', borderBottom: '1px solid var(--border-default)' }}>
             {['global', 'week'].map((p, i) => {
               const active = rankingPeriod === p;
-              const label  = p === 'global' ? (tr.rankGlobal ?? 'Global') : (tr.rankWeek ?? 'Semana');
               return (
-                <button
-                  key={p}
-                  onClick={() => setRankingPeriod(p)}
-                  style={{
-                    flex: 1, padding: '6px 0',
-                    background: active ? 'var(--green)' : 'var(--bg-elevated)',
-                    color: active ? '#0d0d0d' : 'var(--text-muted)',
-                    border: '1px solid var(--border-default)',
-                    borderRadius: i === 0 ? 'var(--radius-sm) 0 0 var(--radius-sm)' : '0 var(--radius-sm) var(--radius-sm) 0',
-                    fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 12,
-                    cursor: 'pointer', transition: 'all 0.15s',
-                  }}
-                >
-                  {label}
+                <button key={p} onClick={() => setRankingPeriod(p)} style={{ flex: 1, padding: '6px 0', background: active ? 'var(--green)' : 'var(--bg-elevated)', color: active ? '#0d0d0d' : 'var(--text-muted)', border: '1px solid var(--border-default)', borderRadius: i === 0 ? 'var(--radius-sm) 0 0 var(--radius-sm)' : '0 var(--radius-sm) var(--radius-sm) 0', fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 12, cursor: 'pointer', transition: 'all 0.15s' }}>
+                  {p === 'global' ? (tr.rankGlobal ?? 'Global') : (tr.rankWeek ?? 'Semana')}
                 </button>
               );
             })}
           </div>
-
-          {/* Trader rows */}
-          {rankList.map((trader, idx) => {
-            const rank       = idx + 1;
-            const isMe       = trader.id === SOCIAL_ME_ID;
-            const rankColor  = rank <= 3 ? 'var(--color-neutral)' : 'var(--text-hint)';
-            const pctColor   = trader.pct >= 0 ? 'var(--green)' : 'var(--pink)';
-            const pctSign    = trader.pct >= 0 ? '+' : '';
+          {rows.length === 0 ? (
+            <div style={{ padding: 40, textAlign: 'center', fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--text-muted)' }}>
+              Sin datos aún
+            </div>
+          ) : rows.map((trader, idx) => {
+            const rank      = idx + 1;
+            const isMe      = trader.userId === user?.id;
+            const rankColor = rank <= 3 ? 'var(--color-neutral)' : 'var(--text-hint)';
+            const pctColor  = trader.returnPct >= 0 ? 'var(--green)' : 'var(--pink)';
+            const pctSign   = trader.returnPct >= 0 ? '+' : '';
             return (
-              <div
-                key={trader.id}
-                style={{
-                  display: 'flex', alignItems: 'center', padding: '9px 14px', gap: 10,
-                  background: isMe ? 'rgba(0,192,135,0.05)' : 'transparent',
-                  borderBottom: '1px solid var(--border-default)',
-                }}
-              >
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: rankColor, minWidth: 22, textAlign: 'right', flexShrink: 0 }}>
-                  {rank}
-                </span>
+              <div key={trader.userId} style={{ display: 'flex', alignItems: 'center', padding: '9px 14px', gap: 10, background: isMe ? 'rgba(0,192,135,0.05)' : 'transparent', borderBottom: '1px solid var(--border-default)' }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: rankColor, minWidth: 22, textAlign: 'right', flexShrink: 0 }}>{rank}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 13, color: isMe ? 'var(--green)' : 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {trader.name}
+                    {trader.name}{isMe ? ' (tú)' : ''}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 1 }}>
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-hint)' }}>
-                      {trader.ops} ops · WR {trader.wr}%
+                      {trader.trades} ops · WR {trader.winRate}%
                     </span>
                     {trader.streak > 0 && (
                       <span style={{ display: 'flex', alignItems: 'center', gap: 2, fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--color-neutral)' }}>
@@ -1330,149 +1400,228 @@ export default function TradingMode({ onBack }) {
                   </div>
                 </div>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 16, fontWeight: 700, color: pctColor, flexShrink: 0 }}>
-                  {pctSign}{trader.pct.toFixed(1)}%
+                  {pctSign}{trader.returnPct.toFixed(1)}%
                 </span>
               </div>
             );
           })}
+          {rankingPos && (
+            <>
+              <div style={{ padding: '4px 14px', textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-hint)' }}>· · ·</div>
+              <div style={{ display: 'flex', alignItems: 'center', padding: '9px 14px', gap: 10, background: 'rgba(0,192,135,0.05)', borderBottom: '1px solid var(--border-default)' }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: 'var(--text-hint)', minWidth: 22, textAlign: 'right', flexShrink: 0 }}>{rankingPos.rank}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 13, color: 'var(--green)' }}>{rankingPos.name} (tú)</div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-hint)' }}>{rankingPos.trades} ops · WR {rankingPos.winRate}%</div>
+                </div>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 16, fontWeight: 700, color: rankingPos.returnPct >= 0 ? 'var(--green)' : 'var(--pink)', flexShrink: 0 }}>
+                  {rankingPos.returnPct >= 0 ? '+' : ''}{rankingPos.returnPct.toFixed(1)}%
+                </span>
+              </div>
+            </>
+          )}
         </div>
       );
     }
 
     // ── Duelo ──────────────────────────────────────────────────────────────────
     function Duelo() {
-      if (!SOCIAL_DUEL.active) {
-        return (
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 24px', gap: 12, textAlign: 'center' }}>
-            <Swords size={36} style={{ color: 'var(--text-hint)' }} />
-            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 15, color: 'var(--text-primary)' }}>
-              {tr.duelNone ?? 'Sin duelo activo'}
-            </div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--text-muted)', maxWidth: 260 }}>
-              {tr.duelNoneSub ?? 'Reta a un amigo y compite por la mejor rentabilidad en Trading Mode'}
-            </div>
-            <button style={{ marginTop: 8, padding: '10px 24px', background: 'var(--green)', color: '#0d0d0d', border: 'none', borderRadius: 'var(--radius-sm)', fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 13, cursor: 'pointer' }}>
-              {tr.duelChallenge ?? 'Retar a un amigo'}
-            </button>
-          </div>
-        );
-      }
-      const iWinning    = SOCIAL_DUEL.me.pct > SOCIAL_DUEL.rival.pct;
-      const myColor     = SOCIAL_DUEL.me.pct    >= 0 ? 'var(--green)' : 'var(--pink)';
-      const rivalColor  = SOCIAL_DUEL.rival.pct >= 0 ? 'var(--green)' : 'var(--pink)';
-      const mySign      = SOCIAL_DUEL.me.pct    >= 0 ? '+' : '';
-      const rivalSign   = SOCIAL_DUEL.rival.pct >= 0 ? '+' : '';
+      const me    = activeDuel ? (String(activeDuel.challenger.id) === user?.id ? activeDuel.challenger : activeDuel.opponent) : null;
+      const rival = activeDuel ? (String(activeDuel.challenger.id) === user?.id ? activeDuel.opponent : activeDuel.challenger) : null;
       return (
         <div style={{ flex: 1, overflowY: 'auto' }}>
-          {/* Time remaining */}
-          <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-default)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 11, color: 'var(--text-hint)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
-              {tr.duelTimeLeft ?? 'Tiempo restante'}
-            </span>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: 'var(--color-neutral)' }}>
-              {SOCIAL_DUEL.endsAt}
-            </span>
-          </div>
+          {/* Pending challenge notifications */}
+          {pendingDuels.length > 0 && pendingDuels.map(d => (
+            <div key={String(d.id)} style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-default)', display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(245,200,66,0.06)' }}>
+              <Swords size={14} style={{ color: 'var(--color-neutral)', flexShrink: 0 }} />
+              <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 12, color: 'var(--text-primary)' }}>
+                <span style={{ color: 'var(--color-neutral)' }}>{d.challenger.name}</span> te reta a un duelo
+              </span>
+              <button onClick={() => handleDuelAccept(String(d.id))} disabled={socialPending} style={{ ...btnPrimary, fontSize: 11, padding: '5px 10px' }}>Aceptar</button>
+              <button onClick={() => handleDuelReject(String(d.id))} disabled={socialPending} style={{ ...btnGhost,   fontSize: 11, padding: '5px 10px' }}>Ignorar</button>
+            </div>
+          ))}
 
-          {/* VS panel */}
-          <div style={{ padding: '24px 14px', display: 'flex', alignItems: 'stretch' }}>
-            {/* Me */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '20px 12px', background: iWinning ? 'rgba(0,192,135,0.07)' : 'var(--bg-elevated)', border: iWinning ? '1px solid var(--border-green)' : '1px solid var(--border-default)', borderRadius: 'var(--radius-md) 0 0 var(--radius-md)' }}>
-              <span style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 13, color: 'var(--green)' }}>{SOCIAL_DUEL.me.name}</span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 28, fontWeight: 700, color: myColor, lineHeight: 1 }}>{mySign}{SOCIAL_DUEL.me.pct.toFixed(1)}%</span>
-              {iWinning && <span style={{ fontSize: 9, fontWeight: 800, color: 'var(--green)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>▲ {tr.duelWinning ?? 'Ganando'}</span>}
+          {activeDuel ? (
+            <>
+              <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-default)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 11, color: 'var(--text-hint)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                  {tr.duelTimeLeft ?? 'Tiempo restante'}
+                </span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: 'var(--color-neutral)' }}>
+                  {activeDuel.daysLeft}d
+                </span>
+              </div>
+              <div style={{ padding: '24px 14px', display: 'flex', alignItems: 'stretch' }}>
+                {[{ side: me, isMe: true }, { side: rival, isMe: false }].map((s, i) => {
+                  if (!s.side) return null;
+                  const winning = me && rival && me.returnPct > rival.returnPct ? s.isMe : !s.isMe;
+                  const pctColor = s.side.returnPct >= 0 ? 'var(--green)' : 'var(--pink)';
+                  const sign     = s.side.returnPct >= 0 ? '+' : '';
+                  if (i === 1) return (
+                    <div key='vs' style={{ display: 'contents' }}>
+                      <div style={{ width: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-surface)', borderTop: '1px solid var(--border-default)', borderBottom: '1px solid var(--border-default)' }}>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 900, color: 'var(--text-hint)' }}>VS</span>
+                      </div>
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '20px 12px', background: winning ? 'rgba(0,192,135,0.07)' : 'var(--bg-elevated)', border: winning ? '1px solid var(--border-green)' : '1px solid var(--border-default)', borderRadius: '0 var(--radius-md) var(--radius-md) 0' }}>
+                        <span style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 13, color: 'var(--text-primary)' }}>{s.side.name}</span>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 28, fontWeight: 700, color: pctColor, lineHeight: 1 }}>{sign}{s.side.returnPct.toFixed(1)}%</span>
+                        {winning && <span style={{ fontSize: 9, fontWeight: 800, color: 'var(--pink)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>▲ {tr.duelWinning ?? 'Ganando'}</span>}
+                      </div>
+                    </div>
+                  );
+                  return (
+                    <div key='me' style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '20px 12px', background: winning ? 'rgba(0,192,135,0.07)' : 'var(--bg-elevated)', border: winning ? '1px solid var(--border-green)' : '1px solid var(--border-default)', borderRadius: 'var(--radius-md) 0 0 var(--radius-md)' }}>
+                      <span style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 13, color: 'var(--green)' }}>{s.side.name} (tú)</span>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 28, fontWeight: 700, color: pctColor, lineHeight: 1 }}>{sign}{s.side.returnPct.toFixed(1)}%</span>
+                      {winning && <span style={{ fontSize: 9, fontWeight: 800, color: 'var(--green)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>▲ {tr.duelWinning ?? 'Ganando'}</span>}
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          ) : (
+            <div style={{ padding: '32px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, textAlign: 'center' }}>
+              <Swords size={36} style={{ color: 'var(--text-hint)' }} />
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 15, color: 'var(--text-primary)' }}>
+                {tr.duelNone ?? 'Sin duelo activo'}
+              </div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--text-muted)', maxWidth: 260 }}>
+                {tr.duelNoneSub ?? 'Reta a un amigo por su username y compite en rentabilidad durante 7 días'}
+              </div>
+              <div style={{ display: 'flex', gap: 8, width: '100%', maxWidth: 300 }}>
+                <input
+                  value={challengeInput}
+                  onChange={e => setChallengeInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleChallenge()}
+                  placeholder={tr.duelInputPlaceholder ?? 'username del rival'}
+                  style={inputStyle}
+                />
+                <button onClick={handleChallenge} disabled={socialPending} style={btnPrimary}>
+                  {socialPending ? '…' : (tr.duelChallenge ?? 'Retar')}
+                </button>
+              </div>
+              {socialError && <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--pink)' }}>{socialError}</div>}
             </div>
-            {/* VS */}
-            <div style={{ width: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-surface)', borderTop: '1px solid var(--border-default)', borderBottom: '1px solid var(--border-default)' }}>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 900, color: 'var(--text-hint)', letterSpacing: '0.05em' }}>VS</span>
-            </div>
-            {/* Rival */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '20px 12px', background: !iWinning ? 'rgba(224,85,133,0.07)' : 'var(--bg-elevated)', border: !iWinning ? '1px solid var(--border-pink)' : '1px solid var(--border-default)', borderRadius: '0 var(--radius-md) var(--radius-md) 0' }}>
-              <span style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 13, color: 'var(--text-primary)' }}>{SOCIAL_DUEL.rival.name}</span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 28, fontWeight: 700, color: rivalColor, lineHeight: 1 }}>{rivalSign}{SOCIAL_DUEL.rival.pct.toFixed(1)}%</span>
-              {!iWinning && <span style={{ fontSize: 9, fontWeight: 800, color: 'var(--pink)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>▲ {tr.duelWinning ?? 'Ganando'}</span>}
-            </div>
-          </div>
-
-          {/* Challenge button */}
-          <div style={{ padding: '0 14px 24px' }}>
-            <button style={{ width: '100%', padding: '11px 0', background: 'transparent', color: 'var(--green)', border: '1px solid var(--border-green)', borderRadius: 'var(--radius-sm)', fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 13, cursor: 'pointer', letterSpacing: '0.04em' }}>
-              {tr.duelChallenge ?? 'Retar a un amigo'}
-            </button>
-          </div>
+          )}
         </div>
       );
     }
 
     // ── Ligas ──────────────────────────────────────────────────────────────────
     function Ligas() {
+      if (leagueView) {
+        const rankers = leagueView.ranking ?? [];
+        return (
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-default)', display: 'flex', alignItems: 'center', gap: 10 }}>
+              <button onClick={() => setLeagueView(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}>
+                <ChevronLeft size={16} />
+              </button>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 14, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leagueView.name}</div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-hint)' }}>Código: {leagueView.code}</div>
+              </div>
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto' }}>
+              {rankers.map((trader, idx) => {
+                const rank      = idx + 1;
+                const isMe      = trader.isYou;
+                const rankColor = rank <= 3 ? 'var(--color-neutral)' : 'var(--text-hint)';
+                const pctColor  = trader.returnPct >= 0 ? 'var(--green)' : 'var(--pink)';
+                const pctSign   = trader.returnPct >= 0 ? '+' : '';
+                return (
+                  <div key={String(trader.userId)} style={{ display: 'flex', alignItems: 'center', padding: '8px 14px', gap: 10, background: isMe ? 'rgba(0,192,135,0.05)' : 'transparent', borderBottom: '1px solid var(--border-default)' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: rankColor, minWidth: 22, textAlign: 'right', flexShrink: 0 }}>{rank}</span>
+                    <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontWeight: isMe ? 900 : 700, fontSize: 13, color: isMe ? 'var(--green)' : 'var(--text-primary)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {trader.name}{isMe ? ' (tú)' : ''}
+                    </span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: pctColor, flexShrink: 0 }}>{pctSign}{trader.returnPct.toFixed(1)}%</span>
+                  </div>
+                );
+              })}
+              {leagueView.userPosition && (
+                <>
+                  <div style={{ padding: '4px 14px', textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-hint)' }}>· · ·</div>
+                  <div style={{ display: 'flex', alignItems: 'center', padding: '8px 14px', gap: 10, background: 'rgba(0,192,135,0.05)', borderBottom: '1px solid var(--border-default)' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: 'var(--text-hint)', minWidth: 22, textAlign: 'right', flexShrink: 0 }}>{leagueView.userPosition.rank}</span>
+                    <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 13, color: 'var(--green)' }}>{leagueView.userPosition.name} (tú)</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: leagueView.userPosition.returnPct >= 0 ? 'var(--green)' : 'var(--pink)', flexShrink: 0 }}>
+                      {leagueView.userPosition.returnPct >= 0 ? '+' : ''}{leagueView.userPosition.returnPct.toFixed(1)}%
+                    </span>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        );
+      }
+
       return (
         <div style={{ flex: 1, overflowY: 'auto' }}>
-          {/* Division header */}
-          <div style={{ padding: '12px 14px', borderBottom: '1px solid var(--border-default)', display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Trophy size={20} style={{ color: divColor, flexShrink: 0 }} />
-            <div>
-              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 14, color: divColor }}>{divLabel}</div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-muted)', marginTop: 1 }}>
-                {tr.leagueRankLabel ?? 'Puesto'} {myRank} {tr.leagueOf ?? 'de'} {total} · {tr.leaguePromotes ?? 'asciende top'} {promoteTop}
-              </div>
+          {/* My leagues list */}
+          {myLeagues.length > 0 && (
+            <div style={{ borderBottom: '1px solid var(--border-default)' }}>
+              {myLeagues.map(l => (
+                <button key={String(l._id)} onClick={() => handleViewLeague(String(l._id))} style={{ width: '100%', display: 'flex', alignItems: 'center', padding: '10px 14px', gap: 10, background: 'transparent', border: 'none', borderBottom: '1px solid var(--border-subtle)', cursor: 'pointer' }}>
+                  <Trophy size={14} style={{ color: 'var(--color-neutral)', flexShrink: 0 }} />
+                  <div style={{ flex: 1, textAlign: 'left', minWidth: 0 }}>
+                    <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 13, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.name}</div>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-hint)' }}>{l.memberCount} miembros · {l.code}</div>
+                  </div>
+                  <ChevronLeft size={14} style={{ color: 'var(--text-hint)', transform: 'rotate(180deg)', flexShrink: 0 }} />
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Create league */}
+          <div style={{ padding: '14px 14px 10px', borderBottom: '1px solid var(--border-default)' }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 11, color: 'var(--text-hint)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>
+              {tr.leagueCreate ?? 'Crear liga'}
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input value={leagueNameInput} onChange={e => setLeagueNameInput(e.target.value)} placeholder={tr.leagueNamePlaceholder ?? 'Nombre de la liga'} style={inputStyle} />
+              <button onClick={handleCreateLeague} disabled={socialPending} style={btnPrimary}>
+                {socialPending ? '…' : (tr.create ?? 'Crear')}
+              </button>
             </div>
           </div>
 
-          {/* League table */}
-          {leagueTraders.map((trader, idx) => {
-            const rank      = idx + 1;
-            const isMe      = trader.id === myId;
-            const zone      = rank <= promoteTop ? 'up' : rank >= relegateFrom ? 'down' : 'stay';
-            const dotColor  = zone === 'up' ? 'var(--green)' : zone === 'down' ? 'var(--pink)' : 'var(--text-hint)';
-            const rankColor = rank <= 3 ? 'var(--color-neutral)' : 'var(--text-hint)';
-            const pctColor  = trader.pct >= 0 ? 'var(--green)' : 'var(--pink)';
-            const pctSign   = trader.pct >= 0 ? '+' : '';
-            return (
-              <div
-                key={trader.id}
-                style={{
-                  display: 'flex', alignItems: 'center', padding: '8px 14px', gap: 10,
-                  background: isMe ? 'rgba(0,192,135,0.05)' : 'transparent',
-                  borderBottom: '1px solid var(--border-default)',
-                }}
-              >
-                <span style={{ width: 7, height: 7, borderRadius: '50%', background: dotColor, flexShrink: 0, display: 'inline-block' }} />
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: rankColor, minWidth: 18, textAlign: 'right', flexShrink: 0 }}>{rank}</span>
-                <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontWeight: isMe ? 900 : 700, fontSize: 13, color: isMe ? 'var(--green)' : 'var(--text-primary)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{trader.name}</span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: pctColor, flexShrink: 0 }}>{pctSign}{trader.pct.toFixed(1)}%</span>
-              </div>
-            );
-          })}
+          {/* Join league */}
+          <div style={{ padding: '14px 14px 10px' }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 11, color: 'var(--text-hint)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>
+              {tr.leagueJoin ?? 'Unirse con código'}
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input value={leagueCodeInput} onChange={e => setLeagueCodeInput(e.target.value.toUpperCase())} placeholder='ABC123' style={{ ...inputStyle, textTransform: 'uppercase', letterSpacing: '0.1em' }} />
+              <button onClick={handleJoinLeague} disabled={socialPending} style={btnGhost}>
+                {socialPending ? '…' : (tr.join ?? 'Unirse')}
+              </button>
+            </div>
+          </div>
+
+          {socialError && (
+            <div style={{ margin: '0 14px', padding: '8px 12px', background: 'rgba(224,85,85,0.08)', border: '0.5px solid var(--pink)', borderRadius: 'var(--radius-sm)', fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--pink)' }}>
+              {socialError}
+            </div>
+          )}
         </div>
       );
     }
 
     return (
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        {/* Brand strip */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px 6px', borderBottom: '0.5px solid var(--border-subtle)', flexShrink: 0 }}>
           <TradikoCandleLogo width={11} />
           <span style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 9, color: 'var(--pink)', letterSpacing: '0.18em', textTransform: 'uppercase' }}>Tradiko</span>
           <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 9, color: 'var(--text-hint)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Social</span>
         </div>
-        {/* Sub-tab bar */}
         <div style={{ display: 'flex', borderBottom: '1px solid var(--border-default)', flexShrink: 0 }}>
           {subTabs.map(st => {
             const active = socialTab === st.id;
             return (
-              <button
-                key={st.id}
-                onClick={() => setSocialTab(st.id)}
-                style={{
-                  flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  gap: 5, padding: '9px 4px', background: 'transparent', border: 'none',
-                  borderBottom: active ? '2px solid var(--green)' : '2px solid transparent',
-                  color: active ? 'var(--green)' : 'var(--text-hint)',
-                  fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 11,
-                  letterSpacing: '0.04em', cursor: 'pointer', marginBottom: -1,
-                }}
-              >
+              <button key={st.id} onClick={() => setSocialTab(st.id)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '9px 4px', background: 'transparent', border: 'none', borderBottom: active ? '2px solid var(--green)' : '2px solid transparent', color: active ? 'var(--green)' : 'var(--text-hint)', fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 11, letterSpacing: '0.04em', cursor: 'pointer', marginBottom: -1 }}>
                 {st.icon} {st.label}
               </button>
             );
