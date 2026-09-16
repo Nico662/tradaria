@@ -5,9 +5,10 @@ import { useLang } from './LangContext.jsx';
 import { TrendingUp, Briefcase, Zap, Shield, Calendar, Clock, Trophy, Target } from 'lucide-react';
 
 const LABELS = {
-  more:  { en: 'see all →', es: 'ver todo →', de: 'alle sehen →' },
-  back:  { en: '← back',    es: '← volver',   de: '← zurück'     },
-  reset: { en: 'Resets Monday', es: 'Reinicia el lunes', de: 'Reset Montag' },
+  header: { en: '— MISSIONS —', es: '— MISIONES —', de: '— MISSIONEN —' },
+  more:   { en: 'see all →',    es: 'ver todo →',   de: 'alle sehen →'  },
+  back:   { en: '← back',       es: '← volver',     de: '← zurück'      },
+  reset:  { en: 'Resets Monday', es: 'Reinicia el lunes', de: 'Reset Montag' },
 };
 
 const MODE_ICON = {
