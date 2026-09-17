@@ -357,7 +357,28 @@ async function sendPushToUser(userId, payload) {
   const body = payload.body || '';
   const url = payload.url || 'https://tradiko.dev';
 
-  // Web Push
+  // APNs takes priority — if the user has a native token, skip web-push to avoid
+  // duplicate notifications on iOS (PWA sub + native app both registered).
+  const apnsToken = await redis.get(`apns_token:${userId}`).catch(() => null);
+
+  if (apnsToken) {
+    try {
+      const notification = new Notification(apnsToken, {
+        alert: { title, body },
+        sound: 'default',
+        badge: 1,
+        data: { url }
+      });
+      await apnsClient.send(notification).catch(err => {
+        console.log('APNs error:', err.message);
+      });
+    } catch (err) {
+      console.log('APNs error:', err.message);
+    }
+    return;
+  }
+
+  // Web Push (only when no APNs token exists)
   try {
     const subRaw = await redis.get(`push_user_sub:${userId}`);
     if (subRaw) {
@@ -369,24 +390,31 @@ async function sendPushToUser(userId, payload) {
   } catch (err) {
     console.log('Web push error:', err.message);
   }
+}
 
-  // APNs
+// ── Push notification strings (en / es) ──────────────────────────
+const NOTIF_STRINGS = {
+  en: {
+    dailyChallenge: { title: '⚡ Daily Challenge', body: "Can you call today's chart? One chart, one shot." },
+    marketOpen:     { title: '📈 Markets are open', body: 'NYSE & NASDAQ just opened. Check your portfolio.' },
+    marketClose:    { title: '🔔 Markets closed',   body: 'How did your portfolio do today?' },
+    streakAtRisk:       (n) => ({ title: '🔥 Your streak is at risk!', body: `${n}-day streak on the line. Play before midnight.` }),
+    weeklyTournament:   { title: '🏆 New weekly tournament!', body: "This week's tournament is live — jump in and climb the ranking." },
+  },
+  es: {
+    dailyChallenge:     { title: '⚡ Reto Diario', body: '¿Puedes predecir el gráfico de hoy? Un gráfico, una oportunidad.' },
+    marketOpen:         { title: '📈 Mercados abiertos', body: 'NYSE y NASDAQ acaban de abrir. Revisa tu portfolio.' },
+    marketClose:        { title: '🔔 Mercados cerrados', body: '¿Cómo ha ido tu portfolio hoy?' },
+    streakAtRisk:       (n) => ({ title: '🔥 ¡Tu racha está en peligro!', body: `Llevas ${n} días seguidos. Juega antes de medianoche.` }),
+    weeklyTournament:   { title: '🏆 ¡Nuevo torneo semanal!', body: 'El torneo de esta semana ya está activo — entra y sube en el ranking.' },
+  },
+};
+
+async function getUserLang(userId) {
   try {
-    const tokenRaw = await redis.get(`apns_token:${userId}`);
-    if (tokenRaw) {
-      const notification = new Notification(tokenRaw, {
-        alert: { title, body },
-        sound: 'default',
-        badge: 1,
-        data: { url }
-      });
-      await apnsClient.send(notification).catch(err => {
-        console.log('APNs error:', err.message);
-      });
-    }
-  } catch (err) {
-    console.log('APNs error:', err.message);
-  }
+    const l = await redis.get(`push_user_lang:${userId}`);
+    return (l && NOTIF_STRINGS[l]) ? l : 'en';
+  } catch { return 'en'; }
 }
 
 // ── Cache ─────────────────────────────────────────────────────────
@@ -1522,15 +1550,19 @@ function getWeekId() {
   return `${year}-W${String(week).padStart(2, '00')}`;
 }
 
+async function ensureWeeklyTournament() {
+  const weekId   = getWeekId();
+  const existing = await Tournament.findOne({ weekId });
+  if (existing) return { tournament: existing, created: false };
+  const shuffled         = [...ASSETS].sort(() => Math.random() - 0.5).slice(0, 10);
+  const tournamentAssets = shuffled.map(a => ({ ...a, interval: '1h' }));
+  const tournament       = await Tournament.create({ weekId, assets: tournamentAssets });
+  return { tournament, created: true };
+}
+
 app.get('/tournament', async (req, res) => {
   try {
-    const weekId = getWeekId();
-    let tournament = await Tournament.findOne({ weekId });
-    if (!tournament) {
-      const shuffled        = [...ASSETS].sort(() => Math.random() - 0.5).slice(0, 10);
-      const tournamentAssets = shuffled.map(a => ({ ...a, interval: '1h' }));
-      tournament = await Tournament.create({ weekId, assets: tournamentAssets });
-    }
+    const { tournament } = await ensureWeeklyTournament();
     const rounds = [];
     for (const asset of tournament.assets) {
       try {
@@ -1541,7 +1573,7 @@ app.get('/tournament', async (req, res) => {
         rounds.push({ asset: asset.name, interval: '1h', visible: win.visible, future: win.future });
       } catch (e) { console.log('Tournament fetch error:', e.message); }
     }
-    res.json({ weekId, rounds });
+    res.json({ weekId: tournament.weekId, rounds });
   } catch (err) {
     console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
@@ -1629,12 +1661,7 @@ app.get('/tournament/session', async (req, res) => {
 
     let session = await TournamentSession.findOne({ weekId, userId: decoded.id });
     if (!session) {
-      let tournament = await Tournament.findOne({ weekId });
-      if (!tournament) {
-        const shuffled        = [...ASSETS].sort(() => Math.random() - 0.5).slice(0, 10);
-        const tournamentAssets = shuffled.map(a => ({ ...a, interval: '1h' }));
-        tournament = await Tournament.create({ weekId, assets: tournamentAssets });
-      }
+      const { tournament } = await ensureWeeklyTournament();
       const rounds = [];
       for (const asset of tournament.assets) {
         try {
@@ -1936,20 +1963,6 @@ app.post('/arena/async/:code/submit', async (req, res) => {
       }).filter(Boolean);
 
       await AsyncDuel.findByIdAndUpdate(duel._id, { 'rival.name': name, 'rival.userId': userId, 'rival.answers': safeAnswers, 'rival.score': serverScore, 'rival.completedAt': new Date(), status: 'completed' });
-      // Push notification to challenger
-      if (duel.challenger.userId) {
-        try {
-          const subRaw = await redis.get(`push_user_sub:${duel.challenger.userId}`);
-          if (subRaw) {
-            const sub = JSON.parse(subRaw);
-            await webpush.sendNotification(sub, JSON.stringify({
-              title: '⚔️ Your rival accepted the challenge!',
-              body:  'The results are in — who called it better?',
-              url:   `${CLIENT_URL}?reto=${code}`,
-            })).catch(() => {});
-          }
-        } catch {}
-      }
     }
     const updated = await AsyncDuel.findOne({ code });
     res.json({ ok: true, duel: {
@@ -1976,7 +1989,7 @@ app.get('/arena/async/:code/status', async (req, res) => {
 app.post('/push/subscribe', async (req, res) => {
   const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
-  const { userId, ...sub } = req.body;
+  const { userId, lang, ...sub } = req.body;
   if (!sub || !sub.endpoint) return res.status(400).json({ error: 'Invalid subscription' });
   if (userId && String(userId) !== String(decoded.id)) return res.status(403).json({ error: 'Forbidden' });
   pushSubscriptions = await loadSubscriptions();
@@ -1986,6 +1999,20 @@ app.post('/push/subscribe', async (req, res) => {
     await saveSubscriptions(pushSubscriptions);
   }
   await redis.set(`push_user_sub:${decoded.id}`, JSON.stringify(sub));
+  if (lang && NOTIF_STRINGS[lang]) await redis.set(`push_user_lang:${decoded.id}`, lang);
+  res.json({ ok: true });
+});
+
+app.post('/push/unsubscribe', async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
+  const { endpoint } = req.body;
+  await redis.del(`push_user_sub:${decoded.id}`);
+  if (endpoint) {
+    pushSubscriptions = await loadSubscriptions();
+    pushSubscriptions = pushSubscriptions.filter(s => s.endpoint !== endpoint);
+    await saveSubscriptions(pushSubscriptions);
+  }
   res.json({ ok: true });
 });
 
@@ -2013,9 +2040,10 @@ app.post('/push/send', async (req, res) => {
 app.post('/push/apns-register', async (req, res) => {
   const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
-  const { deviceToken } = req.body;
+  const { deviceToken, lang } = req.body;
   if (!deviceToken) return res.status(400).json({ error: 'No token' });
   await redis.set(`apns_token:${decoded.id}`, deviceToken);
+  if (lang && NOTIF_STRINGS[lang]) await redis.set(`push_user_lang:${decoded.id}`, lang);
   res.json({ ok: true });
 });
 
@@ -2460,108 +2488,137 @@ cron.schedule('*/15 * * * *', async () => {
 
 // ── Cron ──────────────────────────────────────────────────────────
 cron.schedule('0 8 * * *', async () => {
-  pushSubscriptions = await loadSubscriptions();
-  console.log('Sending to', pushSubscriptions.length, 'subscribers...');
-  const payload = JSON.stringify({
-    title: '⚡ Daily Challenge',
-    body:  "Can you call today's chart? One chart, one shot.",
-    url:   'https://tradiko.dev',
-  });
-  const promises = pushSubscriptions.map(sub =>
-    webpush.sendNotification(sub, payload).catch(async err => {
-      if (err.statusCode === 410) {
-        pushSubscriptions = pushSubscriptions.filter(s => s.endpoint !== sub.endpoint);
-        await saveSubscriptions(pushSubscriptions);
-      }
-    })
-  );
-  await Promise.all(promises);
-  console.log(`Sent to ${pushSubscriptions.length} subscribers`);
-  // Enviar APNs a usuarios con token registrado
+  const userSubKeys = await redis.keys('push_user_sub:*');
+  for (const key of userSubKeys) {
+    const userId = key.replace('push_user_sub:', '');
+    if (await redis.get(`apns_token:${userId}`)) continue; // APNs handles it; skip web-push
+    const subRaw = await redis.get(key);
+    if (!subRaw) continue;
+    try {
+      const sub  = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
+      const lang = await getUserLang(userId);
+      const s    = NOTIF_STRINGS[lang].dailyChallenge;
+      await webpush.sendNotification(sub, JSON.stringify({ ...s, url: 'https://tradiko.dev' })).catch(async err => {
+        if (err.statusCode === 410) await redis.del(key);
+      });
+    } catch {}
+  }
   const apnsKeys = await redis.keys('apns_token:*');
-  const { Notification } = require('apns2');
   for (const key of apnsKeys) {
+    const userId = key.replace('apns_token:', '');
     const deviceToken = await redis.get(key);
     if (!deviceToken) continue;
     try {
-      const notif = new Notification(deviceToken, {
-        alert: { title: '⚡ Daily Challenge', body: "Can you call today's chart? One chart, one shot." },
-        sound: 'default',
-        badge: 1,
-      });
-      await apnsClient.send(notif).catch(() => {});
+      const lang = await getUserLang(userId);
+      const s    = NOTIF_STRINGS[lang].dailyChallenge;
+      await apnsClient.send(new Notification(deviceToken, { alert: { title: s.title, body: s.body }, sound: 'default', badge: 1 })).catch(() => {});
     } catch {}
   }
- });
- // Notificación apertura mercado — 15:30 hora española = 13:30 UTC (horario verano)
-cron.schedule('30 13 * * 1-5', async () => {
-  pushSubscriptions = await loadSubscriptions();
-  console.log('Sending market open notification...');
-  const payload = JSON.stringify({
-    title: '📈 Markets are open',
-    body:  'NYSE & NASDAQ just opened. Check your portfolio.',
-    url:   'https://tradiko.dev',
-  });
-  const promises = pushSubscriptions.map(sub =>
-    webpush.sendNotification(sub, payload).catch(async err => {
-      if (err.statusCode === 410) {
-        pushSubscriptions = pushSubscriptions.filter(s => s.endpoint !== sub.endpoint);
-        await saveSubscriptions(pushSubscriptions);
-      }
-    })
-  );
-  await Promise.all(promises);
-  console.log(`Market open notification sent to ${pushSubscriptions.length} subscribers`);
-  // Enviar APNs a usuarios con token registrado
-  const apnsKeys = await redis.keys('apns_token:*');
-  const { Notification } = require('apns2');
-  for (const key of apnsKeys) {
-    const deviceToken = await redis.get(key);
-    if (!deviceToken) continue;
-    try {
-      const notif = new Notification(deviceToken, {
-        alert: { title: '📈 Markets are open', body: 'NYSE & NASDAQ just opened. Check your portfolio.' },
-        sound: 'default',
-        badge: 1,
-      });
-      await apnsClient.send(notif).catch(() => {});
-    } catch {}
-  }
+  console.log('[daily-challenge-cron] done');
 });
 
-// Notificación cierre mercado — 22:00 hora española = 20:00 UTC (horario verano)
-cron.schedule('0 20 * * 1-5', async () => {
-  pushSubscriptions = await loadSubscriptions();
-  const payload = JSON.stringify({
-    title: '🔔 Markets closed',
-    body:  'How did your portfolio do today?',
-    url:   'https://tradiko.dev',
-  });
-  const promises = pushSubscriptions.map(sub =>
-    webpush.sendNotification(sub, payload).catch(async err => {
-      if (err.statusCode === 410) {
-        pushSubscriptions = pushSubscriptions.filter(s => s.endpoint !== sub.endpoint);
-        await saveSubscriptions(pushSubscriptions);
-      }
-    })
-  );
-  await Promise.all(promises);
-  // Enviar APNs a usuarios con token registrado
+// Market open — 9:30 AM New York (timezone handles DST automatically)
+cron.schedule('30 9 * * 1-5', async () => {
+  const userSubKeys = await redis.keys('push_user_sub:*');
+  for (const key of userSubKeys) {
+    const userId = key.replace('push_user_sub:', '');
+    if (await redis.get(`apns_token:${userId}`)) continue;
+    const subRaw = await redis.get(key);
+    if (!subRaw) continue;
+    try {
+      const sub  = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
+      const lang = await getUserLang(userId);
+      const s    = NOTIF_STRINGS[lang].marketOpen;
+      await webpush.sendNotification(sub, JSON.stringify({ ...s, url: 'https://tradiko.dev' })).catch(async err => {
+        if (err.statusCode === 410) await redis.del(key);
+      });
+    } catch {}
+  }
   const apnsKeys = await redis.keys('apns_token:*');
-  const { Notification } = require('apns2');
   for (const key of apnsKeys) {
+    const userId = key.replace('apns_token:', '');
     const deviceToken = await redis.get(key);
     if (!deviceToken) continue;
     try {
-      const notif = new Notification(deviceToken, {
-        alert: { title: '🔔 Markets closed', body: 'How did your portfolio do today?' },
-        sound: 'default',
-        badge: 1,
-      });
-      await apnsClient.send(notif).catch(() => {});
+      const lang = await getUserLang(userId);
+      const s    = NOTIF_STRINGS[lang].marketOpen;
+      await apnsClient.send(new Notification(deviceToken, { alert: { title: s.title, body: s.body }, sound: 'default', badge: 1 })).catch(() => {});
     } catch {}
   }
- });
+  console.log('[market-open-cron] done');
+}, { timezone: 'America/New_York' });
+
+// Market close — 4:00 PM New York (timezone handles DST automatically)
+cron.schedule('0 16 * * 1-5', async () => {
+  const userSubKeys = await redis.keys('push_user_sub:*');
+  for (const key of userSubKeys) {
+    const userId = key.replace('push_user_sub:', '');
+    if (await redis.get(`apns_token:${userId}`)) continue;
+    const subRaw = await redis.get(key);
+    if (!subRaw) continue;
+    try {
+      const sub  = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
+      const lang = await getUserLang(userId);
+      const s    = NOTIF_STRINGS[lang].marketClose;
+      await webpush.sendNotification(sub, JSON.stringify({ ...s, url: 'https://tradiko.dev' })).catch(async err => {
+        if (err.statusCode === 410) await redis.del(key);
+      });
+    } catch {}
+  }
+  const apnsKeys = await redis.keys('apns_token:*');
+  for (const key of apnsKeys) {
+    const userId = key.replace('apns_token:', '');
+    const deviceToken = await redis.get(key);
+    if (!deviceToken) continue;
+    try {
+      const lang = await getUserLang(userId);
+      const s    = NOTIF_STRINGS[lang].marketClose;
+      await apnsClient.send(new Notification(deviceToken, { alert: { title: s.title, body: s.body }, sound: 'default', badge: 1 })).catch(() => {});
+    } catch {}
+  }
+  console.log('[market-close-cron] done');
+}, { timezone: 'America/New_York' });
+
+// Weekly tournament creation — Monday 00:05 Madrid time
+cron.schedule('5 0 * * 1', async () => {
+  try {
+    const { created } = await ensureWeeklyTournament();
+    if (!created) {
+      console.log('[tournament-cron] Tournament already existed, skipping notification.');
+      return;
+    }
+    console.log('[tournament-cron] New tournament created, sending notifications...');
+    const userSubKeys = await redis.keys('push_user_sub:*');
+    for (const key of userSubKeys) {
+      const userId = key.replace('push_user_sub:', '');
+      if (await redis.get(`apns_token:${userId}`)) continue;
+      const subRaw = await redis.get(key);
+      if (!subRaw) continue;
+      try {
+        const sub  = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
+        const lang = await getUserLang(userId);
+        const s    = NOTIF_STRINGS[lang].weeklyTournament;
+        await webpush.sendNotification(sub, JSON.stringify({ ...s, url: 'https://tradiko.dev' })).catch(async err => {
+          if (err.statusCode === 410) await redis.del(key);
+        });
+      } catch {}
+    }
+    const apnsKeys = await redis.keys('apns_token:*');
+    for (const key of apnsKeys) {
+      const userId = key.replace('apns_token:', '');
+      const deviceToken = await redis.get(key);
+      if (!deviceToken) continue;
+      try {
+        const lang = await getUserLang(userId);
+        const s    = NOTIF_STRINGS[lang].weeklyTournament;
+        await apnsClient.send(new Notification(deviceToken, { alert: { title: s.title, body: s.body }, sound: 'default', badge: 1 })).catch(() => {});
+      } catch {}
+    }
+    console.log('[tournament-cron] Notifications sent.');
+  } catch (err) {
+    console.error('[tournament-cron] Error:', err.message);
+  }
+}, { timezone: 'Europe/Madrid' });
 
 cron.schedule('0 7 * * 0', async () => {
   const now        = new Date();
@@ -2629,11 +2686,9 @@ cron.schedule('0 21 * * *', async () => {
       const apnsRaw = await redis.get(`apns_token:${user._id}`);
       console.log(`[streak-cron] user=${user._id} streak=${user.dailyStreak} lastPlayed=${user.lastPlayed} hasSub=${!!subRaw} hasApns=${!!apnsRaw}`);
       if (!subRaw && !apnsRaw) continue;
-      await sendPushToUser(user._id, {
-        title: '🔥 Your streak is at risk!',
-        body:  `${user.dailyStreak}-day streak on the line. Play before midnight.`,
-        url:   'https://tradiko.dev',
-      });
+      const lang = await getUserLang(user._id);
+      const streakStrings = NOTIF_STRINGS[lang].streakAtRisk(user.dailyStreak);
+      await sendPushToUser(user._id, { ...streakStrings, url: 'https://tradiko.dev' });
       sent++;
     } catch (e) {
       console.error(`[streak-cron] Error for user ${user._id}:`, e.message);
@@ -3177,10 +3232,6 @@ app.post('/portfolio/refund-delisted', async (req, res) => {
   }
 });
 
-function isWeekday() {
-  const day = new Date().getUTCDay(); // 0 = domingo, 6 = sábado
-  return day !== 0 && day !== 6;
-}
 
 app.get('/portfolio/clear-crypto-cache', async (req, res) => {
   const key = req.headers['x-admin-secret'];
@@ -3234,60 +3285,6 @@ app.post('/portfolio/snapshot', async (req, res) => {
       { upsert: true }
     );
     res.json({ ok: true });
-
-    // Check if user has surpassed someone in the leaderboard
-    try {
-      const allPortfolios = await Portfolio.find({}).populate('userId', 'name username avatar');
-      const prices = {};
-      for (const asset of PORTFOLIO_ASSETS) {
-        try {
-          const cached = await redis.get(`price_v2:${asset.symbol}`);
-          if (cached) prices[asset.symbol] = (typeof cached === 'string' ? JSON.parse(cached) : cached).price;
-        } catch {}
-      }
-
-      const ranking = allPortfolios.map(p => {
-        const invested   = p.positions.reduce((s, pos) => s + (prices[pos.symbol] || pos.avgPrice) * pos.qty, 0);
-        const totalValue = p.cash + invested;
-        const returnPct  = ((totalValue - 50000) / 50000) * 100;
-        return { userId: p.userId?._id, name: p.userId?.username || p.userId?.name, totalValue, returnPct };
-      }).filter(p => p.userId).sort((a, b) => b.returnPct - a.returnPct);
-
-      const myRank = ranking.findIndex(r => r.userId.toString() === decoded.id.toString());
-      const myData = ranking[myRank];
-
-      const prevRankKey = `prev_rank:${decoded.id}`;
-      const prevRank    = parseInt(await redis.get(prevRankKey) || '999');
-      console.log(`[leaderboard-notif] user=${decoded.id} myRank=${myRank} prevRank=${prevRank} rankingSize=${ranking.length}`);
-
-      // Notify the person we just displaced (now at myRank, the position we took)
-      if (myRank < prevRank && myRank < ranking.length && isWeekday()) {
-        const surpassedUser = ranking[myRank]; // the user now at the position we just took
-        console.log(`[leaderboard-notif] surpassed user=${surpassedUser.userId} (${surpassedUser.name}) — checking sub`);
-        if (surpassedUser.userId && surpassedUser.userId.toString() !== decoded.id.toString()) {
-          const cooldownKey    = `leaderboard_notif_sent:${surpassedUser.userId}`;
-          const alreadyNotified = await redis.get(cooldownKey);
-          const subRaw         = await redis.get(`push_user_sub:${surpassedUser.userId}`);
-          console.log(`[leaderboard-notif] surpassed user hasSub=${!!subRaw} alreadyNotified=${!!alreadyNotified}`);
-          if (!alreadyNotified && subRaw) {
-            const sub     = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
-            const myName  = `@${myData.name}`;
-            const payload = JSON.stringify({
-              title: '📉 Someone just passed you',
-              body:  `${myName} te ha superado. Su portfolio: ${myData.returnPct >= 0 ? '+' : ''}${myData.returnPct.toFixed(1)}% · El tuyo: ${surpassedUser.returnPct >= 0 ? '+' : ''}${surpassedUser.returnPct.toFixed(1)}%`,
-              url:   'https://tradiko.dev',
-            });
-            await webpush.sendNotification(sub, payload).catch(() => {});
-            await redis.set(cooldownKey, '1', { ex: 21600 }); // 6 horas
-            console.log(`[leaderboard-notif] notification sent to ${surpassedUser.userId}`);
-          }
-        }
-      }
-
-      await redis.set(`prev_rank:${decoded.id}`, myRank.toString(), { ex: 86400 });
-    } catch (e) {
-      console.error('[leaderboard-notif] error:', e.message);
-    }
   } catch (err) {
     console.error(err); res.status(500).json({ error: 'Internal server error' });
   }

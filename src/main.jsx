@@ -40,10 +40,11 @@ if ('serviceWorker' in navigator) {
         applicationServerKey: 'BEWPkbh1HeSsw08H0EsELp5TIPD2gcQ8Yfa1RsSW-9jER3uvoeVUTazcIqjlf4UNFKe7QeqQ8ZlVjGI72pinR0I',
       });
 
+      const lang = localStorage.getItem('tradaria_lang') || 'en';
       await fetch(`${SERVER}/push/subscribe`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify(sub),
+        body:    JSON.stringify({ ...sub.toJSON(), lang }),
       });
 
       console.log('Push subscribed');

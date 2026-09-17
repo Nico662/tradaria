@@ -11,7 +11,7 @@ const STRINGS = {
     appearance: 'Appearance', darkMode: 'Dark mode',
     language: 'Language',
     notifications: 'Notifications',
-    notifOn: '✓ Notifications enabled', notifOff: 'Enable notifications',
+    notifOn: '✓ Notifications enabled', notifOff: 'Enable notifications', notifDisable: 'Disable notifications',
     account: 'Account', username: 'Username', edit: 'Edit', signOut: 'Sign out',
     about: 'About Tradiko', builtBy: 'Built by Nicolás Vidal',
     subscription: 'Subscription', planLabel: 'Pro Plan · €3.99/mo', planActive: 'ACTIVE',
@@ -27,7 +27,7 @@ const STRINGS = {
     appearance: 'Apariencia', darkMode: 'Modo oscuro',
     language: 'Idioma',
     notifications: 'Notificaciones',
-    notifOn: '✓ Notificaciones activadas', notifOff: 'Activar notificaciones',
+    notifOn: '✓ Notificaciones activadas', notifOff: 'Activar notificaciones', notifDisable: 'Desactivar notificaciones',
     account: 'Cuenta', username: 'Nombre de usuario', edit: 'Editar', signOut: 'Cerrar sesión',
     about: 'Sobre Tradiko', builtBy: 'Construido por Nicolás Vidal',
     subscription: 'Suscripción', planLabel: 'Plan Pro · €3.99/mes', planActive: 'ACTIVO',
@@ -43,7 +43,7 @@ const STRINGS = {
     appearance: 'Aussehen', darkMode: 'Dunkelmodus',
     language: 'Sprache',
     notifications: 'Benachrichtigungen',
-    notifOn: '✓ Benachrichtigungen aktiv', notifOff: 'Benachrichtigungen aktivieren',
+    notifOn: '✓ Benachrichtigungen aktiv', notifOff: 'Benachrichtigungen aktivieren', notifDisable: 'Benachrichtigungen deaktivieren',
     account: 'Konto', username: 'Benutzername', edit: 'Bearbeiten', signOut: 'Abmelden',
     about: 'Über Tradiko', builtBy: 'Erstellt von Nicolás Vidal',
     subscription: 'Abonnement', planLabel: 'Pro Plan · €3.99/Monat', planActive: 'AKTIV',
@@ -175,18 +175,15 @@ export default function Settings({ onBack }) {
 
   async function enableNotifications() {
     if (window.__isIOSApp) {
-      // En iOS nativo, pedir permisos via Swift
       if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.requestPushPermission) {
         window.webkit.messageHandlers.requestPushPermission.postMessage('');
       }
       return;
     }
-    // Web normal
     if (typeof Notification === 'undefined') return;
     const perm = await Notification.requestPermission();
     if (perm === 'granted') {
       setNotifEnabled(true);
-      // Suscribir al push
       const reg = await navigator.serviceWorker.ready;
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
@@ -196,8 +193,33 @@ export default function Settings({ onBack }) {
       await fetch(`${SERVER}/push/subscribe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(sub)
+        body: JSON.stringify({ ...sub.toJSON(), lang })
       });
+    }
+  }
+
+  async function disableNotifications() {
+    if (window.__isIOSApp) {
+      // iOS doesn't allow revoking permission from JS — open system settings
+      if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.openSettings) {
+        window.webkit.messageHandlers.openSettings.postMessage('');
+      }
+      return;
+    }
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      const endpoint = sub?.endpoint;
+      if (sub) await sub.unsubscribe();
+      const token = localStorage.getItem('tradaria_token');
+      await fetch(`${SERVER}/push/unsubscribe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ endpoint })
+      });
+      setNotifEnabled(false);
+    } catch (err) {
+      console.log('Unsubscribe error:', err);
     }
   }
 
@@ -247,8 +269,21 @@ export default function Settings({ onBack }) {
         <Card>
           <div style={{ padding: '14px 16px' }}>
             {notifEnabled ? (
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--green)' }}>
-                {s.notifOn}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--green)' }}>
+                  {s.notifOn}
+                </div>
+                {!window.__isIOSApp && (
+                  <button onClick={disableNotifications} style={{
+                    width: '100%', padding: '11px',
+                    background: 'transparent', border: '1px solid var(--bd2)',
+                    borderRadius: '6px', color: 'var(--t5)', fontFamily: 'var(--font-body)',
+                    fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em',
+                    textTransform: 'uppercase', cursor: 'pointer',
+                  }}>
+                    {s.notifDisable}
+                  </button>
+                )}
               </div>
             ) : (
               <button onClick={enableNotifications} style={{

@@ -186,10 +186,11 @@ export function AuthProvider({ children }) {
           navigator.serviceWorker.ready.then(reg =>
             reg.pushManager.getSubscription().then(sub => {
               if (sub) {
+                const lang = localStorage.getItem('tradaria_lang') || 'en';
                 fetch(`${SERVER}/push/subscribe`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ ...sub.toJSON(), userId: data.id }),
+                  body: JSON.stringify({ ...sub.toJSON(), userId: data.id, lang }),
                 }).catch(() => {});
               }
             })
