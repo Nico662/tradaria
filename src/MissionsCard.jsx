@@ -47,8 +47,8 @@ function DetailScreen({ onClose }) {
         </button>
 
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '20px' }}>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 200" height="20"
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '20px' }}>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 200" height="56"
                style={{ flexShrink: 0, marginTop: '3px' }}>
             <line x1="50" y1="10" x2="50" y2="40" stroke="#ff7eb3" strokeWidth="8" strokeLinecap="round"/>
             <rect x="25" y="40" width="50" height="110" rx="6" fill="url(#candleGradMC)"/>
