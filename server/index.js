@@ -392,31 +392,6 @@ async function sendPushToUser(userId, payload) {
   }
 }
 
-// ── Push notification strings (en / es) ──────────────────────────
-const NOTIF_STRINGS = {
-  en: {
-    dailyChallenge: { title: '⚡ Daily Challenge', body: "Can you call today's chart? One chart, one shot." },
-    marketOpen:     { title: '📈 Markets are open', body: 'NYSE & NASDAQ just opened. Check your portfolio.' },
-    marketClose:    { title: '🔔 Markets closed',   body: 'How did your portfolio do today?' },
-    streakAtRisk:       (n) => ({ title: '🔥 Your streak is at risk!', body: `${n}-day streak on the line. Play before midnight.` }),
-    weeklyTournament:   { title: '🏆 New weekly tournament!', body: "This week's tournament is live — jump in and climb the ranking." },
-  },
-  es: {
-    dailyChallenge:     { title: '⚡ Reto Diario', body: '¿Puedes predecir el gráfico de hoy? Un gráfico, una oportunidad.' },
-    marketOpen:         { title: '📈 Mercados abiertos', body: 'NYSE y NASDAQ acaban de abrir. Revisa tu portfolio.' },
-    marketClose:        { title: '🔔 Mercados cerrados', body: '¿Cómo ha ido tu portfolio hoy?' },
-    streakAtRisk:       (n) => ({ title: '🔥 ¡Tu racha está en peligro!', body: `Llevas ${n} días seguidos. Juega antes de medianoche.` }),
-    weeklyTournament:   { title: '🏆 ¡Nuevo torneo semanal!', body: 'El torneo de esta semana ya está activo — entra y sube en el ranking.' },
-  },
-};
-
-async function getUserLang(userId) {
-  try {
-    const l = await redis.get(`push_user_lang:${userId}`);
-    return (l && NOTIF_STRINGS[l]) ? l : 'en';
-  } catch { return 'en'; }
-}
-
 // ── Cache ─────────────────────────────────────────────────────────
 async function cachedFetch(key, ttlSeconds, fetchFn) {
   try {
@@ -1989,7 +1964,7 @@ app.get('/arena/async/:code/status', async (req, res) => {
 app.post('/push/subscribe', async (req, res) => {
   const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
-  const { userId, lang, ...sub } = req.body;
+  const { userId, lang: _lang, ...sub } = req.body;
   if (!sub || !sub.endpoint) return res.status(400).json({ error: 'Invalid subscription' });
   if (userId && String(userId) !== String(decoded.id)) return res.status(403).json({ error: 'Forbidden' });
   pushSubscriptions = await loadSubscriptions();
@@ -1999,7 +1974,6 @@ app.post('/push/subscribe', async (req, res) => {
     await saveSubscriptions(pushSubscriptions);
   }
   await redis.set(`push_user_sub:${decoded.id}`, JSON.stringify(sub));
-  if (lang && NOTIF_STRINGS[lang]) await redis.set(`push_user_lang:${decoded.id}`, lang);
   res.json({ ok: true });
 });
 
@@ -2040,10 +2014,9 @@ app.post('/push/send', async (req, res) => {
 app.post('/push/apns-register', async (req, res) => {
   const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
-  const { deviceToken, lang } = req.body;
+  const { deviceToken } = req.body;
   if (!deviceToken) return res.status(400).json({ error: 'No token' });
   await redis.set(`apns_token:${decoded.id}`, deviceToken);
-  if (lang && NOTIF_STRINGS[lang]) await redis.set(`push_user_lang:${decoded.id}`, lang);
   res.json({ ok: true });
 });
 
@@ -2496,9 +2469,7 @@ cron.schedule('0 8 * * *', async () => {
     if (!subRaw) continue;
     try {
       const sub  = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
-      const lang = await getUserLang(userId);
-      const s    = NOTIF_STRINGS[lang].dailyChallenge;
-      await webpush.sendNotification(sub, JSON.stringify({ ...s, url: 'https://tradiko.dev' })).catch(async err => {
+      await webpush.sendNotification(sub, JSON.stringify({ title: '⚡ Reto Diario', body: '¿Puedes predecir el gráfico de hoy? Un gráfico, una oportunidad.', url: 'https://tradiko.dev' })).catch(async err => {
         if (err.statusCode === 410) await redis.del(key);
       });
     } catch {}
@@ -2509,9 +2480,7 @@ cron.schedule('0 8 * * *', async () => {
     const deviceToken = await redis.get(key);
     if (!deviceToken) continue;
     try {
-      const lang = await getUserLang(userId);
-      const s    = NOTIF_STRINGS[lang].dailyChallenge;
-      await apnsClient.send(new Notification(deviceToken, { alert: { title: s.title, body: s.body }, sound: 'default', badge: 1 })).catch(() => {});
+      await apnsClient.send(new Notification(deviceToken, { alert: { title: '⚡ Reto Diario', body: '¿Puedes predecir el gráfico de hoy? Un gráfico, una oportunidad.' }, sound: 'default', badge: 1 })).catch(() => {});
     } catch {}
   }
   console.log('[daily-challenge-cron] done');
@@ -2527,9 +2496,7 @@ cron.schedule('30 9 * * 1-5', async () => {
     if (!subRaw) continue;
     try {
       const sub  = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
-      const lang = await getUserLang(userId);
-      const s    = NOTIF_STRINGS[lang].marketOpen;
-      await webpush.sendNotification(sub, JSON.stringify({ ...s, url: 'https://tradiko.dev' })).catch(async err => {
+      await webpush.sendNotification(sub, JSON.stringify({ title: '📈 Mercados abiertos', body: 'NYSE y NASDAQ acaban de abrir. Revisa tu portfolio.', url: 'https://tradiko.dev' })).catch(async err => {
         if (err.statusCode === 410) await redis.del(key);
       });
     } catch {}
@@ -2540,9 +2507,7 @@ cron.schedule('30 9 * * 1-5', async () => {
     const deviceToken = await redis.get(key);
     if (!deviceToken) continue;
     try {
-      const lang = await getUserLang(userId);
-      const s    = NOTIF_STRINGS[lang].marketOpen;
-      await apnsClient.send(new Notification(deviceToken, { alert: { title: s.title, body: s.body }, sound: 'default', badge: 1 })).catch(() => {});
+      await apnsClient.send(new Notification(deviceToken, { alert: { title: '📈 Mercados abiertos', body: 'NYSE y NASDAQ acaban de abrir. Revisa tu portfolio.' }, sound: 'default', badge: 1 })).catch(() => {});
     } catch {}
   }
   console.log('[market-open-cron] done');
@@ -2558,9 +2523,7 @@ cron.schedule('0 16 * * 1-5', async () => {
     if (!subRaw) continue;
     try {
       const sub  = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
-      const lang = await getUserLang(userId);
-      const s    = NOTIF_STRINGS[lang].marketClose;
-      await webpush.sendNotification(sub, JSON.stringify({ ...s, url: 'https://tradiko.dev' })).catch(async err => {
+      await webpush.sendNotification(sub, JSON.stringify({ title: '🔔 Mercados cerrados', body: '¿Cómo ha ido tu portfolio hoy?', url: 'https://tradiko.dev' })).catch(async err => {
         if (err.statusCode === 410) await redis.del(key);
       });
     } catch {}
@@ -2571,9 +2534,7 @@ cron.schedule('0 16 * * 1-5', async () => {
     const deviceToken = await redis.get(key);
     if (!deviceToken) continue;
     try {
-      const lang = await getUserLang(userId);
-      const s    = NOTIF_STRINGS[lang].marketClose;
-      await apnsClient.send(new Notification(deviceToken, { alert: { title: s.title, body: s.body }, sound: 'default', badge: 1 })).catch(() => {});
+      await apnsClient.send(new Notification(deviceToken, { alert: { title: '🔔 Mercados cerrados', body: '¿Cómo ha ido tu portfolio hoy?' }, sound: 'default', badge: 1 })).catch(() => {});
     } catch {}
   }
   console.log('[market-close-cron] done');
@@ -2596,9 +2557,7 @@ cron.schedule('5 0 * * 1', async () => {
       if (!subRaw) continue;
       try {
         const sub  = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
-        const lang = await getUserLang(userId);
-        const s    = NOTIF_STRINGS[lang].weeklyTournament;
-        await webpush.sendNotification(sub, JSON.stringify({ ...s, url: 'https://tradiko.dev' })).catch(async err => {
+        await webpush.sendNotification(sub, JSON.stringify({ title: '🏆 ¡Nuevo torneo semanal!', body: 'El torneo de esta semana ya está activo — entra y sube en el ranking.', url: 'https://tradiko.dev' })).catch(async err => {
           if (err.statusCode === 410) await redis.del(key);
         });
       } catch {}
@@ -2609,9 +2568,7 @@ cron.schedule('5 0 * * 1', async () => {
       const deviceToken = await redis.get(key);
       if (!deviceToken) continue;
       try {
-        const lang = await getUserLang(userId);
-        const s    = NOTIF_STRINGS[lang].weeklyTournament;
-        await apnsClient.send(new Notification(deviceToken, { alert: { title: s.title, body: s.body }, sound: 'default', badge: 1 })).catch(() => {});
+        await apnsClient.send(new Notification(deviceToken, { alert: { title: '🏆 ¡Nuevo torneo semanal!', body: 'El torneo de esta semana ya está activo — entra y sube en el ranking.' }, sound: 'default', badge: 1 })).catch(() => {});
       } catch {}
     }
     console.log('[tournament-cron] Notifications sent.');
@@ -2686,9 +2643,7 @@ cron.schedule('0 21 * * *', async () => {
       const apnsRaw = await redis.get(`apns_token:${user._id}`);
       console.log(`[streak-cron] user=${user._id} streak=${user.dailyStreak} lastPlayed=${user.lastPlayed} hasSub=${!!subRaw} hasApns=${!!apnsRaw}`);
       if (!subRaw && !apnsRaw) continue;
-      const lang = await getUserLang(user._id);
-      const streakStrings = NOTIF_STRINGS[lang].streakAtRisk(user.dailyStreak);
-      await sendPushToUser(user._id, { ...streakStrings, url: 'https://tradiko.dev' });
+      await sendPushToUser(user._id, { title: '🔥 ¡Tu racha está en peligro!', body: `Llevas ${user.dailyStreak} días seguidos. Juega antes de medianoche.`, url: 'https://tradiko.dev' });
       sent++;
     } catch (e) {
       console.error(`[streak-cron] Error for user ${user._id}:`, e.message);
