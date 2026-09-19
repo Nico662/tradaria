@@ -8,7 +8,7 @@ import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
 import { useAuth } from './AuthContext';
 import EffectOverlay from './EffectOverlay.jsx';
-import { Swords, Lock, Clock, Target, Camera, Bot, MessageCircle, Zap } from 'lucide-react';
+import { Swords, Lock, Clock, Target, Camera, Bot, MessageCircle, Zap, Handshake } from 'lucide-react';
 
 import { SERVER } from './config.js';
 import { incrementMission, recordModePlayed, incrementWeeklyMission, recordWeeklyModePlayed } from './missions.js';
