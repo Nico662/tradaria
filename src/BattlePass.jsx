@@ -4,6 +4,7 @@ import { useAuth } from './AuthContext.jsx';
 import { useLang } from './LangContext.jsx';
 import { SEASON1_LEVELS } from './config/season1Config.js';
 import RewardCard from './components/RewardCard.jsx';
+import { TrendingUp, Diamond } from 'lucide-react';
 
 // ── DEV MOCK ──────────────────────────────────────────────────────────────────
 // Rellena la pantalla con datos de ejemplo cuando no hay season activa.
@@ -38,6 +39,71 @@ function getCardState(reward, levelNum, track, userLevel, claimedRewards, isPro)
   return 'claimable';
 }
 
+function MiniCandleChart() {
+  return (
+    <svg width="54" height="30" viewBox="0 0 54 30" fill="none">
+      <line x1="5"  y1="4"  x2="5"  y2="8"  stroke="#00c087" strokeWidth="1.5" strokeLinecap="round"/>
+      <rect x="2"   y="8"   width="6" height="13" rx="1.5" fill="#00c087"/>
+      <line x1="5"  y1="21" x2="5"  y2="26" stroke="#00c087" strokeWidth="1.5" strokeLinecap="round"/>
+
+      <line x1="16" y1="6"  x2="16" y2="10" stroke="#e05585" strokeWidth="1.5" strokeLinecap="round"/>
+      <rect x="13"  y="10"  width="6" height="9"  rx="1.5" fill="#e05585"/>
+      <line x1="16" y1="19" x2="16" y2="24" stroke="#e05585" strokeWidth="1.5" strokeLinecap="round"/>
+
+      <line x1="27" y1="2"  x2="27" y2="6"  stroke="#00c087" strokeWidth="1.5" strokeLinecap="round"/>
+      <rect x="24"  y="6"   width="6" height="16" rx="1.5" fill="#00c087"/>
+      <line x1="27" y1="22" x2="27" y2="27" stroke="#00c087" strokeWidth="1.5" strokeLinecap="round"/>
+
+      <line x1="38" y1="7"  x2="38" y2="11" stroke="#e05585" strokeWidth="1.5" strokeLinecap="round"/>
+      <rect x="35"  y="11"  width="6" height="8"  rx="1.5" fill="#e05585"/>
+      <line x1="38" y1="19" x2="38" y2="23" stroke="#e05585" strokeWidth="1.5" strokeLinecap="round"/>
+
+      <line x1="49" y1="5"  x2="49" y2="9"  stroke="#00c087" strokeWidth="1.5" strokeLinecap="round"/>
+      <rect x="46"  y="9"   width="6" height="12" rx="1.5" fill="#00c087"/>
+      <line x1="49" y1="21" x2="49" y2="26" stroke="#00c087" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+function ProgressRing({ pct, level }) {
+  const r = 26;
+  const circ = 2 * Math.PI * r;
+  const dash = (pct / 100) * circ;
+  return (
+    <div style={{ position: 'relative', width: 64, height: 64, flexShrink: 0 }}>
+      <svg width="64" height="64" viewBox="0 0 64 64">
+        <defs>
+          <linearGradient id="bpRingGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#e05585"/>
+            <stop offset="100%" stopColor="#00c087"/>
+          </linearGradient>
+        </defs>
+        <circle cx="32" cy="32" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="5"/>
+        {dash > 0 && (
+          <circle
+            cx="32" cy="32" r={r} fill="none"
+            stroke="url(#bpRingGrad)" strokeWidth="5"
+            strokeDasharray={`${dash} ${circ}`}
+            strokeLinecap="round"
+            transform="rotate(-90 32 32)"
+          />
+        )}
+      </svg>
+      <div style={{
+        position: 'absolute', inset: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <span style={{
+          fontFamily: 'var(--font-body)', fontWeight: 900,
+          fontSize: '18px', color: 'var(--text-primary)', lineHeight: 1,
+        }}>
+          {level}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export default function BattlePass({ onBack, onGoPricing }) {
   const {
     season:         ctxSeason,
@@ -59,7 +125,6 @@ export default function BattlePass({ onBack, onGoPricing }) {
   const didScroll  = useRef(false);
 
   // ── Decide si el mock está activo ───────────────────────────────────────────
-  // mockActive es true SOLO cuando: USE_MOCK_BP=true + entorno DEV + sin season real
   const mockActive = USE_MOCK_BP && import.meta.env.DEV && !ctxSeason;
 
   // ── Fuente de datos: real o mock ────────────────────────────────────────────
@@ -116,6 +181,9 @@ export default function BattlePass({ onBack, onGoPricing }) {
 
   const pointsInLevel = userLevel >= 30 ? 300 : (bpPoints % 300);
 
+  // Extrae la parte de texto después de {n}, p.ej. "días restantes" / "days remaining"
+  const daysUnit = tp.daysLeft.split('{n}').pop()?.trim() ?? '';
+
   if (isLoading && !mockActive) {
     return (
       <div style={{
@@ -133,8 +201,9 @@ export default function BattlePass({ onBack, onGoPricing }) {
       display: 'flex', flexDirection: 'column',
     }}>
 
-      {/* ── Header ─────────────────────────────── */}
+      {/* ── Área de cabecera ───────────────────── */}
       <div style={{ padding: '16px 16px 0', flexShrink: 0 }}>
+
         <button
           onClick={onBack}
           style={{
@@ -160,113 +229,112 @@ export default function BattlePass({ onBack, onGoPricing }) {
           </div>
         )}
 
-        {/* Title row */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 200" width="22" style={{ flexShrink: 0 }}>
-              <line x1="50" y1="10" x2="50" y2="40" stroke="#ff7eb3" strokeWidth="8" strokeLinecap="round"/>
-              <rect x="25" y="40" width="50" height="110" rx="6" fill="url(#candleGradBP)"/>
-              <line x1="50" y1="150" x2="50" y2="190" stroke="#00e5a0" strokeWidth="8" strokeLinecap="round"/>
-              <defs>
-                <linearGradient id="candleGradBP" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#ff7eb3"/>
-                  <stop offset="100%" stopColor="#00e5a0"/>
-                </linearGradient>
-              </defs>
-            </svg>
+        {/* ── Tarjeta principal de cabecera ─────── */}
+        <div style={{
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--border-default)',
+          borderRadius: '20px',
+          padding: '16px',
+          marginBottom: '16px',
+        }}>
+
+          {/* Fila superior: badge+título vs. velas+días */}
+          <div style={{
+            display: 'flex', justifyContent: 'space-between',
+            alignItems: 'flex-start', marginBottom: '14px',
+          }}>
+
+            {/* Izquierda */}
             <div>
+              {season && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 7 }}>
+                  <div style={{
+                    width: 6, height: 6, borderRadius: '50%',
+                    background: 'var(--green)', flexShrink: 0,
+                  }} />
+                  <span style={{
+                    fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 900,
+                    color: 'var(--green)', letterSpacing: '0.12em', textTransform: 'uppercase',
+                  }}>
+                    {season.name}
+                  </span>
+                </div>
+              )}
               <h1 style={{
-                margin: 0, fontFamily: 'var(--font-body)',
-                fontWeight: 900, fontSize: '28px', color: 'var(--text-primary)',
+                margin: 0, fontFamily: 'var(--font-body)', fontWeight: 900,
+                fontSize: '26px', color: 'var(--text-primary)',
                 letterSpacing: '-0.02em', lineHeight: 1,
               }}>
                 {t.home.traderPass}
               </h1>
-              {season && (
-                <span style={{
-                  fontFamily: 'var(--font-body)', fontSize: '12px',
-                  color: 'var(--green)', fontWeight: 700, letterSpacing: '0.04em',
-                }}>
-                  {season.name}
-                </span>
+              <p style={{
+                margin: '5px 0 0', fontFamily: 'var(--font-body)',
+                fontSize: '12px', color: 'var(--text-muted)', fontWeight: 500,
+              }}>
+                {t.home.traderPassSub}
+              </p>
+            </div>
+
+            {/* Derecha: mini candle SVG + días */}
+            <div style={{
+              display: 'flex', flexDirection: 'column',
+              alignItems: 'flex-end', gap: 6, flexShrink: 0,
+            }}>
+              <MiniCandleChart />
+              {daysLeft !== null && (
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{
+                    fontFamily: 'var(--font-body)', fontWeight: 900,
+                    fontSize: '22px', color: 'var(--pink)', lineHeight: 1,
+                  }}>
+                    {daysLeft}d
+                  </div>
+                  <div style={{
+                    fontFamily: 'var(--font-body)', fontSize: '8px', fontWeight: 800,
+                    color: 'var(--text-muted)', letterSpacing: '0.1em',
+                    textTransform: 'uppercase', marginTop: 1,
+                  }}>
+                    {daysUnit}
+                  </div>
+                </div>
               )}
             </div>
           </div>
-          {daysLeft !== null && (
-            <div style={{
-              background: 'rgba(224,85,133,0.1)',
-              border: '1px solid var(--border-pink)',
-              borderRadius: 'var(--radius-full)',
-              padding: '3px 10px',
-              flexShrink: 0,
-            }}>
-              <span style={{
-                fontFamily: 'var(--font-body)', fontSize: '11px',
-                fontWeight: 700, color: 'var(--pink)',
-              }}>
-                {tp.daysLeft.replace('{n}', daysLeft)}
-              </span>
+
+          {/* Divisor punteado */}
+          <div style={{
+            borderBottom: '1px dashed rgba(255,255,255,0.09)',
+            marginBottom: '14px',
+          }} />
+
+          {/* Anillo de progreso + texto de nivel */}
+          {season ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <ProgressRing pct={progressPct} level={userLevel} />
+              <div>
+                <div style={{
+                  fontFamily: 'var(--font-body)', fontWeight: 800,
+                  fontSize: '16px', color: 'var(--text-primary)', lineHeight: 1,
+                }}>
+                  {tp.levelOf.replace('{n}', userLevel)}
+                </div>
+                <div style={{
+                  fontFamily: 'var(--font-body)', fontSize: '12px',
+                  color: 'var(--text-muted)', marginTop: 5,
+                }}>
+                  {userLevel >= 30 ? 'MAX' : `${pointsInLevel} / 300 BP`}
+                </div>
+              </div>
             </div>
+          ) : (
+            <p style={{
+              fontFamily: 'var(--font-body)', fontSize: '13px',
+              color: 'var(--text-muted)', margin: 0,
+            }}>
+              {tp.noSeason}
+            </p>
           )}
         </div>
-
-        {/* Level progress card */}
-        {season ? (
-          <div style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-green)',
-            borderRadius: 'var(--radius-md)',
-            padding: '10px 14px',
-            marginBottom: '16px',
-            boxShadow: '0 0 16px rgba(0,192,135,0.06)',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              {/* Level node */}
-              <div style={{
-                width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
-                background: 'var(--bg-elevated)',
-                border: '2px solid var(--green)',
-                boxShadow: '0 0 12px rgba(0,192,135,0.35)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <span style={{
-                  fontFamily: 'var(--font-body)', fontSize: '11px',
-                  fontWeight: 900, color: 'var(--green)',
-                }}>
-                  {userLevel}
-                </span>
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 5 }}>
-                  <span style={{
-                    fontFamily: 'var(--font-body)', fontSize: '13px',
-                    fontWeight: 700, color: 'var(--text-primary)',
-                  }}>
-                    {tp.levelOf.replace('{n}', userLevel)}
-                  </span>
-                  <span style={{
-                    fontFamily: 'var(--font-body)', fontSize: '11px',
-                    color: 'var(--text-muted)',
-                  }}>
-                    {userLevel >= 30 ? 'MAX' : `${pointsInLevel} / 300 BP`}
-                  </span>
-                </div>
-                <div style={{ height: '5px', background: 'var(--bg-subtle)', borderRadius: '3px', overflow: 'hidden' }}>
-                  <div style={{
-                    height: '100%', width: `${progressPct}%`,
-                    background: 'var(--green)', borderRadius: '3px',
-                    transition: 'width 0.5s ease',
-                    boxShadow: '0 0 6px rgba(0,192,135,0.5)',
-                  }} />
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--text-muted)', margin: '0 0 16px' }}>
-            {tp.noSeason}
-          </p>
-        )}
 
         {claimError && (
           <div style={{
@@ -292,58 +360,49 @@ export default function BattlePass({ onBack, onGoPricing }) {
         }}>
           <div style={{
             display: 'grid', gridTemplateColumns: '1fr 44px 1fr',
-            padding: '8px 16px',
+            padding: '10px 16px',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+              <TrendingUp size={14} color="#00c087" strokeWidth={2.5} />
               <span style={{
-                fontFamily: 'var(--font-body)', fontSize: '15px', fontWeight: 800,
-                letterSpacing: '0.18em', textTransform: 'uppercase', color: '#00c087',
+                fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 800,
+                letterSpacing: '0.14em', textTransform: 'uppercase', color: '#00c087',
               }}>
                 {tp.freeTrack}
               </span>
             </div>
             <div />
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
               <span style={{
-                fontFamily: 'var(--font-body)', fontSize: '15px', fontWeight: 800,
-                letterSpacing: '0.18em', textTransform: 'uppercase', color: '#e05585',
+                fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 800,
+                letterSpacing: '0.14em', textTransform: 'uppercase', color: '#e05585',
               }}>
                 {tp.proTrack}
               </span>
+              <Diamond size={13} color="#e05585" strokeWidth={2.5} />
             </div>
           </div>
         </div>
 
         {/* Level rows */}
         {SEASON1_LEVELS.map((lvl) => {
-          const freeState = getCardState(lvl.freeReward, lvl.level, 'free', userLevel, claimedRewards, isPro);
-          const proState  = getCardState(lvl.proReward,  lvl.level, 'pro',  userLevel, claimedRewards, isPro);
-          const isClaimed   = claimedRewards.includes(lvl.level);
-          const freeEnabled = !lvl.freeMission || lvl.freeMission.enabled !== false;
-          const proEnabled  = !lvl.proMission  || lvl.proMission.enabled  !== false;
-          const isClaimable = (
-            !isClaimed &&
-            userLevel >= lvl.level &&
-            (
-              (freeState === 'claimable' && freeEnabled) ||
-              (isPro && proState === 'claimable' && proEnabled)
-            )
-          );
+          const freeState  = getCardState(lvl.freeReward, lvl.level, 'free', userLevel, claimedRewards, isPro);
+          const proState   = getCardState(lvl.proReward,  lvl.level, 'pro',  userLevel, claimedRewards, isPro);
           const isClaiming = claimingLevel === lvl.level;
           const isActive   = lvl.level === userLevel;
+          const isClaimed  = claimedRewards.includes(lvl.level);
 
-          const lineColor   = lvl.level <= userLevel ? 'var(--green)' : 'var(--border-default)';
-          const bubbleBg    = isClaimed
+          const spineColor = lvl.level <= userLevel
             ? 'var(--green)'
-            : (isActive || isClaimable)
-              ? 'var(--bg-elevated)'
-              : 'var(--bg-subtle)';
-          const bubbleBorder = (isClaimed || isActive || isClaimable || lvl.level < userLevel)
+            : 'rgba(255,255,255,0.08)';
+
+          const bubbleBorder = (isClaimed || lvl.level <= userLevel || isActive)
             ? 'var(--green)'
-            : 'var(--border-default)';
-          const bubbleGlow = (isActive || isClaimable) && !isClaimed
-            ? '0 0 12px rgba(0,192,135,0.45)'
-            : 'none';
+            : 'rgba(255,255,255,0.15)';
+          const bubbleBg = isClaimed ? 'var(--green)' : 'var(--bg-base)';
+          const bubbleTextColor = (isActive || lvl.level <= userLevel)
+            ? 'var(--green)'
+            : 'var(--text-hint)';
 
           return (
             <div
@@ -354,15 +413,15 @@ export default function BattlePass({ onBack, onGoPricing }) {
                 padding: `${ROW_PY}px 16px`,
                 gap: 6,
                 borderBottom: '0.5px solid rgba(255,255,255,0.03)',
-                background: isActive ? 'rgba(0,192,135,0.025)' : 'transparent',
+                background: isActive ? 'rgba(0,192,135,0.02)' : 'transparent',
                 position: 'relative',
               }}
             >
-              {/* Spine line — absolute to the full row so it stretches with variable card heights */}
+              {/* Spine — línea verde fina */}
               <div style={{
                 position: 'absolute', top: 0, bottom: 0,
                 left: '50%', transform: 'translateX(-50%)',
-                width: 1, background: lineColor, zIndex: 0,
+                width: 1.5, background: spineColor, zIndex: 0,
                 pointerEvents: 'none',
                 transition: 'background 0.3s ease',
               }} />
@@ -377,54 +436,37 @@ export default function BattlePass({ onBack, onGoPricing }) {
                   isActive={isActive}
                   missionProgress={isActive ? MOCK_ACTIVE_PROGRESS.free : null}
                   animate={justClaimed === lvl.level}
+                  isClaiming={isClaiming}
+                  onClaim={() => handleClaim(lvl.level)}
                   t={t}
                 />
               </div>
 
-              {/* Center — spine bubble + claim button (line lives on the row now) */}
+              {/* Center — nodo de nivel (círculo hueco) */}
               <div style={{
                 display: 'flex', flexDirection: 'column',
                 alignItems: 'center', justifyContent: 'center',
-                gap: 4, position: 'relative', zIndex: 1,
+                position: 'relative', zIndex: 1,
               }}>
-                {/* Level bubble */}
                 <div style={{
-                  width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
+                  width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
                   background: bubbleBg,
                   border: `1.5px solid ${bubbleBorder}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: bubbleGlow,
-                  transition: 'box-shadow 0.3s ease',
+                  transition: 'border-color 0.3s ease, background 0.3s ease',
                 }}>
                   {isClaimed ? (
-                    <span style={{ fontSize: '10px', color: '#000', fontWeight: 800, lineHeight: 1 }}>✓</span>
+                    <span style={{ fontSize: '10px', color: '#000', fontWeight: 900, lineHeight: 1 }}>✓</span>
                   ) : (
                     <span style={{
                       fontFamily: 'var(--font-body)', fontSize: '9px',
-                      fontWeight: (isActive || isClaimable) ? 800 : 500,
-                      color: (isActive || isClaimable) ? 'var(--green)' : 'var(--text-muted)',
+                      fontWeight: isActive ? 900 : 600,
+                      color: bubbleTextColor,
                     }}>
                       {lvl.level}
                     </span>
                   )}
                 </div>
-
-                {/* Claim button */}
-                {isClaimable && (
-                  <button
-                    onClick={() => handleClaim(lvl.level)}
-                    disabled={isClaiming}
-                    style={{
-                      background: 'var(--green)', border: 'none', borderRadius: '5px',
-                      padding: '3px 6px', fontFamily: 'var(--font-body)', fontSize: '8px',
-                      fontWeight: 800, color: '#000', cursor: isClaiming ? 'default' : 'pointer',
-                      letterSpacing: '0.04em', textTransform: 'uppercase',
-                      opacity: isClaiming ? 0.6 : 1, flexShrink: 0,
-                    }}
-                  >
-                    {isClaiming ? '...' : tp.claim}
-                  </button>
-                )}
               </div>
 
               {/* Right — Pro reward */}
@@ -437,6 +479,8 @@ export default function BattlePass({ onBack, onGoPricing }) {
                   isActive={isActive}
                   missionProgress={isActive ? MOCK_ACTIVE_PROGRESS.pro : null}
                   animate={justClaimed === lvl.level}
+                  isClaiming={isClaiming}
+                  onClaim={() => handleClaim(lvl.level)}
                   t={t}
                   onGoPricing={onGoPricing}
                 />

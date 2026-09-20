@@ -1,7 +1,7 @@
-import { Lock, Zap, Award, Droplet, Tag, Ticket, CircleUser, Palette, Square, Eye, CandlestickChart } from 'lucide-react';
+import { Lock, Award, Droplet, Tag, Ticket, CircleUser, Palette, Square, Eye, TrendingUp, Clock } from 'lucide-react';
 
 const REWARD_ICONS = {
-  xp:             Zap,
+  xp:             TrendingUp,
   badge:          Award,
   username_color: Droplet,
   title:          Tag,
@@ -33,65 +33,6 @@ function getSwatchHex(reward) {
   return null;
 }
 
-function RewardDisplay({ reward, track }) {
-  if (!reward) return null;
-  const Icon = REWARD_ICONS[reward.type];
-  const isXp    = reward.type === 'xp';
-  const isColor = reward.type === 'username_color';
-  const isTheme = reward.type === 'theme';
-  const isAvatar = reward.type === 'avatar';
-
-  const iconColor = track === 'pro' ? 'var(--pink)' : 'var(--green)';
-
-  const swatchHex = isColor
-    ? reward.hex
-    : isTheme
-      ? THEME_SWATCHES[reward.name]
-      : isAvatar
-        ? AVATAR_SWATCHES[reward.name]
-        : null;
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '0 6px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-        {Icon && <Icon size={16} color={iconColor} strokeWidth={2} />}
-        {swatchHex && (
-          <div style={{
-            width: 12, height: 12, borderRadius: '50%',
-            background: swatchHex,
-            border: '1.5px solid rgba(255,255,255,0.35)',
-            flexShrink: 0,
-            boxShadow: `0 0 6px ${swatchHex}66`,
-          }} />
-        )}
-        {isXp && (
-          <span style={{
-            fontFamily: 'var(--font-body)', fontSize: '15px',
-            fontWeight: 800, color: 'var(--text-primary)',
-          }}>
-            +{reward.amount.toLocaleString()}
-          </span>
-        )}
-      </div>
-      {isXp ? (
-        <div style={{
-          fontSize: '10px', color: 'var(--text-muted)',
-          fontFamily: 'var(--font-body)', letterSpacing: '0.08em', fontWeight: 700,
-        }}>
-          XP
-        </div>
-      ) : reward.name ? (
-        <div style={{
-          fontSize: '11px', color: 'var(--text-primary)', fontFamily: 'var(--font-body)',
-          fontWeight: 700, textAlign: 'center', lineHeight: 1.25,
-        }}>
-          {reward.name}
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
 // Props:
 //   reward          — reward object from season1Config, or null
 //   mission         — mission object { title, desc, enabled } or null
@@ -99,23 +40,26 @@ function RewardDisplay({ reward, track }) {
 //   track           — 'free' | 'pro'
 //   isActive        — true when this card is at the user's current level
 //   missionProgress — { current, target } | null — shows progress bar at active level
+//   isClaiming      — true while the claim request is in-flight
+//   onClaim         — called when the user taps the ribbon
 //   t               — translation object (needs t.traderPass)
 //   onGoPricing     — called when free user taps the PRO lock button
-export default function RewardCard({ reward, mission, state, track, isActive, missionProgress, animate, t, onGoPricing }) {
+export default function RewardCard({
+  reward, mission, state, track, isActive, missionProgress,
+  animate, isClaiming, onClaim, t, onGoPricing,
+}) {
   const isProTrack = track === 'pro';
   const swatchHex  = getSwatchHex(reward);
 
   if (state === 'empty') {
-    // Niveles impares del Free track: solo un puntito centrado en la celda
     return (
       <div style={{
         flex: 1, width: '100%', minHeight: 68,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         <div style={{
-          width: 5, height: 5, borderRadius: '50%',
-          background: isActive ? 'rgba(0,192,135,0.7)' : 'var(--border-default)',
-          boxShadow: isActive ? '0 0 5px rgba(0,192,135,0.5)' : 'none',
+          width: 4, height: 4, borderRadius: '50%',
+          background: isActive ? 'rgba(0,192,135,0.5)' : 'var(--border-default)',
           transition: 'background 0.2s',
         }} />
       </div>
@@ -127,79 +71,123 @@ export default function RewardCard({ reward, mission, state, track, isActive, mi
   const isLocked    = state === 'locked';
   const isProLocked = state === 'pro_locked';
 
-  // ── Colores del carril ────────────────────────────────────────────────────
+  const trackColor = isProTrack ? '#e05585' : '#00c087';
+
+  // Fondo de tarjeta — tintado suave, menos oscuro que antes
   const cardBg = isClaimable
-    ? (isProTrack ? 'rgba(224,85,133,0.18)' : 'rgba(0,192,135,0.18)')
+    ? (isProTrack ? 'rgba(224,85,133,0.13)' : 'rgba(0,192,135,0.12)')
     : isClaimed
-      ? (isProTrack ? 'rgba(224,85,133,0.07)' : 'rgba(0,192,135,0.07)')
-      : (isProTrack ? 'rgba(224,85,133,0.13)' : 'rgba(0,192,135,0.10)');
+      ? (isProTrack ? 'rgba(224,85,133,0.05)' : 'rgba(0,192,135,0.05)')
+      : (isLocked || isProLocked)
+        ? 'var(--bg-elevated)'
+        : (isProTrack ? 'rgba(224,85,133,0.08)' : 'rgba(0,192,135,0.07)');
+
+  // Fondo del cuadrado de icono — un poco más saturado que el fondo de la tarjeta
+  const iconBg = isProTrack
+    ? 'rgba(224,85,133,0.22)'
+    : 'rgba(0,192,135,0.18)';
 
   const cardBorder = isClaimable
-    ? (isProTrack ? 'rgba(224,85,133,0.75)'  : 'rgba(0,192,135,0.75)')
-    : isActive && !isClaimed
-      ? (isProTrack ? 'rgba(224,85,133,0.6)'  : 'rgba(0,192,135,0.6)')
-      : isClaimed
-        ? (isProTrack ? 'rgba(224,85,133,0.22)' : 'rgba(0,192,135,0.22)')
-        : (isProTrack ? 'rgba(224,85,133,0.42)' : 'rgba(0,192,135,0.38)');
+    ? (isProTrack ? 'rgba(224,85,133,0.6)'  : 'rgba(0,192,135,0.6)')
+    : isClaimed
+      ? (isProTrack ? 'rgba(224,85,133,0.15)' : 'rgba(0,192,135,0.15)')
+      : (isProTrack ? 'rgba(224,85,133,0.25)' : 'rgba(0,192,135,0.22)');
 
-  const cardShadow = isClaimable
-    ? (isProTrack ? '0 0 16px rgba(224,85,133,0.3)'  : '0 0 16px rgba(0,192,135,0.3)')
-    : isActive && !isClaimed
-      ? (isProTrack ? '0 0 10px rgba(224,85,133,0.2)' : '0 0 10px rgba(0,192,135,0.2)')
-      : 'none';
-
-  const trackColor    = isProTrack ? 'var(--pink)' : 'var(--green)';
   const hasComingSoon = mission && mission.enabled === false;
   const showProgress  = isActive && !!missionProgress && !hasComingSoon;
+  const showRibbon    = isClaimable && !hasComingSoon;
+
+  const Icon = reward ? REWARD_ICONS[reward.type] : null;
+  const isXp = reward?.type === 'xp';
 
   return (
     <div style={{
       flex: 1,
-      width: '100%', position: 'relative',
-      borderRadius: '8px', background: cardBg,
-      border: `1px solid ${cardBorder}`,
-      boxShadow: cardShadow,
-      display: 'flex', flexDirection: 'column',
-      alignItems: 'center',
+      width: '100%',
+      position: 'relative',
+      borderRadius: '12px',
+      background: cardBg,
+      border: `1px ${hasComingSoon ? 'dashed' : 'solid'} ${cardBorder}`,
+      display: 'flex',
+      flexDirection: 'column',
       overflow: 'hidden',
-      opacity: isLocked ? 0.4 : 1,
+      opacity: isLocked ? 0.45 : 1,
       transition: 'border-color 0.2s, box-shadow 0.2s',
       '--anim-glow': isProTrack ? 'rgba(224,85,133,0.8)' : 'rgba(0,192,135,0.8)',
       animation: animate ? 'claimPop 0.55s ease-out' : 'none',
     }}>
-      {/* Reward content — blurred when pro_locked */}
+
+      {/* Contenido principal — difuminado cuando pro_locked */}
       <div style={{
-        display: 'flex', flexDirection: 'column', alignItems: 'center',
-        width: '100%',
-        padding: '8px 0 6px',
+        padding: '8px 8px 8px 8px',
         filter: isProLocked ? 'blur(9px)' : 'none',
         opacity: isProLocked ? 0.2 : 1,
         userSelect: isProLocked ? 'none' : 'auto',
         pointerEvents: isProLocked ? 'none' : 'auto',
       }}>
-        {/* Reward: icon + name/amount + swatch */}
-        <RewardDisplay reward={reward} track={track} />
+        {/* Fila: cuadrado de icono + contenido */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
 
-        {/* Mission text */}
-        {mission && (
+          {/* Cuadrado de icono */}
           <div style={{
-            width: '100%',
-            marginTop: 5,
-            borderTop: '0.5px solid rgba(255,255,255,0.07)',
-            paddingTop: 5,
+            width: 32, height: 32, flexShrink: 0,
+            borderRadius: '8px',
+            background: iconBg,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <p style={{
-              margin: 0, padding: '0 6px',
-              fontSize: '8.5px', color: 'var(--text-muted)',
-              fontFamily: 'var(--font-body)', fontWeight: 500,
-              textAlign: 'center', lineHeight: 1.35,
-            }}>
-              {mission.desc}
-            </p>
+            {swatchHex ? (
+              <div style={{
+                width: 12, height: 12, borderRadius: '50%',
+                background: swatchHex,
+                border: '1.5px solid rgba(255,255,255,0.3)',
+                boxShadow: `0 0 6px ${swatchHex}88`,
+              }} />
+            ) : Icon ? (
+              <Icon size={15} color={trackColor} strokeWidth={2.5} />
+            ) : null}
+          </div>
 
-            {/* Progress bar — solo en el nivel activo, misiones habilitadas */}
+          {/* Texto */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {/* Recompensa: cantidad/nombre */}
+            {isXp ? (
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 3, lineHeight: 1 }}>
+                <span style={{
+                  fontFamily: 'var(--font-body)', fontWeight: 900,
+                  fontSize: '15px', color: 'var(--text-primary)',
+                }}>
+                  +{reward.amount.toLocaleString()}
+                </span>
+                <span style={{
+                  fontFamily: 'var(--font-body)', fontWeight: 800,
+                  fontSize: '10px', color: trackColor,
+                }}>
+                  XP
+                </span>
+              </div>
+            ) : reward?.name ? (
+              <div style={{
+                fontFamily: 'var(--font-body)', fontWeight: 800,
+                fontSize: '11px', color: 'var(--text-primary)', lineHeight: 1.2,
+              }}>
+                {reward.name}
+              </div>
+            ) : null}
+
+            {/* Descripción de misión */}
+            {mission && (
+              <p style={{
+                margin: '4px 0 0',
+                fontFamily: 'var(--font-body)', fontSize: '9px',
+                color: 'var(--text-muted)', fontWeight: 500, lineHeight: 1.35,
+              }}>
+                {mission.desc}
+              </p>
+            )}
+
+            {/* Barra de progreso — solo nivel activo con misión habilitada */}
             {showProgress && (
-              <div style={{ marginTop: 5, padding: '0 6px' }}>
+              <div style={{ marginTop: 5 }}>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 2 }}>
                   <span style={{
                     fontFamily: 'var(--font-body)', fontSize: '7px',
@@ -208,65 +196,96 @@ export default function RewardCard({ reward, mission, state, track, isActive, mi
                     {missionProgress.current}/{missionProgress.target}
                   </span>
                 </div>
-                <div style={{ height: 2, background: 'rgba(255,255,255,0.1)', borderRadius: 2 }}>
+                <div style={{ height: 2, background: 'rgba(255,255,255,0.08)', borderRadius: 2 }}>
                   <div style={{
                     height: '100%',
                     width: `${Math.min(100, (missionProgress.current / missionProgress.target) * 100)}%`,
                     background: trackColor, borderRadius: 2,
                     transition: 'width 0.3s ease',
-                    boxShadow: `0 0 4px ${trackColor}88`,
+                    boxShadow: `0 0 4px ${trackColor}66`,
                   }} />
                 </div>
               </div>
             )}
 
-            {/* Coming soon badge — Trading Mode missions */}
+            {/* Próximamente — misiones de Trading Mode */}
             {hasComingSoon && (
-              <div style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                gap: 3, marginTop: 5,
-              }}>
-                <CandlestickChart size={8} color="var(--text-muted)" strokeWidth={2} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 3, marginTop: 4 }}>
+                <Clock size={8} color="var(--text-hint)" strokeWidth={2} />
                 <span style={{
-                  fontFamily: 'var(--font-body)', fontSize: '7px', fontWeight: 700,
-                  color: 'var(--text-muted)', letterSpacing: '0.04em',
+                  fontFamily: 'var(--font-body)', fontSize: '8px', fontWeight: 600,
+                  color: 'var(--text-hint)', letterSpacing: '0.04em',
                 }}>
                   {t.traderPass.comingSoon}
                 </span>
               </div>
             )}
           </div>
-        )}
+        </div>
       </div>
 
-      {/* Claimed badge */}
+      {/* Reclamado: check en círculo (esquina superior derecha) */}
       {isClaimed && (
         <div style={{
-          position: 'absolute', top: 4, right: 4,
-          width: 16, height: 16, borderRadius: '50%',
-          background: isProTrack ? 'var(--pink)' : 'var(--green)',
+          position: 'absolute', top: 6, right: 6,
+          width: 18, height: 18, borderRadius: '50%',
+          background: trackColor,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           animation: animate ? 'checkIn 0.35s ease-out' : 'none',
         }}>
-          <span style={{ fontSize: '9px', color: '#000', fontWeight: 800, lineHeight: 1 }}>✓</span>
+          <span style={{ fontSize: '9px', color: '#000', fontWeight: 900, lineHeight: 1 }}>✓</span>
         </div>
       )}
 
-      {/* Locked corner icon */}
+      {/* Cinta/ribbon RECLAMAR (esquina superior derecha, diagonal) */}
+      {showRibbon && (
+        <div
+          onClick={isClaiming ? undefined : onClaim}
+          style={{
+            position: 'absolute', top: 0, right: 0,
+            overflow: 'hidden', width: 60, height: 60,
+            borderRadius: '0 12px 0 0',
+            cursor: isClaiming ? 'default' : 'pointer',
+          }}
+        >
+          <div style={{
+            position: 'absolute',
+            top: 12,
+            right: -18,
+            width: 72,
+            background: '#e05585',
+            color: '#fff',
+            fontSize: '6.5px',
+            fontWeight: 900,
+            letterSpacing: '0.1em',
+            textAlign: 'center',
+            padding: '4px 0',
+            transform: 'rotate(45deg)',
+            transformOrigin: 'center',
+            opacity: isClaiming ? 0.55 : 1,
+            transition: 'opacity 0.2s',
+          }}>
+            {isClaiming ? '···' : t.traderPass.claim.toUpperCase()}
+          </div>
+        </div>
+      )}
+
+      {/* Bloqueado: icono candado (esquina) */}
       {isLocked && (
         <div style={{ position: 'absolute', top: 5, right: 5 }}>
-          <Lock size={10} color="rgba(255,255,255,0.25)" strokeWidth={2} />
+          <Lock size={10} color="rgba(255,255,255,0.2)" strokeWidth={2} />
         </div>
       )}
 
-      {/* Pro-locked overlay */}
+      {/* Overlay Pro-locked */}
       {isProLocked && (
         <div style={{
           position: 'absolute', inset: 0,
           display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center',
-          gap: 4,
-          background: 'rgba(13,13,13,0.72)',
+          gap: 5,
+          background: 'rgba(13,13,13,0.75)',
+          borderRadius: '12px',
         }}>
           {swatchHex && (
             <div style={{
@@ -276,14 +295,14 @@ export default function RewardCard({ reward, mission, state, track, isActive, mi
               flexShrink: 0,
             }} />
           )}
-          <Lock size={11} color="var(--pink)" strokeWidth={2} />
+          <Lock size={11} color="#e05585" strokeWidth={2} />
           {onGoPricing && (
             <button
               onClick={onGoPricing}
               style={{
                 fontSize: '8px', fontFamily: 'var(--font-body)', fontWeight: 800,
-                color: 'var(--pink)', background: 'none',
-                border: '0.5px solid var(--pink)',
+                color: '#e05585', background: 'none',
+                border: '0.5px solid #e05585',
                 borderRadius: '4px', padding: '2px 6px',
                 cursor: 'pointer', letterSpacing: '0.05em',
               }}
