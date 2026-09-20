@@ -58,7 +58,40 @@ function makeStore() {
       const n = [...map.values()].filter(d => matchesQuery(d, query)).length;
       return Promise.resolve(n);
     },
+    findOneAndDelete(query) {
+      for (const [k, doc] of map.entries()) {
+        if (matchesQuery(doc, query)) { map.delete(k); return Promise.resolve({ ...doc }); }
+      }
+      return Promise.resolve(null);
+    },
+    findOneAndUpdate(query, update, _opts) {
+      for (const [k, doc] of map.entries()) {
+        if (matchesQuery(doc, query)) {
+          const updated = { ...doc };
+          if (Array.isArray(update)) {
+            for (const stage of update) {
+              if (stage.$set) {
+                for (const [field, expr] of Object.entries(stage.$set)) {
+                  updated[field] = evalAggExpr(expr, updated);
+                }
+              }
+            }
+          }
+          map.set(k, updated);
+          return Promise.resolve({ ...updated });
+        }
+      }
+      return Promise.resolve(null);
+    },
   };
+}
+
+function evalAggExpr(expr, doc) {
+  if (typeof expr === 'string' && expr.startsWith('$')) return doc[expr.slice(1)] ?? 0;
+  if (typeof expr !== 'object' || expr === null) return expr;
+  if (expr.$add) return expr.$add.reduce((s, e) => s + evalAggExpr(e, doc), 0);
+  if (expr.$max) return Math.max(...expr.$max.map(e => evalAggExpr(e, doc)));
+  return expr;
 }
 
 function matchesQuery(doc, query) {

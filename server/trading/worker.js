@@ -36,10 +36,7 @@ function runTradingWorker(checkStopLossTakeProfit, checkMarginLevel) {
 
     if (userIds.length === 0) return;
 
-    // TODO al escalar >50 usuarios concurrentes con MongoDB real: paralelizar
-    // con Promise.all(userIds.map(userId => perUserCheck(userId).catch(...)))
-    // En el stub (in-process, sin latencia real) el procesamiento serial es fine.
-    for (const userId of userIds) {
+    await Promise.all(userIds.map(async userId => {
       try {
         // ── SL/TP first — may remove positions and avoid margin cascade ──────
         const triggered = await checkStopLossTakeProfit(userId);
@@ -61,10 +58,10 @@ function runTradingWorker(checkStopLossTakeProfit, checkMarginLevel) {
           );
         }
       } catch (err) {
-        // Per-user error: log and continue with next user
+        // Per-user error: log and continue — one bad user never blocks others.
         console.error(`[trading-worker] error for userId=${userId}:`, err.message);
       }
-    }
+    }));
   }, INTERVAL_MS);
 
   // Allow the process to exit cleanly even if this timer is still pending
