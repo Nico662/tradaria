@@ -135,6 +135,7 @@ html, body {
   animation: slideUp 0.25s ease;
 }
 @keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes tradingSlSpin { to { transform: rotate(360deg); } }
 .result-card.win     { border-color: var(--green); background: rgba(0,229,160,0.05); box-shadow: 0 4px 28px rgba(0,229,160,0.12); }
 .result-card.lose    { border-color: var(--color-down); background: rgba(255,126,179,0.05); box-shadow: 0 4px 28px rgba(255,126,179,0.10); }
 .result-card.neutral { border-color: var(--color-neutral); background: rgba(232,184,75,0.05); box-shadow: 0 4px 28px rgba(232,184,75,0.08); }

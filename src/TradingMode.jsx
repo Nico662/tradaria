@@ -149,10 +149,62 @@ function generateCandles(symbol, tf, count = 60) {
 //   GET /api/trading/leagues/me                   → { division, myId, myRank, total, promoteTop, relegateFrom, traders }
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ── Lightweight Charts candlestick — replicates the Chart.jsx pattern ─────────
-function TradingChart({ symbol, timeframe }) {
-  const containerRef = useRef(null);
+// ── Price-line helper (called outside React render) ───────────────────────────
+function applyPriceLines(series, position) {
+  series.priceLines().forEach(l => series.removePriceLine(l));
+  if (!position) return;
+  series.createPriceLine({ price: position.entry, color: 'rgba(160,160,160,0.7)', lineWidth: 1, lineStyle: 2, axisLabelVisible: false, title: '' });
+  if (position.stopLoss  != null) series.createPriceLine({ price: position.stopLoss,  color: 'rgba(224,85,133,0.55)', lineWidth: 1, lineStyle: 1, axisLabelVisible: true,  axisLabelColor: 'rgba(224,85,133,0.75)', axisLabelTextColor: '#fff', title: 'SL' });
+  if (position.takeProfit != null) series.createPriceLine({ price: position.takeProfit, color: 'rgba(0,192,135,0.55)',  lineWidth: 1, lineStyle: 1, axisLabelVisible: true,  axisLabelColor: 'rgba(0,192,135,0.75)',  axisLabelTextColor: '#fff', title: 'TP' });
+}
 
+// ── Draggable SL/TP handle ────────────────────────────────────────────────────
+function SlTpHandle({ type, y, dragging, saving, error, onPointerDown, onPointerMove, onPointerUp }) {
+  const color = type === 'sl' ? '#e05585' : '#00c087';
+  const label = type === 'sl' ? 'SL' : 'TP';
+  return (
+    <div style={{ position: 'absolute', right: 44, top: y - 10, display: 'flex', alignItems: 'center', gap: 4, pointerEvents: 'none' }}>
+      {error && (
+        <span style={{ background: 'rgba(200,40,40,0.92)', color: '#fff', fontSize: 8, fontFamily: 'var(--font-mono)', padding: '1px 4px', borderRadius: 2, whiteSpace: 'nowrap', maxWidth: 90, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {error}
+        </span>
+      )}
+      <span style={{ background: `${color}1a`, border: `0.5px solid ${color}80`, color, fontSize: 9, fontFamily: 'var(--font-mono)', fontWeight: 700, padding: '1px 5px', borderRadius: 2, letterSpacing: '0.04em' }}>
+        {label}
+      </span>
+      <div
+        style={{ width: 20, height: 20, borderRadius: '50%', background: saving ? 'rgba(70,70,70,0.9)' : dragging ? color : `${color}bb`, border: `2px solid ${dragging ? '#fff' : color + '80'}`, flexShrink: 0, cursor: 'ns-resize', pointerEvents: 'all', touchAction: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', userSelect: 'none', WebkitUserSelect: 'none', boxShadow: dragging ? `0 0 10px ${color}66` : 'none', transition: 'box-shadow 0.12s, background 0.1s' }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+      >
+        {saving
+          ? <div style={{ width: 7, height: 7, borderRadius: '50%', border: '1.5px solid rgba(255,255,255,0.4)', borderTopColor: 'rgba(255,255,255,0.9)', animation: 'tradingSlSpin 0.7s linear infinite' }} />
+          : <span style={{ color: dragging ? '#fff' : 'rgba(255,255,255,0.65)', fontSize: 9, lineHeight: 1, userSelect: 'none', fontWeight: 900 }}>⠿</span>
+        }
+      </div>
+    </div>
+  );
+}
+
+// ── Lightweight Charts candlestick ────────────────────────────────────────────
+function TradingChart({ symbol, timeframe, position, chartRef, onPositionSaved }) {
+  const token           = localStorage.getItem('tradaria_token');
+  const containerRef    = useRef(null);
+  const seriesRef       = useRef(null);
+  const positionRef     = useRef(position);
+  const draggingTypeRef = useRef(null);
+
+  const [tick,         setTick]         = useState(0);
+  const [draggingType, setDraggingType] = useState(null);
+  const [dragY,        setDragY]        = useState(0);
+  const [saving,       setSaving]       = useState(null);
+  const [saveErr,      setSaveErr]      = useState(null);
+
+  useEffect(() => { positionRef.current = position; }, [position]);
+
+  // ── Chart creation / destruction ──────────────────────────────────────────
   useEffect(() => {
     if (!containerRef.current || !symbol) return;
     let chart;
@@ -195,6 +247,7 @@ function TradingChart({ symbol, timeframe }) {
         handleScroll: true,
         handleScale:  true,
       });
+      if (chartRef) chartRef.current = chart;
 
       const series = chart.addSeries(CandlestickSeries, {
         upColor:         '#00c087',
@@ -207,6 +260,7 @@ function TradingChart({ symbol, timeframe }) {
           ? { type: 'price', precision: 4, minMove: 0.0001 }
           : { type: 'price', precision: 2, minMove: 0.01  },
       });
+      seriesRef.current = series;
 
       const rawCandles = generateCandles(symbol, timeframe, 60);
       const msMap = { M1: 60e3, M5: 300e3, M15: 900e3, H1: 3600e3, H4: 14400e3, D1: 86400e3 };
@@ -224,26 +278,182 @@ function TradingChart({ symbol, timeframe }) {
 
       series.setData(chartData);
       chart.timeScale().fitContent();
+      applyPriceLines(series, positionRef.current);
+
+      chart.timeScale().subscribeVisibleLogicalRangeChange(() => setTick(t => t + 1));
 
       ro = new ResizeObserver(() => {
         if (containerRef.current) {
-          chart.applyOptions({
-            width:  containerRef.current.clientWidth,
-            height: containerRef.current.clientHeight,
-          });
+          chart.applyOptions({ width: containerRef.current.clientWidth, height: containerRef.current.clientHeight });
+          setTick(t => t + 1);
         }
       });
       ro.observe(el);
+      setTick(t => t + 1);
     }, 10);
 
     return () => {
       clearTimeout(timer);
       if (ro) ro.disconnect();
       if (chart) chart.remove();
+      if (chartRef) chartRef.current = null;
+      seriesRef.current = null;
     };
   }, [symbol, timeframe]);
 
-  return <div ref={containerRef} style={{ width: '100%', height: '100%' }} />;
+  // ── Sync price lines when position changes ────────────────────────────────
+  useEffect(() => {
+    if (!seriesRef.current) return;
+    applyPriceLines(seriesRef.current, position);
+    setTick(t => t + 1);
+  }, [position]);
+
+  // ── Coordinate helpers (recalculated on every render via tick) ────────────
+  const getY = (price) => (price != null && seriesRef.current) ? seriesRef.current.priceToCoordinate(price) : null;
+  const entryY  = getY(position?.entry);
+  const baseSlY = getY(position?.stopLoss);
+  const baseTpY = getY(position?.takeProfit);
+  const slY     = draggingType === 'sl' ? dragY : baseSlY;
+  const tpY     = draggingType === 'tp' ? dragY : baseTpY;
+
+  // ── PATCH SL/TP ───────────────────────────────────────────────────────────
+  async function saveSLTP(type, price) {
+    const pos = positionRef.current;
+    if (!pos) return;
+    setSaving(type);
+    setSaveErr(null);
+    const body = type === 'sl' ? { stopLoss: price } : { takeProfit: price };
+    try {
+      const res = await fetch(`${SERVER}/api/trading/positions/${pos.id}`, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body:    JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setSaveErr({ type, msg: data.error ?? 'Error' });
+        setTimeout(() => setSaveErr(null), 2500);
+      } else {
+        onPositionSaved(pos.id, type === 'sl' ? { stopLoss: price } : { takeProfit: price });
+      }
+    } catch {
+      setSaveErr({ type, msg: 'Error de red' });
+      setTimeout(() => setSaveErr(null), 2500);
+    }
+    setTimeout(() => setSaving(null), 800);
+  }
+
+  // ── Add SL/TP at default price ────────────────────────────────────────────
+  function handleAddSLTP(type) {
+    const pos = positionRef.current;
+    if (!pos) return;
+    const isLong = pos.dir === 'BUY';
+    const defaultPrice = type === 'sl'
+      ? (isLong ? pos.entry * 0.98 : pos.entry * 1.02)
+      : (isLong ? pos.entry * 1.02 : pos.entry * 0.98);
+    saveSLTP(type, defaultPrice);
+  }
+
+  // ── Drag handlers ─────────────────────────────────────────────────────────
+  function onCircleDown(type, startY) {
+    return (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.currentTarget.setPointerCapture(e.pointerId);
+      draggingTypeRef.current = type;
+      setDraggingType(type);
+      setDragY(startY ?? 0);
+      chartRef?.current?.applyOptions({ handleScroll: false, handleScale: false });
+    };
+  }
+
+  function onCircleMove(type) {
+    return (e) => {
+      if (draggingTypeRef.current !== type || !containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const y = Math.max(4, Math.min(rect.height - 4, e.clientY - rect.top));
+      setDragY(y);
+    };
+  }
+
+  function onCircleUp(type) {
+    return (e) => {
+      chartRef?.current?.applyOptions({ handleScroll: true, handleScale: true });
+      if (draggingTypeRef.current !== type) return;
+      draggingTypeRef.current = null;
+      setDraggingType(null);
+      if (!seriesRef.current || !containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const finalY = Math.max(4, Math.min(rect.height - 4, e.clientY - rect.top));
+      const newPrice = seriesRef.current.coordinateToPrice(finalY);
+      if (newPrice != null) saveSLTP(type, newPrice);
+    };
+  }
+
+  const showAddSL = position && position.stopLoss  == null && !draggingType;
+  const showAddTP = position && position.takeProfit == null && !draggingType;
+
+  return (
+    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
+
+      {/* Overlay — default pointer-events:none so chart still gets all events */}
+      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 5 }}>
+
+        {/* Entry label dot */}
+        {position && entryY !== null && (
+          <div style={{ position: 'absolute', right: 44, top: entryY - 9, pointerEvents: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ background: 'rgba(90,90,90,0.88)', color: '#aaa', fontSize: 8, fontFamily: 'var(--font-mono)', fontWeight: 700, padding: '1px 4px', borderRadius: 2, letterSpacing: '0.04em' }}>ENTRADA</span>
+            <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#777', border: '1.5px solid #aaa', flexShrink: 0 }} />
+          </div>
+        )}
+
+        {/* SL handle */}
+        {position && slY !== null && position.stopLoss != null && (
+          <SlTpHandle
+            type="sl" y={slY}
+            dragging={draggingType === 'sl'}
+            saving={saving === 'sl'}
+            error={saveErr?.type === 'sl' ? saveErr.msg : null}
+            onPointerDown={onCircleDown('sl', slY)}
+            onPointerMove={onCircleMove('sl')}
+            onPointerUp={onCircleUp('sl')}
+          />
+        )}
+
+        {/* TP handle */}
+        {position && tpY !== null && position.takeProfit != null && (
+          <SlTpHandle
+            type="tp" y={tpY}
+            dragging={draggingType === 'tp'}
+            saving={saving === 'tp'}
+            error={saveErr?.type === 'tp' ? saveErr.msg : null}
+            onPointerDown={onCircleDown('tp', tpY)}
+            onPointerMove={onCircleMove('tp')}
+            onPointerUp={onCircleUp('tp')}
+          />
+        )}
+
+        {/* + SL / + TP buttons */}
+        {(showAddSL || showAddTP) && (
+          <div style={{ position: 'absolute', bottom: 8, left: 8, display: 'flex', gap: 6, pointerEvents: 'all' }}>
+            {showAddSL && (
+              <button onClick={() => handleAddSLTP('sl')} disabled={!!saving}
+                style={{ background: 'rgba(224,85,133,0.12)', border: '0.5px solid rgba(224,85,133,0.6)', borderRadius: 4, color: '#e05585', fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 10, padding: '3px 8px', cursor: saving ? 'default' : 'pointer', letterSpacing: '0.06em', opacity: saving === 'sl' ? 0.5 : 1 }}>
+                {saving === 'sl' ? '···' : '+ SL'}
+              </button>
+            )}
+            {showAddTP && (
+              <button onClick={() => handleAddSLTP('tp')} disabled={!!saving}
+                style={{ background: 'rgba(0,192,135,0.1)', border: '0.5px solid rgba(0,192,135,0.5)', borderRadius: 4, color: '#00c087', fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 10, padding: '3px 8px', cursor: saving ? 'default' : 'pointer', letterSpacing: '0.06em', opacity: saving === 'tp' ? 0.5 : 1 }}>
+                {saving === 'tp' ? '···' : '+ TP'}
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 // ── Tutorial overlay ─────────────────────────────────────────────────────────
@@ -304,7 +514,8 @@ function TradingTutorial({ t, onClose }) {
 export default function TradingMode({ onBack }) {
   const { t } = useLang();
   const tr = t.trading ?? {};
-  const { token, user } = useAuth();
+  const { user } = useAuth();
+  const token = localStorage.getItem('tradaria_token');
 
   const [tab,            setTab]            = useState('symbols');
   const [catFilter,      setCatFilter]      = useState('all');
@@ -347,6 +558,11 @@ export default function TradingMode({ onBack }) {
   const [socialPending,   setSocialPending]   = useState(false);
   const initPricesRef = useRef({});
   const prevPricesRef = useRef({});
+  const chartRef      = useRef(null);
+
+  const handlePositionSaved = useCallback((posId, update) => {
+    setPositions(prev => prev.map(p => p.id === posId ? { ...p, ...update } : p));
+  }, []);
 
   // ── Splash ───────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -545,6 +761,9 @@ export default function TradingMode({ onBack }) {
       ? p.entry * (1 - 0.9 / 100)
       : p.entry * (1 + 0.9 / 100),
   }));
+
+  // ── Active position for the currently-viewed symbol ──────────────────────
+  const activePosition = positionsLive.find(p => p.symbol === selectedSymbol) ?? null;
 
   // ── Ticket calculations ───────────────────────────────────────────────────
   const selAsset   = ASSETS.find(a => a.name === selectedSymbol);
@@ -1014,7 +1233,7 @@ export default function TradingMode({ onBack }) {
 
         {/* ── Chart — elastic, fills all remaining height ── */}
         <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
-          <TradingChart symbol={selectedSymbol} timeframe={timeframe} />
+          <TradingChart symbol={selectedSymbol} timeframe={timeframe} position={activePosition} chartRef={chartRef} onPositionSaved={handlePositionSaved} />
         </div>
 
         {/* ── Execution panel: SELL | lots | BUY ── */}
