@@ -414,6 +414,50 @@ router.post('/close/:positionId', requireAuth, async (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// PATCH /api/trading/positions/:id  (update SL/TP on an open position)
+// Body: { stopLoss?, takeProfit? }  — at least one field required
+// ─────────────────────────────────────────────────────────────────────────────
+router.patch('/positions/:id', requireAuth, async (req, res) => {
+  try {
+    const pos = await Position().findOne({ _id: req.params.id, userId: req.userId });
+    if (!pos) return res.status(404).json({ error: 'Position not found' });
+
+    const { stopLoss, takeProfit } = req.body ?? {};
+    if (stopLoss == null && takeProfit == null) {
+      return res.status(400).json({ error: 'Provide stopLoss, takeProfit, or both' });
+    }
+
+    if (stopLoss != null) {
+      const sl = Number(stopLoss);
+      if (!isFinite(sl) || sl <= 0) return res.status(400).json({ error: 'Invalid stopLoss' });
+      if (pos.direction === 'long'  && sl >= pos.entryPrice) return res.status(400).json({ error: 'stopLoss must be below entry for long'  });
+      if (pos.direction === 'short' && sl <= pos.entryPrice) return res.status(400).json({ error: 'stopLoss must be above entry for short' });
+      pos.stopLoss = sl;
+    }
+    if (takeProfit != null) {
+      const tp = Number(takeProfit);
+      if (!isFinite(tp) || tp <= 0) return res.status(400).json({ error: 'Invalid takeProfit' });
+      if (pos.direction === 'long'  && tp <= pos.entryPrice) return res.status(400).json({ error: 'takeProfit must be above entry for long'  });
+      if (pos.direction === 'short' && tp >= pos.entryPrice) return res.status(400).json({ error: 'takeProfit must be below entry for short' });
+      pos.takeProfit = tp;
+    }
+
+    await pos.save();
+
+    res.json({
+      id:         pos._id,
+      symbol:     pos.symbol,
+      direction:  pos.direction,
+      entryPrice: pos.entryPrice,
+      stopLoss:   pos.stopLoss,
+      takeProfit: pos.takeProfit,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // GET /api/trading/history
 // ─────────────────────────────────────────────────────────────────────────────
 router.get('/history', requireAuth, async (req, res) => {
