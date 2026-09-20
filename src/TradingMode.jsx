@@ -141,14 +141,6 @@ function generateCandles(symbol, tf, count = 60) {
 }
 
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SOCIAL MOCK DATA — Trading Mode
-// TODO: conectar al backend del Trading Mode cuando exista:
-//   GET /api/trading/ranking?period=global|week  → { traders: Trader[] }
-//   GET /api/trading/duel/active                  → { active, endsAt, me, rival }
-//   GET /api/trading/leagues/me                   → { division, myId, myRank, total, promoteTop, relegateFrom, traders }
-// ─────────────────────────────────────────────────────────────────────────────
-
 // ── Price-line helper (called outside React render) ───────────────────────────
 function applyPriceLines(series, position) {
   series.priceLines().forEach(l => series.removePriceLine(l));
