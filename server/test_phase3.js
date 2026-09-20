@@ -11,6 +11,15 @@ const jwt      = require('jsonwebtoken');
 const http     = require('http');
 const mongoose = require('mongoose');
 
+// ── Minimal aggregation-expression evaluator for mock findOneAndUpdate ───────
+function evalAggExpr(expr, doc) {
+  if (typeof expr === 'string' && expr.startsWith('$')) return doc[expr.slice(1)] ?? 0;
+  if (typeof expr !== 'object' || expr === null) return expr;
+  if (expr.$add) return expr.$add.reduce((s, e) => s + evalAggExpr(e, doc), 0);
+  if (expr.$max) return Math.max(...expr.$max.map(e => evalAggExpr(e, doc)));
+  return expr;
+}
+
 // ── In-memory store (same as Phase 2 harness) ─────────────────────────────────
 function makeStore(name) {
   const docs = new Map();
@@ -58,6 +67,31 @@ function makeStore(name) {
     },
     async countDocuments(query) {
       let c = 0; for (const doc of docs.values()) if (matches(doc, query)) c++; return c;
+    },
+    async findOneAndDelete(query) {
+      for (const [id, doc] of docs.entries()) {
+        if (matches(doc, query)) { docs.delete(id); return attach({ ...doc }); }
+      }
+      return null;
+    },
+    async findOneAndUpdate(query, update, _opts) {
+      for (const [id, doc] of docs.entries()) {
+        if (matches(doc, query)) {
+          const updated = { ...doc };
+          if (Array.isArray(update)) {
+            for (const stage of update) {
+              if (stage.$set) {
+                for (const [field, expr] of Object.entries(stage.$set)) {
+                  updated[field] = evalAggExpr(expr, updated);
+                }
+              }
+            }
+          }
+          docs.set(id, updated);
+          return attach({ ...updated });
+        }
+      }
+      return null;
     },
     find_chain(query) {
       let result = [];

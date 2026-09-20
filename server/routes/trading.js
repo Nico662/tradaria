@@ -95,44 +95,41 @@ async function getOrCreateAccount(userId) {
 // longer exists (guard against double-close from concurrent calls).
 // ─────────────────────────────────────────────────────────────────────────────
 async function closePosition(pos, closeReason, priceObjOverride) {
-  // Guard: verify position still exists before touching the account.
-  // TODO antes de producción real: findOne + deleteOne (línea ~129) no son
-  // atómicos — cambiar a findOneAndDelete como guard para eliminar la ventana
-  // de doble-cierre concurrente entre el worker y un close manual simultáneo.
-  const stillExists = await Position().findOne({ _id: pos._id, userId: pos.userId });
-  if (!stillExists) return null;
+  // Atomic guard: findOneAndDelete is a single operation — whichever concurrent
+  // caller wins gets the document; the other gets null and exits cleanly.
+  const deleted = await Position().findOneAndDelete({ _id: pos._id, userId: pos.userId });
+  if (!deleted) return null;
 
-  const priceObj   = priceObjOverride ?? await priceRouter.getPrice(pos.symbol);
-  const closePrice = pos.direction === 'long' ? priceObj.bid : priceObj.ask;
-  const pnl        = calcPnl(pos, priceObj);
-  const pnlPct     = pos.marginUsed > 0 ? (pnl / pos.marginUsed) * 100 : 0;
+  const priceObj   = priceObjOverride ?? await priceRouter.getPrice(deleted.symbol);
+  const closePrice = deleted.direction === 'long' ? priceObj.bid : priceObj.ask;
+  const pnl        = calcPnl(deleted, priceObj);
+  const pnlPct     = deleted.marginUsed > 0 ? (pnl / deleted.marginUsed) * 100 : 0;
 
-  // TODO antes de producción real: read-compute-save no es atómico — usar
-  // findOneAndUpdate con $inc en el balance para eliminar la ventana donde dos
-  // closes concurrentes sobre la misma cuenta leen el mismo saldo y uno lo pierde.
-  const account    = await getOrCreateAccount(pos.userId);
-  const newBalance = Math.max(0, account.balance + pnl);
-  account.balance  = newBalance;
-  await account.save();
+  // Atomic balance update: aggregation pipeline $max[0, balance+pnl] ensures the
+  // floor-at-zero and the increment are one MongoDB operation — no read-compute-save window.
+  const updatedAccount = await Account().findOneAndUpdate(
+    { userId: deleted.userId },
+    [{ $set: { balance: { $max: [0, { $add: ['$balance', pnl] }] } } }],
+    { returnDocument: 'after', updatePipeline: true }
+  );
+  const newBalance = updatedAccount?.balance ?? 0;
 
   await Trade().create({
-    userId:       pos.userId,
-    symbol:       pos.symbol,
-    name:         pos.name,
-    category:     pos.category,
-    direction:    pos.direction,
-    entryPrice:   pos.entryPrice,
+    userId:       deleted.userId,
+    symbol:       deleted.symbol,
+    name:         deleted.name,
+    category:     deleted.category,
+    direction:    deleted.direction,
+    entryPrice:   deleted.entryPrice,
     closePrice,
-    lots:         pos.lots,
-    contractSize: pos.contractSize,
-    marginUsed:   pos.marginUsed,
+    lots:         deleted.lots,
+    contractSize: deleted.contractSize,
+    marginUsed:   deleted.marginUsed,
     pnl,
     pnlPct,
     closeReason,
-    openedAt:     pos.openedAt,
+    openedAt:     deleted.openedAt,
   });
-
-  await Position().deleteOne({ _id: pos._id });
 
   return { pnl, pnlPct, closePrice, newBalance };
 }
