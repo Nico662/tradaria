@@ -17,7 +17,7 @@ const rateLimit      = require('express-rate-limit');
 const cookieParser   = require('cookie-parser');
 const { Redis }      = require('@upstash/redis');
 const { ApnsClient, Notification } = require('apns2');
-const sharp          = require('sharp');
+// (sharp removed — no longer used)
 
 const apnsClient = new ApnsClient({
   team: 'KA99F6SRW4',
@@ -30,9 +30,7 @@ const apnsClient = new ApnsClient({
 // ── Config ────────────────────────────────────────────────────────
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) { console.error('FATAL: JWT_SECRET env var is not set'); process.exit(1); }
-const ADMIN_SECRET = process.env.ADMIN_SECRET;
-if (!ADMIN_SECRET) { console.error('FATAL: ADMIN_SECRET env var is not set'); process.exit(1); }
-const ALPHA_VANTAGE_KEY = process.env.ALPHA_VANTAGE_KEY;
+const ADMIN_SECRET = process.env.ADMIN_SECRET; // protects /push/send against spam
 
 const VALID_BADGE_IDS = new Set([
   'first_trade','sniper','on_fire','diamond_hands','consistent','dedicated','legend',
@@ -51,7 +49,7 @@ const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 const GOOGLE_CLIENT_ID     = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const MONGODB_URI          = process.env.MONGODB_URI;
-const CLIENT_URL           = 'https://tradiko.dev';
+const CLIENT_URL           = process.env.CLIENT_URL ?? 'https://tradiko.dev';
 const PORT                 = process.env.PORT || 3001;
 const FINNHUB_KEY = process.env.FINNHUB_KEY;
 
@@ -320,6 +318,14 @@ const AsyncDuelSchema = new mongoose.Schema({
 });
 const AsyncDuel = mongoose.model('AsyncDuel', AsyncDuelSchema);
 
+// ── Trading Mode models ───────────────────────────────────────────
+require('./models/TradingAccount');
+require('./models/TradingPosition');
+require('./models/TradingTrade');
+require('./models/TradingAccountHistory');
+require('./models/TradingDuel');
+require('./models/TradingLeague');
+
 // ── VAPID / Push ──────────────────────────────────────────────────
 webpush.setVapidDetails(
   'mailto:nicolasvidalcorrecher@tradaria.dev',
@@ -524,19 +530,15 @@ async function getPrice(asset) {
   });
 }
 // ── Middlewares ───────────────────────────────────────────────────
-// OPTIONS preflight for admin-only stat endpoints must be registered before
-// the global cors() middleware, which intercepts OPTIONS and responds 204
-// (bypassing route-level handlers) when the origin is not in the whitelist.
-app.options(['/stats/dashboard', '/stats/revenue'], (req, res) => {
-  res.set({
-    'Access-Control-Allow-Origin':  '*',
-    'Access-Control-Allow-Headers': 'x-admin-secret, Content-Type',
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
-  }).sendStatus(200);
-});
-
 app.use(cors({
-  origin: ['https://tradiko.dev', 'https://www.tradiko.dev'],
+  origin: (origin, cb) => {
+    const allowed = ['https://tradiko.dev', 'https://www.tradiko.dev'];
+    if (!origin || allowed.includes(origin) || /^http:\/\/localhost(:\d+)?$/.test(origin)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 }));
 app.use(cookieParser());
@@ -549,10 +551,8 @@ app.use((req, res, next) => {
   }
 });
 
-const SESSION_SECRET = process.env.SESSION_SECRET;
-if (!SESSION_SECRET) { console.warn('WARNING: SESSION_SECRET not set — falling back to JWT_SECRET. Add SESSION_SECRET to Railway before next deploy.'); }
 app.use(session({
-  secret: SESSION_SECRET || JWT_SECRET,
+  secret: JWT_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: { secure: true, httpOnly: true, sameSite: 'strict' },
@@ -3496,22 +3496,23 @@ app.get('/portfolio/duel/active', async (req, res) => {
 });
 
 // ── Auth helpers ──────────────────────────────────────────────────
-const REDIS_TIMEOUT_MS = 250;
-async function verifyToken(req) {
+function verifyToken(req) {
   const auth = req.headers.authorization;
   const cookieToken = req.cookies?.tradaria_session;
   const token = auth ? auth.replace('Bearer ', '') : cookieToken;
   if (!token) return null;
+  try { return jwt.verify(token, JWT_SECRET); } catch { return null; }
+}
+
+async function verifyTokenBlacklisted(req) {
+  const auth = req.headers.authorization;
+  if (!auth) return null;
+  const token = auth.replace('Bearer ', '');
+  if (!token) return null;
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    const blacklisted = await Promise.race([
-      redis.get(`blacklist:${token}`),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Redis blacklist timeout')), REDIS_TIMEOUT_MS)
-      ),
-    ]);
+    const blacklisted = await redis.get(`blacklist:${token}`);
     if (blacklisted) return null;
-    return decoded;
+    return jwt.verify(token, JWT_SECRET);
   } catch { return null; }
 }
 
@@ -3695,6 +3696,106 @@ app.get('/u/:username', async (req, res) => {
 });
 
 app.use('/academy', require('./routes/academy'));
+
+// ── Trading Mode — price adapter + routes ─────────────────────────
+const { priceRouter }       = require('./trading/priceProvider');
+const { StubPriceProvider } = require('./trading/stubProvider');
+const tradingStub = new StubPriceProvider(redis);
+priceRouter.register('stub', tradingStub);
+console.log('[trading] StubPriceProvider registered');
+
+app.use('/api/trading', require('./routes/trading'));
+
+if (process.env.NODE_ENV !== 'production') {
+  const { makeTradingAdminRouter } = require('./routes/tradingAdmin');
+  app.use('/api/admin/trading', makeTradingAdminRouter(redis, ADMIN_SECRET));
+  console.log('[trading] admin override endpoints registered (dev only)');
+}
+
+// ── Trading Mode background worker ────────────────────────────────
+const { runTradingWorker } = require('./trading/worker');
+const { checkMarginLevel, checkStopLossTakeProfit, getTradingEquity } = require('./routes/trading');
+runTradingWorker(checkStopLossTakeProfit, checkMarginLevel);
+
+// ── Trading Mode crons ────────────────────────────────────────────
+
+// Daily equity snapshot at 23:30 UTC for all trading accounts
+cron.schedule('30 23 * * *', async () => {
+  try {
+    const TradingAccount        = mongoose.model('TradingAccount');
+    const TradingPosition       = mongoose.model('TradingPosition');
+    const TradingAccountHistory = mongoose.model('TradingAccountHistory');
+
+    const date     = new Date().toISOString().split('T')[0];
+    const accounts = await TradingAccount.find({});
+    const allPositions = await TradingPosition.find({});
+
+    const posMap = {};
+    for (const pos of allPositions) {
+      const uid = pos.userId.toString();
+      if (!posMap[uid]) posMap[uid] = [];
+      posMap[uid].push(pos);
+    }
+
+    const uniqueSymbols = [...new Set(allPositions.map(p => p.symbol))];
+    const priceMap = {};
+    await Promise.all(uniqueSymbols.map(async sym => {
+      try { priceMap[sym] = await priceRouter.getPrice(sym); } catch {}
+    }));
+
+    let saved = 0;
+    for (const account of accounts) {
+      try {
+        const uid       = account.userId.toString();
+        const positions = posMap[uid] || [];
+        const totalPnl  = positions.reduce((s, pos) => {
+          const priceObj = priceMap[pos.symbol] || { bid: pos.entryPrice, ask: pos.entryPrice };
+          const close    = pos.direction === 'long' ? priceObj.bid : priceObj.ask;
+          const pnl      = pos.direction === 'long'
+            ? (close - pos.entryPrice) * pos.contractSize * pos.lots
+            : (pos.entryPrice - close) * pos.contractSize * pos.lots;
+          return s + pnl;
+        }, 0);
+        const equity = account.balance + totalPnl;
+        await TradingAccountHistory.findOneAndUpdate(
+          { userId: account.userId, date },
+          { equity },
+          { upsert: true }
+        );
+        saved++;
+      } catch {}
+    }
+    console.log(`[trading-snapshot-cron] ${saved}/${accounts.length} equity snapshots saved for ${date}`);
+  } catch (err) {
+    console.error('[trading-snapshot-cron] Error:', err.message);
+  }
+});
+
+// Daily cron to close expired trading duels (00:05 UTC)
+cron.schedule('5 0 * * *', async () => {
+  try {
+    const TradingDuel = mongoose.model('TradingDuel');
+    const today = new Date().toISOString().split('T')[0];
+    const expired = await TradingDuel.find({ status: 'active', endDate: { $lte: today } });
+    for (const duel of expired) {
+      try {
+        const [cEquity, oEquity] = await Promise.all([
+          getTradingEquity(duel.challenger),
+          getTradingEquity(duel.opponent),
+        ]);
+        const cReturn = (cEquity - duel.challengerStartEquity) / duel.challengerStartEquity;
+        const oReturn = (oEquity - duel.opponentStartEquity)   / duel.opponentStartEquity;
+        duel.status = 'finished';
+        duel.winner = cReturn >= oReturn ? duel.challenger : duel.opponent;
+        await duel.save();
+      } catch {}
+    }
+    if (expired.length > 0)
+      console.log(`[trading-duel-cron] Closed ${expired.length} expired duel(s)`);
+  } catch (err) {
+    console.error('[trading-duel-cron] Error:', err.message);
+  }
+});
 
 // ── Stripe academy billing portal ─────────────────────────────────
 app.post('/stripe/academy-portal', async (req, res) => {

@@ -2,7 +2,6 @@ const express        = require('express');
 const jwt            = require('jsonwebtoken');
 const mongoose       = require('mongoose');
 const Stripe         = require('stripe');
-const rateLimit      = require('express-rate-limit');
 const Academy        = require('../models/Academy');
 const AcademyTournament  = require('../models/AcademyTournament');
 const AcademyAssignment  = require('../models/AcademyAssignment');
@@ -10,8 +9,6 @@ const AcademyFeedback    = require('../models/AcademyFeedback');
 const requireTeacher     = require('../middleware/requireTeacher');
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
-const writeLimiter = rateLimit({ windowMs: 60 * 1000, max: 10, message: { error: 'Too many requests, slow down.' } });
 
 const router = express.Router();
 
@@ -224,7 +221,7 @@ router.get('/:id/export', requireTeacher, async (req, res) => {
 });
 
 // ── POST /academy/:id/tournament/:tournamentId/score ─────────────
-router.post('/:id/tournament/:tournamentId/score', writeLimiter, requireAuth, async (req, res) => {
+router.post('/:id/tournament/:tournamentId/score', requireAuth, async (req, res) => {
   try {
     const rawScore = Number(req.body.score);
     if (!Number.isFinite(rawScore)) return res.status(400).json({ error: 'score requerido' });
@@ -361,6 +358,10 @@ router.get('/:id/assignments', requireAuth, async (req, res) => {
 // ── POST /academy/:id/assignment/:aId/progress ────────────────────
 router.post('/:id/assignment/:aId/progress', requireAuth, async (req, res) => {
   try {
+    const gamesPlayed = Number(req.body.gamesPlayed);
+    if (!Number.isFinite(gamesPlayed) || gamesPlayed < 0 || gamesPlayed > 10000)
+      return res.status(400).json({ error: 'gamesPlayed inválido' });
+
     const assignment = await AcademyAssignment.findOne({ _id: req.params.aId, academyId: req.params.id });
     if (!assignment) return res.status(404).json({ error: 'Deber no encontrado' });
 
@@ -375,12 +376,7 @@ router.post('/:id/assignment/:aId/progress', requireAuth, async (req, res) => {
       sub = assignment.submissions[assignment.submissions.length - 1];
     }
 
-    const GameHistory = mongoose.model('GameHistory');
-    const liveCount = await GameHistory.countDocuments({
-      userId: req.user._id, mode: assignment.mode, createdAt: { $gte: assignment.startsAt },
-    });
-
-    sub.gamesPlayed = Math.max(sub.gamesPlayed, liveCount);
+    sub.gamesPlayed = Math.max(sub.gamesPlayed, Math.min(gamesPlayed, 10000));
     if (!sub.completed && sub.gamesPlayed >= assignment.targetGames) {
       sub.completed   = true;
       sub.completedAt = new Date();
@@ -425,11 +421,7 @@ router.get('/:id/feedback/sent', requireTeacher, async (req, res) => {
       return res.status(403).json({ error: 'No autorizado' });
 
     const query = { academyId: req.params.id, fromId: req.user._id };
-    if (req.query.toId) {
-      if (!mongoose.Types.ObjectId.isValid(req.query.toId))
-        return res.status(400).json({ error: 'toId inválido' });
-      query.toId = req.query.toId;
-    }
+    if (req.query.toId) query.toId = req.query.toId;
 
     const messages = await AcademyFeedback.find(query).sort({ createdAt: -1 });
     const studentIds = [...new Set(messages.map(m => m.toId.toString()))];

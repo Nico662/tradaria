@@ -343,8 +343,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
       socketRef.current.disconnect();
       socketRef.current = null;
     }
-    const token = localStorage.getItem('tradaria_token') || '';
-    const socket = io(SOCKET_URL, { reconnection: false, auth: { token } });
+    const socket = io(SOCKET_URL, { reconnection: false });
     socketRef.current = socket;
 
     socket.on('connect_error',             () => setStatus(t.arena.connError));
@@ -496,52 +495,25 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
     setShowChat(false);
   }
 
-  async function makeAsyncChoice(choice) {
+  function makeAsyncChoice(choice) {
     if (phase !== 'choose') return;
-    const chartIdx = round - 1;
-    const token = localStorage.getItem('tradaria_token');
-    // Challenger already has future candles from /create — compute locally
-    if (asyncDuelMode === 'challenger') {
-      const chartData  = asyncCharts[chartIdx];
-      if (!chartData) return;
-      const lastClose  = chartData.visible[chartData.visible.length - 1].close;
-      const lastFuture = chartData.future[chartData.future.length  - 1].close;
-      const pctMove    = (lastFuture - lastClose) / lastClose * 100;
-      const direction  = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
-      const win = (choice === 'long'  && direction === 'up')
-               || (choice === 'short' && direction === 'down')
-               || (choice === 'skip'  && direction === 'flat');
-      const pts = win && choice !== 'skip' ? 100 : win && choice === 'skip' ? 50 : 0;
-      if (win) triggerEffect();
-      asyncAnswersRef.current = [...asyncAnswersRef.current, { choice, win, pts, direction, pctMove: +pctMove.toFixed(2) }];
-      asyncScoreRef.current   = asyncScoreRef.current + pts;
-      setScores(s => ({ ...s, me: asyncScoreRef.current }));
-      setResult({ direction, pctMove: +pctMove.toFixed(2), results: { me: { choice, win } }, scores: { me: asyncScoreRef.current } });
-      setPhase('result');
-      return;
-    }
-    // Rival: ask server for result + future candles for reveal animation
-    setPhase('waiting_opponent');
-    try {
-      const res  = await fetch(`${SERVER}/arena/async/${asyncCode}/round`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ roundIndex: chartIdx, choice }),
-      });
-      const data = await res.json();
-      if (!data.ok) { setPhase('choose'); return; }
-      const { win, direction, pctMove, pts, future } = data;
-      if (win) triggerEffect();
-      asyncAnswersRef.current = [...asyncAnswersRef.current, { choice, win, pts, direction, pctMove }];
-      asyncScoreRef.current   = asyncScoreRef.current + pts;
-      setScores(s => ({ ...s, me: asyncScoreRef.current }));
-      // Inject server-provided future into gameData so ArenaChart can animate the reveal
-      setGameData(prev => ({ ...prev, future }));
-      setResult({ direction, pctMove, results: { me: { choice, win } }, scores: { me: asyncScoreRef.current } });
-      setPhase('result');
-    } catch {
-      setPhase('choose');
-    }
+    const chartIdx  = round - 1;
+    const chartData = asyncCharts[chartIdx];
+    if (!chartData) return;
+    const lastClose  = chartData.visible[chartData.visible.length - 1].close;
+    const lastFuture = chartData.future[chartData.future.length  - 1].close;
+    const pctMove    = (lastFuture - lastClose) / lastClose * 100;
+    const direction  = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
+    const win = (choice === 'long'  && direction === 'up')
+             || (choice === 'short' && direction === 'down')
+             || (choice === 'skip'  && direction === 'flat');
+    const pts = win && choice !== 'skip' ? 100 : win && choice === 'skip' ? 50 : 0;
+    if (win) triggerEffect();
+    asyncAnswersRef.current = [...asyncAnswersRef.current, { choice, win, pts, direction, pctMove: +pctMove.toFixed(2) }];
+    asyncScoreRef.current   = asyncScoreRef.current + pts;
+    setScores(s => ({ ...s, me: asyncScoreRef.current }));
+    setResult({ direction, pctMove: +pctMove.toFixed(2), results: { me: { choice, win } }, scores: { me: asyncScoreRef.current } });
+    setPhase('result');
   }
 
   async function nextAsyncRound() {

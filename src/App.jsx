@@ -43,6 +43,7 @@ import StudentDashboard from './StudentDashboard.jsx';
 import AppLayout from './components/layout/AppLayout.jsx';
 import ModesPage from './components/ModesPage.jsx';
 import GameThemeBg from './GameThemeBg.jsx';
+import TradingMode from './TradingMode.jsx';
 
 
 const CATEGORIES = [
@@ -114,11 +115,10 @@ export default function App() {
 
   useEffect(() => {
     if (!user?.username) return;
-    const tok = localStorage.getItem('tradaria_token') || '';
-    const socket = io(SERVER, { reconnection: true, auth: { token: tok } });
+    const socket = io(SERVER, { reconnection: true });
     challengeSocketRef.current = socket;
     setChallengeSocket(socket);
-    socket.on('connect', () => socket.emit('user:register', { username: user.username }));
+    socket.on('connect', () => socket.emit('user:register', { username: user.username, token: localStorage.getItem('tradaria_token') }));
     socket.on('friend:challenged', ({ challengerUsername, roomCode }) => {
       setPendingChallenge({ challengerUsername, roomCode });
     });
@@ -637,6 +637,7 @@ export default function App() {
           else if (mode === 'portfolio') setScreen('portfolio');
           else if (mode === 'friends')   setScreen('friends');
           else if (mode === 'settings')  setScreen('settings');
+          else if (mode === 'trading')           setScreen('trading');
           else if (mode === 'pricing')          setScreen('pricing');
           else if (mode === 'join_academy')      setScreen('join_academy');
           else if (mode === 'teacher_dashboard') setScreen('teacher_dashboard');
@@ -653,6 +654,8 @@ export default function App() {
       </AppLayout>
     );
   }
+
+  if (screen === 'trading') return <TradingMode onBack={() => setScreen('home')} />;
 
   if (screen === 'arena') return (
     <>
