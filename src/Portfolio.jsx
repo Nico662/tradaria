@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { useAuth } from './AuthContext';
 import { useLang } from './LangContext.jsx';
-import { Briefcase, Swords, Trophy, BarChart2, Globe, DollarSign, Lightbulb, Inbox, Bell, FileText, Lock, Calendar, ClipboardList, TrendingUp, Bitcoin, Wheat } from 'lucide-react';
+import { Briefcase, Swords, Trophy, BarChart2, Globe, DollarSign, Lightbulb, Inbox, Bell, FileText, Lock, Calendar, ClipboardList, TrendingUp, Bitcoin, Wheat, Clock } from 'lucide-react';
 const Chart = lazy(() => import('./Chart.jsx'));
 import { ASSET_INFO } from './assetInfo.js';
 
@@ -208,6 +208,9 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
   const [compareData, setCompareData]       = useState(null);
   const [compareLoading, setCompareLoading] = useState(false);
   const [compareExpanded, setCompareExpanded] = useState(false);
+  const [pendingOrders, setPendingOrders]   = useState([]);
+  const [orderModal, setOrderModal]         = useState(null);
+  const [orderMsg, setOrderMsg]             = useState('');
   const chartRef = useRef(null);
 
   const token = localStorage.getItem('tradaria_token');
@@ -404,6 +407,12 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
     }).then(r => r.json()).then(data => {
       if (Array.isArray(data)) setPendingDuels(data);
     }).catch(() => {});
+
+    fetch(`${SERVER}/portfolio/orders`, {
+      headers: { Authorization: `Bearer ${tok}` },
+    }).then(r => r.json()).then(data => {
+      if (Array.isArray(data)) setPendingOrders(data);
+    }).catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function loadWeeklyLeaderboard() {
@@ -531,14 +540,52 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
     loadCandles(asset.symbol);
   }
 
+  async function handlePlaceOrder() {
+    if (!orderModal || !user) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`${SERVER}/portfolio/order`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ symbol: orderModal.symbol, type: orderModal.action, qty: orderModal.qty }),
+      });
+      const data = await res.json();
+      setOrderModal(null);
+      if (!data.ok) { setError(data.error); setLoading(false); return; }
+      setQty('');
+      setOrderMsg('✓ ' + t.portfolio.orderPending);
+      setTimeout(() => setOrderMsg(''), 2500);
+      await loadAll();
+    } catch {
+      setError(t.common.error);
+    }
+    setLoading(false);
+  }
+
+  async function handleCancelOrder(orderId) {
+    try {
+      const res = await fetch(`${SERVER}/portfolio/order/${orderId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.ok) await loadAll();
+    } catch {}
+  }
+
   async function handleTrade() {
     if (!selected || !qty || parseFloat(qty) <= 0) return;
+    const finalQty = inputMode === 'amount'
+      ? Math.round((parseFloat(qty) / (selectedPrice?.price || 1)) * 10000) / 10000
+      : parseFloat(qty);
+    const marketStatus = getMarketStatus(selected.type, t);
+    if (!marketStatus.open) {
+      setOrderModal({ action, symbol: selected.symbol, name: selected.name, type: selected.type, qty: finalQty });
+      return;
+    }
     setLoading(true);
     setError('');
     try {
-      const finalQty = inputMode === 'amount'
-        ? Math.round((parseFloat(qty) / (selectedPrice?.price || 1)) * 10000) / 10000
-        : parseFloat(qty);
       const res  = await fetch(`${SERVER}/portfolio/${action}`, {
         method:  'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -567,6 +614,11 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
       const modeR = recordModePlayed('portfolio');
       if (modeR.completed) pushMission({ xpEarned: modeR.xpEarned, title: modeR.mission.title });
       recordWeeklyModePlayed('portfolio');
+      fetch(`${SERVER}/stats/game`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'portfolio', score: 0, correct: 0, wrong: 0, accuracy: 0, streak: 0, rounds: 1 }),
+      }).catch(() => {});
       if (action === 'buy') {
         const info = ASSET_INFO[selected.symbol];
         if (info?.fact) {
@@ -835,6 +887,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
 
           {error    && <div style={{ fontSize: '12px', color: 'var(--color-down)', marginBottom: '10px' }}>{error}</div>}
           {tradeMsg && <div style={{ fontSize: '12px', color: 'var(--green)', marginBottom: '10px' }}>{tradeMsg}</div>}
+          {orderMsg && <div style={{ fontSize: '12px', color: 'var(--green)', marginBottom: '10px' }}>{orderMsg}</div>}
           {factMsg  && <div style={{ fontSize: '12px', color: 'var(--t4)', marginBottom: '10px', padding: '6px 10px', background: 'rgba(55,138,221,0.05)', border: '1px solid rgba(55,138,221,0.12)', borderRadius: '6px', letterSpacing: '0.02em', display: 'flex', alignItems: 'flex-start', gap: '6px' }}><Lightbulb size={14} strokeWidth={2} aria-hidden style={{ flexShrink: 0, marginTop: '1px' }} /> {factMsg}</div>}
 
           <button onClick={handleTrade} disabled={loading || !qty || parseFloat(qty) <= 0}
@@ -842,6 +895,38 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
             {loading ? '...' : `${action === 'buy' ? t.portfolio.buy : t.portfolio.sell} ${selected.name}`}
           </button>
         </div>
+
+        {/* ── Pending order confirmation modal (asset screen) ── */}
+        {orderModal && (
+          <div
+            onClick={() => setOrderModal(null)}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 9998, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
+          >
+            <div
+              onClick={e => e.stopPropagation()}
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '340px' }}
+            >
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t1)', marginBottom: '6px' }}>{t.portfolio.orderModalTitle}</div>
+              <div style={{ fontSize: '12px', color: 'var(--t5)', marginBottom: '8px', fontFamily: 'var(--font-body)' }}>
+                {orderModal.name} · {orderModal.action === 'buy' ? t.portfolio.buy : t.portfolio.sell} {parseFloat(orderModal.qty.toFixed(4))} {t.portfolio.units}
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--t4)', marginBottom: '20px', fontFamily: 'var(--font-body)', lineHeight: 1.6 }}>
+                {t.portfolio.orderModalBody}
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={() => setOrderModal(null)}
+                  style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid var(--bd)', borderRadius: '6px', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer' }}
+                >{t.portfolio.orderModalCancel}</button>
+                <button
+                  onClick={handlePlaceOrder}
+                  disabled={loading}
+                  style={{ flex: 2, padding: '10px', background: orderModal.action === 'buy' ? 'rgba(0,229,160,0.1)' : 'rgba(255,126,179,0.1)', border: `1px solid ${orderModal.action === 'buy' ? 'var(--green)' : 'var(--color-down)'}`, borderRadius: '6px', color: orderModal.action === 'buy' ? 'var(--green)' : 'var(--color-down)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', letterSpacing: '0.04em', opacity: loading ? 0.5 : 1 }}
+                >{loading ? '···' : t.portfolio.orderModalConfirm}</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -962,6 +1047,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
           ['leaderboard', t.portfolio.ranking],
           ['duel',        t.portfolio.duelTab],
           ['history',     t.portfolio.history],
+          ['orders',      t.portfolio.ordersTab],
           ['leagues',     t.portfolio.leagues],
         ].map(([id, label]) => (
           <button key={id} onClick={() => setTab(id)}
@@ -1011,6 +1097,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                   const infoLang  = t.portfolio.buy === 'Buy' ? 'en' : t.portfolio.buy === 'Comprar' ? 'es' : 'de';
                   const tooltip   = info?.[infoLang]?.split('.')[0];
                   const isHovered = hoveredSymbol === asset.symbol;
+                  const hasPendingOrder = pendingOrders.some(o => o.status === 'pending' && o.symbol === asset.symbol);
                   return (
                     <div key={asset.symbol} style={{ position: 'relative', marginBottom: '6px' }}>
                       <div onClick={() => openAsset(asset)}
@@ -1022,7 +1109,15 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                           {TYPE_ICONS[asset.type]}
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '12px', color: 'var(--t1)' }}>{asset.name}</div>
+                          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '12px', color: 'var(--t1)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            {asset.name}
+                            {hasPendingOrder && (
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 700, color: 'var(--color-neutral)', background: 'rgba(232,184,75,0.12)', padding: '1px 5px', borderRadius: '4px', letterSpacing: '0.04em', textTransform: 'uppercase', flexShrink: 0 }}>
+                                <Clock size={11} strokeWidth={2} aria-hidden />
+                                {t.portfolio.pendingOrderBadge}
+                              </span>
+                            )}
+                          </div>
                           <div style={{ fontSize: '12px', color: 'var(--t5)', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: '6px' }}>
                             {asset.symbol} · {t.portfolio.types[asset.type]}
                             <span style={{ fontSize: '12px', color: status.open ? 'var(--green)' : 'var(--color-down)', background: status.open ? 'rgba(0,229,160,0.1)' : 'rgba(255,126,179,0.1)', padding: '1px 5px', borderRadius: '4px', letterSpacing: '0.04em' }}>
@@ -1446,6 +1541,52 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                 </div>
               </div>
             ))
+          )}
+        </div>
+      )}
+
+      {/* ── Órdenes pendientes ── */}
+      {tab === 'orders' && (
+        <div style={{ padding: '16px 20px 40px', position: 'relative', zIndex: 2 }}>
+          {pendingOrders.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+              <div style={{ marginBottom: '12px', color: 'var(--t5)' }}><Inbox size={32} strokeWidth={1.5} aria-hidden /></div>
+              <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>{t.portfolio.noPendingOrders}</div>
+            </div>
+          ) : (
+            pendingOrders.map(order => {
+              const isPending   = order.status === 'pending';
+              const isExecuted  = order.status === 'executed';
+              const isCancelled = order.status === 'cancelled';
+              const statusColor = isPending ? 'var(--color-neutral)' : isExecuted ? 'var(--green)' : 'var(--t6)';
+              const statusLabel = isPending ? t.portfolio.orderPending : isExecuted ? t.portfolio.orderExecuted : t.portfolio.orderCancelled;
+              const isBuy = order.type === 'buy';
+              return (
+                <div key={order._id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', marginBottom: '6px' }}>
+                  <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: isBuy ? 'rgba(0,229,160,0.1)' : 'rgba(255,126,179,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', flexShrink: 0, color: isBuy ? 'var(--green)' : 'var(--color-down)' }}>
+                    {isBuy ? '▲' : '▼'}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: 'var(--t1)' }}>{order.name}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--t5)' }}>
+                      {parseFloat(order.qty.toFixed(4))} {t.portfolio.units}
+                      {isExecuted && order.executedPrice ? ` · ${formatPrice(order.executedPrice, 'stock')}` : ''}
+                      {isCancelled && order.cancelReason ? ` · ${order.cancelReason.replace(/_/g, ' ')}` : ''}
+                      {' · '}{new Date(order.createdAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                    <span style={{ fontSize: '11px', color: statusColor, background: `${statusColor}18`, padding: '2px 7px', borderRadius: '4px', letterSpacing: '0.04em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', fontWeight: 700 }}>{statusLabel}</span>
+                    {isPending && (
+                      <button onClick={() => handleCancelOrder(order._id)}
+                        style={{ padding: '4px 10px', background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '5px', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', letterSpacing: '0.04em' }}>
+                        {t.portfolio.orderModalCancel}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })
           )}
         </div>
       )}

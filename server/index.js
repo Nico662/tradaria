@@ -325,6 +325,7 @@ require('./models/TradingTrade');
 require('./models/TradingAccountHistory');
 require('./models/TradingDuel');
 require('./models/TradingLeague');
+require('./models/PortfolioOrder');
 
 // ── VAPID / Push ──────────────────────────────────────────────────
 webpush.setVapidDetails(
@@ -398,6 +399,34 @@ async function sendPushToUser(userId, payload) {
   }
 }
 
+// ── Push notification strings (en / es) ──────────────────────────
+const NOTIF_STRINGS = {
+  en: {
+    dailyChallenge: { title: '⚡ Daily Challenge', body: "Can you call today's chart? One chart, one shot." },
+    marketOpen:     { title: '📈 Markets are open', body: 'NYSE & NASDAQ just opened. Check your portfolio.' },
+    marketClose:    { title: '🔔 Markets closed',   body: 'How did your portfolio do today?' },
+    streakAtRisk:       (n) => ({ title: '🔥 Your streak is at risk!', body: `${n}-day streak on the line. Play before midnight.` }),
+    weeklyTournament:   { title: '🏆 New weekly tournament!', body: "This week's tournament is live — jump in and climb the ranking." },
+    orderExecuted: ({ type, name, qty, price }) => ({ title: '✅ Order executed', body: `Your ${type} order for ${qty} units of ${name} was executed at $${price}.` }),
+    orderCancelled: ({ name, reason }) => ({ title: '❌ Order cancelled', body: `Your order for ${name} was cancelled: ${reason}` }),
+  },
+  es: {
+    dailyChallenge:     { title: '⚡ Reto Diario', body: '¿Puedes predecir el gráfico de hoy? Un gráfico, una oportunidad.' },
+    marketOpen:         { title: '📈 Mercados abiertos', body: 'NYSE y NASDAQ acaban de abrir. Revisa tu portfolio.' },
+    marketClose:        { title: '🔔 Mercados cerrados', body: '¿Cómo ha ido tu portfolio hoy?' },
+    streakAtRisk:       (n) => ({ title: '🔥 ¡Tu racha está en peligro!', body: `Llevas ${n} días seguidos. Juega antes de medianoche.` }),
+    weeklyTournament:   { title: '🏆 ¡Nuevo torneo semanal!', body: 'El torneo de esta semana ya está activo — entra y sube en el ranking.' },
+    orderExecuted: ({ type, name, qty, price }) => ({ title: '✅ Orden ejecutada', body: `Tu orden de ${type === 'buy' ? 'compra' : 'venta'} de ${qty} unidades de ${name} se ejecutó a $${price}.` }),
+    orderCancelled: ({ name, reason }) => ({ title: '❌ Orden cancelada', body: `Tu orden de ${name} fue cancelada: ${reason}` }),
+  },
+};
+
+async function getUserLang(userId) {
+  try {
+    const l = await redis.get(`push_user_lang:${userId}`);
+    return (l && NOTIF_STRINGS[l]) ? l : 'en';
+  } catch { return 'en'; }
+}
 // ── Cache ─────────────────────────────────────────────────────────
 async function cachedFetch(key, ttlSeconds, fetchFn) {
   try {
@@ -2667,6 +2696,150 @@ cron.schedule('0 0 * * *', async () => {
   }
 });
 
+// ── Portfolio pending orders execution (NYSE open + 1 min) ───────────────────
+cron.schedule('31 13 * * 1-5', async () => {
+  const PortfolioOrder = mongoose.model('PortfolioOrder');
+  try {
+    const pendingOrders = await PortfolioOrder.find({ status: 'pending' });
+    if (!pendingOrders.length) return;
+    console.log(`[portfolio-orders-cron] Executing ${pendingOrders.length} pending order(s)`);
+
+    async function cancelOrder(order, reason) {
+      order.status = 'cancelled';
+      order.cancelReason = reason;
+      await order.save();
+      const lang = await getUserLang(order.userId);
+      const s = NOTIF_STRINGS[lang] || NOTIF_STRINGS.en;
+      await sendPushToUser(order.userId, { ...s.orderCancelled({ name: order.name, reason }), url: 'https://tradiko.dev' });
+    }
+
+    for (const order of pendingOrders) {
+      try {
+        const asset = PORTFOLIO_ASSETS.find(a => a.symbol === order.symbol);
+        if (!asset) { await cancelOrder(order, 'asset_not_found'); continue; }
+        const priceData = await getPrice(asset);
+        const execPrice = priceData.price;
+        const portfolio = await Portfolio.findOne({ userId: order.userId });
+        if (!portfolio) { await cancelOrder(order, 'portfolio_not_found'); continue; }
+
+        if (order.type === 'buy') {
+          // Refund reservation, then attempt buy at opening price
+          portfolio.cash += order.reservedCash;
+          const total = execPrice * order.qty;
+          if (portfolio.cash < total) {
+            // Save refund so user gets reserved cash back, then cancel
+            await portfolio.save();
+            redis.del(`portfolio:${order.userId}`).catch(() => {});
+            await cancelOrder(order, 'insufficient_funds_at_open');
+            continue;
+          }
+          portfolio.cash -= total;
+          const existing = portfolio.positions.find(p => p.symbol === order.symbol);
+          if (existing) {
+            existing.avgPrice = (existing.avgPrice * existing.qty + execPrice * order.qty) / (existing.qty + order.qty);
+            existing.qty += order.qty;
+          } else {
+            portfolio.positions.push({ symbol: order.symbol, name: asset.name, qty: order.qty, avgPrice: execPrice, type: asset.type });
+          }
+          portfolio.transactions.push({ symbol: order.symbol, name: asset.name, type: asset.type, action: 'buy', qty: order.qty, price: execPrice, total });
+        } else {
+          // sell
+          const position = portfolio.positions.find(p => p.symbol === order.symbol);
+          if (!position || position.qty < order.qty) { await cancelOrder(order, 'insufficient_position'); continue; }
+          const total = execPrice * order.qty;
+          portfolio.cash += total;
+          position.qty = Math.round((position.qty - order.qty) * 10000) / 10000;
+          if (position.qty < 0.0001) portfolio.positions = portfolio.positions.filter(p => p.symbol !== order.symbol);
+          portfolio.transactions.push({ symbol: order.symbol, name: asset.name, type: asset.type, action: 'sell', qty: order.qty, price: execPrice, total });
+        }
+
+        await portfolio.save();
+        redis.del(`portfolio:${order.userId}`).catch(() => {});
+        order.status = 'executed';
+        order.executedAt = new Date();
+        order.executedPrice = execPrice;
+        await order.save();
+        const lang = await getUserLang(order.userId);
+        const s = NOTIF_STRINGS[lang] || NOTIF_STRINGS.en;
+        await sendPushToUser(order.userId, {
+          ...s.orderExecuted({ type: order.type, name: order.name, qty: order.qty, price: execPrice.toFixed(2) }),
+          url: 'https://tradiko.dev',
+        });
+        console.log(`[portfolio-orders-cron] Executed ${order.type} ${order.qty}x${order.symbol} @ $${execPrice} for userId=${order.userId}`);
+      } catch (err) {
+        console.error(`[portfolio-orders-cron] Error on order ${order._id}:`, err.message);
+      }
+    }
+  } catch (err) {
+    console.error('[portfolio-orders-cron] Error:', err.message);
+  }
+}, { timezone: 'UTC' });
+
+// ── Phase 5E: weekly ranking BP missions cron ────────────────────────────────
+// Fires Sunday 23:55 Madrid time (CET/CEST handles DST automatically).
+// In winter (UTC+1) → 22:55 UTC; in summer (UTC+2) → 21:55 UTC — both well
+// before Monday 00:00 UTC when getWeekId() rolls to the next week.
+//
+// The closing week's Score documents are NEVER deleted — old scores keep their
+// weekId string forever. The cron computes the closing weekId by anchoring to
+// "1 hour ago" (still Sunday in all cases) to stay robust against tiny slippage.
+//
+// Only reads Score documents. addBattlePassProgress() idempotency ensures
+// missions are awarded at most once even if the cron fires twice.
+cron.schedule('55 23 * * 0', async () => {
+  // Anchor to 1 hour ago — guarantees we get Sunday's weekId even if the
+  // cron fires a few minutes late and wall-clock UTC has already ticked to Monday.
+  const anchor  = new Date(Date.now() - 60 * 60 * 1000);
+  const anchorDay  = anchor.getUTCDay();
+  const anchorDiff = anchorDay === 0 ? -6 : 1 - anchorDay;
+  const anchorMonday = new Date(anchor);
+  anchorMonday.setUTCDate(anchor.getUTCDate() + anchorDiff);
+  const anchorYear  = anchorMonday.getUTCFullYear();
+  const anchorStart = new Date(Date.UTC(anchorYear, 0, 1));
+  const anchorWeek  = Math.ceil(((anchorMonday - anchorStart) / 86400000 + anchorStart.getUTCDay() + 1) / 7);
+  const weekId = `${anchorYear}-W${String(anchorWeek).padStart(2, '00')}`;
+
+  console.log(`[bp-ranking-cron] Fired — evaluating weekId=${weekId}`);
+  try {
+    const scores = await Score.find({ weekId }).sort({ score: -1 });
+    if (!scores.length) {
+      console.log('[bp-ranking-cron] No scores for this week, skipping.');
+      return;
+    }
+
+    // Ranking-based missions: awarded to any user whose final position ≤ threshold.
+    // Progressive: position 1 qualifies for ALL thresholds; position 3 qualifies for
+    // top-50/25/10/5/3 but NOT win_tournament.
+    const rankingMissions = [
+      { id: 'bp_s1_l8_pro',  threshold: 50 },
+      { id: 'bp_s1_l13_pro', threshold: 25 },
+      { id: 'bp_s1_l19_pro', threshold: 10 },
+      { id: 'bp_s1_l24_pro', threshold: 5  },
+      { id: 'bp_s1_l29_pro', threshold: 3  },
+      { id: 'bp_s1_l20_pro', threshold: 1  }, // win_tournament: champion only
+    ];
+
+    let processed = 0, awarded = 0;
+    for (let i = 0; i < scores.length; i++) {
+      const position = i + 1;
+      const userId   = String(scores[i].userId);
+      for (const m of rankingMissions) {
+        if (position <= m.threshold) {
+          const result = await addBattlePassProgress(userId, 300, m.id, 'weekly_ranking');
+          if (!result.alreadyCompleted && !result.noActiveSeason) awarded++;
+        }
+      }
+      // Check level-30 completion missions after all ranking awards for this user.
+      await checkCompletionBpMissions(userId).catch(() => {});
+      processed++;
+    }
+
+    console.log(`[bp-ranking-cron] Done — ${processed} players, ${awarded} missions awarded.`);
+  } catch (err) {
+    console.error('[bp-ranking-cron] Error:', err.message);
+  }
+}, { timezone: 'Europe/Madrid' });
+
 const ADMIN_STATS_CORS = {
   'Access-Control-Allow-Origin':  '*',
   'Access-Control-Allow-Headers': 'x-admin-secret, Content-Type',
@@ -3127,6 +3300,92 @@ app.post('/portfolio/sell', async (req, res) => {
     res.status(500).json({ error: 'Trade failed' });
   }
 });
+// ── Portfolio pending orders ──────────────────────────────────────
+
+function isPortfolioMarketOpen(assetType) {
+  const now = new Date();
+  const day = now.getUTCDay();
+  if (assetType === 'crypto') return true;
+  if (assetType === 'commodity') return day !== 0 && day !== 6;
+  if (day === 0 || day === 6) return false;
+  const minutes = now.getUTCHours() * 60 + now.getUTCMinutes();
+  return minutes >= 13 * 60 + 30 && minutes < 20 * 60;
+}
+
+app.post('/portfolio/order', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const { symbol, type, qty } = req.body;
+    if (!qty || qty <= 0 || !Number.isFinite(qty)) return res.status(400).json({ error: 'Invalid quantity' });
+    if (type !== 'buy' && type !== 'sell') return res.status(400).json({ error: 'Invalid type' });
+    const asset = PORTFOLIO_ASSETS.find(a => a.symbol === symbol);
+    if (!asset) return res.status(400).json({ error: 'Asset not found' });
+    if (isPortfolioMarketOpen(asset.type)) return res.status(400).json({ error: 'Market is open — use the regular buy/sell flow' });
+    const PortfolioOrder = mongoose.model('PortfolioOrder');
+    let portfolio = await Portfolio.findOne({ userId: decoded.id });
+    if (!portfolio) portfolio = await Portfolio.create({ userId: decoded.id, cash: 50000, positions: [], transactions: [] });
+    let reservedCash = 0;
+    if (type === 'buy') {
+      const priceData = await getPrice(asset);
+      reservedCash = priceData.price * qty;
+      if (portfolio.cash < reservedCash) return res.status(400).json({ error: 'Insufficient funds' });
+      portfolio.cash -= reservedCash;
+      await portfolio.save();
+      redis.del(`portfolio:${decoded.id}`).catch(() => {});
+    } else {
+      const position = portfolio.positions.find(p => p.symbol === symbol);
+      if (!position || position.qty < qty) return res.status(400).json({ error: 'Insufficient position' });
+    }
+    const order = await PortfolioOrder.create({ userId: decoded.id, symbol, name: asset.name, type, qty, reservedCash });
+    res.json({ ok: true, orderId: order._id });
+  } catch (err) {
+    console.error('Portfolio order error:', err.message);
+    res.status(500).json({ error: 'Failed to place order' });
+  }
+});
+
+app.get('/portfolio/orders', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const PortfolioOrder = mongoose.model('PortfolioOrder');
+    const orders = await PortfolioOrder.find({ userId: decoded.id }).sort({ createdAt: -1 }).limit(20);
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/portfolio/order/:orderId', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const PortfolioOrder = mongoose.model('PortfolioOrder');
+    const order = await PortfolioOrder.findById(req.params.orderId);
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+    if (order.userId.toString() !== decoded.id) return res.status(403).json({ error: 'Forbidden' });
+    if (order.status !== 'pending') return res.status(400).json({ error: 'Order is not pending' });
+    order.status = 'cancelled';
+    order.cancelReason = 'user_cancelled';
+    await order.save();
+    if (order.type === 'buy' && order.reservedCash > 0) {
+      const portfolio = await Portfolio.findOne({ userId: decoded.id });
+      if (portfolio) {
+        portfolio.cash += order.reservedCash;
+        await portfolio.save();
+        redis.del(`portfolio:${decoded.id}`).catch(() => {});
+      }
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/admin/refund-unlisted/:username', async (req, res) => {
   const key = req.headers['x-admin-secret'];
   if (!ADMIN_SECRET || key !== ADMIN_SECRET) return res.status(403).json({ error: 'forbidden' });
