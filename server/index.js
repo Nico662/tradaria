@@ -533,7 +533,7 @@ async function getPrice(asset) {
 app.use(cors({
   origin: (origin, cb) => {
     const allowed = ['https://tradiko.dev', 'https://www.tradiko.dev'];
-    if (!origin || allowed.includes(origin) || /^http:\/\/localhost(:\d+)?$/.test(origin)) {
+    if (!origin || origin === 'null' || allowed.includes(origin) || /^http:\/\/localhost(:\d+)?$/.test(origin)) {
       cb(null, true);
     } else {
       cb(new Error('Not allowed by CORS'));
