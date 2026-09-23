@@ -45,7 +45,7 @@ export default function Survival({ onBack }) {
   const floatingXPKeyRef = useRef(0);
   const highscoreRef   = useRef(parseInt(localStorage.getItem('tradaria_survival_highscore') || '0'));
   const effectTimerRef = useRef(null);
-  const gameIdRef      = useRef(crypto.randomUUID());
+  const sessionTokenRef = useRef(null);
   const [activeEffect,setActiveEffect] = useState(false);
   const chartRef = useRef(null);
 
@@ -182,7 +182,16 @@ export default function Survival({ onBack }) {
   };
 
   const playAgain = () => {
-    gameIdRef.current = crypto.randomUUID();
+    const tok = localStorage.getItem('tradaria_token');
+    if (tok) {
+      fetch(`${SERVER}/game/start`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'survival' }),
+      }).then(r => r.json()).then(d => {
+        if (d.sessionToken) sessionTokenRef.current = d.sessionToken;
+      }).catch(() => {});
+    }
     setGameOver(false);
     setPhase('choose');
     setAsset(randomAsset());
@@ -206,6 +215,18 @@ export default function Survival({ onBack }) {
   }, []);
 
   useEffect(() => {
+    const tok = localStorage.getItem('tradaria_token');
+    if (!tok) return;
+    fetch(`${SERVER}/game/start`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode: 'survival' }),
+    }).then(r => r.json()).then(d => {
+      if (d.sessionToken) sessionTokenRef.current = d.sessionToken;
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
     if (!gameOver) return;
     const token = localStorage.getItem('tradaria_token');
     if (!token) return;
@@ -215,7 +236,7 @@ export default function Survival({ onBack }) {
     fetch(`${SERVER}/stats/game`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode: 'survival', score, correct: wins, wrong: losses, accuracy: acc, streak, rounds: history.length, gameId: gameIdRef.current }),
+      body: JSON.stringify({ mode: 'survival', score, correct: wins, wrong: losses, accuracy: acc, streak, rounds: history.length, sessionToken: sessionTokenRef.current }),
     }).catch(() => {});
     fetch(`${SERVER}/stats/personal`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json()).then(setPersonalStats).catch(() => {});

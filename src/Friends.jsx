@@ -9,6 +9,8 @@ import BadgeNotification from './BadgeNotification.jsx';
 import FounderBadge, { isFounder } from './FounderBadge.jsx';
 import { LevelIcon } from './components/AppIcons';
 import { Handshake, Link, Swords, Clock } from 'lucide-react';
+import { getUsernameColor } from './cosmeticColors';
+import TitleBadge from './components/TitleBadge';
 
 function authHeaders() {
   return {
@@ -35,9 +37,10 @@ function FriendCard({ f, onChallenge, isChallenging, challengeStatus, onViewProf
     <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
       <UserAvatar user={f} size={38} showBadge />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t1)', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: getUsernameColor(f.activeCosmetics) || 'var(--t1)', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
           {f.username ? `@${f.username}` : f.name}
           {isFounder(f.username) && <FounderBadge size={11} />}
+          <TitleBadge title={f.activeCosmetics?.title} />
         </div>
         <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)', marginTop: '2px' }}>
           <LevelIcon id={level.id} size={12} style={{ verticalAlign: 'middle' }} /> {level.name} · {f.xp || 0} XP
@@ -72,9 +75,10 @@ function PendingCard({ req, onAccept, onReject }) {
     <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
       <UserAvatar user={req} size={38} />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t1)', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: getUsernameColor(req.activeCosmetics) || 'var(--t1)', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
           {req.username ? `@${req.username}` : req.name}
           {isFounder(req.username) && <FounderBadge size={11} />}
+          <TitleBadge title={req.activeCosmetics?.title} />
         </div>
         <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)', marginTop: '2px' }}>
           <LevelIcon id={level.id} size={12} style={{ verticalAlign: 'middle' }} /> {level.name}
@@ -113,9 +117,10 @@ function SearchResultCard({ profile, onSendRequest }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <UserAvatar user={profile} size={42} showBadge />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t1)', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: getUsernameColor(profile.activeCosmetics) || 'var(--t1)', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
             @{profile.username}
             {isFounder(profile.username) && <FounderBadge size={12} />}
+            <TitleBadge title={profile.activeCosmetics?.title} />
           </div>
           <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)', marginTop: '2px' }}>
             <LevelIcon id={level.id} size={12} style={{ verticalAlign: 'middle' }} /> {level.name} · {profile.xp || 0} XP

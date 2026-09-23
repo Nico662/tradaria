@@ -12,6 +12,8 @@ import MissionNotification from './MissionNotification.jsx';
 import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
 import FounderBadge, { isFounder } from './FounderBadge.jsx';
+import { getUsernameColor } from './cosmeticColors';
+import TitleBadge from './components/TitleBadge';
 import PortfolioTutorial from './PortfolioTutorial.jsx';
 import Leagues from './Leagues.jsx';
 
@@ -114,10 +116,11 @@ function LeaderboardList({ entries, userPosition, user, onViewProfile, t }) {
             </div>
             <UserAvatar user={entry} size={24} showBadge style={{ marginLeft: '4px' }} />
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: isMe ? 'var(--pink)' : 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                {entry.username ? `@${entry.username}` : entry.name}
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: isMe ? 'var(--pink)' : (getUsernameColor(entry.activeCosmetics) || 'var(--text-primary)'), overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                {entry.username ? `@${entry.username}` : entry.name}{entry.slot === 1 ? ' (2)' : ''}
                 {isFounder(entry.username) && <FounderBadge size={11} />}
                 {isMe && <span style={{ fontSize: '12px', color: 'var(--pink)', flexShrink: 0 }}>{t.common.you}</span>}
+                <TitleBadge title={entry.activeCosmetics?.title} />
               </div>
               <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{formatCash(entry.totalValue)}</div>
             </div>
@@ -145,8 +148,9 @@ function LeaderboardList({ entries, userPosition, user, onViewProfile, t }) {
             <UserAvatar user={userPosition} size={24} showBadge style={{ marginLeft: '4px' }} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--pink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                {userPosition.username ? `@${userPosition.username}` : userPosition.name}
+                {userPosition.username ? `@${userPosition.username}` : userPosition.name}{userPosition.slot === 1 ? ' (2)' : ''}
                 <span style={{ fontSize: '12px', color: 'var(--pink)', flexShrink: 0 }}>{t.common.you}</span>
+                <TitleBadge title={userPosition.activeCosmetics?.title} />
               </div>
               <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{formatCash(userPosition.totalValue)}</div>
             </div>
@@ -157,6 +161,29 @@ function LeaderboardList({ entries, userPosition, user, onViewProfile, t }) {
         </>
       )}
     </>
+  );
+}
+
+function PortfolioTabSwitcher({ activeSlot, setActiveSlot }) {
+  return (
+    <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+      {[0, 1].map(s => (
+        <button
+          key={s}
+          onClick={() => setActiveSlot(s)}
+          style={{
+            flex: 1, padding: '8px', borderRadius: 'var(--radius-md)',
+            border: `1px solid ${activeSlot === s ? 'var(--pink)' : 'var(--border-default)'}`,
+            background: activeSlot === s ? 'rgba(255,126,179,0.10)' : 'var(--bg-surface)',
+            color: activeSlot === s ? 'var(--pink)' : 'var(--text-muted)',
+            fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px',
+            cursor: 'pointer',
+          }}
+        >
+          Portfolio {s === 0 ? 'A' : 'B'}
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -183,6 +210,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
   const [assetCandles, setAssetCandles]     = useState(null);
   const [loadingCandles, setLoadingCandles] = useState(false);
   const [portfolioHistory, setPortfolioHistory] = useState([]);
+  const [activeSlot, setActiveSlot]             = useState(0);
   const [leaderboard, setLeaderboard]           = useState([]);
   const [userPositionGlobal, setUserPositionGlobal] = useState(null);
   const [leaderboardTab, setLeaderboardTab]     = useState('global');
@@ -214,6 +242,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
   const chartRef = useRef(null);
 
   const token = localStorage.getItem('tradaria_token');
+  const hasDualPortfolio = user?.battlePassMechanics?.includes('mechanic_portfolio_double') || false;
 
   // ── Price alerts ──────────────────────────────────────────────────
   async function fetchAlerts() {
@@ -341,7 +370,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
     try {
       const [pricesRes, portfolioRes] = await Promise.all([
         fetch(`${SERVER}/portfolio/prices`),
-        fetch(`${SERVER}/portfolio`, { headers: { Authorization: `Bearer ${tok}` } }),
+        fetch(`${SERVER}/portfolio?slot=${activeSlot}`, { headers: { Authorization: `Bearer ${tok}` } }),
       ]);
       pricesData    = await pricesRes.json();
       portfolioData = await portfolioRes.json();
@@ -350,7 +379,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
       try {
         const [pricesRes, portfolioRes] = await Promise.all([
           fetch(`${SERVER}/portfolio/prices`),
-          fetch(`${SERVER}/portfolio`, { headers: { Authorization: `Bearer ${tok}` } }),
+          fetch(`${SERVER}/portfolio?slot=${activeSlot}`, { headers: { Authorization: `Bearer ${tok}` } }),
         ]);
         pricesData    = await pricesRes.json();
         portfolioData = await portfolioRes.json();
@@ -376,10 +405,10 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
     fetch(`${SERVER}/portfolio/snapshot`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ totalValue: tv }),
+      body: JSON.stringify({ totalValue: tv, slot: activeSlot }),
     }).catch(() => {});
 
-    fetch(`${SERVER}/portfolio/history`, {
+    fetch(`${SERVER}/portfolio/history?slot=${activeSlot}`, {
       headers: { Authorization: `Bearer ${tok}` },
     }).then(r => r.json()).then(data => {
       if (Array.isArray(data)) setPortfolioHistory(data);
@@ -413,7 +442,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
     }).then(r => r.json()).then(data => {
       if (Array.isArray(data)) setPendingOrders(data);
     }).catch(() => {});
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeSlot]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function loadWeeklyLeaderboard() {
     if (weeklyLoading) return;
@@ -489,7 +518,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
     loadAll();
     const interval = setInterval(loadAll, 30000);
     return () => clearInterval(interval);
-  }, [user, loadAll]);
+  }, [user, loadAll, activeSlot]);
 
   useEffect(() => {
     if (pricesReady) return;
@@ -547,7 +576,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
       const res = await fetch(`${SERVER}/portfolio/order`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ symbol: orderModal.symbol, type: orderModal.action, qty: orderModal.qty }),
+        body: JSON.stringify({ symbol: orderModal.symbol, type: orderModal.action, qty: orderModal.qty, slot: activeSlot }),
       });
       const data = await res.json();
       setOrderModal(null);
@@ -589,7 +618,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
       const res  = await fetch(`${SERVER}/portfolio/${action}`, {
         method:  'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ symbol: selected.symbol, qty: finalQty }),
+        body:    JSON.stringify({ symbol: selected.symbol, qty: finalQty, slot: activeSlot }),
       });
       const data = await res.json();
       if (!data.ok) { setError(data.error); setLoading(false); return; }
@@ -959,6 +988,13 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
             : <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--green)', textShadow: '0 0 14px rgba(0,229,160,0.35)' }}>{formatCash(totalValue)}</span>}
         </div>
       </div>
+
+      {/* Portfolio slot switcher */}
+      {hasDualPortfolio && (
+        <div style={{ padding: '12px 20px 0', position: 'relative', zIndex: 2 }}>
+          <PortfolioTabSwitcher activeSlot={activeSlot} setActiveSlot={setActiveSlot} />
+        </div>
+      )}
 
       {/* Summary */}
       <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--bd)', position: 'relative', zIndex: 2 }}>

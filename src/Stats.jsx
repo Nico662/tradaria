@@ -5,6 +5,8 @@ import { useLang } from './LangContext.jsx';
 import { useAuth } from './AuthContext';
 import { ModeIcon } from './components/AppIcons';
 import { User, Backpack } from 'lucide-react';
+import { getUsernameColor } from './cosmeticColors';
+import TitleBadge from './components/TitleBadge';
 import BadgeIcon, { RARITY_COLORS } from './BadgeIcon.jsx';
 
 function AccuracyGraph({ trend }) {
@@ -85,8 +87,8 @@ export default function Stats({ onBack, onSelect }) {
             )}
           </div>
           {user?.username && (
-            <div style={{ position: 'absolute', bottom: '-16px', left: '50%', transform: 'translateX(-50%)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--text-muted)', whiteSpace: 'nowrap', letterSpacing: '0.04em' }}>
-              @{user.username}
+            <div style={{ position: 'absolute', bottom: '-16px', left: '50%', transform: 'translateX(-50%)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: getUsernameColor(activeCosmetics) || 'var(--text-muted)', whiteSpace: 'nowrap', letterSpacing: '0.04em', display: 'flex', alignItems: 'center' }}>
+              @{user.username}<TitleBadge title={activeCosmetics?.title} />
             </div>
           )}
         </div>

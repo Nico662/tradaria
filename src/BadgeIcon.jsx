@@ -11,7 +11,7 @@ import {
   TrendingUp, Rocket, TrendingDown, Activity,
   UserPlus, Users, Trophy, Dumbbell,
   Ghost, Moon, Heart, Banknote, RotateCcw,
-  Sword,
+  Sword, Star,
 } from 'lucide-react';
 
 const BADGE_ICONS = {
@@ -62,6 +62,11 @@ const BADGE_ICONS = {
   streak_100:         Crown,
   arena_streak_3:     Swords,
   arena_streak_5:     Sword,
+  bp_s1_early_trader: TrendingUp,
+  bp_s1_elite:        Star,
+  bp_s1_season1_pro:  Crown,
+  bp_s1_season1:      Medal,
+  bp_s1_champion:     Trophy,
   ghost:              Ghost,
   rekt:               Skull,
   secret_night:       Moon,

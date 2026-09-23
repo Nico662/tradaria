@@ -347,6 +347,38 @@ html, body {
 #root.theme_midnight #gtm-root .streak-label        { color: rgba(107,159,255,0.35); }
 
 /* ══════════════════════════════════════════════════
+   AURORA  — accent #c084fc
+══════════════════════════════════════════════════ */
+#root.theme_aurora { background: #0d0a14; }
+#root.theme_aurora #gtm-root { background: #0d0a14 !important; box-shadow: inset 0 1px 0 0 rgba(192,132,252,0.4); }
+#root.theme_aurora #gtm-root .scanlines {
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(192,132,252,0.03) 2px, rgba(192,132,252,0.03) 4px);
+}
+#root.theme_aurora #gtm-root .header      { border-bottom-color: rgba(192,132,252,0.35); }
+#root.theme_aurora #gtm-root .asset-bar   { border-bottom-color: rgba(192,132,252,0.35); }
+#root.theme_aurora #gtm-root .cat-bar     { border-bottom-color: rgba(192,132,252,0.35); }
+#root.theme_aurora #gtm-root .ticker-tape { border-top-color: rgba(192,132,252,0.35); color: rgba(192,132,252,0.4); }
+#root.theme_aurora #gtm-root .mode-card   { background: var(--bg-card); border-color: rgba(192,132,252,0.18); }
+#root.theme_aurora #gtm-root .mode-card.active:hover { border-color: #c084fc; background: rgba(192,132,252,0.06); }
+#root.theme_aurora #gtm-root .trade-btn   { background: var(--bg-card); border-color: rgba(192,132,252,0.18); }
+#root.theme_aurora #gtm-root .trade-btn.long:hover,
+#root.theme_aurora #gtm-root .trade-btn.long.selected { border-color: #c084fc; color: #c084fc; background: rgba(192,132,252,0.06); }
+#root.theme_aurora #gtm-root .logo span           { color: #c084fc; }
+#root.theme_aurora #gtm-root .stat-val.green      { color: #c084fc; }
+#root.theme_aurora #gtm-root .streak-dot.win      { background: #c084fc; border-color: #c084fc; box-shadow: 0 0 6px rgba(192,132,252,0.5); }
+#root.theme_aurora #gtm-root .result-verdict.win  { color: #c084fc; }
+#root.theme_aurora #gtm-root .result-pnl.pos      { color: #c084fc; }
+#root.theme_aurora #gtm-root .result-card.win     { border-color: rgba(192,132,252,0.5); background: rgba(192,132,252,0.05); box-shadow: 0 0 20px rgba(192,132,252,0.10); }
+#root.theme_aurora #gtm-root .cat-btn.active      { border-color: #c084fc; color: #c084fc; background: rgba(192,132,252,0.08); }
+#root.theme_aurora #gtm-root .lang-btn.active     { border-color: rgba(192,132,252,0.35); color: var(--t2); }
+#root.theme_aurora #gtm-root .next-btn:hover      { border-color: #c084fc; color: #c084fc; }
+#root.theme_aurora #gtm-root .timeframe-badge     { background: var(--bg-card); border-color: rgba(192,132,252,0.18); color: rgba(192,132,252,0.5); }
+#root.theme_aurora #gtm-root .stat-label          { color: rgba(192,132,252,0.35); }
+#root.theme_aurora #gtm-root .result-detail       { color: rgba(192,132,252,0.35); }
+#root.theme_aurora #gtm-root .mode-sub            { color: rgba(192,132,252,0.35); }
+#root.theme_aurora #gtm-root .streak-label        { color: rgba(192,132,252,0.35); }
+
+/* ══════════════════════════════════════════════════
    MATRIX  — accent #00ff41
 ══════════════════════════════════════════════════ */
 #root.theme_matrix { background: #0a100c; }

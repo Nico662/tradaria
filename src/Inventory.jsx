@@ -5,13 +5,14 @@ import { useLang } from './LangContext';
 import { SERVER } from './config';
 import UserAvatar from './UserAvatar';
 import { AvatarSVG } from './components/AvatarSVGs';
-import { USERNAME_COLORS } from './cosmeticColors';
+import { USERNAME_COLORS, TITLE_LABELS } from './cosmeticColors';
 
 const FRAME_META = {
   frame_gold:    { name: 'Gold Frame'    },
   frame_neon:    { name: 'Neon Frame'    },
   frame_fire:    { name: 'Fire Frame'    },
   frame_diamond: { name: 'Diamond Frame' },
+  frame_season1: { name: 'Season 1'     },
 };
 
 const THEME_META = {
@@ -19,6 +20,7 @@ const THEME_META = {
   theme_blood:    { name: 'Blood Market', accent: '#f05454', bg: '#120c0c' },
   theme_gold:     { name: 'Gold Rush',    accent: '#e6b432', bg: '#120f0a' },
   theme_midnight: { name: 'Midnight',     accent: '#6b9fff', bg: '#0a0d14' },
+  theme_aurora:   { name: 'Aurora',       accent: '#c084fc', bg: '#0d0a14' },
 };
 
 const EFFECT_META = {
@@ -41,18 +43,17 @@ const MINI_HEIGHTS = [0.4, 0.7, 0.3, 0.6, 0.9, 0.5, 0.65, 0.35];
 
 // ── Próximamente (Trader Pass teaser) ─────────────────────────────
 const COMING_SOON = [
-  { type: 'avatar', id: 'avatar_fox',      name: 'Fox',          hasPreview: true },
-  { type: 'avatar', id: 'avatar_dragon',   name: 'Dragon',       hasPreview: true },
-  { type: 'theme',  id: 'theme_midnight',  name: 'Midnight',     accent: '#6b9fff', bg: '#0a0d14', hasPreview: true },
-  { type: 'theme',  id: 'theme_aurora',    name: 'Aurora',       lucideIcon: Sparkles, iconColor: '#6b9fff', hasPreview: false },
-  { type: 'color',  id: 'color_green',     name: 'Verde',        hex: '#22c55e' },
-  { type: 'color',  id: 'color_gold',      name: 'Dorado',       hex: '#f5c842' },
-  { type: 'color',  id: 'color_red',       name: 'Rojo',         hex: '#e05555' },
-  { type: 'color',  id: 'color_purple',    name: 'Morado',       hex: '#a855f7' },
-  { type: 'frame',  id: 'frame_season1',   name: 'Season 1',     lucideIcon: Trophy, iconColor: 'var(--color-neutral)', hasPreview: false },
-  { type: 'badge',  id: 'badge_early',     name: 'Early Trader', lucideIcon: Star,   iconColor: 'var(--color-neutral)' },
-  { type: 'badge',  id: 'badge_elite',     name: 'Elite',        lucideIcon: Crown,  iconColor: 'var(--color-neutral)' },
-  { type: 'badge',  id: 'badge_season1',   name: 'Season 1',     lucideIcon: Medal,  iconColor: 'var(--color-neutral)' },
+  { type: 'avatar', id: 'avatar_fox',          name: 'Fox',          hasPreview: true },
+  { type: 'avatar', id: 'avatar_dragon',        name: 'Dragon',       hasPreview: true },
+  { type: 'theme',  id: 'theme_aurora',         name: 'Aurora',       accent: '#c084fc', bg: '#0d0a14', hasPreview: true },
+  { type: 'color',  id: 'color_green',          name: 'Verde',        hex: '#22c55e' },
+  { type: 'color',  id: 'color_gold',           name: 'Dorado',       hex: '#f5c842' },
+  { type: 'color',  id: 'color_red',            name: 'Rojo',         hex: '#e05555' },
+  { type: 'color',  id: 'color_purple',         name: 'Morado',       hex: '#a855f7' },
+  { type: 'frame',  id: 'frame_season1',        name: 'Season 1',     lucideIcon: Trophy, iconColor: 'var(--color-neutral)', hasPreview: false },
+  { type: 'badge',  id: 'bp_s1_early_trader',   name: 'Early Trader', lucideIcon: Star,   iconColor: 'var(--color-neutral)' },
+  { type: 'badge',  id: 'bp_s1_elite',          name: 'Elite',        lucideIcon: Crown,  iconColor: 'var(--color-neutral)' },
+  { type: 'badge',  id: 'bp_s1_season1',        name: 'Season 1',     lucideIcon: Medal,  iconColor: 'var(--color-neutral)' },
 ];
 
 export default function Inventory({ onBack }) {
@@ -71,6 +72,12 @@ export default function Inventory({ onBack }) {
   const ownedEffects  = purchases.filter(id => id && EFFECT_META[id]);
   const ownedColors   = purchases.filter(id => id && USERNAME_COLORS[id]);
   const unusedTickets = tickets.filter(item => !item.used).length;
+
+  const TITLE_IDS = new Set([
+    'title_market_watcher','title_chart_reader','title_risk_taker',
+    'title_bull_runner','title_bear_hunter','title_survivor','title_veteran',
+  ]);
+  const ownedTitles = purchases.filter(id => id && TITLE_IDS.has(id));
 
   const useTicket = useCallback(async () => {
     if (busyTicket || unusedTickets === 0) return;
@@ -102,7 +109,7 @@ export default function Inventory({ onBack }) {
   const isEmpty =
     ownedFrames.length === 0 && ownedThemes.length === 0 &&
     ownedAvatars.length === 0 && ownedEffects.length === 0 &&
-    ownedColors.length === 0 &&
+    ownedColors.length === 0 && ownedTitles.length === 0 &&
     unusedTickets === 0;
 
   const chips = [
@@ -112,6 +119,7 @@ export default function Inventory({ onBack }) {
     ownedAvatars.length  > 0 && { id: 'avatars', label: ti.avatars, n: ownedAvatars.length },
     ownedEffects.length  > 0 && { id: 'effects', label: ti.effects, n: ownedEffects.length },
     ownedColors.length   > 0 && { id: 'colors',  label: ti.colors,  n: ownedColors.length },
+    ownedTitles.length   > 0 && { id: 'titles',  label: 'Titles',   n: ownedTitles.length },
     unusedTickets        > 0 && { id: 'tickets', label: ti.tickets, n: unusedTickets },
   ].filter(Boolean);
 
@@ -267,6 +275,33 @@ export default function Inventory({ onBack }) {
           </Section>
         )}
 
+        {/* TÍTULOS */}
+        {show('titles') && ownedTitles.length > 0 && (
+          <Section title="Titles">
+            {ownedTitles.map(id => {
+              const name = TITLE_LABELS[id] || id;
+              const equipped = activeCosmetics.title === id;
+              return (
+                <ItemCard key={id} equipped={equipped} onClick={() => toggle('title', id)}>
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '12px 0 6px' }}>
+                    <span style={{
+                      fontSize: '11px', fontWeight: 800, letterSpacing: '0.08em',
+                      padding: '4px 10px', borderRadius: '6px',
+                      background: equipped ? 'rgba(196,154,42,0.15)' : 'rgba(196,154,42,0.08)',
+                      color: 'var(--color-neutral)',
+                      border: `0.5px solid rgba(196,154,42,${equipped ? '0.4' : '0.2'})`,
+                      textTransform: 'uppercase',
+                    }}>
+                      {name}
+                    </span>
+                  </div>
+                  <ItemLabel name={name} equipped={equipped} ti={ti} />
+                </ItemCard>
+              );
+            })}
+          </Section>
+        )}
+
         {/* TICKETS */}
         {show('tickets') && unusedTickets > 0 && (
           <Section title={ti.tickets}>
@@ -343,7 +378,13 @@ export default function Inventory({ onBack }) {
               </div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-              {COMING_SOON.map(item => (
+              {COMING_SOON.filter(item => {
+                if (item.type === 'badge') {
+                  const userBadges = user?.badges || [];
+                  return !userBadges.includes(item.id);
+                }
+                return !purchases.includes(item.id);
+              }).map(item => (
                 <LockedCard key={item.id} item={item} locked={ti.locked} />
               ))}
             </div>

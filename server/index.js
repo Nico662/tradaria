@@ -49,6 +49,7 @@ const VALID_BADGE_IDS = new Set([
 ]);
 
 const VALID_GAME_MODES = new Set(['guess', 'survival', 'daily', 'arena', 'tournament', 'historical', 'portfolio']);
+const SESSION_REQUIRED_MODES = new Set(['guess', 'survival', 'historical']);
 // Maximum rounds accepted per mode. Prevents crafted requests from completing
 // all survival missions in a single API call (real sessions can't exceed these).
 const MODE_ROUND_CAPS = { survival: 300, guess: 200, historical: 1, arena: 30, portfolio: 50, tournament: 50, daily: 50 };
@@ -232,7 +233,8 @@ const StatsSchema = new mongoose.Schema({
   daily: { type: Number, default: 0 },
 });
 const PortfolioSchema = new mongoose.Schema({
-  userId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
+  userId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  slot:      { type: Number, default: 0, enum: [0, 1] },
   cash:      { type: Number, default: 50000 },
   positions: [{
     symbol:    { type: String, required: true },
@@ -253,12 +255,14 @@ const PortfolioSchema = new mongoose.Schema({
  }],
   createdAt: { type: Date, default: Date.now },
 });
+PortfolioSchema.index({ userId: 1, slot: 1 }, { unique: true });
 const PortfolioHistorySchema = new mongoose.Schema({
   userId:     { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  slot:       { type: Number, default: 0, enum: [0, 1] },
   date:       { type: String, required: true },
   totalValue: { type: Number, required: true },
 });
-PortfolioHistorySchema.index({ userId: 1, date: 1 }, { unique: true });
+PortfolioHistorySchema.index({ userId: 1, date: 1, slot: 1 }, { unique: true });
 const PortfolioHistory = mongoose.model('PortfolioHistory', PortfolioHistorySchema);
 
 const PriceAlertSchema = new mongoose.Schema({
@@ -868,51 +872,89 @@ app.post('/daily/complete', async (req, res) => {
   if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
 
   const { xp, badges, dailyResult } = req.body;
-  const user = await User.findById(decoded.id);
-  if (!user) return res.status(404).json({ error: 'User not found' });
 
-  const today = new Date().toISOString().split('T')[0];
-  const lastPlayed = user.lastPlayed
-    ? new Date(user.lastPlayed).toISOString().split('T')[0]
-    : null;
+  const startOfToday = new Date();
+  startOfToday.setUTCHours(0, 0, 0, 0);
+  const startOfYesterday = new Date(startOfToday);
+  startOfYesterday.setUTCDate(startOfYesterday.getUTCDate() - 1);
 
-  if (lastPlayed === today) {
-    return res.json({ dailyStreak: user.dailyStreak, lastPlayed: user.lastPlayed, alreadyPlayed: true });
+  const safeXp = Math.max(0, Math.min(Number(xp) || 0, 1000000));
+  const safeBadges = Array.isArray(badges)
+    ? badges.filter(b => VALID_BADGE_IDS.has(b))
+    : [];
+
+  try {
+    const updatedUser = await User.findOneAndUpdate(
+      {
+        _id: decoded.id,
+        $or: [
+          { lastPlayed: { $exists: false } },
+          { lastPlayed: null },
+          { lastPlayed: { $lt: startOfToday } },
+        ],
+      },
+      [
+        {
+          $set: {
+            lastPlayed: '$$NOW',
+            dailyStreak: {
+              $cond: {
+                if: {
+                  $and: [
+                    { $ne: [{ $ifNull: ['$lastPlayed', null] }, null] },
+                    { $gte: ['$lastPlayed', startOfYesterday] },
+                  ],
+                },
+                then: { $add: ['$dailyStreak', 1] },
+                else: 1,
+              },
+            },
+            streakBeforeLoss: {
+              $cond: {
+                if: {
+                  $and: [
+                    { $gt: ['$dailyStreak', 1] },
+                    {
+                      $or: [
+                        { $eq: [{ $ifNull: ['$lastPlayed', null] }, null] },
+                        { $lt: ['$lastPlayed', startOfYesterday] },
+                      ],
+                    },
+                  ],
+                },
+                then: '$dailyStreak',
+                else: { $ifNull: ['$streakBeforeLoss', 0] },
+              },
+            },
+            xp: { $max: ['$xp', safeXp] },
+            badges: { $setUnion: [{ $ifNull: ['$badges', []] }, safeBadges] },
+            dailyResult: dailyResult,
+          },
+        },
+      ],
+      { new: true, updatePipeline: true }
+    );
+
+    if (!updatedUser) {
+      const user = await User.findById(decoded.id).select('dailyStreak lastPlayed');
+      return res.json({
+        dailyStreak: user?.dailyStreak || 0,
+        lastPlayed: user?.lastPlayed || null,
+        alreadyPlayed: true,
+      });
+    }
+
+    const bpProgress = await processDailyBpProgress(decoded.id, { newStreak: updatedUser.dailyStreak }).catch(() => null);
+
+    res.json({
+      dailyStreak: updatedUser.dailyStreak,
+      lastPlayed: updatedUser.lastPlayed,
+      alreadyPlayed: false,
+      bpProgress,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = yesterday.toISOString().split('T')[0];
-
-  const streakContinues = lastPlayed === yesterdayStr;
-  const newStreak = streakContinues ? user.dailyStreak + 1 : 1;
-
-  const dailyUpdate = {
-    dailyStreak: newStreak,
-    lastPlayed: new Date(),
-    xp: Math.max(user.xp || 0, xp || 0),
-    badges: [...new Set([...(user.badges || []), ...(badges || [])])],
-    dailyResult,
-  };
-  // Snapshot current streak before it resets so a restore ticket can recover it
-  if (!streakContinues && user.dailyStreak > 1) {
-    dailyUpdate.streakBeforeLoss = user.dailyStreak;
-  }
-
-  const updatedUser = await User.findByIdAndUpdate(
-    decoded.id,
-    dailyUpdate,
-    { new: true, returnDocument: 'after' }
-  );
-
-  const bpProgress = await processDailyBpProgress(decoded.id, { newStreak }).catch(() => null);
-
-  res.json({
-    dailyStreak:  updatedUser.dailyStreak,
-    lastPlayed:   updatedUser.lastPlayed,
-    alreadyPlayed: false,
-    bpProgress,
-  });
 });
 
 app.post('/auth/sync', async (req, res) => {
@@ -992,13 +1034,19 @@ app.post('/auth/cosmetics', async (req, res) => {
     const user = await User.findById(decoded.id).select('purchases');
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const VALID_TYPES = new Set(['theme', 'frame', 'avatar', 'effect', 'username_color']);
+    const VALID_TYPES = new Set(['theme', 'frame', 'avatar', 'effect', 'username_color', 'title']);
     const owned = new Set(user.purchases);
     const safe = {};
     if (activeCosmetics && typeof activeCosmetics === 'object' && !Array.isArray(activeCosmetics)) {
       for (const [type, itemId] of Object.entries(activeCosmetics)) {
         if (!VALID_TYPES.has(type)) continue;
-        if (typeof itemId !== 'string' || !SHOP_ITEMS[itemId] || !owned.has(itemId)) continue;
+        if (typeof itemId !== 'string') continue;
+        if (type === 'title') {
+          if (!BP_TITLES.has(itemId) || !owned.has(itemId)) continue;
+        } else {
+          if (!SHOP_ITEMS[itemId] && !BP_COSMETICS[itemId]) continue;
+          if (!owned.has(itemId)) continue;
+        }
         safe[type] = itemId;
       }
     }
@@ -1109,6 +1157,27 @@ const SHOP_ITEMS = {
   effect_explosion: { name: 'Explosion Effect', price: 299 },
   effect_stars:     { name: 'Stars Effect',      price: 199 },
 };
+
+const BP_COSMETICS = {
+  color_green:   { type: 'username_color' },
+  color_gold:    { type: 'username_color' },
+  color_red:     { type: 'username_color' },
+  color_purple:  { type: 'username_color' },
+  avatar_fox:    { type: 'avatar' },
+  avatar_dragon: { type: 'avatar' },
+  frame_season1: { type: 'frame' },
+  theme_aurora:  { type: 'theme' },
+};
+
+const BP_TITLES = new Set([
+  'title_market_watcher',
+  'title_chart_reader',
+  'title_risk_taker',
+  'title_bull_runner',
+  'title_bear_hunter',
+  'title_survivor',
+  'title_veteran',
+]);
 // ── Shop routes ───────────────────────────────────────────────────
 app.post('/shop/checkout', async (req, res) => {
   const auth = req.headers.authorization;
@@ -1475,6 +1544,37 @@ app.post('/shop/iap-confirm', async (req, res) => {
 });
 
 // ── Stats routes ──────────────────────────────────────────────────
+
+// Session tokens are required for BP-critical client-submitted modes: guess, survival, historical.
+// Exempt modes and their validation approach:
+//   arena      — server controls game via Socket.IO; BP credit from processArenaWinBpProgress
+//   daily      — /daily/complete handles BP; /stats/game call is history-only
+//   tournament — Socket.IO managed; scoring via Score model
+//   portfolio  — no BP missions tied to portfolio gameplay
+app.post('/game/start', async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'No token' });
+  const { mode } = req.body;
+  if (!mode || !VALID_GAME_MODES.has(mode)) return res.status(400).json({ error: 'Invalid mode' });
+  try {
+    // Per-user rate limit: max 10 game starts per minute via Redis counter
+    const rateKey = `game_start_rate:${decoded.id}`;
+    const calls = await redis.incr(rateKey);
+    if (calls === 1) await redis.expire(rateKey, 60);
+    if (calls > 10) return res.status(429).json({ error: 'RATE_LIMIT_EXCEEDED' });
+
+    const sessionToken = require('crypto').randomUUID();
+    await redis.set(
+      `game_session:${sessionToken}`,
+      JSON.stringify({ userId: String(decoded.id), mode }),
+      { ex: 1800 }
+    );
+    res.json({ sessionToken });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create session' });
+  }
+});
+
 app.get('/stats', (req, res) => {
   try {
     res.json({ online: io.engine?.clientsCount || 0, gamesPlayed: totalGamesPlayed || 0 });
@@ -1501,16 +1601,22 @@ app.post('/stats/game', async (req, res) => {
   const decoded = verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
-    const { mode, score, correct, wrong, accuracy, streak, rounds, eventId, gameId } = req.body;
+    const { mode, score, correct, wrong, accuracy, streak, rounds, eventId, sessionToken } = req.body;
     if (!VALID_GAME_MODES.has(mode)) return res.status(400).json({ error: 'Invalid mode' });
 
-    // Fix H: idempotency via optional client-generated UUID
-    const safeGameId = (typeof gameId === 'string' &&
-      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(gameId))
-      ? gameId : null;
-    if (safeGameId) {
-      const existing = await GameHistory.findOne({ gameId: safeGameId });
-      if (existing) return res.json({ ok: true, bpProgress: null });
+    // Session token validation (required for BP-critical modes)
+    if (SESSION_REQUIRED_MODES.has(mode)) {
+      if (!sessionToken || typeof sessionToken !== 'string') {
+        return res.status(400).json({ error: 'SESSION_REQUIRED' });
+      }
+      const sessionKey = `game_session:${sessionToken}`;
+      const sessionRaw = await redis.get(sessionKey);
+      if (!sessionRaw) return res.status(400).json({ error: 'INVALID_SESSION' });
+      const session = typeof sessionRaw === 'string' ? JSON.parse(sessionRaw) : sessionRaw;
+      if (session.userId !== String(decoded.id)) return res.status(403).json({ error: 'SESSION_USER_MISMATCH' });
+      if (session.mode !== mode) return res.status(400).json({ error: 'SESSION_MODE_MISMATCH' });
+      const deleted = await redis.del(sessionKey);
+      if (deleted === 0) return res.status(409).json({ error: 'SESSION_ALREADY_USED' });
     }
 
     const roundCap   = MODE_ROUND_CAPS[mode] ?? 100;  // Fix B: per-mode cap
@@ -1523,8 +1629,11 @@ app.post('/stats/game', async (req, res) => {
     const safeEventId  = (typeof eventId === 'string' && VALID_HISTORICAL_EVENT_IDS.has(eventId))  // Fix I: validate against known IDs
       ? eventId : null;
 
-    await GameHistory.create({ userId: decoded.id, mode, score: safeScore, correct: safeCorrect, wrong: safeWrong, accuracy: safeAccuracy, streak: safeStreak, rounds: safeRounds, gameId: safeGameId });
-    const bpProgress = await processGameBpProgress(decoded.id, { mode, streak: safeStreak, rounds: safeRounds, correct: safeCorrect, eventId: safeEventId });
+    // Streak cannot exceed rounds in a single game (logical constraint)
+    const finalStreak = (mode === 'guess' && safeRounds > 0) ? Math.min(safeStreak, safeRounds) : safeStreak;
+
+    await GameHistory.create({ userId: decoded.id, mode, score: safeScore, correct: safeCorrect, wrong: safeWrong, accuracy: safeAccuracy, streak: finalStreak, rounds: safeRounds, gameId: sessionToken || null });
+    const bpProgress = await processGameBpProgress(decoded.id, { mode, streak: finalStreak, rounds: safeRounds, correct: safeCorrect, eventId: safeEventId });
     res.json({ ok: true, bpProgress });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -2710,7 +2819,7 @@ cron.schedule('0 7 * * 0', async () => {
   const dayOfWeek  = now.getDay(); // 0=domingo, 6=sábado
   const isWeekend  = dayOfWeek === 0 || dayOfWeek === 6;
 
-  const portfolios = await Portfolio.find({}).populate('userId', 'name');
+  const portfolios = await Portfolio.find({ slot: { $in: [0, null] } }).populate('userId', 'name');
   for (const portfolio of portfolios) {
     try {
       if (!portfolio.userId) continue;
@@ -3069,6 +3178,12 @@ app.get('/stats/revenue', async (req, res) => {
 
 // ── Portfolio routes ──────────────────────────────────────────────
 
+function portfolioFilter(userId, slot) {
+  return slot === 1
+    ? { userId, slot: 1 }
+    : { userId, slot: { $in: [0, null] } };
+}
+
 // Obtener todos los precios
 app.get('/portfolio/prices', async (req, res) => {
   try {
@@ -3102,14 +3217,20 @@ app.get('/portfolio', async (req, res) => {
   if (!auth) return res.status(401).json({ error: 'No token' });
   try {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const cacheKey = `portfolio:${decoded.id}`;
+    const slot = Number(req.query?.slot) === 1 ? 1 : 0;
+    const cacheKey = `portfolio:${decoded.id}:${slot}`;
     try {
       const cached = await redis.get(cacheKey);
       if (cached) return res.json(typeof cached === 'string' ? JSON.parse(cached) : cached);
     } catch {}
-    let portfolio = await Portfolio.findOne({ userId: decoded.id });
+    let portfolio = await Portfolio.findOne(portfolioFilter(decoded.id, slot));
     if (!portfolio) {
-      portfolio = await Portfolio.create({ userId: decoded.id, cash: 50000, positions: [], transactions: [] });
+      if (slot === 1) {
+        const u = await User.findById(decoded.id).select('battlePassMechanics');
+        if (!u?.battlePassMechanics?.includes('mechanic_portfolio_double'))
+          return res.status(403).json({ error: 'Portfolio B requires mechanic_portfolio_double' });
+      }
+      portfolio = await Portfolio.create({ userId: decoded.id, slot, cash: 50000, positions: [], transactions: [] });
     }
     const user = await User.findById(decoded.id).select('portfolioTutorialSeen');
     const obj = portfolio.toObject();
@@ -3360,15 +3481,21 @@ app.post('/portfolio/buy', async (req, res) => {
   if (!auth) return res.status(401).json({ error: 'No token' });
   try {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const { symbol, qty } = req.body;
+    const { symbol, qty, slot: rawSlot } = req.body;
+    const slot = Number(rawSlot) === 1 ? 1 : 0;
+    if (slot === 1) {
+      const u = await User.findById(decoded.id).select('battlePassMechanics');
+      if (!u?.battlePassMechanics?.includes('mechanic_portfolio_double'))
+        return res.status(403).json({ error: 'Portfolio B requires mechanic_portfolio_double' });
+    }
     if (!qty || qty <= 0 || !Number.isFinite(qty)) return res.status(400).json({ error: 'Invalid quantity' });
     const asset    = PORTFOLIO_ASSETS.find(a => a.symbol === symbol);
     if (!asset) return res.status(400).json({ error: 'Asset not found' });
     const priceData = await getPrice(asset);
     const price     = priceData.price;
     const total     = price * qty;
-    let portfolio   = await Portfolio.findOne({ userId: decoded.id });
-    if (!portfolio) portfolio = await Portfolio.create({ userId: decoded.id, cash: 50000, positions: [], transactions: [] });
+    let portfolio   = await Portfolio.findOne(portfolioFilter(decoded.id, slot));
+    if (!portfolio) portfolio = await Portfolio.create({ userId: decoded.id, slot, cash: 50000, positions: [], transactions: [] });
     if (portfolio.cash < total) return res.status(400).json({ error: 'Insufficient funds' });
     portfolio.cash -= total;
     const existing = portfolio.positions.find(p => p.symbol === symbol);
@@ -3380,7 +3507,8 @@ app.post('/portfolio/buy', async (req, res) => {
     }
     portfolio.transactions.push({ symbol, name: asset.name, type: asset.type, action: 'buy', qty, price, total });
     await portfolio.save();
-    redis.del(`portfolio:${decoded.id}`).catch(() => {});
+    redis.del(`portfolio:${decoded.id}:${slot}`).catch(() => {});
+    redis.del(`portfolio:${decoded.id}`).catch(() => {});  // legacy key
     res.json({ ok: true, cash: portfolio.cash });
   } catch (err) {
     console.error('Buy error:', err.message);
@@ -3394,11 +3522,17 @@ app.post('/portfolio/sell', async (req, res) => {
   if (!auth) return res.status(401).json({ error: 'No token' });
   try {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const { symbol, qty } = req.body;
+    const { symbol, qty, slot: rawSlot } = req.body;
+    const slot = Number(rawSlot) === 1 ? 1 : 0;
+    if (slot === 1) {
+      const u = await User.findById(decoded.id).select('battlePassMechanics');
+      if (!u?.battlePassMechanics?.includes('mechanic_portfolio_double'))
+        return res.status(403).json({ error: 'Portfolio B requires mechanic_portfolio_double' });
+    }
     if (!qty || qty <= 0 || !Number.isFinite(qty)) return res.status(400).json({ error: 'Invalid quantity' });
     const asset    = PORTFOLIO_ASSETS.find(a => a.symbol === symbol);
     if (!asset) {
-      const portfolio = await Portfolio.findOne({ userId: decoded.id });
+      const portfolio = await Portfolio.findOne(portfolioFilter(decoded.id, slot));
       if (!portfolio) return res.status(404).json({ error: 'Portfolio not found' });
       const position = portfolio.positions.find(p => p.symbol === symbol);
       if (!position) return res.status(404).json({ error: 'Position not found' });
@@ -3407,13 +3541,14 @@ app.post('/portfolio/sell', async (req, res) => {
       portfolio.positions = portfolio.positions.filter(p => p.symbol !== symbol);
       portfolio.transactions.push({ symbol, name: position.name, type: position.type, action: 'sell', qty: position.qty, price: position.avgPrice, total: refund });
       await portfolio.save();
-      redis.del(`portfolio:${decoded.id}`).catch(() => {});
+      redis.del(`portfolio:${decoded.id}:${slot}`).catch(() => {});
+      redis.del(`portfolio:${decoded.id}`).catch(() => {});  // legacy key
       return res.json({ ok: true, cash: portfolio.cash, refunded: true });
     }
     const priceData = await getPrice(asset);
     const price     = priceData.price;
     const total     = price * qty;
-    const portfolio = await Portfolio.findOne({ userId: decoded.id });
+    const portfolio = await Portfolio.findOne(portfolioFilter(decoded.id, slot));
     if (!portfolio) return res.status(404).json({ error: 'Portfolio not found' });
     const position  = portfolio.positions.find(p => p.symbol === symbol);
     if (!position || position.qty < qty) return res.status(400).json({ error: 'Insufficient position' });
@@ -3424,7 +3559,8 @@ app.post('/portfolio/sell', async (req, res) => {
     }
     portfolio.transactions.push({ symbol, name: asset.name, type: asset.type, action: 'sell', qty, price, total, avgPrice: position?.avgPrice ?? price });
     await portfolio.save();
-    redis.del(`portfolio:${decoded.id}`).catch(() => {});
+    redis.del(`portfolio:${decoded.id}:${slot}`).catch(() => {});
+    redis.del(`portfolio:${decoded.id}`).catch(() => {});  // legacy key
     res.json({ ok: true, cash: portfolio.cash });
   } catch (err) {
     console.error('Sell error:', err.message);
@@ -3454,15 +3590,16 @@ app.post('/portfolio/order', async (req, res) => {
   if (!auth) return res.status(401).json({ error: 'No token' });
   try {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const { symbol, type, qty } = req.body;
+    const { symbol, type, qty, slot: rawSlot } = req.body;
+    const slot = Number(rawSlot) === 1 ? 1 : 0;
     if (!qty || qty <= 0 || !Number.isFinite(qty)) return res.status(400).json({ error: 'Invalid quantity' });
     if (type !== 'buy' && type !== 'sell') return res.status(400).json({ error: 'Invalid type' });
     const asset = PORTFOLIO_ASSETS.find(a => a.symbol === symbol);
     if (!asset) return res.status(400).json({ error: 'Asset not found' });
     if (isPortfolioMarketOpen(asset.type)) return res.status(400).json({ error: 'Market is open — use the regular buy/sell flow' });
     const PortfolioOrder = mongoose.model('PortfolioOrder');
-    let portfolio = await Portfolio.findOne({ userId: decoded.id });
-    if (!portfolio) portfolio = await Portfolio.create({ userId: decoded.id, cash: 50000, positions: [], transactions: [] });
+    let portfolio = await Portfolio.findOne(portfolioFilter(decoded.id, slot));
+    if (!portfolio) portfolio = await Portfolio.create({ userId: decoded.id, slot, cash: 50000, positions: [], transactions: [] });
     let reservedCash = 0;
     if (type === 'buy') {
       const priceData = await getPrice(asset);
@@ -3470,7 +3607,8 @@ app.post('/portfolio/order', async (req, res) => {
       if (portfolio.cash < reservedCash) return res.status(400).json({ error: 'Insufficient funds' });
       portfolio.cash -= reservedCash;
       await portfolio.save();
-      redis.del(`portfolio:${decoded.id}`).catch(() => {});
+      redis.del(`portfolio:${decoded.id}:${slot}`).catch(() => {});
+      redis.del(`portfolio:${decoded.id}`).catch(() => {});  // legacy key
     } else {
       const position = portfolio.positions.find(p => p.symbol === symbol);
       if (!position || position.qty < qty) return res.status(400).json({ error: 'Insufficient position' });
@@ -3625,12 +3763,16 @@ app.post('/portfolio/snapshot', async (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'No token' });
   try {
-    const decoded    = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const totalValue = await getPortfolioValue(decoded.id);
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const slot = Number(req.body?.slot ?? req.query?.slot) === 1 ? 1 : 0;
+    const totalValue = await getPortfolioValue(decoded.id, slot);
     const date = new Date().toISOString().split('T')[0];
+    const histFilter = slot === 1
+      ? { userId: decoded.id, date, slot: 1 }
+      : { userId: decoded.id, date, slot: { $in: [0, null] } };
     await PortfolioHistory.findOneAndUpdate(
-      { userId: decoded.id, date },
-      { totalValue },
+      histFilter,
+      { $set: { totalValue, slot } },
       { upsert: true }
     );
     res.json({ ok: true });
@@ -3644,7 +3786,11 @@ app.get('/portfolio/history', async (req, res) => {
   if (!auth) return res.status(401).json({ error: 'No token' });
   try {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const history = await PortfolioHistory.find({ userId: decoded.id }).sort({ date: 1 });
+    const slot = Number(req.query?.slot) === 1 ? 1 : 0;
+    const histQuery = slot === 1
+      ? { userId: decoded.id, slot: 1 }
+      : { userId: decoded.id, slot: { $in: [0, null] } };
+    const history = await PortfolioHistory.find(histQuery).sort({ date: 1 });
     res.json(history);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -3685,10 +3831,10 @@ app.get('/portfolio/weekly/leaderboard', async (req, res) => {
     const baselineHistory = await PortfolioHistory.aggregate([
       { $match: { userId: { $in: activeUserIds }, date: { $lt: mondayStr } } },
       { $sort: { date: -1 } },
-      { $group: { _id: '$userId', totalValue: { $first: '$totalValue' } } },
+      { $group: { _id: { userId: '$userId', slot: { $ifNull: ['$slot', 0] } }, totalValue: { $first: '$totalValue' } } },
     ]);
     const baselineMap = {};
-    baselineHistory.forEach(h => { baselineMap[String(h._id)] = h.totalValue; });
+    baselineHistory.forEach(h => { baselineMap[`${h._id.userId}:${h._id.slot}`] = h.totalValue; });
 
     const portfolios = await Portfolio.find({ userId: { $in: activeUserIds } })
       .populate('userId', 'name avatar customAvatar username activeCosmetics');
@@ -3697,9 +3843,10 @@ app.get('/portfolio/weekly/leaderboard', async (req, res) => {
     prices.filter(Boolean).forEach(p => { priceMap[p.symbol] = p.price; });
 
     const allLeaderboard = portfolios.map(p => {
+      const slotNum    = p.slot ?? 0;
       const invested   = p.positions.reduce((s, pos) => s + (priceMap[pos.symbol] || pos.avgPrice) * pos.qty, 0);
       const totalValue = p.cash + invested;
-      const baseline   = baselineMap[String(p.userId?._id)] ?? 50000;
+      const baseline   = baselineMap[`${p.userId?._id}:${slotNum}`] ?? 50000;
       const returnPct  = ((totalValue - baseline) / baseline) * 100;
       return {
         userId:          String(p.userId?._id || ''),
@@ -3711,6 +3858,7 @@ app.get('/portfolio/weekly/leaderboard', async (req, res) => {
         totalValue,
         returnPct,
         cash:            p.cash,
+        slot:            slotNum,
       };
     }).sort((a, b) => b.returnPct - a.returnPct);
 
@@ -3718,10 +3866,11 @@ app.get('/portfolio/weekly/leaderboard', async (req, res) => {
     let userPosition = null;
     const { userId } = req.query;
     if (userId) {
-      const idx = allLeaderboard.findIndex(p => p.userId === String(userId));
-      if (idx >= 10) {
-        const u = allLeaderboard[idx];
-        userPosition = { rank: idx + 1, returnPct: u.returnPct, totalValue: u.totalValue, name: u.name, username: u.username, avatar: u.avatar, customAvatar: u.customAvatar, activeCosmetics: u.activeCosmetics };
+      const allEntries = allLeaderboard.map((e, idx) => ({ ...e, rank: idx + 1 }));
+      const outsideTop10 = allEntries.filter(e => e.userId === String(userId) && e.rank > 10);
+      if (outsideTop10.length > 0) {
+        const best = outsideTop10.reduce((a, b) => a.rank < b.rank ? a : b);
+        userPosition = { rank: best.rank, returnPct: best.returnPct, totalValue: best.totalValue, name: best.name, username: best.username, avatar: best.avatar, customAvatar: best.customAvatar, activeCosmetics: best.activeCosmetics, slot: best.slot };
       }
     }
     res.json({ leaderboard: top10, userPosition });
@@ -3739,6 +3888,7 @@ app.get('/portfolio/leaderboard', async (req, res) => {
     prices.filter(Boolean).forEach(p => { priceMap[p.symbol] = p.price; });
 
     const allLeaderboard = portfolios.map(p => {
+      const slotNum = p.slot ?? 0;
       const invested = p.positions.reduce((s, pos) => {
         const price = priceMap[pos.symbol] || pos.avgPrice;
         return s + price * pos.qty;
@@ -3755,6 +3905,7 @@ app.get('/portfolio/leaderboard', async (req, res) => {
         totalValue,
         returnPct,
         cash:            p.cash,
+        slot:            slotNum,
       };
     })
     .filter(p => p.totalValue !== 50000)
@@ -3764,10 +3915,11 @@ app.get('/portfolio/leaderboard', async (req, res) => {
     let userPosition = null;
     const { userId } = req.query;
     if (userId) {
-      const idx = allLeaderboard.findIndex(p => p.userId === String(userId));
-      if (idx >= 10) {
-        const u = allLeaderboard[idx];
-        userPosition = { rank: idx + 1, returnPct: u.returnPct, totalValue: u.totalValue, name: u.name, username: u.username, avatar: u.avatar, customAvatar: u.customAvatar, activeCosmetics: u.activeCosmetics };
+      const allEntries = allLeaderboard.map((e, idx) => ({ ...e, rank: idx + 1 }));
+      const outsideTop10 = allEntries.filter(e => e.userId === String(userId) && e.rank > 10);
+      if (outsideTop10.length > 0) {
+        const best = outsideTop10.reduce((a, b) => a.rank < b.rank ? a : b);
+        userPosition = { rank: best.rank, returnPct: best.returnPct, totalValue: best.totalValue, name: best.name, username: best.username, avatar: best.avatar, customAvatar: best.customAvatar, activeCosmetics: best.activeCosmetics, slot: best.slot };
       }
     }
     res.json({ leaderboard: top10, userPosition });
@@ -3775,9 +3927,9 @@ app.get('/portfolio/leaderboard', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-async function getPortfolioValue(userId) {
+async function getPortfolioValue(userId, slot = 0) {
   try {
-    const portfolio = await Portfolio.findOne({ userId });
+    const portfolio = await Portfolio.findOne(portfolioFilter(userId, slot));
     if (!portfolio) return 50000;
     const priceMap = {};
     await Promise.all(PORTFOLIO_ASSETS.map(async a => {
@@ -4036,8 +4188,9 @@ app.get('/u/:username', async (req, res) => {
     if (!target) return res.status(404).json({ error: 'User not found' });
 
     let portfolioReturn = null, totalValue = null, enrichedPositions = null;
+    let portfolio2Return = null, totalValue2 = null, enrichedPositions2 = null;
     try {
-      const portfolio = await Portfolio.findOne({ userId: target._id });
+      const portfolio = await Portfolio.findOne(portfolioFilter(target._id, 0));
       if (portfolio) {
         const priceMap = {};
         await Promise.all(PORTFOLIO_ASSETS.map(async a => {
@@ -4056,6 +4209,24 @@ app.get('/u/:username', async (req, res) => {
           const pnl          = currentValue - costBasis;
           return { symbol: pos.symbol, name: pos.name, type: pos.type, qty: pos.qty, avgPrice: pos.avgPrice, currentPrice, currentValue, pnl, pnlPct: costBasis > 0 ? (pnl / costBasis) * 100 : 0 };
         });
+
+        if (target.battlePassMechanics?.includes('mechanic_portfolio_double')) {
+          try {
+            const portfolio2 = await Portfolio.findOne({ userId: target._id, slot: 1 });
+            if (portfolio2) {
+              const invested2 = portfolio2.positions.reduce((s, pos) => s + (priceMap[pos.symbol] || pos.avgPrice) * pos.qty, 0);
+              totalValue2 = portfolio2.cash + invested2;
+              portfolio2Return = ((totalValue2 - 50000) / 50000) * 100;
+              enrichedPositions2 = portfolio2.positions.map(pos => {
+                const currentPrice = priceMap[pos.symbol] || pos.avgPrice;
+                const currentValue = currentPrice * pos.qty;
+                const costBasis = pos.avgPrice * pos.qty;
+                const pnl = currentValue - costBasis;
+                return { symbol: pos.symbol, name: pos.name, type: pos.type, qty: pos.qty, avgPrice: pos.avgPrice, currentPrice, currentValue, pnl, pnlPct: costBasis > 0 ? (pnl / costBasis) * 100 : 0 };
+              });
+            }
+          } catch {}
+        }
       }
     } catch {}
 
@@ -4087,6 +4258,9 @@ app.get('/u/:username', async (req, res) => {
       portfolioReturn,
       totalValue,
       positions:       requesterMechanics.includes('mechanic_portfolio_view') ? enrichedPositions : null,
+      portfolio2Return,
+      totalValue2,
+      positions2:      requesterMechanics.includes('mechanic_portfolio_view') ? enrichedPositions2 : null,
       joinedAt:        target.createdAt,
       friendshipStatus,
       isPro:           target.isPro || false,

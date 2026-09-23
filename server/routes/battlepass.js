@@ -315,63 +315,60 @@ router.post('/claim/:level', requireAuth, async (req, res) => {
 
     // Collect rewards to grant
     const toGrant = [];
-    if (grantFree) toGrant.push(levelCfg.freeReward);
-    if (grantPro)  toGrant.push(levelCfg.proReward);
+    if (grantFree) toGrant.push({ ...levelCfg.freeReward, track: 'free' });
+    if (grantPro)  toGrant.push({ ...levelCfg.proReward,  track: 'pro'  });
 
     const rewardsGranted = [];
+
+    // Build atomic update
+    const incOps      = {};
+    const addToSetMap = {};
+    const pushMap     = {};
 
     for (const reward of toGrant) {
       switch (reward.type) {
         case 'xp':
-          user.xp = (user.xp || 0) + reward.amount;
+          incOps.xp = (incOps.xp || 0) + reward.amount;
           break;
-
         case 'badge':
-          if (!user.badges.includes(reward.itemId))
-            user.badges.push(reward.itemId);
+          if (!addToSetMap.badges) addToSetMap.badges = { $each: [] };
+          addToSetMap.badges.$each.push(reward.itemId);
           break;
-
+        case 'title':
         case 'frame':
         case 'avatar':
         case 'theme':
         case 'effect':
         case 'username_color':
-          // Store with provenance so inventory can filter by source/season
-          if (!user.purchases.includes(reward.itemId))
-            user.purchases.push(reward.itemId);
+          if (!addToSetMap.purchases) addToSetMap.purchases = { $each: [] };
+          addToSetMap.purchases.$each.push(reward.itemId);
           break;
-
         case 'mechanic':
-          // Register the mechanic as unlocked. Idempotent — skips if already present.
-          user.battlePassMechanics = user.battlePassMechanics || [];
-          if (reward.itemId && !user.battlePassMechanics.includes(reward.itemId)) {
-            user.battlePassMechanics.push(reward.itemId);
+          if (reward.itemId) {
+            if (!addToSetMap.battlePassMechanics) addToSetMap.battlePassMechanics = { $each: [] };
+            addToSetMap.battlePassMechanics.$each.push(reward.itemId);
           }
           break;
-
         case 'ticket':
-          user.battlePassItems = user.battlePassItems || [];
-          user.battlePassItems.push({ itemId: reward.itemId, used: false });
+          if (!pushMap.battlePassItems) pushMap.battlePassItems = { $each: [] };
+          pushMap.battlePassItems.$each.push({ itemId: reward.itemId, used: false });
           break;
       }
       rewardsGranted.push(reward);
     }
 
-    // Update claimed tracking (legacy + per-track)
-    user.battlePass.claimedRewards.push(levelNum);
-    if (grantFree) {
-      user.battlePass.claimedFreeRewards = user.battlePass.claimedFreeRewards || [];
-      if (!user.battlePass.claimedFreeRewards.includes(levelNum))
-        user.battlePass.claimedFreeRewards.push(levelNum);
-    }
-    if (grantPro) {
-      user.battlePass.claimedProRewards = user.battlePass.claimedProRewards || [];
-      if (!user.battlePass.claimedProRewards.includes(levelNum))
-        user.battlePass.claimedProRewards.push(levelNum);
-    }
-    user.markModified('battlePass');
+    // Claimed tracking — $addToSet prevents duplicates (fixes Bloque 8 too)
+    addToSetMap['battlePass.claimedRewards']     = { $each: [levelNum] };
+    if (grantFree) addToSetMap['battlePass.claimedFreeRewards'] = { $each: [levelNum] };
+    if (grantPro)  addToSetMap['battlePass.claimedProRewards']  = { $each: [levelNum] };
 
-    await user.save();
+    const atomicUpdate = {};
+    if (Object.keys(incOps).length)      atomicUpdate.$inc      = incOps;
+    if (Object.keys(addToSetMap).length) atomicUpdate.$addToSet = addToSetMap;
+    if (Object.keys(pushMap).length)     atomicUpdate.$push     = pushMap;
+
+    const User = mongoose.model('User');
+    await User.findByIdAndUpdate(user._id, atomicUpdate);
 
     res.json({ claimed: levelNum, rewards: rewardsGranted });
   } catch (err) {

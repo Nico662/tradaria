@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
@@ -30,5 +31,9 @@
     "stripe": "^17.7.0",
     "web-push": "^3.6.7",
     "yahoo-finance2": "^3.13.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "mongodb-memory-server": "^10.4.3"
   }
 }
