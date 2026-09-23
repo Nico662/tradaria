@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useLang } from './LangContext.jsx';
 
-const ENABLED = import.meta.env.VITE_MAINTENANCE_MODE === 'true';
+const ENABLED = true;
 
 export default function MaintenanceBanner() {
   const { t } = useLang();
