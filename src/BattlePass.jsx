@@ -139,12 +139,12 @@ export default function BattlePass({ onBack, onGoPricing }) {
 
   useEffect(() => {
     if (!scrollRef.current || didScroll.current) return;
-    if (userLevel === 0 && claimedRewards.length === 0) return;
+    if (userLevel === 0 && claimedFreeRewards.length === 0 && claimedProRewards.length === 0) return;
     didScroll.current = true;
     const targetLevel = Math.min(userLevel + 1, 30);
     const rowH = CARD_H + ROW_PY * 2;
     scrollRef.current.scrollTop = Math.max(0, (targetLevel - 2) * rowH - 20);
-  }, [userLevel, claimedRewards]);
+  }, [userLevel, claimedFreeRewards, claimedProRewards]);
 
   async function handleClaim(levelNum) {
     if (claimingLevel !== null) return;
