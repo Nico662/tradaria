@@ -106,10 +106,12 @@ function ProgressRing({ pct, level }) {
 
 export default function BattlePass({ onBack, onGoPricing }) {
   const {
-    season:         ctxSeason,
-    userLevel:      ctxUserLevel,
-    bpPoints:       ctxBpPoints,
-    claimedRewards: ctxClaimedRewards,
+    season:              ctxSeason,
+    userLevel:           ctxUserLevel,
+    bpPoints:            ctxBpPoints,
+    claimedFreeRewards:  ctxClaimedFreeRewards,
+    claimedProRewards:   ctxClaimedProRewards,
+    missionProgress:     ctxMissionProgress,
     isLoading,
     claimReward,
   } = useBattlePass();
@@ -128,11 +130,12 @@ export default function BattlePass({ onBack, onGoPricing }) {
   const mockActive = USE_MOCK_BP && import.meta.env.DEV && !ctxSeason;
 
   // ── Fuente de datos: real o mock ────────────────────────────────────────────
-  const season        = mockActive ? MOCK_SEASON        : ctxSeason;
-  const userLevel     = mockActive ? MOCK_USER_LEVEL     : ctxUserLevel;
-  const bpPoints      = mockActive ? MOCK_BP_POINTS      : ctxBpPoints;
-  const claimedRewards = mockActive ? mockClaimed         : ctxClaimedRewards;
-  const isPro         = mockActive ? MOCK_IS_PRO         : ctxIsPro;
+  const season             = mockActive ? MOCK_SEASON    : ctxSeason;
+  const userLevel          = mockActive ? MOCK_USER_LEVEL : ctxUserLevel;
+  const bpPoints           = mockActive ? MOCK_BP_POINTS  : ctxBpPoints;
+  const claimedFreeRewards = mockActive ? mockClaimed     : ctxClaimedFreeRewards;
+  const claimedProRewards  = mockActive ? mockClaimed     : ctxClaimedProRewards;
+  const isPro              = mockActive ? MOCK_IS_PRO     : ctxIsPro;
 
   useEffect(() => {
     if (!scrollRef.current || didScroll.current) return;
@@ -386,11 +389,11 @@ export default function BattlePass({ onBack, onGoPricing }) {
 
         {/* Level rows */}
         {SEASON1_LEVELS.map((lvl) => {
-          const freeState  = getCardState(lvl.freeReward, lvl.level, 'free', userLevel, claimedRewards, isPro);
-          const proState   = getCardState(lvl.proReward,  lvl.level, 'pro',  userLevel, claimedRewards, isPro);
+          const freeState  = getCardState(lvl.freeReward, lvl.level, 'free', userLevel, claimedFreeRewards, isPro);
+          const proState   = getCardState(lvl.proReward,  lvl.level, 'pro',  userLevel, claimedProRewards,  isPro);
           const isClaiming = claimingLevel === lvl.level;
           const isActive   = lvl.level === userLevel;
-          const isClaimed  = claimedRewards.includes(lvl.level);
+          const isClaimed  = claimedFreeRewards.includes(lvl.level) || claimedProRewards.includes(lvl.level);
 
           const spineColor = lvl.level <= userLevel
             ? 'var(--green)'
@@ -434,7 +437,7 @@ export default function BattlePass({ onBack, onGoPricing }) {
                   state={freeState}
                   track="free"
                   isActive={isActive}
-                  missionProgress={isActive ? MOCK_ACTIVE_PROGRESS.free : null}
+                  missionProgress={isActive ? ctxMissionProgress?.free : null}
                   animate={justClaimed === lvl.level}
                   isClaiming={isClaiming}
                   onClaim={() => handleClaim(lvl.level)}
@@ -477,7 +480,7 @@ export default function BattlePass({ onBack, onGoPricing }) {
                   state={proState}
                   track="pro"
                   isActive={isActive}
-                  missionProgress={isActive ? MOCK_ACTIVE_PROGRESS.pro : null}
+                  missionProgress={isActive ? ctxMissionProgress?.pro : null}
                   animate={justClaimed === lvl.level}
                   isClaiming={isClaiming}
                   onClaim={() => handleClaim(lvl.level)}

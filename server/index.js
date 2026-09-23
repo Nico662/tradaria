@@ -159,7 +159,9 @@ const UserSchema = new mongoose.Schema({
     seasonId:             { type: Number,   default: null },
     bpPoints:             { type: Number,   default: 0 },
     completedMissions:    { type: [String], default: [] }, // mission IDs (e.g. 'bp_s1_l1')
-    claimedRewards:       { type: [Number], default: [] }, // level numbers claimed (e.g. [2, 4])
+    claimedRewards:       { type: [Number], default: [] }, // legacy flat array — kept for idempotency check; do not remove
+    claimedFreeRewards:   { type: [Number], default: [] }, // levels where free reward was claimed
+    claimedProRewards:    { type: [Number], default: [] }, // levels where pro reward was claimed
     // ── Phase 5A counters ───────────────────────────────────────────────────────
     survivalRoundsTotal:       { type: Number, default: 0 }, // total rounds survived in Survival
     classicMaxStreak:          { type: Number, default: 0 }, // best consecutive streak in Classic

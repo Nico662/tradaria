@@ -87,6 +87,76 @@ async function addBattlePassProgress(userId, points, missionId = null, source = 
   return { leveledUp: newLevel > oldLevel, newLevel };
 }
 
+// ── inferClaimedTracks ────────────────────────────────────────────────────────
+// For users who claimed rewards before the claimedFreeRewards/claimedProRewards
+// fields existed, reconstruct which tracks were claimed from the legacy
+// claimedRewards array (level numbers only, no track info).
+//
+// Inference rules per level present in legacy claimedRewards:
+//   • free-only level  → claimedFree
+//   • pro-only level   → claimedPro
+//   • both tracks exist:
+//       always → claimedFree (free reward was definitely claimed)
+//       → claimedPro if user.isPro OR proMission is in completedMissions
+//         (covers former-Pro users who downgraded after claiming)
+//
+// Returns plain arrays (not Sets) ready to send to the client.
+function inferClaimedTracks(bp, user) {
+  if (!bp) return { claimedFreeRewards: [], claimedProRewards: [] };
+
+  const claimedFree = new Set(bp.claimedFreeRewards || []);
+  const claimedPro  = new Set(bp.claimedProRewards  || []);
+
+  for (const levelNum of (bp.claimedRewards || [])) {
+    // Skip levels already recorded in the new fields (claimed post-fix)
+    if (claimedFree.has(levelNum) || claimedPro.has(levelNum)) continue;
+
+    const lvlCfg = season1.LEVELS[levelNum - 1];
+    if (!lvlCfg) continue;
+
+    const hasFree = !!lvlCfg.freeReward;
+    const hasPro  = !!lvlCfg.proReward;
+
+    if (hasFree && !hasPro) {
+      claimedFree.add(levelNum);
+    } else if (!hasFree && hasPro) {
+      claimedPro.add(levelNum);
+    } else if (hasFree && hasPro) {
+      claimedFree.add(levelNum);
+      const proMissionId = lvlCfg.proMission ? lvlCfg.proMission.id : null;
+      const proWasClaimed = user.isPro ||
+        (proMissionId && (bp.completedMissions || []).includes(proMissionId));
+      if (proWasClaimed) claimedPro.add(levelNum);
+    }
+  }
+
+  return {
+    claimedFreeRewards: [...claimedFree],
+    claimedProRewards:  [...claimedPro],
+  };
+}
+
+// ── progressFor ──────────────────────────────────────────────────────────────
+// Maps a mission config + stored bp counters → { current, target } for the UI.
+// Returns null for disabled missions or unrecognised types (no progress bar shown).
+function progressFor(m, bp, user) {
+  if (!m || m.enabled === false || !bp) return null;
+  if (bp.completedMissions.includes(m.id)) return { current: m.target, target: m.target };
+  switch (m.type) {
+    case 'play_any_game':         return { current: 0,                                       target: m.target };
+    case 'survival_rounds':       return { current: bp.survivalRoundsTotal       || 0,        target: m.target };
+    case 'classic_streak':        return { current: bp.classicMaxStreak          || 0,        target: m.target };
+    case 'classic_wins':          return { current: bp.classicWinsTotal          || 0,        target: m.target };
+    case 'complete_daily':        return { current: bp.dailiesCompleted          || 0,        target: m.target };
+    case 'daily_streak':
+    case 'streak_days':           return { current: user.dailyStreak             || 0,        target: m.target };
+    case 'arena_wins':            return { current: bp.arenaWinsTotal            || 0,        target: m.target };
+    case 'historical_event':      return { current: bp.historicalEventsCompleted || 0,        target: m.target };
+    case 'historical_all_events': return { current: (bp.completedEventIds || []).length,      target: m.target };
+    default:                      return null;
+  }
+}
+
 // ── GET /battle-pass/current-season ──────────────────────────────────────────
 // Returns the active season + the authenticated user's progress.
 // If no season is currently active, returns { season: null }.
@@ -107,6 +177,14 @@ router.get('/current-season', requireAuth, async (req, res) => {
       ? (level + 1) * season1.BP_POINTS_PER_LEVEL - bpPoints
       : 0;
 
+    // Progress toward the active level's missions (the row marked isActive in the UI).
+    // level=0 → no active row → null.
+    const activeLevelCfg = (level > 0 && level <= 30) ? season1.LEVELS[level - 1] : null;
+    const missionProgress = (activeLevelCfg && bp) ? {
+      free: activeLevelCfg.freeMission ? progressFor(activeLevelCfg.freeMission, bp, user) : null,
+      pro:  activeLevelCfg.proMission  ? progressFor(activeLevelCfg.proMission,  bp, user) : null,
+    } : null;
+
     res.json({
       season: {
         seasonId:  season.seasonId,
@@ -118,8 +196,9 @@ router.get('/current-season', requireAuth, async (req, res) => {
         level,
         bpPoints,
         pointsToNextLevel,
-        claimedRewards:    bp ? bp.claimedRewards    : [],
+        ...inferClaimedTracks(bp, user),
         completedMissions: bp ? bp.completedMissions : [],
+        missionProgress,
       },
     });
   } catch (err) {
@@ -229,6 +308,16 @@ router.post('/claim/:level', requireAuth, async (req, res) => {
     }
 
     user.battlePass.claimedRewards.push(levelNum);
+    if (grantFree) {
+      user.battlePass.claimedFreeRewards = user.battlePass.claimedFreeRewards || [];
+      if (!user.battlePass.claimedFreeRewards.includes(levelNum))
+        user.battlePass.claimedFreeRewards.push(levelNum);
+    }
+    if (grantPro) {
+      user.battlePass.claimedProRewards = user.battlePass.claimedProRewards || [];
+      if (!user.battlePass.claimedProRewards.includes(levelNum))
+        user.battlePass.claimedProRewards.push(levelNum);
+    }
     user.markModified('battlePass');
 
     await user.save();

@@ -9,15 +9,17 @@ import { useAuth } from './AuthContext.jsx';
 const BattlePassContext = createContext(null);
 
 export function BattlePassProvider({ children }) {
-  const { user } = useAuth();
+  const { user, isPro } = useAuth();
 
-  const [season,            setSeason]            = useState(null);
-  const [userLevel,         setUserLevel]         = useState(0);
-  const [bpPoints,          setBpPoints]          = useState(0);
-  const [pointsToNextLevel, setPointsToNextLevel] = useState(0);
-  const [claimedRewards,    setClaimedRewards]    = useState([]);
-  const [completedMissions, setCompletedMissions] = useState([]);
-  const [isLoading,         setIsLoading]         = useState(false);
+  const [season,             setSeason]             = useState(null);
+  const [userLevel,          setUserLevel]          = useState(0);
+  const [bpPoints,           setBpPoints]           = useState(0);
+  const [pointsToNextLevel,  setPointsToNextLevel]  = useState(0);
+  const [claimedFreeRewards, setClaimedFreeRewards] = useState([]);
+  const [claimedProRewards,  setClaimedProRewards]  = useState([]);
+  const [completedMissions,  setCompletedMissions]  = useState([]);
+  const [missionProgress,    setMissionProgress]    = useState(null);
+  const [isLoading,          setIsLoading]          = useState(false);
 
   const fetchBattlePass = useCallback(async () => {
     const token = localStorage.getItem('tradaria_token');
@@ -37,8 +39,10 @@ export function BattlePassProvider({ children }) {
       setUserLevel(data.user.level);
       setBpPoints(data.user.bpPoints);
       setPointsToNextLevel(data.user.pointsToNextLevel);
-      setClaimedRewards(data.user.claimedRewards);
+      setClaimedFreeRewards(data.user.claimedFreeRewards ?? []);
+      setClaimedProRewards(data.user.claimedProRewards   ?? []);
       setCompletedMissions(data.user.completedMissions);
+      setMissionProgress(data.user.missionProgress ?? null);
     } catch {}
     finally {
       setIsLoading(false);
@@ -54,8 +58,10 @@ export function BattlePassProvider({ children }) {
       setUserLevel(0);
       setBpPoints(0);
       setPointsToNextLevel(0);
-      setClaimedRewards([]);
+      setClaimedFreeRewards([]);
+      setClaimedProRewards([]);
       setCompletedMissions([]);
+      setMissionProgress(null);
     }
   }, [user, fetchBattlePass]);
 
@@ -66,8 +72,12 @@ export function BattlePassProvider({ children }) {
     const token = localStorage.getItem('tradaria_token');
     if (!token) return { ok: false, error: 'NOT_AUTHENTICATED' };
 
-    const snapshot = [...claimedRewards];
-    setClaimedRewards(prev => [...prev, levelNum]);
+    const snapshotFree = [...claimedFreeRewards];
+    const snapshotPro  = [...claimedProRewards];
+    // Free reward is always optimistically claimed (claim button only shows when claimable).
+    // Pro reward is only claimed if the user is currently Pro.
+    setClaimedFreeRewards(prev => [...prev, levelNum]);
+    if (isPro) setClaimedProRewards(prev => [...prev, levelNum]);
 
     try {
       const res = await fetch(`${SERVER}/battle-pass/claim/${levelNum}`, {
@@ -76,12 +86,14 @@ export function BattlePassProvider({ children }) {
       });
       const data = await res.json();
       if (!res.ok) {
-        setClaimedRewards(snapshot);
+        setClaimedFreeRewards(snapshotFree);
+        setClaimedProRewards(snapshotPro);
         return { ok: false, error: data.error };
       }
       return { ok: true, rewards: data.rewards };
     } catch {
-      setClaimedRewards(snapshot);
+      setClaimedFreeRewards(snapshotFree);
+      setClaimedProRewards(snapshotPro);
       return { ok: false, error: 'NETWORK_ERROR' };
     }
   }
@@ -94,8 +106,10 @@ export function BattlePassProvider({ children }) {
       userLevel,
       bpPoints,
       pointsToNextLevel,
-      claimedRewards,
+      claimedFreeRewards,
+      claimedProRewards,
       completedMissions,
+      missionProgress,
       isLoading,
       claimReward,
       refreshBattlePass: fetchBattlePass,
