@@ -96,6 +96,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
   const botInnerTimerRef  = useRef(null);
   const effectTimerRef    = useRef(null);
   const isBotGameRef      = useRef(false);
+  const gameIdRef         = useRef(null);
 
   const [isBotGame,        setIsBotGame]        = useState(false);
   const [botName,          setBotName]           = useState('');
@@ -155,7 +156,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
     fetch(`${SERVER}/stats/game`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode: 'arena', score: myScore, correct: won, wrong: 1 - won, accuracy: won * 100, streak: 0, rounds: total }),
+      body: JSON.stringify({ mode: 'arena', score: myScore, correct: won, wrong: 1 - won, accuracy: won * 100, streak: 0, rounds: total, gameId: gameIdRef.current }),
     }).catch(() => {});
     fetch(`${SERVER}/stats/personal`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json()).then(setPersonalStats).catch(() => {});
@@ -350,7 +351,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
     socket.on('matchmaking:waiting',       () => { setScreen('waiting'); setStatus(t.arena.searching); });
     socket.on('room:created',         (d) => { setRoomCode(d.code); setScreen('waiting'); setStatus('waiting_for_friend'); });
     socket.on('room:error',           (d) => setStatus(d.message));
-    socket.on('game:start',           (d) => { setGameData(d); setRound(d.round); setTotal(d.total); setOpponent(d.opponent); setScreen('game'); setPhase('choose'); setResult(null); startTimer(); });
+    socket.on('game:start',           (d) => { gameIdRef.current = crypto.randomUUID(); setGameData(d); setRound(d.round); setTotal(d.total); setOpponent(d.opponent); setScreen('game'); setPhase('choose'); setResult(null); startTimer(); });
     socket.on('game:opponent_chose',       () => setStatus(t.arena.opponentChose));
     socket.on('game:round_result',    (d) => { clearInterval(timerRef.current); setScores(d.scores); setNames(d.names); setResult(d); setPhase('result'); if (d.results?.[socket.id]?.win) triggerEffect(); });
     socket.on('game:next_round',      (d) => { setGameData(d); setRound(d.round); setResult(null); setPhase('choose'); setStatus(''); startTimer(); });

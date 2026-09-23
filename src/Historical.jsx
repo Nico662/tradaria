@@ -36,7 +36,7 @@ function EventIcon({ event, size = 32 }) {
 
 export default function Historical({ onBack }) {
   const { t, lang, setLang } = useLang();
-  const { activeCosmetics }  = useAuth();
+  const { activeCosmetics, user } = useAuth();
   const [activeEffect, setActiveEffect] = useState(false);
   function triggerEffect() { setActiveEffect(true); clearTimeout(effectTimerRef.current); effectTimerRef.current = setTimeout(() => setActiveEffect(false), 1500); }
   const [phase, setPhase]         = useState('select');
@@ -114,6 +114,23 @@ export default function Historical({ onBack }) {
     }
     if (completed.length >= 10) tryUnlockHistoricalBadge('historian');
     if (completed.length >= 50) tryUnlockHistoricalBadge('time_traveler');
+
+    if (user) {
+      const token = localStorage.getItem('tradaria_token');
+      if (token) {
+        fetch(`${SERVER}/stats/game`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({
+            mode: 'historical', rounds: 1, eventId: event.id,
+            score: win ? 1 : 0, correct: win ? 1 : 0, wrong: win ? 0 : 1,
+            accuracy: win ? 100 : 0, streak: 0,
+            gameId: crypto.randomUUID(),
+          }),
+        }).catch(() => {});
+      }
+    }
+
     const mr = incrementMission('play_historical');
     if (mr.completed) pushMission({ xpEarned: mr.xpEarned, title: mr.mission.title });
     const modeR = recordModePlayed('historical');

@@ -154,7 +154,7 @@ const LEVELS = [
     level: 12,
     freeMission: mission('bp_s1_l12_free', 'Historical Mode',     'Completa un evento en Historical Mode',               'historical_event',           'historical',   1),
     freeReward:  title('title_risk_taker', 'Risk Taker'),
-    proMission: mission('bp_s1_l12_pro', 'Historical Completo',   'Completa todos los eventos de Historical Mode',        'historical_all_events',      'historical',   0),
+    proMission: mission('bp_s1_l12_pro', 'Historical Completo',   'Completa todos los eventos de Historical Mode',        'historical_all_events',      'historical',  50),
     proReward:  ticket('ticket_restore_streak', 'Restauración de Racha'),
   },
 
@@ -226,6 +226,7 @@ const LEVELS = [
     level: 20,
     freeMission: mission('bp_s1_l20_free', 'Survival Medio',      'Sobrevive 50 rondas en Survival',                     'survival_rounds',            'survival',    50),
     freeReward:  title('title_bear_hunter', 'Bear Hunter'),
+    // win_tournament = awarded by the weekly-ranking cron when rank === 1, NOT by Tournament.jsx
     proMission: mission('bp_s1_l20_pro', 'Campeón de Torneo',     'Gana un torneo semanal',                              'win_tournament',             'tournament',   1),
     proReward:  mechanic('mechanic_verified_badge', 'Insignia Verificada'),
   },

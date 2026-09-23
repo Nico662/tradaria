@@ -19,6 +19,7 @@ const { Redis }      = require('@upstash/redis');
 const { ApnsClient, Notification } = require('apns2');
 const Season      = require('./models/Season');
 const season1Cfg  = require('./config/season1');
+const VALID_HISTORICAL_EVENT_IDS = require('./config/historicalEvents');
 
 const apnsClient = new ApnsClient({
   team: 'KA99F6SRW4',
@@ -48,6 +49,9 @@ const VALID_BADGE_IDS = new Set([
 ]);
 
 const VALID_GAME_MODES = new Set(['guess', 'survival', 'daily', 'arena', 'tournament', 'historical', 'portfolio']);
+// Maximum rounds accepted per mode. Prevents crafted requests from completing
+// all survival missions in a single API call (real sessions can't exceed these).
+const MODE_ROUND_CAPS = { survival: 300, guess: 200, historical: 1, arena: 30, portfolio: 50, tournament: 50, daily: 50 };
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 const GOOGLE_CLIENT_ID     = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
@@ -330,6 +334,7 @@ const GameHistorySchema = new mongoose.Schema({
   accuracy:  { type: Number, default: 0 },
   streak:    { type: Number, default: 0 },
   rounds:    { type: Number, default: 0 },
+  gameId:    { type: String, index: true, sparse: true }, // optional UUID for network-retry deduplication
   createdAt: { type: Date, default: Date.now },
 });
 const GameHistory = mongoose.model('GameHistory', GameHistorySchema);
@@ -1496,16 +1501,29 @@ app.post('/stats/game', async (req, res) => {
   const decoded = verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
-    const { mode, score, correct, wrong, accuracy, streak, rounds, eventId } = req.body;
+    const { mode, score, correct, wrong, accuracy, streak, rounds, eventId, gameId } = req.body;
     if (!VALID_GAME_MODES.has(mode)) return res.status(400).json({ error: 'Invalid mode' });
+
+    // Fix H: idempotency via optional client-generated UUID
+    const safeGameId = (typeof gameId === 'string' &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(gameId))
+      ? gameId : null;
+    if (safeGameId) {
+      const existing = await GameHistory.findOne({ gameId: safeGameId });
+      if (existing) return res.json({ ok: true, bpProgress: null });
+    }
+
+    const roundCap   = MODE_ROUND_CAPS[mode] ?? 100;  // Fix B: per-mode cap
     const safeScore    = Math.max(0, Math.min(Number(score)    || 0, 100000));
-    const safeCorrect  = Math.max(0, Math.min(Number(correct)  || 0, 10000));
-    const safeWrong    = Math.max(0, Math.min(Number(wrong)    || 0, 10000));
+    const safeCorrect  = Math.max(0, Math.min(Number(correct)  || 0, roundCap));
+    const safeWrong    = Math.max(0, Math.min(Number(wrong)    || 0, roundCap));
     const safeAccuracy = Math.max(0, Math.min(Number(accuracy) || 0, 100));
-    const safeStreak   = Math.max(0, Math.min(Number(streak)   || 0, 10000));
-    const safeRounds   = Math.max(0, Math.min(Number(rounds)   || 0, 10000));
-    const safeEventId  = (typeof eventId === 'string' && /^[a-z0-9_]{1,60}$/.test(eventId)) ? eventId : null;
-    await GameHistory.create({ userId: decoded.id, mode, score: safeScore, correct: safeCorrect, wrong: safeWrong, accuracy: safeAccuracy, streak: safeStreak, rounds: safeRounds });
+    const safeStreak   = Math.max(0, Math.min(Number(streak)   || 0, roundCap));
+    const safeRounds   = Math.max(0, Math.min(Number(rounds)   || 0, roundCap));
+    const safeEventId  = (typeof eventId === 'string' && VALID_HISTORICAL_EVENT_IDS.has(eventId))  // Fix I: validate against known IDs
+      ? eventId : null;
+
+    await GameHistory.create({ userId: decoded.id, mode, score: safeScore, correct: safeCorrect, wrong: safeWrong, accuracy: safeAccuracy, streak: safeStreak, rounds: safeRounds, gameId: safeGameId });
     const bpProgress = await processGameBpProgress(decoded.id, { mode, streak: safeStreak, rounds: safeRounds, correct: safeCorrect, eventId: safeEventId });
     res.json({ ok: true, bpProgress });
   } catch (err) {
@@ -2928,7 +2946,7 @@ cron.schedule('55 23 * * 0', async () => {
       { id: 'bp_s1_l19_pro', threshold: 10 },
       { id: 'bp_s1_l24_pro', threshold: 5  },
       { id: 'bp_s1_l29_pro', threshold: 3  },
-      { id: 'bp_s1_l20_pro', threshold: 1  }, // win_tournament: champion only
+      { id: 'bp_s1_l20_pro', threshold: 1  }, // win_tournament = weekly ranking position 1 (NOT Tournament.jsx game mode)
     ];
 
     let processed = 0, awarded = 0;

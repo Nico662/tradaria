@@ -45,6 +45,7 @@ export default function Survival({ onBack }) {
   const floatingXPKeyRef = useRef(0);
   const highscoreRef   = useRef(parseInt(localStorage.getItem('tradaria_survival_highscore') || '0'));
   const effectTimerRef = useRef(null);
+  const gameIdRef      = useRef(crypto.randomUUID());
   const [activeEffect,setActiveEffect] = useState(false);
   const chartRef = useRef(null);
 
@@ -181,6 +182,7 @@ export default function Survival({ onBack }) {
   };
 
   const playAgain = () => {
+    gameIdRef.current = crypto.randomUUID();
     setGameOver(false);
     setPhase('choose');
     setAsset(randomAsset());
@@ -213,7 +215,7 @@ export default function Survival({ onBack }) {
     fetch(`${SERVER}/stats/game`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode: 'survival', score, correct: wins, wrong: losses, accuracy: acc, streak, rounds: history.length }),
+      body: JSON.stringify({ mode: 'survival', score, correct: wins, wrong: losses, accuracy: acc, streak, rounds: history.length, gameId: gameIdRef.current }),
     }).catch(() => {});
     fetch(`${SERVER}/stats/personal`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json()).then(setPersonalStats).catch(() => {});

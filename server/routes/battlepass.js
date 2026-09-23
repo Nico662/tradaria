@@ -44,16 +44,34 @@ async function requireAuth(req, res, next) {
   }
 }
 
+// ── tryAwardAtomic ────────────────────────────────────────────────────────────
+// Fix D: atomic mission award using $addToSet + $ne filter.
+// Returns true if the mission was newly awarded, false if already completed.
+// Two concurrent calls with the same missionId are safe: the $ne filter ensures
+// only one can win the race; the loser gets null and is a no-op.
+
+async function tryAwardAtomic(userId, missionId, awardedMissions) {
+  const User = mongoose.model('User');
+  const r = await User.findOneAndUpdate(
+    { _id: userId, 'battlePass.completedMissions': { $ne: missionId } },
+    {
+      $addToSet: { 'battlePass.completedMissions': missionId },
+      $inc:      { 'battlePass.bpPoints': season1.BP_POINTS_PER_LEVEL },
+    },
+    { new: false }
+  );
+  if (r) { awardedMissions.push(missionId); return true; }
+  return false;
+}
+
 // ── addBattlePassProgress ─────────────────────────────────────────────────────
 // Internal function called by game events (Phase 5) and by the claim endpoint.
 //
 // userId    – Mongoose ObjectId or string
 // points    – BP points to add (300 for mission, 10 for a game win)
-// missionId – optional; if provided, checked for idempotency and added to
-//             completedMissions so the same mission can never award points twice.
-// source    – optional label for future logging ('mission' | 'game_win' |
-//             'trading_mode' etc.). Trading Mode missions pass source:'trading_mode'
-//             but are gated by enabled:true in season1.js before this is called.
+// missionId – optional; if provided, checked atomically so same mission can
+//             never award points twice.
+// source    – optional label for logging ('mission' | 'game_win' | 'weekly_ranking')
 //
 // Returns { leveledUp, newLevel, alreadyCompleted, noActiveSeason }
 
@@ -62,29 +80,42 @@ async function addBattlePassProgress(userId, points, missionId = null, source = 
   const season = await getActiveSeason();
   if (!season) return { leveledUp: false, newLevel: 0, noActiveSeason: true };
 
-  const user = await User.findById(userId);
-  if (!user) return { leveledUp: false, newLevel: 0 };
+  // Ensure BP initialised for this season (atomic)
+  await User.findOneAndUpdate(
+    { _id: userId, 'battlePass.seasonId': { $ne: season.seasonId } },
+    { $set: { battlePass: { seasonId: season.seasonId, bpPoints: 0, completedMissions: [], claimedRewards: [] } } }
+  );
 
-  // Idempotency: a mission can only be completed once per season
   if (missionId) {
-    ensureBattlePassInit(user, season.seasonId);
-    if (user.battlePass.completedMissions.includes(missionId)) {
-      return { leveledUp: false, newLevel: computeLevel(user.battlePass.bpPoints), alreadyCompleted: true };
+    // Atomic award: only succeeds if mission not yet completed
+    const r = await User.findOneAndUpdate(
+      { _id: userId, 'battlePass.completedMissions': { $ne: missionId } },
+      {
+        $addToSet: { 'battlePass.completedMissions': missionId },
+        $inc:      { 'battlePass.bpPoints': points },
+      },
+      { new: true }
+    );
+    if (!r) {
+      // Filter matched nothing → mission already completed
+      const user = await User.findById(userId);
+      return { leveledUp: false, newLevel: computeLevel(user?.battlePass?.bpPoints ?? 0), alreadyCompleted: true };
     }
+    const oldLevel = computeLevel(r.battlePass.bpPoints - points);
+    const newLevel = computeLevel(r.battlePass.bpPoints);
+    return { leveledUp: newLevel > oldLevel, newLevel };
   } else {
-    ensureBattlePassInit(user, season.seasonId);
+    // Game win: no idempotency by design (each win adds +10 BP)
+    const r = await User.findOneAndUpdate(
+      { _id: userId },
+      { $inc: { 'battlePass.bpPoints': points } },
+      { new: true }
+    );
+    if (!r) return { leveledUp: false, newLevel: 0 };
+    const oldLevel = computeLevel(r.battlePass.bpPoints - points);
+    const newLevel = computeLevel(r.battlePass.bpPoints);
+    return { leveledUp: newLevel > oldLevel, newLevel };
   }
-
-  const oldLevel = computeLevel(user.battlePass.bpPoints);
-
-  user.battlePass.bpPoints += points;
-  if (missionId) user.battlePass.completedMissions.push(missionId);
-  user.markModified('battlePass');
-
-  await user.save();
-
-  const newLevel = computeLevel(user.battlePass.bpPoints);
-  return { leveledUp: newLevel > oldLevel, newLevel };
 }
 
 // ── inferClaimedTracks ────────────────────────────────────────────────────────
@@ -214,11 +245,14 @@ router.get('/current-season', requireAuth, async (req, res) => {
 //   1. Active season exists
 //   2. :level is an integer 1–30
 //   3. User's seasonId matches current season (init if first access)
-//   4. User has not already claimed this level
+//   4. Per-track ALREADY_CLAIMED check (Fix C: uses inferClaimedTracks, not legacy flat array)
 //   5. User's current level >= :level
-//   6. At least one reward exists for this user's tier at this level:
-//        – freeReward: always claimable (any user) if present
-//        – proReward:  only claimable if user.isPro === true
+//   6. Mission-specific completion check per track (Fix G):
+//        – freeMission must be in completedMissions (unless disabled/null)
+//        – proMission  must be in completedMissions (unless disabled/null)
+//   7. At least one reward exists for this user's tier:
+//        – freeReward: always claimable (any user) if present and not yet claimed
+//        – proReward:  only claimable if user.isPro === true and not yet claimed
 //      → free user at an odd level (proReward only) gets PRO_REQUIRED
 //
 // On success:
@@ -226,8 +260,8 @@ router.get('/current-season', requireAuth, async (req, res) => {
 //   – badge rewards → added to user.badges (deduplicated)
 //   – cosmetic rewards (frame/avatar/theme/effect/username_color)
 //                   → added to user.purchases with source metadata
-//   – ticket rewards→ added to user.battlePassItems (Fase 6d logic pending)
-//   – level added to user.battlePass.claimedRewards
+//   – ticket rewards→ added to user.battlePassItems
+//   – level added to user.battlePass.claimedRewards (legacy) + per-track arrays
 //
 // Returns { claimed: levelNum, rewards: [...] }
 
@@ -243,22 +277,41 @@ router.post('/claim/:level', requireAuth, async (req, res) => {
     const user = req.user;
     ensureBattlePassInit(user, season.seasonId);
 
-    // Already claimed?
-    if (user.battlePass.claimedRewards.includes(levelNum))
-      return res.status(403).json({ error: 'ALREADY_CLAIMED' });
+    const levelCfg = season1.LEVELS[levelNum - 1];
+
+    // Fix C: per-track ALREADY_CLAIMED check using inferClaimedTracks.
+    // Replaces the old per-level check so Free→Pro upgrades can still claim the Pro track.
+    const { claimedFreeRewards, claimedProRewards } = inferClaimedTracks(user.battlePass, user);
+    const freeAlreadyClaimed = claimedFreeRewards.includes(levelNum);
+    const proAlreadyClaimed  = claimedProRewards.includes(levelNum);
 
     // Level reached?
     const userLevel = computeLevel(user.battlePass.bpPoints);
     if (userLevel < levelNum)
       return res.status(403).json({ error: 'LEVEL_NOT_REACHED', currentLevel: userLevel });
 
-    const levelCfg = season1.LEVELS[levelNum - 1];
-    const grantFree = !!levelCfg.freeReward;
-    const grantPro  = !!levelCfg.proReward && user.isPro;
+    // Determine which tracks will be granted (accounting for already-claimed tracks)
+    const grantFree = !!levelCfg.freeReward  && !freeAlreadyClaimed;
+    const grantPro  = !!levelCfg.proReward   && user.isPro && !proAlreadyClaimed;
 
-    // No reward available for this user's tier?
-    if (!grantFree && !grantPro)
-      return res.status(403).json({ error: 'PRO_REQUIRED' });
+    // No reward available (all applicable tracks already claimed, or user is Free at Pro-only level)?
+    if (!grantFree && !grantPro) {
+      // Distinguish between "already claimed everything" vs "Pro required"
+      const hasAnyClaimed = freeAlreadyClaimed || proAlreadyClaimed;
+      return res.status(403).json({ error: hasAnyClaimed ? 'ALREADY_CLAIMED' : 'PRO_REQUIRED' });
+    }
+
+    // Fix G: mission-specific completion check per track.
+    // Disabled missions (Trading Mode, enabled===false) are exempt — they can't be
+    // completed yet, so BP-level gating remains as the only guard for those levels.
+    if (grantFree && levelCfg.freeMission?.enabled !== false) {
+      if (!user.battlePass.completedMissions.includes(levelCfg.freeMission.id))
+        return res.status(403).json({ error: 'MISSION_NOT_COMPLETED', missionId: levelCfg.freeMission.id });
+    }
+    if (grantPro && levelCfg.proMission?.enabled !== false) {
+      if (!user.battlePass.completedMissions.includes(levelCfg.proMission.id))
+        return res.status(403).json({ error: 'MISSION_NOT_COMPLETED', missionId: levelCfg.proMission.id });
+    }
 
     // Collect rewards to grant
     const toGrant = [];
@@ -290,7 +343,6 @@ router.post('/claim/:level', requireAuth, async (req, res) => {
 
         case 'mechanic':
           // Register the mechanic as unlocked. Idempotent — skips if already present.
-          // Effects (portfolio view, verified badge, etc.) are enforced at use-time.
           user.battlePassMechanics = user.battlePassMechanics || [];
           if (reward.itemId && !user.battlePassMechanics.includes(reward.itemId)) {
             user.battlePassMechanics.push(reward.itemId);
@@ -298,8 +350,6 @@ router.post('/claim/:level', requireAuth, async (req, res) => {
           break;
 
         case 'ticket':
-          // Fase 6d: mechanic logic not yet implemented.
-          // Reserve the slot in battlePassItems so the item is trackable.
           user.battlePassItems = user.battlePassItems || [];
           user.battlePassItems.push({ itemId: reward.itemId, used: false });
           break;
@@ -307,6 +357,7 @@ router.post('/claim/:level', requireAuth, async (req, res) => {
       rewardsGranted.push(reward);
     }
 
+    // Update claimed tracking (legacy + per-track)
     user.battlePass.claimedRewards.push(levelNum);
     if (grantFree) {
       user.battlePass.claimedFreeRewards = user.battlePass.claimedFreeRewards || [];
@@ -342,10 +393,6 @@ function buildMissionsByType() {
   return map;
 }
 
-// Total distinct Historical Mode events. Mirrors the HISTORICAL_EVENTS array in the frontend.
-// Update this constant if events are added or removed.
-const TOTAL_HISTORICAL_EVENTS = 50;
-
 // Enabled mission IDs for each track, excluding level 30 (the completion missions themselves).
 // enabled:false missions (Trading Mode, not yet live) are excluded so level 30 is reachable.
 const ENABLED_FREE_MISSION_IDS = season1.LEVELS.slice(0, 29)
@@ -356,23 +403,32 @@ const ENABLED_PRO_MISSION_IDS = season1.LEVELS.slice(0, 29)
   .filter(l => l.proMission && l.proMission.enabled !== false)
   .map(l => l.proMission.id);
 
-// Check and award the level-30 completion missions given a loaded bp subdoc.
-// Call after all other tryAward calls inside a process function.
-function checkLevel30(bp, tryAward) {
-  const completedSet = new Set(bp.completedMissions);
+// ── checkLevel30Atomic ────────────────────────────────────────────────────────
+// Fix D: atomic replacement for checkLevel30 + checkCompletionBpMissions.
+// Reads the latest completedMissions state and awards level-30 completion
+// missions via tryAwardAtomic. Safe under concurrent access.
+
+async function checkLevel30Atomic(userId, awardedMissions) {
+  const User = mongoose.model('User');
+  const user = await User.findById(userId);
+  if (!user?.battlePass) return;
+  const completedSet   = new Set(user.battlePass.completedMissions);
   const missionsByType = buildMissionsByType();
   if (ENABLED_FREE_MISSION_IDS.every(id => completedSet.has(id))) {
-    for (const m of missionsByType['complete_all_free_missions'] || []) tryAward(m.id);
+    for (const m of missionsByType['complete_all_free_missions'] || [])
+      await tryAwardAtomic(userId, m.id, awardedMissions);
   }
   if (ENABLED_PRO_MISSION_IDS.every(id => completedSet.has(id))) {
-    for (const m of missionsByType['complete_all_pro_missions'] || []) tryAward(m.id);
+    for (const m of missionsByType['complete_all_pro_missions'] || [])
+      await tryAwardAtomic(userId, m.id, awardedMissions);
   }
 }
 
 // ── processGameBpProgress ─────────────────────────────────────────────────────
 // Called from POST /stats/game after recording the game in GameHistory.
-// Phase 5A:  play_any_game, survival_rounds, classic_streak
-// Phase 5C:  classic_wins (cumulative correct answers), historical_event
+// Fix D: all counter updates use atomic $inc/$max/$addToSet.
+// Fix A: Classic Mode uses mode==='guess' (App.jsx sends 'guess', not 'classic').
+// Fix F: Historical mode now calls this function (Historical.jsx was patched).
 //
 // Returns { leveledUp, newLevel, awardedMissions: [missionId, ...] }
 
@@ -381,84 +437,99 @@ async function processGameBpProgress(userId, { mode, streak = 0, rounds = 0, cor
   const season = await getActiveSeason();
   if (!season) return { leveledUp: false, newLevel: 0, awardedMissions: [] };
 
-  const user = await User.findById(userId);
+  // 1. Ensure BP initialised for this season (atomic, no-op if already correct)
+  await User.findOneAndUpdate(
+    { _id: userId, 'battlePass.seasonId': { $ne: season.seasonId } },
+    { $set: { battlePass: { seasonId: season.seasonId, bpPoints: 0, completedMissions: [], claimedRewards: [] } } }
+  );
+
+  // 2. Build atomic counter update for this game's mode
+  const incOps    = {};
+  const maxOps    = {};
+  const addSetOps = {};
+
+  if (mode === 'survival' && rounds > 0) {
+    incOps['battlePass.survivalRoundsTotal'] = rounds;
+  }
+  // Fix A: was mode === 'classic', now mode === 'guess' (Classic Mode internal identifier)
+  if (mode === 'guess') {
+    if (streak  > 0) maxOps['battlePass.classicMaxStreak']  = streak;
+    if (correct > 0) incOps['battlePass.classicWinsTotal']  = correct;
+  }
+  if (mode === 'historical') {
+    incOps['battlePass.historicalEventsCompleted'] = 1;
+    if (eventId) addSetOps['battlePass.completedEventIds'] = eventId;
+  }
+
+  const counterUpdate = {};
+  if (Object.keys(incOps).length)    counterUpdate.$inc      = incOps;
+  if (Object.keys(maxOps).length)    counterUpdate.$max      = maxOps;
+  if (Object.keys(addSetOps).length) counterUpdate.$addToSet = addSetOps;
+
+  let user;
+  if (Object.keys(counterUpdate).length > 0) {
+    user = await User.findOneAndUpdate({ _id: userId }, counterUpdate, { new: true });
+  } else {
+    user = await User.findById(userId);
+  }
   if (!user) return { leveledUp: false, newLevel: 0, awardedMissions: [] };
 
-  ensureBattlePassInit(user, season.seasonId);
-  const bp = user.battlePass;
-
-  const oldLevel        = computeLevel(bp.bpPoints);
+  const bp             = user.battlePass;
+  const oldLevel       = computeLevel(bp.bpPoints);
   const awardedMissions = [];
-  const missionsByType  = buildMissionsByType();
+  const missionsByType = buildMissionsByType();
 
-  function tryAward(missionId) {
-    if (!bp.completedMissions.includes(missionId)) {
-      bp.completedMissions.push(missionId);
-      bp.bpPoints += season1.BP_POINTS_PER_LEVEL;
-      awardedMissions.push(missionId);
-    }
-  }
+  // 3. Award missions atomically based on updated counter values
 
-  // 1. play_any_game — first game in any mode (idempotency handles dedup)
+  // play_any_game — any game in any mode counts (Fix F: now also fires for Daily/Historical)
   for (const m of missionsByType['play_any_game'] || []) {
-    tryAward(m.id);
+    await tryAwardAtomic(userId, m.id, awardedMissions);
   }
 
-  // 2. survival_rounds — cumulative rounds survived across Survival sessions
+  // survival_rounds — cumulative rounds survived
   if (mode === 'survival' && rounds > 0) {
-    bp.survivalRoundsTotal = (bp.survivalRoundsTotal || 0) + rounds;
     for (const m of missionsByType['survival_rounds'] || []) {
-      if (bp.survivalRoundsTotal >= m.target) tryAward(m.id);
+      if (bp.survivalRoundsTotal >= m.target) await tryAwardAtomic(userId, m.id, awardedMissions);
     }
   }
 
-  // 3. classic_streak — best streak ever in a Classic session (5A)
-  // 4. classic_wins  — cumulative correct answers in Classic (5C)
-  if (mode === 'classic') {
+  // classic_streak + classic_wins (mode 'guess' = Classic Mode)
+  if (mode === 'guess') {
     if (streak > 0) {
-      bp.classicMaxStreak = Math.max(bp.classicMaxStreak || 0, streak);
       for (const m of missionsByType['classic_streak'] || []) {
-        if (bp.classicMaxStreak >= m.target) tryAward(m.id);
+        if (bp.classicMaxStreak >= m.target) await tryAwardAtomic(userId, m.id, awardedMissions);
       }
     }
     if (correct > 0) {
-      bp.classicWinsTotal = (bp.classicWinsTotal || 0) + correct;
       for (const m of missionsByType['classic_wins'] || []) {
-        if (bp.classicWinsTotal >= m.target) tryAward(m.id);
+        if (bp.classicWinsTotal >= m.target) await tryAwardAtomic(userId, m.id, awardedMissions);
       }
     }
   }
 
-  // 5. historical_event + historical_all_events (5C / phase 5 final)
+  // historical_event + historical_all_events (Fix F: Historical.jsx now calls /stats/game)
   if (mode === 'historical') {
-    bp.historicalEventsCompleted = (bp.historicalEventsCompleted || 0) + 1;
     for (const m of missionsByType['historical_event'] || []) {
-      if (bp.historicalEventsCompleted >= m.target) tryAward(m.id);
-    }
-    // Track unique event IDs for historical_all_events (target = TOTAL_HISTORICAL_EVENTS)
-    if (eventId) {
-      if (!bp.completedEventIds) bp.completedEventIds = [];
-      if (!bp.completedEventIds.includes(eventId)) bp.completedEventIds.push(eventId);
+      if (bp.historicalEventsCompleted >= m.target) await tryAwardAtomic(userId, m.id, awardedMissions);
     }
     const uniqueCount = (bp.completedEventIds || []).length;
     for (const m of missionsByType['historical_all_events'] || []) {
-      if (uniqueCount >= TOTAL_HISTORICAL_EVENTS) tryAward(m.id);
+      if (uniqueCount >= m.target) await tryAwardAtomic(userId, m.id, awardedMissions);
     }
   }
 
-  checkLevel30(bp, tryAward);
+  // Level-30 completion missions (checked after all other awards)
+  await checkLevel30Atomic(userId, awardedMissions);
 
-  user.markModified('battlePass');
-  await user.save();
-
-  const newLevel = computeLevel(bp.bpPoints);
+  const finalUser = await User.findById(userId);
+  const newLevel  = computeLevel(finalUser.battlePass.bpPoints);
   return { leveledUp: newLevel > oldLevel, newLevel, awardedMissions };
 }
 
 // ── processDailyBpProgress ────────────────────────────────────────────────────
 // Called from POST /daily/complete (Phase 5B).
-// Mission types: complete_daily (cumulative count), daily_streak and
-// streak_days (both checked against newStreak = current consecutive day streak).
+// Fix F: now also awards play_any_game missions (completing a daily = playing a game).
+// Fix D: atomic counter updates.
 //
 // Returns { leveledUp, newLevel, awardedMissions: [missionId, ...] }
 
@@ -467,52 +538,53 @@ async function processDailyBpProgress(userId, { newStreak }) {
   const season = await getActiveSeason();
   if (!season) return { leveledUp: false, newLevel: 0, awardedMissions: [] };
 
-  const user = await User.findById(userId);
+  // Ensure BP initialised (atomic)
+  await User.findOneAndUpdate(
+    { _id: userId, 'battlePass.seasonId': { $ne: season.seasonId } },
+    { $set: { battlePass: { seasonId: season.seasonId, bpPoints: 0, completedMissions: [], claimedRewards: [] } } }
+  );
+
+  // Atomically increment dailiesCompleted and return updated doc
+  const user = await User.findOneAndUpdate(
+    { _id: userId },
+    { $inc: { 'battlePass.dailiesCompleted': 1 } },
+    { new: true }
+  );
   if (!user) return { leveledUp: false, newLevel: 0, awardedMissions: [] };
 
-  ensureBattlePassInit(user, season.seasonId);
-  const bp = user.battlePass;
-
-  const oldLevel        = computeLevel(bp.bpPoints);
+  const bp             = user.battlePass;
+  const oldLevel       = computeLevel(bp.bpPoints);
   const awardedMissions = [];
-  const missionsByType  = buildMissionsByType();
+  const missionsByType = buildMissionsByType();
 
-  function tryAward(missionId) {
-    if (!bp.completedMissions.includes(missionId)) {
-      bp.completedMissions.push(missionId);
-      bp.bpPoints += season1.BP_POINTS_PER_LEVEL;
-      awardedMissions.push(missionId);
-    }
+  // Fix F: completing a daily counts as playing a game
+  for (const m of missionsByType['play_any_game'] || []) {
+    await tryAwardAtomic(userId, m.id, awardedMissions);
   }
-
-  // Increment cumulative daily counter
-  bp.dailiesCompleted = (bp.dailiesCompleted || 0) + 1;
 
   // complete_daily — cumulative dailies completed (3, 5, 20, 40, 50)
   for (const m of missionsByType['complete_daily'] || []) {
-    if (bp.dailiesCompleted >= m.target) tryAward(m.id);
+    if (bp.dailiesCompleted >= m.target) await tryAwardAtomic(userId, m.id, awardedMissions);
   }
 
   // daily_streak + streak_days — both measure consecutive daily streak
   for (const m of missionsByType['daily_streak'] || []) {
-    if (newStreak >= m.target) tryAward(m.id);
+    if (newStreak >= m.target) await tryAwardAtomic(userId, m.id, awardedMissions);
   }
   for (const m of missionsByType['streak_days'] || []) {
-    if (newStreak >= m.target) tryAward(m.id);
+    if (newStreak >= m.target) await tryAwardAtomic(userId, m.id, awardedMissions);
   }
 
-  checkLevel30(bp, tryAward);
+  await checkLevel30Atomic(userId, awardedMissions);
 
-  user.markModified('battlePass');
-  await user.save();
-
-  const newLevel = computeLevel(bp.bpPoints);
+  const finalUser = await User.findById(userId);
+  const newLevel  = computeLevel(finalUser.battlePass.bpPoints);
   return { leveledUp: newLevel > oldLevel, newLevel, awardedMissions };
 }
 
 // ── processArenaWinBpProgress ─────────────────────────────────────────────────
 // Called when a user wins an Arena duel (real-time socket or async). (Phase 5D)
-// Increments arenaWinsTotal and checks arena_wins mission thresholds (3,5,20,30).
+// Fix D: atomic $inc + atomic mission award.
 //
 // Returns { leveledUp, newLevel, awardedMissions: [missionId, ...] }
 
@@ -521,66 +593,46 @@ async function processArenaWinBpProgress(userId) {
   const season = await getActiveSeason();
   if (!season) return { leveledUp: false, newLevel: 0, awardedMissions: [] };
 
-  const user = await User.findById(String(userId));
+  // Ensure BP initialised (atomic)
+  await User.findOneAndUpdate(
+    { _id: String(userId), 'battlePass.seasonId': { $ne: season.seasonId } },
+    { $set: { battlePass: { seasonId: season.seasonId, bpPoints: 0, completedMissions: [], claimedRewards: [] } } }
+  );
+
+  // Atomically increment arenaWinsTotal
+  const user = await User.findOneAndUpdate(
+    { _id: String(userId) },
+    { $inc: { 'battlePass.arenaWinsTotal': 1 } },
+    { new: true }
+  );
   if (!user) return { leveledUp: false, newLevel: 0, awardedMissions: [] };
 
-  ensureBattlePassInit(user, season.seasonId);
-  const bp = user.battlePass;
-
-  const oldLevel        = computeLevel(bp.bpPoints);
+  const bp             = user.battlePass;
+  const oldLevel       = computeLevel(bp.bpPoints);
   const awardedMissions = [];
-  const missionsByType  = buildMissionsByType();
+  const missionsByType = buildMissionsByType();
 
-  function tryAward(missionId) {
-    if (!bp.completedMissions.includes(missionId)) {
-      bp.completedMissions.push(missionId);
-      bp.bpPoints += season1.BP_POINTS_PER_LEVEL;
-      awardedMissions.push(missionId);
-    }
-  }
-
-  bp.arenaWinsTotal = (bp.arenaWinsTotal || 0) + 1;
   for (const m of missionsByType['arena_wins'] || []) {
-    if (bp.arenaWinsTotal >= m.target) tryAward(m.id);
+    if (bp.arenaWinsTotal >= m.target) await tryAwardAtomic(String(userId), m.id, awardedMissions);
   }
 
-  checkLevel30(bp, tryAward);
+  await checkLevel30Atomic(String(userId), awardedMissions);
 
-  user.markModified('battlePass');
-  await user.save();
-
-  const newLevel = computeLevel(bp.bpPoints);
+  const finalUser = await User.findById(String(userId));
+  const newLevel  = computeLevel(finalUser.battlePass.bpPoints);
   return { leveledUp: newLevel > oldLevel, newLevel, awardedMissions };
 }
 
 // ── checkCompletionBpMissions ─────────────────────────────────────────────────
 // Checks level-30 completion missions for a user after events that don't go
-// through the process* functions (e.g. the weekly ranking cron which calls
-// addBattlePassProgress directly). Safe to call from fire-and-forget contexts.
+// through the process* functions (e.g. the weekly ranking cron).
+// Fix D: now delegates to checkLevel30Atomic for correct atomicity.
 
 async function checkCompletionBpMissions(userId) {
-  const User   = mongoose.model('User');
   const season = await getActiveSeason();
   if (!season) return;
-  const user = await User.findById(String(userId));
-  if (!user) return;
-  ensureBattlePassInit(user, season.seasonId);
-  const bp = user.battlePass;
-
-  let changed = false;
-  function tryAward(missionId) {
-    if (!bp.completedMissions.includes(missionId)) {
-      bp.completedMissions.push(missionId);
-      bp.bpPoints += season1.BP_POINTS_PER_LEVEL;
-      changed = true;
-    }
-  }
-
-  checkLevel30(bp, tryAward);
-  if (changed) {
-    user.markModified('battlePass');
-    await user.save();
-  }
+  const awardedMissions = [];
+  await checkLevel30Atomic(String(userId), awardedMissions);
 }
 
 module.exports = {

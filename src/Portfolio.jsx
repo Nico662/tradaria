@@ -617,7 +617,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
       fetch(`${SERVER}/stats/game`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode: 'portfolio', score: 0, correct: 0, wrong: 0, accuracy: 0, streak: 0, rounds: 1 }),
+        body: JSON.stringify({ mode: 'portfolio', score: 0, correct: 0, wrong: 0, accuracy: 0, streak: 0, rounds: 1, gameId: crypto.randomUUID() }),
       }).catch(() => {});
       if (action === 'buy') {
         const info = ASSET_INFO[selected.symbol];

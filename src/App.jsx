@@ -102,6 +102,7 @@ export default function App() {
   const floatingXPKeyRef = useRef(0);
   const gameStartRef     = useRef(Date.now());
   const wonCatsRef       = useRef(new Set());
+  const gameIdRef        = useRef(crypto.randomUUID());
   const [chartReady, setChartReady] = useState(false);
   const [pricingFromTournament, setPricingFromTournament] = useState(false);
   const [shareStatus, setShareStatus] = useState('idle');
@@ -390,7 +391,7 @@ export default function App() {
     fetch(`${SERVER}/stats/game`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode: 'guess', score, correct: wins, wrong: losses, accuracy: acc, streak: maxStr, rounds: history.length }),
+      body: JSON.stringify({ mode: 'guess', score, correct: wins, wrong: losses, accuracy: acc, streak: maxStr, rounds: history.length, gameId: gameIdRef.current }),
     }).then(r => r.json()).then(data => {
       if (data?.bpProgress?.awardedMissions?.length > 0) refreshBattlePass();
       if (data?.bpProgress?.leveledUp) setBpLevelUp(data.bpProgress.newLevel);
@@ -433,6 +434,7 @@ export default function App() {
   };
 
   const goHome = () => {
+    gameIdRef.current = crypto.randomUUID();
     setGameOver(false);
     setScreen('home');
     setAsset(randomAsset('all'));
@@ -448,6 +450,7 @@ export default function App() {
   };
 
   const playAgain = () => {
+    gameIdRef.current = crypto.randomUUID();
     const wins     = history.filter(h => h === 'win').length;
     const nonSkips = history.filter(h => h !== 'skip').length;
     const acc      = nonSkips > 0 ? Math.round(wins / nonSkips * 100) : 0;
