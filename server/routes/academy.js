@@ -83,6 +83,18 @@ router.post('/join', requireAuth, async (req, res) => {
       isAcademyPro: academy.plan !== null,
     });
 
+    const activeAsgns = await AcademyAssignment.find({
+      academyId: academy._id,
+      endsAt:    { $gte: new Date() },
+    });
+    for (const asg of activeAsgns) {
+      const alreadyIn = asg.submissions.some(s => s.userId.toString() === req.user._id.toString());
+      if (!alreadyIn) {
+        asg.submissions.push({ userId: req.user._id, gamesPlayed: 0 });
+        await asg.save();
+      }
+    }
+
     res.json({ success: true, academy: { _id: academy._id, name: academy.name, slug: academy.slug } });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -119,9 +131,13 @@ router.get('/:id/dashboard', requireAuth, async (req, res) => {
     const GameHistory = mongoose.model('GameHistory');
     const Portfolio   = mongoose.model('Portfolio');
 
+    const modeFilter = req.query.mode && ['guess', 'survival', 'daily', 'portfolio', 'historical', 'survival'].includes(req.query.mode)
+      ? { mode: req.query.mode }
+      : {};
+
     const studentStats = await Promise.all(academy.students.map(async (student) => {
       const [games, portfolio] = await Promise.all([
-        GameHistory.find({ userId: student._id }),
+        GameHistory.find({ userId: student._id, ...modeFilter }),
         Portfolio.findOne({ userId: student._id }, 'cash positions'),
       ]);
       const gamesPlayed = games.length;
@@ -196,6 +212,14 @@ router.get('/:id/export', requireTeacher, async (req, res) => {
       return res.status(403).json({ error: 'No autorizado' });
 
     const GameHistory = mongoose.model('GameHistory');
+    const Portfolio   = mongoose.model('Portfolio');
+
+    const studentIds   = academy.students.map(s => s._id);
+    const [portfolios, allAssignments] = await Promise.all([
+      Portfolio.find({ userId: { $in: studentIds } }, 'userId cash positions').lean(),
+      AcademyAssignment.find({ academyId: req.params.id }).lean(),
+    ]);
+    const portfolioMap = Object.fromEntries(portfolios.map(p => [p.userId.toString(), p]));
 
     const rows = await Promise.all(academy.students.map(async (student) => {
       const games = await GameHistory.find({ userId: student._id });
@@ -207,12 +231,34 @@ router.get('/:id/export', requireTeacher, async (req, res) => {
         ? new Date(student.lastLogin).toISOString().split('T')[0]
         : '';
 
-      return [student.name, student.email, gamesPlayed, avgAccuracy, student.dailyStreak || 0, lastSeen]
-        .map(v => `"${String(v).replace(/"/g, '""')}"`)
-        .join(',');
+      const p = portfolioMap[student._id.toString()];
+      let portfolioValue = '', pnl = '', pnlPct = '';
+      if (p) {
+        const invested = p.positions.reduce((s, pos) => s + pos.qty * pos.avgPrice, 0);
+        portfolioValue  = Math.round(p.cash + invested);
+        pnl             = Math.round(portfolioValue - 50000);
+        pnlPct          = +((pnl / 50000) * 100).toFixed(2);
+      }
+
+      const sid           = student._id.toString();
+      const totalDeberes  = allAssignments.length;
+      const doneDeberes   = allAssignments.filter(a => {
+        const sub = a.submissions.find(s => s.userId.toString() === sid);
+        return sub?.completed;
+      }).length;
+      const completionRate = totalDeberes > 0 ? `${doneDeberes}/${totalDeberes}` : '0/0';
+
+      return [
+        student.name, student.email, gamesPlayed, avgAccuracy,
+        student.dailyStreak || 0, lastSeen,
+        portfolioValue, pnl, pnlPct, completionRate,
+      ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(',');
     }));
 
-    const csv = ['nombre,email,partidas,precision,racha,ultimo_acceso', ...rows].join('\n');
+    const csv = [
+      'nombre,email,partidas,precision,racha,ultimo_acceso,portfolio_value,pnl,pnl_pct,deberes_completados',
+      ...rows,
+    ].join('\n');
 
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="alumnos-${academy.slug}.csv"`);
@@ -225,7 +271,15 @@ router.post('/:id/tournament/:tournamentId/score', requireAuth, async (req, res)
   try {
     const rawScore = Number(req.body.score);
     if (!Number.isFinite(rawScore)) return res.status(400).json({ error: 'score requerido' });
-    const score = Math.max(0, Math.min(rawScore, 100000));
+    let score = Math.max(0, Math.min(rawScore, 100000));
+
+    if (Array.isArray(req.body.rounds) && req.body.rounds.length > 0) {
+      score = req.body.rounds.reduce((sum, r) => {
+        if (r.win && r.choice === 'skip') return sum + 50;
+        if (r.win) return sum + 100;
+        return sum;
+      }, 0);
+    }
 
     const tournament = await AcademyTournament.findOne({
       _id:       req.params.tournamentId,
@@ -265,7 +319,7 @@ router.post('/:id/assignment/create', requireTeacher, async (req, res) => {
     if (academy.ownerId.toString() !== req.user._id.toString())
       return res.status(403).json({ error: 'No autorizado' });
 
-    const { title, description, mode, targetGames, startsAt, endsAt } = req.body;
+    const { title, description, mode, targetGames, startsAt, endsAt, minAccuracy } = req.body;
     if (!title || !mode || !targetGames || !startsAt || !endsAt)
       return res.status(400).json({ error: 'Título, modo, partidas objetivo, fecha inicio y fecha fin son obligatorios' });
     if (!['guess', 'survival', 'daily', 'portfolio'].includes(mode))
@@ -275,6 +329,12 @@ router.post('/:id/assignment/create', requireTeacher, async (req, res) => {
       return res.status(400).json({ error: 'Número de partidas no válido (1-1000)' });
     if (new Date(endsAt) <= new Date(startsAt))
       return res.status(400).json({ error: 'La fecha fin debe ser posterior al inicio' });
+    let tMinAccuracy = null;
+    if (minAccuracy != null && minAccuracy !== '') {
+      tMinAccuracy = Number(minAccuracy);
+      if (!Number.isFinite(tMinAccuracy) || tMinAccuracy < 0 || tMinAccuracy > 100)
+        return res.status(400).json({ error: 'minAccuracy debe estar entre 0 y 100' });
+    }
 
     const submissions = academy.students.map(studentId => ({
       userId: studentId, gamesPlayed: 0, completed: false, completedAt: null,
@@ -286,6 +346,7 @@ router.post('/:id/assignment/create', requireTeacher, async (req, res) => {
       description: description?.trim() || '',
       mode,
       targetGames: tGames,
+      minAccuracy: tMinAccuracy,
       startsAt:    new Date(startsAt),
       endsAt:      new Date(endsAt),
       createdBy:   req.user._id,
@@ -310,29 +371,67 @@ router.get('/:id/assignments', requireAuth, async (req, res) => {
 
     if (isOwner) {
       const User       = mongoose.model('User');
+      const GameHistory = mongoose.model('GameHistory');
       const students   = await User.find({ _id: { $in: academy.students } }, 'name email');
       const studentMap = {};
       students.forEach(s => { studentMap[s._id.toString()] = { name: s.name, email: s.email }; });
-      return res.json(assignments.map(a => ({
-        ...a.toObject(),
-        submissions: a.submissions.map(sub => ({
-          ...sub.toObject(),
-          studentName:  studentMap[sub.userId.toString()]?.name  || '—',
-          studentEmail: studentMap[sub.userId.toString()]?.email || '—',
-        })),
-      })));
+
+      const now = new Date();
+      const enriched = await Promise.all(assignments.map(async a => {
+        const aObj = a.toObject();
+        if (a.endsAt >= now) {
+          const liveCounts = await GameHistory.aggregate([
+            {
+              $match: {
+                userId:    { $in: a.submissions.map(s => s.userId) },
+                mode:      a.mode,
+                createdAt: { $gte: a.startsAt },
+              },
+            },
+            { $group: { _id: '$userId', count: { $sum: 1 }, avgAcc: { $avg: '$accuracy' } } },
+          ]);
+          const liveMap = Object.fromEntries(liveCounts.map(r => [r._id.toString(), r]));
+          aObj.submissions = aObj.submissions.map(sub => {
+            const entry  = liveMap[sub.userId.toString()];
+            const live   = entry?.count ?? sub.gamesPlayed;
+            const avgAcc = entry ? Math.round(entry.avgAcc) : null;
+            const accMet = a.minAccuracy == null || (avgAcc ?? 0) >= a.minAccuracy;
+            return { ...sub, gamesPlayed: live, avgAccuracy: avgAcc, completed: live >= a.targetGames && accMet };
+          });
+        }
+        return {
+          ...aObj,
+          submissions: aObj.submissions.map(sub => ({
+            ...sub,
+            studentName:  studentMap[sub.userId.toString()]?.name  || '—',
+            studentEmail: studentMap[sub.userId.toString()]?.email || '—',
+          })),
+        };
+      }));
+
+      return res.json(enriched);
     }
 
     // Student: compute live progress from GameHistory and auto-sync submission
     const GameHistory = mongoose.model('GameHistory');
     const result = await Promise.all(assignments.map(async a => {
-      const liveCount = await GameHistory.countDocuments({
-        userId: req.user._id, mode: a.mode, createdAt: { $gte: a.startsAt },
-      });
+      const matchFilter = { userId: req.user._id, mode: a.mode, createdAt: { $gte: a.startsAt } };
+      const liveCount   = await GameHistory.countDocuments(matchFilter);
+
+      let avgAccuracy = null;
+      if (a.minAccuracy != null) {
+        const accResult = await GameHistory.aggregate([
+          { $match: matchFilter },
+          { $group: { _id: null, avg: { $avg: '$accuracy' } } },
+        ]);
+        avgAccuracy = accResult[0]?.avg ?? 0;
+      }
+
+      const accuracyMet  = a.minAccuracy == null || (avgAccuracy ?? 0) >= a.minAccuracy;
       const subIdx       = a.submissions.findIndex(s => s.userId.toString() === uid);
       const stored       = subIdx !== -1 ? a.submissions[subIdx] : null;
       const prevDone     = stored?.completed ?? false;
-      const nowDone      = prevDone || liveCount >= a.targetGames;
+      const nowDone      = prevDone || (liveCount >= a.targetGames && accuracyMet);
       const completedAt  = stored?.completedAt ?? (nowDone && !prevDone ? new Date() : null);
 
       if (!stored) {
@@ -347,44 +446,15 @@ router.get('/:id/assignments', requireAuth, async (req, res) => {
 
       return {
         _id: a._id, title: a.title, description: a.description, mode: a.mode,
-        targetGames: a.targetGames, startsAt: a.startsAt, endsAt: a.endsAt,
-        mySubmission: { gamesPlayed: liveCount, completed: nowDone, completedAt },
+        targetGames: a.targetGames, minAccuracy: a.minAccuracy ?? null,
+        startsAt: a.startsAt, endsAt: a.endsAt,
+        mySubmission: { gamesPlayed: liveCount, completed: nowDone, completedAt, avgAccuracy },
       };
     }));
     res.json(result);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ── POST /academy/:id/assignment/:aId/progress ────────────────────
-router.post('/:id/assignment/:aId/progress', requireAuth, async (req, res) => {
-  try {
-    const gamesPlayed = Number(req.body.gamesPlayed);
-    if (!Number.isFinite(gamesPlayed) || gamesPlayed < 0 || gamesPlayed > 10000)
-      return res.status(400).json({ error: 'gamesPlayed inválido' });
-
-    const assignment = await AcademyAssignment.findOne({ _id: req.params.aId, academyId: req.params.id });
-    if (!assignment) return res.status(404).json({ error: 'Deber no encontrado' });
-
-    const uid = req.user._id.toString();
-    let sub   = assignment.submissions.find(s => s.userId.toString() === uid);
-    if (!sub) {
-      const academy = await Academy.findById(req.params.id, 'students ownerId');
-      if (!academy) return res.status(404).json({ error: 'Academia no encontrada' });
-      const isMember = academy.students.some(s => s.toString() === uid) || academy.ownerId.toString() === uid;
-      if (!isMember) return res.status(403).json({ error: 'No autorizado' });
-      assignment.submissions.push({ userId: req.user._id, gamesPlayed: 0, completed: false, completedAt: null });
-      sub = assignment.submissions[assignment.submissions.length - 1];
-    }
-
-    sub.gamesPlayed = Math.max(sub.gamesPlayed, Math.min(gamesPlayed, 10000));
-    if (!sub.completed && sub.gamesPlayed >= assignment.targetGames) {
-      sub.completed   = true;
-      sub.completedAt = new Date();
-    }
-    await assignment.save();
-    res.json({ ok: true, submission: sub });
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
 
 // ── POST /academy/:id/feedback ───────────────────────────────────
 router.post('/:id/feedback', requireTeacher, async (req, res) => {
@@ -446,10 +516,10 @@ router.get('/:id/feedback/inbox', requireAuth, async (req, res) => {
 
     res.json(messages.map(m => m.toObject()));
 
-    AcademyFeedback.updateMany(
+    await AcademyFeedback.updateMany(
       { academyId: req.params.id, toId: req.user._id, read: false },
       { $set: { read: true } }
-    ).catch(() => {});
+    );
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -485,7 +555,7 @@ router.get('/:id/student/:studentId', requireTeacher, async (req, res) => {
     const User             = mongoose.model('User');
     const sidObj           = new mongoose.Types.ObjectId(sid);
 
-    const [student, modeBreakdown, recentGames, portfolioHist, feedback, assignments] = await Promise.all([
+    const [student, modeBreakdown, recentGames, portfolioHist, feedback, assignments, tournamentDocs, studentReplies] = await Promise.all([
       User.findById(sid, 'name email dailyStreak lastLogin'),
 
       GameHistory.aggregate([
@@ -501,9 +571,27 @@ router.get('/:id/student/:studentId', requireTeacher, async (req, res) => {
       AcademyFeedback.find({ academyId, toId: sid }).sort({ createdAt: -1 }).lean(),
 
       AcademyAssignment.find({ academyId }).sort({ startsAt: -1 }).lean(),
+
+      AcademyTournament.find({ academyId, 'participants.userId': sidObj }).sort({ startsAt: -1 }).lean(),
+
+      AcademyFeedback.find({ academyId, fromId: sid }).sort({ createdAt: -1 }).lean(),
     ]);
 
     if (!student) return res.status(404).json({ error: 'Alumno no encontrado' });
+
+    const tournamentHistory = tournamentDocs.map(t => {
+      const sorted = [...t.participants].sort((a, b) => b.score - a.score);
+      const rank   = sorted.findIndex(p => p.userId.toString() === sid) + 1;
+      const mine   = t.participants.find(p => p.userId.toString() === sid);
+      return {
+        name:              t.name,
+        startsAt:          t.startsAt,
+        endsAt:            t.endsAt,
+        score:             mine?.score ?? 0,
+        rank,
+        totalParticipants: t.participants.length,
+      };
+    });
 
     res.json({
       student: {
@@ -536,7 +624,61 @@ router.get('/:id/student/:studentId', requireTeacher, async (req, res) => {
           submission:  sub ? { gamesPlayed: sub.gamesPlayed, completed: sub.completed, completedAt: sub.completedAt } : null,
         };
       }),
+      tournamentHistory,
+      studentReplies,
     });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── POST /academy/:id/feedback/reply (alumno → profesor) ─────────
+router.post('/:id/feedback/reply', requireAuth, async (req, res) => {
+  try {
+    const { message } = req.body;
+    if (!message?.trim())
+      return res.status(400).json({ error: 'message es obligatorio' });
+    if (message.trim().length > 500)
+      return res.status(400).json({ error: 'Mensaje demasiado largo (max 500 caracteres)' });
+
+    const academy = await Academy.findById(req.params.id, 'ownerId students');
+    if (!academy) return res.status(404).json({ error: 'Academia no encontrada' });
+
+    const uid = req.user._id.toString();
+    if (!academy.students.some(s => s.toString() === uid))
+      return res.status(403).json({ error: 'No eres alumno de esta academia' });
+
+    const feedback = await AcademyFeedback.create({
+      academyId: req.params.id,
+      fromId:    req.user._id,
+      toId:      academy.ownerId,
+      message:   message.trim(),
+    });
+    res.status(201).json({ ok: true, feedback });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── GET /academy/:id/feedback/teacher-inbox ───────────────────────
+router.get('/:id/feedback/teacher-inbox', requireTeacher, async (req, res) => {
+  try {
+    const academy = await Academy.findById(req.params.id, 'ownerId');
+    if (!academy) return res.status(404).json({ error: 'Academia no encontrada' });
+    if (academy.ownerId.toString() !== req.user._id.toString())
+      return res.status(403).json({ error: 'No autorizado' });
+
+    const messages = await AcademyFeedback.find({
+      academyId: req.params.id,
+      toId:      req.user._id,
+    }).sort({ createdAt: -1 }).lean();
+
+    const senderIds = [...new Set(messages.map(m => m.fromId.toString()))];
+    const senders   = await mongoose.model('User').find({ _id: { $in: senderIds } }, 'name').lean();
+    const nameMap   = Object.fromEntries(senders.map(s => [s._id.toString(), s.name]));
+
+    await AcademyFeedback.updateMany(
+      { academyId: req.params.id, toId: req.user._id, read: false },
+      { $set: { read: true } }
+    );
+
+    res.json(messages.map(m => ({ ...m, senderName: nameMap[m.fromId.toString()] || '—' })));
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -561,6 +703,14 @@ router.post('/leave', requireAuth, async (req, res) => {
         return res.status(403).json({ error: 'El owner no puede abandonar la academia. Elimínala.' });
       academy.students = academy.students.filter(s => s.toString() !== userId.toString());
       await academy.save();
+      await AcademyAssignment.updateMany(
+        { academyId: academy._id },
+        { $pull: { submissions: { userId } } }
+      );
+      await AcademyTournament.updateMany(
+        { academyId: academy._id },
+        { $pull: { participants: { userId } } }
+      );
     }
 
     await mongoose.model('User').findByIdAndUpdate(userId, { academyId: null, isAcademyPro: false });

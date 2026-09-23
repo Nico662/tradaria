@@ -1,6 +1,6 @@
 import { useLang } from '../LangContext';
 import { ModeIcon } from './AppIcons';
-import { CandlestickChart } from 'lucide-react';
+import { CandlestickChart, Ticket } from 'lucide-react';
 
 export default function ModesPage({ onSelect }) {
   const { t } = useLang();
@@ -29,9 +29,41 @@ export default function ModesPage({ onSelect }) {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
 
+        {/* Trader Pass */}
+        <button
+          className="animate-fade-in-up stagger-1"
+          onClick={() => onSelect('battle_pass')}
+          style={{
+            background: 'transparent',
+            border: '1px solid rgba(0,192,135,0.2)',
+            borderRadius: 'var(--radius-lg)',
+            padding: '14px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            cursor: 'pointer',
+            width: '100%',
+            textAlign: 'left',
+            transition: 'transform 0.1s',
+          }}
+          onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
+          onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+          onTouchStart={e => e.currentTarget.style.transform = 'scale(0.98)'}
+          onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
+        >
+          <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-md)', background: 'rgba(0,192,135,0.08)', border: '1px solid rgba(0,192,135,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Ticket size={22} strokeWidth={2} aria-hidden style={{ stroke: '#00c087' }} />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontWeight: 900, fontSize: 14, color: '#ffffff', marginBottom: 3 }}>{t.home.traderPass}</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#00c087', lineHeight: 1.4 }}>{t.home.traderPassSub}</div>
+          </div>
+          <span style={{ fontSize: '9px', letterSpacing: '1px', borderRadius: '999px', padding: '3px 8px', background: 'rgba(0,192,135,0.15)', border: '0.5px solid rgba(0,192,135,0.5)', color: '#00c087', fontFamily: 'var(--font-body)', fontWeight: 700, flexShrink: 0 }}>{t.academy?.newBadgeLabel ?? 'NEW'}</span>
+        </button>
+
         {/* Trading Mode — próximamente */}
         <div
-          className="animate-fade-in-up stagger-1"
+          className="animate-fade-in-up stagger-2"
           style={{
             background: 'transparent',
             border: '1px dashed #2a2a2a',
