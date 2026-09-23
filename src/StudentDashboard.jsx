@@ -37,27 +37,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
   const [leaving,       setLeaving]       = useState(false);
   const [assignments,   setAssignments]   = useState([]);
   const [inbox,         setInbox]         = useState([]);
-  const [replyOpen,     setReplyOpen]     = useState(null); // messageId
-  const [replyText,     setReplyText]     = useState('');
-  const [replySending,  setReplySending]  = useState(false);
 
-
-  async function sendReply() {
-    if (!replyText.trim() || replySending) return;
-    setReplySending(true);
-    try {
-      const res = await fetch(`${SERVER}/academy/${academyId}/feedback/reply`, {
-        method:  'POST',
-        headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ message: replyText.trim() }),
-      });
-      if (res.ok) {
-        setReplyText('');
-        setReplyOpen(null);
-      }
-    } catch {}
-    setReplySending(false);
-  }
 
   async function leaveAcademy() {
     setLeaving(true);
@@ -217,54 +197,9 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
                       </span>
                     )}
                   </div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--t1)', lineHeight: 1.6, marginBottom: '10px' }}>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--t1)', lineHeight: 1.6 }}>
                     {msg.message}
                   </div>
-                  {replyOpen === msg._id ? (
-                    <div>
-                      <textarea
-                        value={replyText}
-                        onChange={e => setReplyText(e.target.value.slice(0, 500))}
-                        placeholder={t.academy.replyPlaceholder || 'Write a reply…'}
-                        rows={2}
-                        style={{
-                          width: '100%', padding: '9px 11px', boxSizing: 'border-box',
-                          background: 'var(--bg-card2)', border: '1px solid var(--bd2)',
-                          borderRadius: '6px', color: 'var(--t1)',
-                          fontFamily: 'var(--font-body)', fontSize: '12px',
-                          outline: 'none', resize: 'vertical', marginBottom: '6px',
-                        }}
-                      />
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <button
-                          onClick={() => { setReplyOpen(null); setReplyText(''); }}
-                          style={{ padding: '6px 12px', background: 'transparent', border: '1px solid var(--bd)', borderRadius: '5px', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer' }}
-                        >
-                          {t.academy.cancel}
-                        </button>
-                        <button
-                          onClick={sendReply}
-                          disabled={replySending || !replyText.trim()}
-                          style={{
-                            padding: '6px 14px', background: 'rgba(0,229,160,0.08)',
-                            border: '1px solid rgba(0,229,160,0.4)',
-                            borderRadius: '5px', color: 'var(--green)',
-                            fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700,
-                            cursor: 'pointer', opacity: (replySending || !replyText.trim()) ? 0.5 : 1,
-                          }}
-                        >
-                          {replySending ? '...' : t.academy.sendBtn}
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => { setReplyOpen(msg._id); setReplyText(''); }}
-                      style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', textDecoration: 'underline' }}
-                    >
-                      {t.academy.replyBtn || 'Reply'}
-                    </button>
-                  )}
                 </div>
               ))}
             </div>
@@ -432,30 +367,14 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
                       ) : null}
                     </div>
                     {!sub.completed && (
-                      <>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: asg.minAccuracy != null ? '6px' : 0 }}>
-                          <div style={{ flex: 1, height: '4px', background: 'var(--bd)', borderRadius: '2px' }}>
-                            <div style={{ width: `${pct}%`, height: '100%', background: 'rgba(0,229,160,0.5)', borderRadius: '2px' }} />
-                          </div>
-                          <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)', whiteSpace: 'nowrap' }}>
-                            {sub.gamesPlayed}/{asg.targetGames} {t.academy.gamesUnit}
-                          </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ flex: 1, height: '4px', background: 'var(--bd)', borderRadius: '2px' }}>
+                          <div style={{ width: `${pct}%`, height: '100%', background: 'rgba(0,229,160,0.5)', borderRadius: '2px' }} />
                         </div>
-                        {asg.minAccuracy != null && (
-                          <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', whiteSpace: 'nowrap' }}>
-                            <span style={{ color: 'var(--t5)' }}>{t.academy.accuracyUnit ? 'Acc: ' : 'Acc: '}</span>
-                            <span style={{
-                              fontWeight: 700,
-                              color: sub.avgAccuracy == null
-                                ? 'var(--t5)'
-                                : sub.avgAccuracy >= asg.minAccuracy ? 'var(--green)' : 'var(--color-down)',
-                            }}>
-                              {sub.avgAccuracy != null ? `${Math.round(sub.avgAccuracy)}%` : '—'}
-                            </span>
-                            <span style={{ color: 'var(--t5)' }}>{` / min ${asg.minAccuracy}%`}</span>
-                          </div>
-                        )}
-                      </>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)', whiteSpace: 'nowrap' }}>
+                          {sub.gamesPlayed}/{asg.targetGames} {t.academy.gamesUnit}
+                        </span>
+                      </div>
                     )}
                   </div>
                 );

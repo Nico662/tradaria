@@ -11,7 +11,6 @@ const PortfolioOrderSchema = new mongoose.Schema({
   createdAt:     { type: Date, default: Date.now },
   executedAt:    { type: Date, default: null },
   executedPrice: { type: Number, default: null },
-  executedQty:   { type: Number, default: null },
   cancelReason:  { type: String, default: null },
 });
 

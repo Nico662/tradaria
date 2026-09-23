@@ -17,8 +17,7 @@ const rateLimit      = require('express-rate-limit');
 const cookieParser   = require('cookie-parser');
 const { Redis }      = require('@upstash/redis');
 const { ApnsClient, Notification } = require('apns2');
-const Season      = require('./models/Season');
-const season1Cfg  = require('./config/season1');
+// (sharp removed — no longer used)
 
 const apnsClient = new ApnsClient({
   team: 'KA99F6SRW4',
@@ -43,8 +42,6 @@ const VALID_BADGE_IDS = new Set([
   'social_first','social_squad','social_duel_win','social_duel_3','social_challenger',
   'streak_14','streak_60','streak_100','arena_streak_3','arena_streak_5',
   'secret_night','secret_allgreen','secret_broke','secret_speedrun','secret_comeback',
-  // Battle Pass Season 1 badges
-  'bp_s1_early_trader','bp_s1_elite','bp_s1_season1_pro','bp_s1_season1','bp_s1_champion',
 ]);
 
 const VALID_GAME_MODES = new Set(['guess', 'survival', 'daily', 'arena', 'tournament', 'historical', 'portfolio']);
@@ -100,20 +97,6 @@ mongoose.connect(MONGODB_URI, { autoIndex: false })
       $or: [{ expiresAt: null }, { expiresAt: { $exists: false } }],
     });
     if (deletedCount > 0) console.log(`Retos fantasma eliminados: ${deletedCount}`);
-
-    // ── Seed Season 1 (idempotent upsert) ────────────────────────────────────
-    await Season.findOneAndUpdate(
-      { seasonId: season1Cfg.seasonId },
-      {
-        seasonId:  season1Cfg.seasonId,
-        name:      season1Cfg.name,
-        startDate: season1Cfg.startDate,
-        endDate:   season1Cfg.endDate,
-        status:    'upcoming',
-      },
-      { upsert: true, setDefaultsOnInsert: true }
-    );
-    console.log('Season 1 seeded (or already present)');
   })
   .catch(err => console.error('MongoDB error:', err));
 
@@ -126,9 +109,8 @@ const UserSchema = new mongoose.Schema({
   xp:        { type: Number, default: 0 },
   badges:    { type: [String], default: [] },
   purchases: { type: [String], default: [] },
-  dailyStreak:      { type: Number, default: 0 },
-  lastPlayed:       { type: String, default: null },
-  streakBeforeLoss: { type: Number, default: 0 },
+  dailyStreak: { type: Number, default: 0 },
+  lastPlayed:  { type: String, default: null },
   dailyResult: {
     date:      { type: String,  default: null },
     win:       { type: Boolean, default: null },
@@ -151,38 +133,6 @@ const UserSchema = new mongoose.Schema({
   academyId:             { type: mongoose.Schema.Types.ObjectId, ref: 'Academy', default: null },
   role:                  { type: String,  enum: ['student', 'teacher'], default: 'student' },
   isAcademyPro:          { type: Boolean, default: false },
-  // ── Battle Pass ──────────────────────────────────────────────────
-  // battlePass is null for users who predate Season 1 or haven't played yet.
-  // Initialized on first BP-related request for the active season.
-  // level is computed on demand: Math.min(30, Math.floor(bpPoints / 300))
-  battlePass: {
-    seasonId:             { type: Number,   default: null },
-    bpPoints:             { type: Number,   default: 0 },
-    completedMissions:    { type: [String], default: [] }, // mission IDs (e.g. 'bp_s1_l1')
-    claimedRewards:       { type: [Number], default: [] }, // level numbers claimed (e.g. [2, 4])
-    // ── Phase 5A counters ───────────────────────────────────────────────────────
-    survivalRoundsTotal:       { type: Number, default: 0 }, // total rounds survived in Survival
-    classicMaxStreak:          { type: Number, default: 0 }, // best consecutive streak in Classic
-    // ── Phase 5B counters ───────────────────────────────────────────────────────
-    dailiesCompleted:          { type: Number, default: 0 }, // total daily challenges finished
-    // ── Phase 5C counters ───────────────────────────────────────────────────────
-    classicWinsTotal:          { type: Number, default: 0 }, // cumulative correct answers in Classic
-    historicalEventsCompleted: { type: Number, default: 0 }, // historical games completed
-    completedEventIds:         { type: [String], default: [] }, // unique historical event IDs
-    // ── Phase 5D counters ───────────────────────────────────────────────────────
-    arenaWinsTotal:            { type: Number, default: 0 }, // real-time + async arena wins
-  },
-  // Mechanics unlocked through the Battle Pass (e.g. portfolio view, verified badge).
-  // Stored as an array of mechanic IDs. Effects are applied elsewhere; this field
-  // is the source of truth for whether a mechanic is unlocked.
-  battlePassMechanics: { type: [String], default: [] },
-  // Mechanic tickets earned through the Battle Pass (e.g. restore streak).
-  // Pending design discussion (Fase 6d) — field reserved, logic not yet implemented.
-  battlePassItems: [{
-    _id:    false,
-    itemId: { type: String,  required: true },
-    used:   { type: Boolean, default: false },
-  }],
 });
 
 const TournamentSchema = new mongoose.Schema({
@@ -459,7 +409,6 @@ const NOTIF_STRINGS = {
     weeklyTournament:   { title: '🏆 New weekly tournament!', body: "This week's tournament is live — jump in and climb the ranking." },
     orderExecuted: ({ type, name, qty, price }) => ({ title: '✅ Order executed', body: `Your ${type} order for ${qty} units of ${name} was executed at $${price}.` }),
     orderCancelled: ({ name, reason }) => ({ title: '❌ Order cancelled', body: `Your order for ${name} was cancelled: ${reason}` }),
-    orderPartialExecution: ({ type, name, qty, executedQty, price }) => ({ title: '⚠️ Order partially executed', body: `Your ${type} order for ${qty} units of ${name} was partially filled: ${executedQty} units at $${price}.` }),
   },
   es: {
     dailyChallenge:     { title: '⚡ Reto Diario', body: '¿Puedes predecir el gráfico de hoy? Un gráfico, una oportunidad.' },
@@ -469,7 +418,6 @@ const NOTIF_STRINGS = {
     weeklyTournament:   { title: '🏆 ¡Nuevo torneo semanal!', body: 'El torneo de esta semana ya está activo — entra y sube en el ranking.' },
     orderExecuted: ({ type, name, qty, price }) => ({ title: '✅ Orden ejecutada', body: `Tu orden de ${type === 'buy' ? 'compra' : 'venta'} de ${qty} unidades de ${name} se ejecutó a $${price}.` }),
     orderCancelled: ({ name, reason }) => ({ title: '❌ Orden cancelada', body: `Tu orden de ${name} fue cancelada: ${reason}` }),
-    orderPartialExecution: ({ type, name, qty, executedQty, price }) => ({ title: '⚠️ Orden ejecutada parcialmente', body: `Tu orden de ${type === 'buy' ? 'compra' : 'venta'} de ${qty} unidades de ${name} se ejecutó parcialmente: ${executedQty} unidades a $${price}.` }),
   },
 };
 
@@ -479,7 +427,6 @@ async function getUserLang(userId) {
     return (l && NOTIF_STRINGS[l]) ? l : 'en';
   } catch { return 'en'; }
 }
-
 // ── Cache ─────────────────────────────────────────────────────────
 async function cachedFetch(key, ttlSeconds, fetchFn) {
   try {
@@ -615,7 +562,7 @@ async function getPrice(asset) {
 app.use(cors({
   origin: (origin, cb) => {
     const allowed = ['https://tradiko.dev', 'https://www.tradiko.dev'];
-    if (!origin || allowed.includes(origin) || /^http:\/\/localhost(:\d+)?$/.test(origin)) {
+    if (!origin || origin === 'null' || allowed.includes(origin) || /^http:\/\/localhost(:\d+)?$/.test(origin)) {
       cb(null, true);
     } else {
       cb(new Error('Not allowed by CORS'));
@@ -670,12 +617,14 @@ app.use('/friends/request',           writeLimiter);
 app.use('/portfolio/duel/challenge',  writeLimiter);
 app.use('/arena/async/create',        writeLimiter);
 app.use('/api/alerts',                writeLimiter);
+app.use('/academy/create',            writeLimiter);
+app.use('/academy/join',              writeLimiter);
 
 // ── Passport ──────────────────────────────────────────────────────
 passport.use(new GoogleStrategy({
   clientID:     GOOGLE_CLIENT_ID,
   clientSecret: GOOGLE_CLIENT_SECRET,
-  callbackURL:  process.env.OAUTH_CALLBACK_URL ?? 'https://tradara-production.up.railway.app/auth/google/callback',
+  callbackURL:  'https://tradara-production.up.railway.app/auth/google/callback',
 }, async (accessToken, refreshToken, profile, done) => {
   try {
     const existingUser = await User.findOne({ googleId: profile.id });
@@ -744,7 +693,7 @@ app.post('/auth/exchange', async (req, res) => {
     });
     res.json({ token });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -843,13 +792,11 @@ app.get('/auth/me', async (req, res) => {
       username: user.username || null,
       dailyResult:     user.dailyResult  || null,
       customAvatar:    user.customAvatar || null,
-      activeCosmetics:  user.activeCosmetics || {},
-      isPro:            user.isPro || false,
-      role:             user.role || 'student',
+      activeCosmetics: user.activeCosmetics || {},
+      isPro:           user.isPro || false,
+      role:            user.role        || 'student',
       academyId,
       isAcademyPro,
-      battlePassItems:     user.battlePassItems     || [],
-      battlePassMechanics: user.battlePassMechanics || [],
     });
   } catch (err) {
     res.status(401).json({ error: 'Invalid token' });
@@ -857,7 +804,7 @@ app.get('/auth/me', async (req, res) => {
 });
 
 app.post('/daily/complete', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
 
   const { xp, badges, dailyResult } = req.body;
@@ -877,49 +824,39 @@ app.post('/daily/complete', async (req, res) => {
   yesterday.setDate(yesterday.getDate() - 1);
   const yesterdayStr = yesterday.toISOString().split('T')[0];
 
-  const streakContinues = lastPlayed === yesterdayStr;
-  const newStreak = streakContinues ? user.dailyStreak + 1 : 1;
-
-  const dailyUpdate = {
-    dailyStreak: newStreak,
-    lastPlayed: new Date(),
-    xp: Math.max(user.xp || 0, xp || 0),
-    badges: [...new Set([...(user.badges || []), ...(badges || [])])],
-    dailyResult,
-  };
-  // Snapshot current streak before it resets so a restore ticket can recover it
-  if (!streakContinues && user.dailyStreak > 1) {
-    dailyUpdate.streakBeforeLoss = user.dailyStreak;
-  }
+  const newStreak = lastPlayed === yesterdayStr ? user.dailyStreak + 1 : 1;
 
   const updatedUser = await User.findByIdAndUpdate(
     decoded.id,
-    dailyUpdate,
+    {
+      dailyStreak: newStreak,
+      lastPlayed: new Date(),
+      xp: Math.max(user.xp || 0, xp || 0),
+      badges: [...new Set([...(user.badges || []), ...(badges || [])])],
+      dailyResult,
+    },
     { new: true, returnDocument: 'after' }
   );
 
-  const bpProgress = await processDailyBpProgress(decoded.id, { newStreak }).catch(() => null);
-
   res.json({
-    dailyStreak:  updatedUser.dailyStreak,
-    lastPlayed:   updatedUser.lastPlayed,
+    dailyStreak: updatedUser.dailyStreak,
+    lastPlayed:  updatedUser.lastPlayed,
     alreadyPlayed: false,
-    bpProgress,
   });
 });
 
 app.post('/auth/sync', async (req, res) => {
-  const decoded = await verifyTokenBlacklisted(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const current = await User.findById(decoded.id);
     if (!current) return res.status(404).json({ error: 'User not found' });
     const { xp, badges, dailyStreak, lastPlayed, dailyResult } = req.body;
 
-    // XP: only allow increase, cap delta at 2000 per sync
+    // XP: only allow increase, cap delta at 2000 per sync, never below current
     const newXP = Number(xp);
     const safeXP = Number.isFinite(newXP) && newXP >= 0
-      ? Math.min(newXP, current.xp + 2000)
+      ? Math.max(Math.min(newXP, current.xp + 2000), current.xp)
       : current.xp;
 
     // Badges: only known IDs, only additive
@@ -970,6 +907,12 @@ app.post('/auth/avatar', async (req, res) => {
     const SAFE_AVATAR = /^data:image\/(jpeg|png|webp|gif);base64,/;
     if (typeof avatar !== 'string' || !SAFE_AVATAR.test(avatar)) return res.status(400).json({ error: 'Invalid image format' });
     if (avatar.length > 700000) return res.status(400).json({ error: 'Image too large (max 500KB)' });
+    const base64Data = avatar.replace(/^data:image\/[a-z]+;base64,/, '');
+    try {
+      await sharp(Buffer.from(base64Data, 'base64')).metadata();
+    } catch {
+      return res.status(400).json({ error: 'Invalid image content' });
+    }
     await User.findByIdAndUpdate(decoded.id, { customAvatar: avatar });
     res.json({ ok: true });
   } catch (err) {
@@ -978,14 +921,14 @@ app.post('/auth/avatar', async (req, res) => {
 });
 
 app.post('/auth/cosmetics', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const { activeCosmetics } = req.body;
     const user = await User.findById(decoded.id).select('purchases');
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const VALID_TYPES = new Set(['theme', 'frame', 'avatar', 'effect', 'username_color']);
+    const VALID_TYPES = new Set(['theme', 'frame', 'avatar', 'effect']);
     const owned = new Set(user.purchases);
     const safe = {};
     if (activeCosmetics && typeof activeCosmetics === 'object' && !Array.isArray(activeCosmetics)) {
@@ -999,45 +942,7 @@ app.post('/auth/cosmetics', async (req, res) => {
     await User.findByIdAndUpdate(decoded.id, { activeCosmetics: safe });
     res.json({ ok: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.post('/tickets/use', async (req, res) => {
-  const decoded = await verifyTokenBlacklisted(req);
-  if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
-  try {
-    const user = await User.findById(decoded.id);
-    if (!user) return res.status(404).json({ error: 'User not found' });
-
-    // Must have at least one unused streak-restore ticket
-    const ticketIdx = (user.battlePassItems || []).findIndex(
-      t => !t.used && t.itemId === 'ticket_restore_streak'
-    );
-    if (ticketIdx === -1) return res.status(400).json({ error: 'No tickets available' });
-
-    // Must have a streak worth restoring
-    const snapshot = user.streakBeforeLoss || 0;
-    if (snapshot === 0 || snapshot <= user.dailyStreak) {
-      return res.status(400).json({ error: 'NO_STREAK_TO_RESTORE' });
-    }
-
-    // Compute yesterday string for lastPlayed adjustment
-    const yd = new Date();
-    yd.setDate(yd.getDate() - 1);
-    const yesterdayStr = yd.toISOString().split('T')[0];
-
-    // Atomically restore streak, consume ticket, clear snapshot
-    user.battlePassItems[ticketIdx].used = true;
-    user.dailyStreak      = snapshot;
-    user.lastPlayed       = yesterdayStr;
-    user.streakBeforeLoss = 0;
-    await user.save();
-
-    const remaining = user.battlePassItems.filter(t => !t.used).length;
-    res.json({ success: true, restoredTo: snapshot, remaining });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1050,7 +955,7 @@ app.get('/auth/username/check/:username', async (req, res) => {
     const existing = await User.findOne({ username: username.toLowerCase() });
     res.json({ available: !existing });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1068,13 +973,13 @@ app.post('/auth/username/set', async (req, res) => {
     await User.findByIdAndUpdate(decoded.id, { username: username.toLowerCase() });
     res.json({ ok: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 app.delete('/auth/account', async (req, res) => {
   try {
-    const decoded = verifyToken(req);
+    const decoded = await verifyToken(req);
     if (!decoded) return res.status(401).json({ error: 'No token' });
     await User.findByIdAndDelete(decoded.id);
     res.json({ success: true });
@@ -1331,7 +1236,7 @@ app.get('/tournaments', async (req, res) => {
     }
     res.json({ paid });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1401,7 +1306,7 @@ app.post('/tournament/paid/:id/winner', async (req, res) => {
     }, { new: true });
     res.json({ ok: true, tournament: pt });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1418,45 +1323,12 @@ app.get('/shop/purchases', async (req, res) => {
 });
 
 app.post('/shop/iap-confirm', async (req, res) => {
-  const IAP_SHARED_SECRET = process.env.IAP_SHARED_SECRET;
-  if (!IAP_SHARED_SECRET) return res.status(500).json({ error: 'IAP not configured on server' });
-
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'Unauthorized' });
   try {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const { itemId, receiptData } = req.body;
+    const { itemId } = req.body;
     if (!itemId) return res.status(400).json({ error: 'Missing itemId' });
-    if (!receiptData) return res.status(400).json({ error: 'Missing receiptData' });
-
-    const expectedProductId = itemId === 'pro'
-      ? 'dev.tradiko.pro.monthly'
-      : `dev.tradiko.${itemId.replace('_', '.')}`;
-
-    async function verifyWithApple(url) {
-      const r = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 'receipt-data': receiptData, password: IAP_SHARED_SECRET }),
-      });
-      return r.json();
-    }
-
-    let result = await verifyWithApple('https://buy.itunes.apple.com/verifyReceipt');
-    if (result.status === 21007) {
-      result = await verifyWithApple('https://sandbox.itunes.apple.com/verifyReceipt');
-    }
-    if (result.status !== 0) {
-      return res.status(400).json({ error: 'Receipt verification failed', appleStatus: result.status });
-    }
-
-    const inApp = result.receipt?.in_app || [];
-    const latestInfo = result.latest_receipt_info || [];
-    const validPurchase = [...inApp, ...latestInfo].some(p => p.product_id === expectedProductId);
-    if (!validPurchase) {
-      return res.status(400).json({ error: 'Receipt does not contain expected product' });
-    }
-
     const update = itemId === 'pro'
       ? { isPro: true, $addToSet: { purchases: itemId } }
       : { $addToSet: { purchases: itemId } };
@@ -1483,7 +1355,7 @@ app.get('/stats/share', async (req, res) => {
 });
 
 app.post('/stats/share', async (req, res) => {
-  if (!verifyToken(req)) return res.status(401).json({ error: 'No token' });
+  if (!(await verifyToken(req))) return res.status(401).json({ error: 'No token' });
   try {
     await Stats.findByIdAndUpdate('shares', { $inc: { daily: 1 } }, { upsert: true, new: true });
     res.json({ ok: true });
@@ -1491,10 +1363,10 @@ app.post('/stats/share', async (req, res) => {
 });
 
 app.post('/stats/game', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
-    const { mode, score, correct, wrong, accuracy, streak, rounds, eventId } = req.body;
+    const { mode, score, correct, wrong, accuracy, streak, rounds } = req.body;
     if (!VALID_GAME_MODES.has(mode)) return res.status(400).json({ error: 'Invalid mode' });
     const safeScore    = Math.max(0, Math.min(Number(score)    || 0, 100000));
     const safeCorrect  = Math.max(0, Math.min(Number(correct)  || 0, 10000));
@@ -1502,17 +1374,15 @@ app.post('/stats/game', async (req, res) => {
     const safeAccuracy = Math.max(0, Math.min(Number(accuracy) || 0, 100));
     const safeStreak   = Math.max(0, Math.min(Number(streak)   || 0, 10000));
     const safeRounds   = Math.max(0, Math.min(Number(rounds)   || 0, 10000));
-    const safeEventId  = (typeof eventId === 'string' && /^[a-z0-9_]{1,60}$/.test(eventId)) ? eventId : null;
     await GameHistory.create({ userId: decoded.id, mode, score: safeScore, correct: safeCorrect, wrong: safeWrong, accuracy: safeAccuracy, streak: safeStreak, rounds: safeRounds });
-    const bpProgress = await processGameBpProgress(decoded.id, { mode, streak: safeStreak, rounds: safeRounds, correct: safeCorrect, eventId: safeEventId });
-    res.json({ ok: true, bpProgress });
+    res.json({ ok: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 app.get('/stats/personal', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const games = await GameHistory.find({ userId: decoded.id }).sort({ createdAt: -1 }).limit(200);
@@ -1539,7 +1409,7 @@ app.get('/stats/personal', async (req, res) => {
     const betterThan = avgAccuracy >= globalAvg ? Math.round(((avgAccuracy - globalAvg) / (100 - globalAvg)) * 50 + 50) : Math.round((avgAccuracy / globalAvg) * 50);
     res.json({ totalGames, totalCorrect, totalWrong, avgAccuracy, bestScore, bestStreak, favoriteMode, winRate, dailyStreak, gamesThisWeek, accuracyTrend, betterThan: Math.min(99, Math.max(1, betterThan)), modeCounts });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1569,7 +1439,36 @@ app.get('/candles', async (req, res) => {
     res.json(candles);
   } catch (err) {
     console.error(err.message);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/candles/alpha-vantage', async (req, res) => {
+  const { symbol, interval } = req.query;
+  if (!symbol || !/^[A-Z0-9]{1,10}$/i.test(symbol)) return res.status(400).json({ error: 'Invalid symbol' });
+  const validIntervals = new Set(['1min', '5min', '15min', '30min', '60min']);
+  if (!interval || !validIntervals.has(interval)) return res.status(400).json({ error: 'Invalid interval' });
+  if (!ALPHA_VANTAGE_KEY) return res.status(503).json({ error: 'Service unavailable' });
+  try {
+    const url = `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${encodeURIComponent(symbol)}&interval=${interval}&outputsize=full&apikey=${ALPHA_VANTAGE_KEY}`;
+    const response = await fetch(url);
+    const data     = await response.json();
+    const seriesKey = `Time Series (${interval})`;
+    const series    = data[seriesKey];
+    if (!series) return res.status(502).json({ error: 'No data from Alpha Vantage' });
+    const candles = Object.entries(series)
+      .map(([time, v]) => ({
+        time:  Math.floor(new Date(time).getTime() / 1000),
+        open:  parseFloat(v['1. open']),
+        high:  parseFloat(v['2. high']),
+        low:   parseFloat(v['3. low']),
+        close: parseFloat(v['4. close']),
+      }))
+      .reverse();
+    res.json(candles);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1612,6 +1511,8 @@ async function getDailyChallenge() {
 }
 
 app.get('/daily', async (req, res) => {
+  const decoded = await verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const challenge = await getDailyChallenge();
     res.json({
@@ -1621,7 +1522,7 @@ app.get('/daily', async (req, res) => {
       visible:  challenge.visible,
       future:   challenge.future,
     });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 // ── Tournament routes ─────────────────────────────────────────────
@@ -1678,7 +1579,7 @@ app.get('/tournament', async (req, res) => {
     }
     res.json({ weekId: tournament.weekId, rounds });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1686,14 +1587,13 @@ app.get('/tournament/leaderboard', async (req, res) => {
   try {
     const weekId = getWeekId();
     const scores = await Score.find({ weekId }).sort({ score: -1 }).limit(100)
-      .populate('userId', 'username name avatar customAvatar activeCosmetics battlePassMechanics');
+      .populate('userId', 'username name avatar customAvatar activeCosmetics');
     const allScores = scores.map(s => ({
       ...s.toObject(),
-      name:             s.userId?.username ? `@${s.userId.username}` : (s.name || s.userId?.name),
-      avatar:           s.userId?.avatar || s.avatar,
-      customAvatar:     s.userId?.customAvatar || null,
-      activeCosmetics:  s.userId?.activeCosmetics || {},
-      hasVerifiedBadge: s.userId?.battlePassMechanics?.includes('mechanic_verified_badge') || false,
+      name:            s.userId?.username ? `@${s.userId.username}` : (s.name || s.userId?.name),
+      avatar:          s.userId?.avatar || s.avatar,
+      customAvatar:    s.userId?.customAvatar || null,
+      activeCosmetics: s.userId?.activeCosmetics || {},
     }));
     const top10 = allScores.slice(0, 10);
     let userPosition = null;
@@ -1702,12 +1602,12 @@ app.get('/tournament/leaderboard', async (req, res) => {
       const idx = allScores.findIndex(s => String(s.userId?._id || s.userId) === String(userId));
       if (idx >= 10) {
         const u = allScores[idx];
-        userPosition = { rank: idx + 1, score: u.score, name: u.name, username: u.username, avatar: u.avatar, customAvatar: u.customAvatar, activeCosmetics: u.activeCosmetics, hasVerifiedBadge: u.hasVerifiedBadge || false };
+        userPosition = { rank: idx + 1, score: u.score, name: u.name, username: u.username, avatar: u.avatar, customAvatar: u.customAvatar, activeCosmetics: u.activeCosmetics };
       }
     }
     res.json({ weekId, scores: top10, userPosition });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1739,7 +1639,7 @@ app.post('/tournament/score', async (req, res) => {
     await TournamentSession.findOneAndUpdate({ weekId, userId: user._id }, { completed: true });
     res.json({ ok: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1788,7 +1688,7 @@ app.get('/tournament/session', async (req, res) => {
       completed:    session.completed,
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1833,7 +1733,7 @@ app.post('/tournament/progress/round', async (req, res) => {
 
     res.json({ ok: true, win, pts, pctMove, direction });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1887,7 +1787,7 @@ app.post('/arena/async/create', async (req, res) => {
     });
     res.json({ code: duel.code, charts: duel.charts, challengerName });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1925,12 +1825,15 @@ app.get('/arena/async/my-duels', async (req, res) => {
     });
     res.json({ duels: result });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 app.get('/arena/async/:code', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
   try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
     const duel = await AsyncDuel.findOne({ code: req.params.code.toUpperCase() });
     if (!duel) return res.status(404).json({ error: 'Duel not found' });
     if (duel.status === 'waiting_rival' && new Date() > duel.expiresAt) {
@@ -1938,11 +1841,15 @@ app.get('/arena/async/:code', async (req, res) => {
       return res.json({ duel: { code: duel.code, status: 'expired', challenger: { name: duel.challenger.name }, rival: { name: '' }, charts: [], expiresAt: duel.expiresAt } });
     }
     const completed = duel.status === 'completed';
+    // Strip future candles until the duel is completed — rivals must earn them via /round
+    const safeCharts = completed
+      ? duel.charts
+      : duel.charts.map(c => ({ asset: c.asset, interval: c.interval, visible: c.visible }));
     res.json({
       duel: {
         code:             duel.code,
         status:           duel.status,
-        charts:           duel.charts,
+        charts:           safeCharts,
         challengerUserId: String(duel.challenger.userId || ''),
         challenger: { name: duel.challenger.name, score: completed ? duel.challenger.score : null, answers: completed ? duel.challenger.answers : [] },
         rival:      { name: duel.rival.name,       score: completed ? duel.rival.score       : null, answers: completed ? duel.rival.answers       : [] },
@@ -1951,7 +1858,43 @@ app.get('/arena/async/:code', async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/arena/async/:code/round', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const code    = req.params.code.toUpperCase();
+    const duel    = await AsyncDuel.findOne({ code });
+    if (!duel) return res.status(404).json({ error: 'Duel not found' });
+    if (duel.status !== 'waiting_rival') return res.status(400).json({ error: 'Duel not waiting for rival' });
+    // Only the rival plays this; the challenger cannot use this endpoint
+    if (decoded.id === duel.challenger.userId?.toString()) return res.status(403).json({ error: 'Forbidden' });
+
+    const { roundIndex, choice } = req.body;
+    if (typeof roundIndex !== 'number' || roundIndex < 0 || roundIndex >= duel.charts.length) {
+      return res.status(400).json({ error: 'Invalid round index' });
+    }
+    if (!['long', 'short', 'skip'].includes(choice)) {
+      return res.status(400).json({ error: 'Invalid choice' });
+    }
+
+    const chart      = duel.charts[roundIndex];
+    const lastClose  = chart.visible[chart.visible.length - 1].close;
+    const lastFuture = chart.future[chart.future.length - 1].close;
+    const pctMove    = (lastFuture - lastClose) / lastClose * 100;
+    const direction  = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
+    const win = (choice === 'long'  && direction === 'up')
+             || (choice === 'short' && direction === 'down')
+             || (choice === 'skip'  && direction === 'flat');
+    const pts = win && choice !== 'skip' ? 100 : win && choice === 'skip' ? 50 : 0;
+
+    res.json({ ok: true, win, direction, pctMove: +pctMove.toFixed(2), pts, future: chart.future });
+  } catch (err) {
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -1995,12 +1938,13 @@ app.post('/arena/async/:code/submit', async (req, res) => {
 
       await AsyncDuel.findByIdAndUpdate(duel._id, { 'challenger.answers': safeAnswers, 'challenger.score': serverScore, 'challenger.completedAt': new Date(), status: 'waiting_rival' });
     } else {
+      if (!userId) return res.status(401).json({ error: 'Authentication required' });
+      if (userId === duel.challenger.userId?.toString()) return res.status(403).json({ error: 'Forbidden' });
       if (duel.status !== 'waiting_rival') return res.status(400).json({ error: 'Cannot submit now' });
 
-      // Compute rival score server-side using the stored charts — same logic as challenger.
-      const rivalServerScore = duel.charts.reduce((total, chart, i) => {
+      const serverScore = duel.charts.reduce((total, chart, i) => {
         const choice = answers?.[i]?.choice;
-        if (!choice || !chart) return total;
+        if (!choice) return total;
         const lastClose  = chart.visible[chart.visible.length - 1].close;
         const lastFuture = chart.future[chart.future.length - 1].close;
         const pctMove    = (lastFuture - lastClose) / lastClose * 100;
@@ -2009,9 +1953,9 @@ app.post('/arena/async/:code/submit', async (req, res) => {
         return total + (win && choice !== 'skip' ? 100 : win && choice === 'skip' ? 50 : 0);
       }, 0);
 
-      const safeRivalAnswers = (answers || []).map((a, i) => {
-        const chart = duel.charts[i];
-        if (!chart) return { choice: 'skip', win: false, pts: 0, direction: 'flat', pctMove: 0 };
+      const safeAnswers = (answers || []).map((a, i) => {
+        const chart      = duel.charts[i];
+        if (!chart) return null;
         const choice     = ['long', 'short', 'skip'].includes(a?.choice) ? a.choice : 'skip';
         const lastClose  = chart.visible[chart.visible.length - 1].close;
         const lastFuture = chart.future[chart.future.length - 1].close;
@@ -2020,28 +1964,18 @@ app.post('/arena/async/:code/submit', async (req, res) => {
         const win = (choice === 'long' && direction === 'up') || (choice === 'short' && direction === 'down') || (choice === 'skip' && direction === 'flat');
         const pts = win && choice !== 'skip' ? 100 : win && choice === 'skip' ? 50 : 0;
         return { choice, win, pts, direction, pctMove: +pctMove.toFixed(2) };
-      });
+      }).filter(Boolean);
 
-      await AsyncDuel.findByIdAndUpdate(duel._id, { 'rival.name': name, 'rival.userId': userId, 'rival.answers': safeRivalAnswers, 'rival.score': rivalServerScore, 'rival.completedAt': new Date(), status: 'completed' });
+      await AsyncDuel.findByIdAndUpdate(duel._id, { 'rival.name': name, 'rival.userId': userId, 'rival.answers': safeAnswers, 'rival.score': serverScore, 'rival.completedAt': new Date(), status: 'completed' });
     }
     const updated = await AsyncDuel.findOne({ code });
-    // 5D: award arena win BP progress when async duel completes.
-    // NOTE: rival score is client-submitted (not server-computed) — existing behaviour.
-    if (updated.status === 'completed') {
-      const cScore = updated.challenger.score ?? 0;
-      const rScore = updated.rival.score       ?? 0;
-      if (cScore !== rScore) {
-        const winnerId = cScore > rScore ? updated.challenger.userId : updated.rival.userId;
-        if (winnerId) processArenaWinBpProgress(String(winnerId)).catch(() => {});
-      }
-    }
     res.json({ ok: true, duel: {
       code: updated.code, status: updated.status, charts: updated.charts,
       challenger: { name: updated.challenger.name, score: updated.challenger.score, answers: updated.challenger.answers },
       rival:      { name: updated.rival.name,       score: updated.rival.score,       answers: updated.rival.answers },
     }});
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -2051,15 +1985,15 @@ app.get('/arena/async/:code/status', async (req, res) => {
     if (!duel) return res.status(404).json({ error: 'Not found' });
     res.json({ status: duel.status, expiresAt: duel.expiresAt });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 // ── Push routes ───────────────────────────────────────────────────
 app.post('/push/subscribe', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
-  const { userId, lang, ...sub } = req.body;
+  const { userId, lang: _lang, ...sub } = req.body;
   if (!sub || !sub.endpoint) return res.status(400).json({ error: 'Invalid subscription' });
   if (userId && String(userId) !== String(decoded.id)) return res.status(403).json({ error: 'Forbidden' });
   pushSubscriptions = await loadSubscriptions();
@@ -2069,7 +2003,6 @@ app.post('/push/subscribe', async (req, res) => {
     await saveSubscriptions(pushSubscriptions);
   }
   await redis.set(`push_user_sub:${decoded.id}`, JSON.stringify(sub));
-  if (lang && NOTIF_STRINGS[lang]) await redis.set(`push_user_lang:${decoded.id}`, lang);
   res.json({ ok: true });
 });
 
@@ -2108,17 +2041,16 @@ app.post('/push/send', async (req, res) => {
 });
 
 app.post('/push/apns-register', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
-  const { deviceToken, lang } = req.body;
+  const { deviceToken } = req.body;
   if (!deviceToken) return res.status(400).json({ error: 'No token' });
   await redis.set(`apns_token:${decoded.id}`, deviceToken);
-  if (lang && NOTIF_STRINGS[lang]) await redis.set(`push_user_lang:${decoded.id}`, lang);
   res.json({ ok: true });
 });
 
 app.get('/push/apns-token', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
   const token = await redis.get(`apns_token:${decoded.id}`);
   res.json({ token: token || null });
@@ -2144,7 +2076,7 @@ app.post('/push/send-apns', async (req, res) => {
     await apnsClient.send(notification);
     res.json({ ok: true, token: tokenRaw.substring(0, 10) + '...' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -2248,17 +2180,6 @@ function resolveRound(roomId) {
     setTimeout(() => {
       io.to(roomId).emit('game:over', { scores: room.scores, names: room.names });
       finishedRooms[roomId] = { ...room };
-      // 5D: award arena win BP progress to the higher-scoring player
-      const [p1, p2] = room.players;
-      const s1 = room.scores[p1] ?? 0;
-      const s2 = room.scores[p2] ?? 0;
-      if (s1 !== s2) {
-        const winnerSocketId = s1 > s2 ? p1 : p2;
-        const winnerSocket   = io.sockets.sockets.get(winnerSocketId);
-        if (winnerSocket?.userId) {
-          processArenaWinBpProgress(winnerSocket.userId).catch(() => {});
-        }
-      }
       delete rooms[roomId];
       setTimeout(() => delete finishedRooms[roomId], 120000);
     }, 3000);
@@ -2314,10 +2235,24 @@ function generateCode() {
   return privateLobby[code] ? generateCode() : code;
 }
 
+// ── Socket.IO auth middleware ─────────────────────────────────────
+io.use((socket, next) => {
+  const token = socket.handshake.auth?.token;
+  if (!token) return next(new Error('Authentication required'));
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    socket.userId = decoded.id;
+    next();
+  } catch {
+    next(new Error('Invalid token'));
+  }
+});
+
 io.on('connection', (socket) => {
   console.log('Connected:', socket.id);
 
   socket.on('matchmaking:join', ({ name }) => {
+    if (!socket.userId) return;
     socket.playerName = name || 'Player';
     if (waiting && waiting.id !== socket.id) {
       const opponent = waiting; waiting = null;
@@ -2351,6 +2286,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('room:create', ({ name }) => {
+    if (!socket.userId) { socket.emit('room:error', { message: 'Not authenticated' }); return; }
     socket.playerName = name || 'Player';
     const code = generateCode();
     privateLobby[code] = { host: socket, name };
@@ -2359,6 +2295,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('room:join', ({ name, code }) => {
+    if (!socket.userId) { socket.emit('room:error', { message: 'Not authenticated' }); return; }
     socket.playerName = name || 'Player';
     const lobby = privateLobby[code.toUpperCase()];
     if (!lobby) { socket.emit('room:error', { message: 'Sala no encontrada' }); return; }
@@ -2418,14 +2355,13 @@ io.on('connection', (socket) => {
   });
 
   // ── Challenge system ────────────────────────────────────────────────
-  socket.on('user:register', async ({ username, token }) => {
-    if (!username || !token) return;
+  // userId already verified by io.use() middleware — just validate the username claim
+  socket.on('user:register', async ({ username }) => {
+    if (!username || !socket.userId) return;
     try {
-      const decoded = jwt.verify(token, JWT_SECRET);
-      const user = await User.findById(decoded.id).select('username');
+      const user = await User.findById(socket.userId).select('username');
       if (!user || user.username !== username) return;
       socket.username = username;
-      socket.userId   = decoded.id;
       userSockets[username] = socket;
     } catch {}
   });
@@ -2467,6 +2403,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('challenge:join', ({ name, code }) => {
+    if (!socket.userId) { socket.emit('room:error', { message: 'Not authenticated' }); return; }
     socket.playerName = name || 'Player';
     const challenge = challengeRooms[code];
     if (!challenge?.accepted) {
@@ -2561,9 +2498,7 @@ cron.schedule('0 8 * * *', async () => {
     if (!subRaw) continue;
     try {
       const sub  = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
-      const lang = await getUserLang(userId);
-      const s    = NOTIF_STRINGS[lang].dailyChallenge;
-      await webpush.sendNotification(sub, JSON.stringify({ ...s, url: 'https://tradiko.dev' })).catch(async err => {
+      await webpush.sendNotification(sub, JSON.stringify({ title: '⚡ Reto Diario', body: '¿Puedes predecir el gráfico de hoy? Un gráfico, una oportunidad.', url: 'https://tradiko.dev' })).catch(async err => {
         if (err.statusCode === 410) await redis.del(key);
       });
     } catch {}
@@ -2574,9 +2509,7 @@ cron.schedule('0 8 * * *', async () => {
     const deviceToken = await redis.get(key);
     if (!deviceToken) continue;
     try {
-      const lang = await getUserLang(userId);
-      const s    = NOTIF_STRINGS[lang].dailyChallenge;
-      await apnsClient.send(new Notification(deviceToken, { alert: { title: s.title, body: s.body }, sound: 'default', badge: 1 })).catch(() => {});
+      await apnsClient.send(new Notification(deviceToken, { alert: { title: '⚡ Reto Diario', body: '¿Puedes predecir el gráfico de hoy? Un gráfico, una oportunidad.' }, sound: 'default', badge: 1 })).catch(() => {});
     } catch {}
   }
   console.log('[daily-challenge-cron] done');
@@ -2592,9 +2525,7 @@ cron.schedule('30 9 * * 1-5', async () => {
     if (!subRaw) continue;
     try {
       const sub  = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
-      const lang = await getUserLang(userId);
-      const s    = NOTIF_STRINGS[lang].marketOpen;
-      await webpush.sendNotification(sub, JSON.stringify({ ...s, url: 'https://tradiko.dev' })).catch(async err => {
+      await webpush.sendNotification(sub, JSON.stringify({ title: '📈 Mercados abiertos', body: 'NYSE y NASDAQ acaban de abrir. Revisa tu portfolio.', url: 'https://tradiko.dev' })).catch(async err => {
         if (err.statusCode === 410) await redis.del(key);
       });
     } catch {}
@@ -2605,9 +2536,7 @@ cron.schedule('30 9 * * 1-5', async () => {
     const deviceToken = await redis.get(key);
     if (!deviceToken) continue;
     try {
-      const lang = await getUserLang(userId);
-      const s    = NOTIF_STRINGS[lang].marketOpen;
-      await apnsClient.send(new Notification(deviceToken, { alert: { title: s.title, body: s.body }, sound: 'default', badge: 1 })).catch(() => {});
+      await apnsClient.send(new Notification(deviceToken, { alert: { title: '📈 Mercados abiertos', body: 'NYSE y NASDAQ acaban de abrir. Revisa tu portfolio.' }, sound: 'default', badge: 1 })).catch(() => {});
     } catch {}
   }
   console.log('[market-open-cron] done');
@@ -2623,9 +2552,7 @@ cron.schedule('0 16 * * 1-5', async () => {
     if (!subRaw) continue;
     try {
       const sub  = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
-      const lang = await getUserLang(userId);
-      const s    = NOTIF_STRINGS[lang].marketClose;
-      await webpush.sendNotification(sub, JSON.stringify({ ...s, url: 'https://tradiko.dev' })).catch(async err => {
+      await webpush.sendNotification(sub, JSON.stringify({ title: '🔔 Mercados cerrados', body: '¿Cómo ha ido tu portfolio hoy?', url: 'https://tradiko.dev' })).catch(async err => {
         if (err.statusCode === 410) await redis.del(key);
       });
     } catch {}
@@ -2636,9 +2563,7 @@ cron.schedule('0 16 * * 1-5', async () => {
     const deviceToken = await redis.get(key);
     if (!deviceToken) continue;
     try {
-      const lang = await getUserLang(userId);
-      const s    = NOTIF_STRINGS[lang].marketClose;
-      await apnsClient.send(new Notification(deviceToken, { alert: { title: s.title, body: s.body }, sound: 'default', badge: 1 })).catch(() => {});
+      await apnsClient.send(new Notification(deviceToken, { alert: { title: '🔔 Mercados cerrados', body: '¿Cómo ha ido tu portfolio hoy?' }, sound: 'default', badge: 1 })).catch(() => {});
     } catch {}
   }
   console.log('[market-close-cron] done');
@@ -2661,9 +2586,7 @@ cron.schedule('5 0 * * 1', async () => {
       if (!subRaw) continue;
       try {
         const sub  = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
-        const lang = await getUserLang(userId);
-        const s    = NOTIF_STRINGS[lang].weeklyTournament;
-        await webpush.sendNotification(sub, JSON.stringify({ ...s, url: 'https://tradiko.dev' })).catch(async err => {
+        await webpush.sendNotification(sub, JSON.stringify({ title: '🏆 ¡Nuevo torneo semanal!', body: 'El torneo de esta semana ya está activo — entra y sube en el ranking.', url: 'https://tradiko.dev' })).catch(async err => {
           if (err.statusCode === 410) await redis.del(key);
         });
       } catch {}
@@ -2674,9 +2597,7 @@ cron.schedule('5 0 * * 1', async () => {
       const deviceToken = await redis.get(key);
       if (!deviceToken) continue;
       try {
-        const lang = await getUserLang(userId);
-        const s    = NOTIF_STRINGS[lang].weeklyTournament;
-        await apnsClient.send(new Notification(deviceToken, { alert: { title: s.title, body: s.body }, sound: 'default', badge: 1 })).catch(() => {});
+        await apnsClient.send(new Notification(deviceToken, { alert: { title: '🏆 ¡Nuevo torneo semanal!', body: 'El torneo de esta semana ya está activo — entra y sube en el ranking.' }, sound: 'default', badge: 1 })).catch(() => {});
       } catch {}
     }
     console.log('[tournament-cron] Notifications sent.');
@@ -2751,9 +2672,7 @@ cron.schedule('0 21 * * *', async () => {
       const apnsRaw = await redis.get(`apns_token:${user._id}`);
       console.log(`[streak-cron] user=${user._id} streak=${user.dailyStreak} lastPlayed=${user.lastPlayed} hasSub=${!!subRaw} hasApns=${!!apnsRaw}`);
       if (!subRaw && !apnsRaw) continue;
-      const lang = await getUserLang(user._id);
-      const streakStrings = NOTIF_STRINGS[lang].streakAtRisk(user.dailyStreak);
-      await sendPushToUser(user._id, { ...streakStrings, url: 'https://tradiko.dev' });
+      await sendPushToUser(user._id, { title: '🔥 ¡Tu racha está en peligro!', body: `Llevas ${user.dailyStreak} días seguidos. Juega antes de medianoche.`, url: 'https://tradiko.dev' });
       sent++;
     } catch (e) {
       console.error(`[streak-cron] Error for user ${user._id}:`, e.message);
@@ -2777,21 +2696,12 @@ cron.schedule('0 0 * * *', async () => {
   }
 });
 
-// ── Portfolio pending orders execution (fires every minute, executes once at market open) ─
-let lastOrderExecutionDate = null;
-cron.schedule('* * * * 1-5', async () => {
-  if (!isPortfolioMarketOpen('stock')) return;
-  const todayNY = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
-  if (lastOrderExecutionDate === todayNY) return;
-  lastOrderExecutionDate = todayNY;
-
+// ── Portfolio pending orders execution (NYSE open + 1 min) ───────────────────
+cron.schedule('31 13 * * 1-5', async () => {
   const PortfolioOrder = mongoose.model('PortfolioOrder');
   try {
     const pendingOrders = await PortfolioOrder.find({ status: 'pending' });
-    if (!pendingOrders.length) {
-      console.log('[portfolio-orders-cron] No pending orders at market open');
-      return;
-    }
+    if (!pendingOrders.length) return;
     console.log(`[portfolio-orders-cron] Executing ${pendingOrders.length} pending order(s)`);
 
     async function cancelOrder(order, reason) {
@@ -2813,45 +2723,25 @@ cron.schedule('* * * * 1-5', async () => {
         if (!portfolio) { await cancelOrder(order, 'portfolio_not_found'); continue; }
 
         if (order.type === 'buy') {
+          // Refund reservation, then attempt buy at opening price
           portfolio.cash += order.reservedCash;
-          const fullTotal = execPrice * order.qty;
-          let execQty = order.qty;
-          if (portfolio.cash < fullTotal) {
-            execQty = Math.floor((portfolio.cash / execPrice) * 10000) / 10000;
-            if (execQty < 0.0001) {
-              await portfolio.save();
-              redis.del(`portfolio:${order.userId}`).catch(() => {});
-              await cancelOrder(order, 'insufficient_funds_at_open');
-              continue;
-            }
+          const total = execPrice * order.qty;
+          if (portfolio.cash < total) {
+            // Save refund so user gets reserved cash back, then cancel
+            await portfolio.save();
+            redis.del(`portfolio:${order.userId}`).catch(() => {});
+            await cancelOrder(order, 'insufficient_funds_at_open');
+            continue;
           }
-          const total = execPrice * execQty;
           portfolio.cash -= total;
           const existing = portfolio.positions.find(p => p.symbol === order.symbol);
           if (existing) {
-            existing.avgPrice = (existing.avgPrice * existing.qty + execPrice * execQty) / (existing.qty + execQty);
-            existing.qty += execQty;
+            existing.avgPrice = (existing.avgPrice * existing.qty + execPrice * order.qty) / (existing.qty + order.qty);
+            existing.qty += order.qty;
           } else {
-            portfolio.positions.push({ symbol: order.symbol, name: asset.name, qty: execQty, avgPrice: execPrice, type: asset.type });
+            portfolio.positions.push({ symbol: order.symbol, name: asset.name, qty: order.qty, avgPrice: execPrice, type: asset.type });
           }
-          portfolio.transactions.push({ symbol: order.symbol, name: asset.name, type: asset.type, action: 'buy', qty: execQty, price: execPrice, total });
-          await portfolio.save();
-          redis.del(`portfolio:${order.userId}`).catch(() => {});
-          order.status = 'executed';
-          order.executedAt = new Date();
-          order.executedPrice = execPrice;
-          order.executedQty = execQty;
-          await order.save();
-          const lang = await getUserLang(order.userId);
-          const s = NOTIF_STRINGS[lang] || NOTIF_STRINGS.en;
-          const isPartial = execQty < order.qty;
-          await sendPushToUser(order.userId, {
-            ...(isPartial
-              ? s.orderPartialExecution({ type: order.type, name: order.name, qty: parseFloat(order.qty.toFixed(4)), executedQty: parseFloat(execQty.toFixed(4)), price: execPrice.toFixed(2) })
-              : s.orderExecuted({ type: order.type, name: order.name, qty: order.qty, price: execPrice.toFixed(2) })),
-            url: 'https://tradiko.dev',
-          });
-          console.log(`[portfolio-orders-cron] Executed buy ${execQty}/${order.qty}x${order.symbol} @ $${execPrice} for userId=${order.userId}`);
+          portfolio.transactions.push({ symbol: order.symbol, name: asset.name, type: asset.type, action: 'buy', qty: order.qty, price: execPrice, total });
         } else {
           // sell
           const position = portfolio.positions.find(p => p.symbol === order.symbol);
@@ -2861,21 +2751,21 @@ cron.schedule('* * * * 1-5', async () => {
           position.qty = Math.round((position.qty - order.qty) * 10000) / 10000;
           if (position.qty < 0.0001) portfolio.positions = portfolio.positions.filter(p => p.symbol !== order.symbol);
           portfolio.transactions.push({ symbol: order.symbol, name: asset.name, type: asset.type, action: 'sell', qty: order.qty, price: execPrice, total });
-          await portfolio.save();
-          redis.del(`portfolio:${order.userId}`).catch(() => {});
-          order.status = 'executed';
-          order.executedAt = new Date();
-          order.executedPrice = execPrice;
-          order.executedQty = order.qty;
-          await order.save();
-          const lang = await getUserLang(order.userId);
-          const s = NOTIF_STRINGS[lang] || NOTIF_STRINGS.en;
-          await sendPushToUser(order.userId, {
-            ...s.orderExecuted({ type: order.type, name: order.name, qty: order.qty, price: execPrice.toFixed(2) }),
-            url: 'https://tradiko.dev',
-          });
-          console.log(`[portfolio-orders-cron] Executed sell ${order.qty}x${order.symbol} @ $${execPrice} for userId=${order.userId}`);
         }
+
+        await portfolio.save();
+        redis.del(`portfolio:${order.userId}`).catch(() => {});
+        order.status = 'executed';
+        order.executedAt = new Date();
+        order.executedPrice = execPrice;
+        await order.save();
+        const lang = await getUserLang(order.userId);
+        const s = NOTIF_STRINGS[lang] || NOTIF_STRINGS.en;
+        await sendPushToUser(order.userId, {
+          ...s.orderExecuted({ type: order.type, name: order.name, qty: order.qty, price: execPrice.toFixed(2) }),
+          url: 'https://tradiko.dev',
+        });
+        console.log(`[portfolio-orders-cron] Executed ${order.type} ${order.qty}x${order.symbol} @ $${execPrice} for userId=${order.userId}`);
       } catch (err) {
         console.error(`[portfolio-orders-cron] Error on order ${order._id}:`, err.message);
       }
@@ -2883,7 +2773,7 @@ cron.schedule('* * * * 1-5', async () => {
   } catch (err) {
     console.error('[portfolio-orders-cron] Error:', err.message);
   }
-}, { timezone: 'America/New_York' });
+}, { timezone: 'UTC' });
 
 // ── Phase 5E: weekly ranking BP missions cron ────────────────────────────────
 // Fires Sunday 23:55 Madrid time (CET/CEST handles DST automatically).
@@ -2992,7 +2882,7 @@ app.get('/stats/dashboard', async (req, res) => {
     ]);
     res.json({ users, scores, purchases, totalUsers, totalScores, totalPurchases: totalPurchases[0]?.total || 0 });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -3043,7 +2933,7 @@ app.get('/stats/revenue', async (req, res) => {
     revenueCacheAt = Date.now();
     res.json(revenueCache);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -3073,7 +2963,7 @@ app.get('/portfolio/prices', async (req, res) => {
       })();
     }
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 // Obtener portfolio del usuario
@@ -3097,7 +2987,7 @@ app.get('/portfolio', async (req, res) => {
     redis.set(cacheKey, JSON.stringify(obj), { ex: 30 }).catch(() => {});
     res.json(obj);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -3109,7 +2999,7 @@ app.post('/portfolio/tutorial-seen', async (req, res) => {
     await User.findByIdAndUpdate(decoded.id, { portfolioTutorialSeen: true });
     res.json({ ok: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -3133,7 +3023,7 @@ app.post('/academias/tutorial-seen', async (req, res) => {
     await User.findByIdAndUpdate(decoded.id, { academiasTutorialSeen: true });
     res.json({ ok: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -3145,7 +3035,7 @@ app.post('/admin/reset-portfolio-tutorial/:username', async (req, res) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
     res.json({ ok: true, username: req.params.username });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -3157,7 +3047,7 @@ app.post('/admin/reset-academias/:username', async (req, res) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
     res.json({ ok: true, username: req.params.username });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -3187,7 +3077,7 @@ app.get('/admin/portfolio/:username', async (req, res) => {
     const totalValue = portfolio.cash + invested;
     const portfolioReturn = ((totalValue - 50000) / 50000) * 100;
     res.json({ username: user.username, name: user.name, cash: portfolio.cash, invested, totalValue, portfolioReturn, positions, transactions: portfolio.transactions.slice(-20) });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 // ── Ligas ─────────────────────────────────────────────────────────────────────
@@ -3215,7 +3105,7 @@ app.post('/leagues/create', async (req, res) => {
       startDate: today, endDate: endDate || null,
     });
     res.json({ leagueId: league._id, code });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.post('/leagues/join', async (req, res) => {
@@ -3232,7 +3122,7 @@ app.post('/leagues/join', async (req, res) => {
     league.members.push({ userId: decoded.id, startValue, joinedAt: new Date() });
     await league.save();
     res.json({ leagueId: league._id, name: league.name });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.get('/leagues/mine', async (req, res) => {
@@ -3246,7 +3136,7 @@ app.get('/leagues/mine', async (req, res) => {
       memberCount: l.members.length, startDate: l.startDate, endDate: l.endDate,
       isOwner: l.owner.toString() === decoded.id,
     })));
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.get('/leagues/:leagueId/ranking', async (req, res) => {
@@ -3268,7 +3158,7 @@ app.get('/leagues/:leagueId/ranking', async (req, res) => {
     const memberIds = league.members.map(m => m.userId);
     const [portfolios, users] = await Promise.all([
       Portfolio.find({ userId: { $in: memberIds } }),
-      User.find({ _id: { $in: memberIds } }).select('name username avatar customAvatar activeCosmetics battlePassMechanics'),
+      User.find({ _id: { $in: memberIds } }).select('name username avatar customAvatar activeCosmetics'),
     ]);
     const pMap = {}; portfolios.forEach(p => { pMap[p.userId.toString()] = p; });
     const uMap = {}; users.forEach(u => { uMap[u._id.toString()] = u; });
@@ -3284,8 +3174,7 @@ app.get('/leagues/:leagueId/ranking', async (req, res) => {
       return {
         userId: m.userId, name: u?.name || 'Anonymous', username: u?.username || null,
         avatar: u?.avatar || null, customAvatar: u?.customAvatar || null,
-        activeCosmetics:  u?.activeCosmetics || {},
-        hasVerifiedBadge: u?.battlePassMechanics?.includes('mechanic_verified_badge') || false,
+        activeCosmetics: u?.activeCosmetics || {},
         startValue: m.startValue, totalValue,
         returnPct: ((totalValue - m.startValue) / m.startValue) * 100,
         isYou: uid === decoded.id,
@@ -3302,7 +3191,7 @@ app.get('/leagues/:leagueId/ranking', async (req, res) => {
       owner: league.owner, startDate: league.startDate, endDate: league.endDate,
       isOwner: league.owner.toString() === decoded.id, ranking: top10, userPosition,
     });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.post('/leagues/:leagueId/leave', async (req, res) => {
@@ -3317,7 +3206,7 @@ app.post('/leagues/:leagueId/leave', async (req, res) => {
     league.members = league.members.filter(m => m.userId.toString() !== decoded.id);
     await league.save();
     res.json({ ok: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.delete('/leagues/:leagueId', async (req, res) => {
@@ -3331,7 +3220,7 @@ app.delete('/leagues/:leagueId', async (req, res) => {
       return res.status(403).json({ error: 'Solo el owner puede eliminar la liga' });
     await League.findByIdAndDelete(req.params.leagueId);
     res.json({ ok: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 // Comprar
@@ -3414,19 +3303,13 @@ app.post('/portfolio/sell', async (req, res) => {
 // ── Portfolio pending orders ──────────────────────────────────────
 
 function isPortfolioMarketOpen(assetType) {
+  const now = new Date();
+  const day = now.getUTCDay();
   if (assetType === 'crypto') return true;
-  const now   = new Date();
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/New_York',
-    weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false,
-  }).formatToParts(now);
-  const weekday = parts.find(p => p.type === 'weekday').value;
-  if (weekday === 'Sat' || weekday === 'Sun') return false;
-  if (assetType === 'commodity') return true;
-  const hour    = parseInt(parts.find(p => p.type === 'hour').value, 10);
-  const minute  = parseInt(parts.find(p => p.type === 'minute').value, 10);
-  const minutes = hour * 60 + minute;
-  return minutes >= 9 * 60 + 30 && minutes < 16 * 60;
+  if (assetType === 'commodity') return day !== 0 && day !== 6;
+  if (day === 0 || day === 6) return false;
+  const minutes = now.getUTCHours() * 60 + now.getUTCMinutes();
+  return minutes >= 13 * 60 + 30 && minutes < 20 * 60;
 }
 
 app.post('/portfolio/order', async (req, res) => {
@@ -3530,7 +3413,7 @@ app.post('/admin/refund-unlisted/:username', async (req, res) => {
 
     res.json({ ok: true, refundedSymbols: stuck.map(p => p.symbol), refund: refund.toFixed(2), newCash: portfolio.cash.toFixed(2) });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -3559,12 +3442,14 @@ app.post('/portfolio/refund-delisted', async (req, res) => {
     }
     res.json({ ok: true, usersAffected, totalRefunded: totalRefunded.toFixed(2) });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 
 app.get('/portfolio/clear-crypto-cache', async (req, res) => {
+  const key = req.headers['x-admin-secret'];
+  if (key !== ADMIN_SECRET) return res.status(403).json({ error: 'Forbidden' });
   await redis.del('price:BTCUSDT');
   await redis.del('price:ETHUSDT');
   await redis.del('price:XRPUSDT');
@@ -3598,7 +3483,7 @@ app.get('/portfolio/candles/:symbol', async (req, res) => {
     }
     res.json(candles);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 app.post('/portfolio/snapshot', async (req, res) => {
@@ -3615,7 +3500,7 @@ app.post('/portfolio/snapshot', async (req, res) => {
     );
     res.json({ ok: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -3627,7 +3512,7 @@ app.get('/portfolio/history', async (req, res) => {
     const history = await PortfolioHistory.find({ userId: decoded.id }).sort({ date: 1 });
     res.json(history);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 app.get('/portfolio/clear-cache', async (req, res) => {
@@ -3642,7 +3527,7 @@ app.get('/portfolio/clear-cache', async (req, res) => {
     await Promise.all(keys.map(k => redis.del(k)));
     res.json({ ok: true, cleared: keys.length });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 app.get('/portfolio/weekly/leaderboard', async (req, res) => {
@@ -3706,39 +3591,50 @@ app.get('/portfolio/weekly/leaderboard', async (req, res) => {
     }
     res.json({ leaderboard: top10, userPosition });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err); res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 app.get('/portfolio/leaderboard', async (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
   try {
-    const portfolios = await Portfolio.find({}).populate('userId', 'name avatar customAvatar username activeCosmetics');
-    const prices     = await Promise.all(PORTFOLIO_ASSETS.map(a => getPrice(a).catch(() => null)));
-    const priceMap   = {};
-    prices.filter(Boolean).forEach(p => { priceMap[p.symbol] = p.price; });
+    const CACHE_KEY = 'portfolio_leaderboard_v1';
+    const CACHE_TTL = 5 * 60;
 
-    const allLeaderboard = portfolios.map(p => {
-      const invested = p.positions.reduce((s, pos) => {
-        const price = priceMap[pos.symbol] || pos.avgPrice;
-        return s + price * pos.qty;
-      }, 0);
-      const totalValue = p.cash + invested;
-      const returnPct  = ((totalValue - 50000) / 50000) * 100;
-      return {
-        userId:          String(p.userId?._id || ''),
-        name:            p.userId?.username || p.userId?.name || 'Anonymous',
-        username:        p.userId?.username || null,
-        avatar:          p.userId?.avatar || null,
-        customAvatar:    p.userId?.customAvatar || null,
-        activeCosmetics: p.userId?.activeCosmetics || {},
-        totalValue,
-        returnPct,
-        cash:            p.cash,
-      };
-    })
-    .filter(p => p.totalValue !== 50000)
-    .sort((a, b) => b.returnPct - a.returnPct);
+    let allLeaderboard;
+    const cachedRaw = await redis.get(CACHE_KEY);
+    if (cachedRaw) {
+      allLeaderboard = typeof cachedRaw === 'string' ? JSON.parse(cachedRaw) : cachedRaw;
+    } else {
+      const portfolios = await Portfolio.find({}).populate('userId', 'name avatar customAvatar username activeCosmetics');
+      const prices     = await Promise.all(PORTFOLIO_ASSETS.map(a => getPrice(a).catch(() => null)));
+      const priceMap   = {};
+      prices.filter(Boolean).forEach(p => { priceMap[p.symbol] = p.price; });
+
+      allLeaderboard = portfolios.map(p => {
+        const invested = p.positions.reduce((s, pos) => {
+          const price = priceMap[pos.symbol] || pos.avgPrice;
+          return s + price * pos.qty;
+        }, 0);
+        const totalValue = p.cash + invested;
+        const returnPct  = ((totalValue - 50000) / 50000) * 100;
+        return {
+          userId:          String(p.userId?._id || ''),
+          name:            p.userId?.username || p.userId?.name || 'Anonymous',
+          username:        p.userId?.username || null,
+          avatar:          p.userId?.avatar || null,
+          customAvatar:    p.userId?.customAvatar || null,
+          activeCosmetics: p.userId?.activeCosmetics || {},
+          totalValue,
+          returnPct,
+          cash:            p.cash,
+        };
+      })
+      .filter(p => p.totalValue !== 50000)
+      .sort((a, b) => b.returnPct - a.returnPct);
+
+      await redis.set(CACHE_KEY, JSON.stringify(allLeaderboard), { ex: CACHE_TTL }).catch(() => {});
+    }
 
     const top10 = allLeaderboard.slice(0, 10);
     let userPosition = null;
@@ -3752,7 +3648,8 @@ app.get('/portfolio/leaderboard', async (req, res) => {
     }
     res.json({ leaderboard: top10, userPosition });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 async function getPortfolioValue(userId) {
@@ -3774,7 +3671,7 @@ async function getPortfolioValue(userId) {
 
 // ── Portfolio duels ───────────────────────────────────────────────
 app.post('/portfolio/duel/challenge', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const { username } = req.body;
@@ -3792,11 +3689,11 @@ app.post('/portfolio/duel/challenge', async (req, res) => {
     if (existing) return res.status(400).json({ error: 'Already have an active duel' });
     const duel = await PortfolioDuel.create({ challenger: decoded.id, opponent: target._id });
     res.json({ ok: true, duelId: duel._id });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.post('/portfolio/duel/accept/:duelId', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const duel = await PortfolioDuel.findOne({ _id: req.params.duelId, opponent: decoded.id, status: 'pending' });
@@ -3809,20 +3706,20 @@ app.post('/portfolio/duel/accept/:duelId', async (req, res) => {
     duel.challengerStartValue = cVal; duel.opponentStartValue = oVal;
     await duel.save();
     res.json({ ok: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.post('/portfolio/duel/reject/:duelId', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     await PortfolioDuel.findOneAndDelete({ _id: req.params.duelId, opponent: decoded.id, status: 'pending' });
     res.json({ ok: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.get('/portfolio/duel/pending', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const duels = await PortfolioDuel.find({ opponent: decoded.id, status: 'pending' })
@@ -3832,11 +3729,11 @@ app.get('/portfolio/duel/pending', async (req, res) => {
       challenger: { name: d.challenger.name, username: d.challenger.username, avatar: d.challenger.avatar, customAvatar: d.challenger.customAvatar || null },
       createdAt:  d.createdAt,
     })));
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.get('/portfolio/duel/active', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const duel = await PortfolioDuel.findOne({
@@ -3854,7 +3751,7 @@ app.get('/portfolio/duel/active', async (req, res) => {
       opponent:   { name: duel.opponent.name,   username: duel.opponent.username,   avatar: duel.opponent.avatar,   customAvatar: duel.opponent.customAvatar,   returnPct: ((oVal - duel.opponentStartValue)   / duel.opponentStartValue)   * 100, currentValue: oVal },
       startDate: duel.startDate, endDate: duel.endDate, daysLeft,
     });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 // ── Auth helpers ──────────────────────────────────────────────────
@@ -3870,18 +3767,18 @@ async function verifyTokenBlacklisted(req) {
   const auth = req.headers.authorization;
   if (!auth) return null;
   const token = auth.replace('Bearer ', '');
+  if (!token) return null;
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
     const blacklisted = await redis.get(`blacklist:${token}`);
     if (blacklisted) return null;
-    return decoded;
+    return jwt.verify(token, JWT_SECRET);
   } catch { return null; }
 }
 
 // ── Friends routes ────────────────────────────────────────────────
 
 app.post('/friends/request', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const { username } = req.body;
@@ -3898,11 +3795,11 @@ app.post('/friends/request', async (req, res) => {
     if (existing) return res.status(400).json({ error: existing.status === 'accepted' ? 'Already friends' : 'Request already sent' });
     await Friendship.create({ requester: decoded.id, recipient: recipient._id });
     res.json({ ok: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.post('/friends/accept', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const { friendshipId } = req.body;
@@ -3911,11 +3808,11 @@ app.post('/friends/accept', async (req, res) => {
     friendship.status = 'accepted';
     await friendship.save();
     res.json({ ok: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.post('/friends/reject', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const { friendshipId } = req.body;
@@ -3923,52 +3820,49 @@ app.post('/friends/reject', async (req, res) => {
     if (!friendship) return res.status(404).json({ error: 'Request not found' });
     await friendship.deleteOne();
     res.json({ ok: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.get('/friends/list', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const friendships = await Friendship.find({
       $or: [{ requester: decoded.id }, { recipient: decoded.id }],
       status: 'accepted',
-    }).populate('requester', 'name avatar customAvatar username xp badges activeCosmetics battlePassMechanics')
-      .populate('recipient', 'name avatar customAvatar username xp badges activeCosmetics battlePassMechanics');
+    }).populate('requester', 'name avatar customAvatar username xp badges activeCosmetics')
+      .populate('recipient', 'name avatar customAvatar username xp badges activeCosmetics');
     const validFriendships = friendships.filter(f => f.requester && f.recipient);
     const friends = validFriendships.map(f => {
       const friend = f.requester._id.equals(decoded.id) ? f.recipient : f.requester;
-      return { friendshipId: f._id, id: friend._id, name: friend.name, avatar: friend.avatar, customAvatar: friend.customAvatar || null, activeCosmetics: friend.activeCosmetics || {}, username: friend.username, xp: friend.xp, badges: friend.badges, hasVerifiedBadge: friend.battlePassMechanics?.includes('mechanic_verified_badge') || false };
+      return { friendshipId: f._id, id: friend._id, name: friend.name, avatar: friend.avatar, customAvatar: friend.customAvatar || null, activeCosmetics: friend.activeCosmetics || {}, username: friend.username, xp: friend.xp, badges: friend.badges };
     });
     res.json(friends);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.get('/friends/pending', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const pending = await Friendship.find({ recipient: decoded.id, status: 'pending' })
-      .populate('requester', 'name avatar customAvatar username xp activeCosmetics battlePassMechanics');
+      .populate('requester', 'name avatar username xp');
     const validPending = pending.filter(f => f.requester);
     const requests = validPending.map(f => ({
-      friendshipId:    f._id,
-      id:              f.requester._id,
-      name:            f.requester.name,
-      avatar:          f.requester.avatar,
-      customAvatar:    f.requester.customAvatar || null,
-      activeCosmetics: f.requester.activeCosmetics || {},
-      username:        f.requester.username,
-      xp:              f.requester.xp,
-      createdAt:       f.createdAt,
-      hasVerifiedBadge: f.requester.battlePassMechanics?.includes('mechanic_verified_badge') || false,
+      friendshipId: f._id,
+      id: f.requester._id,
+      name: f.requester.name,
+      avatar: f.requester.avatar,
+      username: f.requester.username,
+      xp: f.requester.xp,
+      createdAt: f.createdAt,
     }));
     res.json(requests);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.get('/friends/profile/:username', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const target = await User.findOne({ username: req.params.username.toLowerCase() });
@@ -4001,12 +3895,11 @@ app.get('/friends/profile/:username', async (req, res) => {
       xp:              target.xp,
       badges:          target.badges,
       portfolioReturn,
-      hasVerifiedBadge: target.battlePassMechanics?.includes('mechanic_verified_badge') || false,
       friendshipStatus: friendship?.status || null,
       friendshipId: friendship?._id || null,
       isRequester: friendship ? friendship.requester.equals(decoded.id) : null,
     });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.get('/u/:username', async (req, res) => {
@@ -4015,7 +3908,7 @@ app.get('/u/:username', async (req, res) => {
     const target = await User.findOne({ username: req.params.username.toLowerCase() });
     if (!target) return res.status(404).json({ error: 'User not found' });
 
-    let portfolioReturn = null, totalValue = null, enrichedPositions = null;
+    let portfolioReturn = null, totalValue = null;
     try {
       const portfolio = await Portfolio.findOne({ userId: target._id });
       if (portfolio) {
@@ -4029,29 +3922,17 @@ app.get('/u/:username', async (req, res) => {
         const invested = portfolio.positions.reduce((s, pos) => s + (priceMap[pos.symbol] || pos.avgPrice) * pos.qty, 0);
         totalValue = portfolio.cash + invested;
         portfolioReturn = ((totalValue - 50000) / 50000) * 100;
-        enrichedPositions = portfolio.positions.map(pos => {
-          const currentPrice = priceMap[pos.symbol] || pos.avgPrice;
-          const currentValue = currentPrice * pos.qty;
-          const costBasis    = pos.avgPrice * pos.qty;
-          const pnl          = currentValue - costBasis;
-          return { symbol: pos.symbol, name: pos.name, type: pos.type, qty: pos.qty, avgPrice: pos.avgPrice, currentPrice, currentValue, pnl, pnlPct: costBasis > 0 ? (pnl / costBasis) * 100 : 0 };
-        });
       }
     } catch {}
 
     let friendshipStatus = null;
-    let requesterMechanics = [];
-    const decoded = verifyToken(req);
-    if (decoded) {
+    const decoded = await verifyToken(req);
+    if (decoded && decoded.id !== target._id.toString()) {
       try {
-        if (decoded.id !== target._id.toString()) {
-          const fr = await Friendship.findOne({
-            $or: [{ requester: decoded.id, recipient: target._id }, { requester: target._id, recipient: decoded.id }],
-          });
-          friendshipStatus = fr?.status || null;
-        }
-        const requester = await User.findById(decoded.id).select('battlePassMechanics');
-        requesterMechanics = requester?.battlePassMechanics || [];
+        const fr = await Friendship.findOne({
+          $or: [{ requester: decoded.id, recipient: target._id }, { requester: target._id, recipient: decoded.id }],
+        });
+        friendshipStatus = fr?.status || null;
       } catch {}
     }
 
@@ -4066,18 +3947,114 @@ app.get('/u/:username', async (req, res) => {
       dailyStreak:     target.dailyStreak,
       portfolioReturn,
       totalValue,
-      positions:       requesterMechanics.includes('mechanic_portfolio_view') ? enrichedPositions : null,
       joinedAt:        target.createdAt,
       friendshipStatus,
       isPro:           target.isPro || false,
-      hasVerifiedBadge: target.battlePassMechanics?.includes('mechanic_verified_badge') || false,
     });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.use('/academy', require('./routes/academy'));
-const { router: battlePassRouter, addBattlePassProgress, processGameBpProgress, processDailyBpProgress, processArenaWinBpProgress, checkCompletionBpMissions } = require('./routes/battlepass');
-app.use('/battle-pass', battlePassRouter);
+
+// ── Trading Mode — price adapter + routes ─────────────────────────
+const { priceRouter }       = require('./trading/priceProvider');
+const { StubPriceProvider } = require('./trading/stubProvider');
+const tradingStub = new StubPriceProvider(redis);
+priceRouter.register('stub', tradingStub);
+console.log('[trading] StubPriceProvider registered');
+
+app.use('/api/trading', require('./routes/trading'));
+
+if (process.env.NODE_ENV !== 'production') {
+  const { makeTradingAdminRouter } = require('./routes/tradingAdmin');
+  app.use('/api/admin/trading', makeTradingAdminRouter(redis, ADMIN_SECRET));
+  console.log('[trading] admin override endpoints registered (dev only)');
+}
+
+// ── Trading Mode background worker ────────────────────────────────
+const { runTradingWorker } = require('./trading/worker');
+const { checkMarginLevel, checkStopLossTakeProfit, getTradingEquity } = require('./routes/trading');
+runTradingWorker(checkStopLossTakeProfit, checkMarginLevel);
+
+// ── Trading Mode crons ────────────────────────────────────────────
+
+// Daily equity snapshot at 23:30 UTC for all trading accounts
+cron.schedule('30 23 * * *', async () => {
+  try {
+    const TradingAccount        = mongoose.model('TradingAccount');
+    const TradingPosition       = mongoose.model('TradingPosition');
+    const TradingAccountHistory = mongoose.model('TradingAccountHistory');
+
+    const date     = new Date().toISOString().split('T')[0];
+    const accounts = await TradingAccount.find({});
+    const allPositions = await TradingPosition.find({});
+
+    const posMap = {};
+    for (const pos of allPositions) {
+      const uid = pos.userId.toString();
+      if (!posMap[uid]) posMap[uid] = [];
+      posMap[uid].push(pos);
+    }
+
+    const uniqueSymbols = [...new Set(allPositions.map(p => p.symbol))];
+    const priceMap = {};
+    await Promise.all(uniqueSymbols.map(async sym => {
+      try { priceMap[sym] = await priceRouter.getPrice(sym); } catch {}
+    }));
+
+    let saved = 0;
+    for (const account of accounts) {
+      try {
+        const uid       = account.userId.toString();
+        const positions = posMap[uid] || [];
+        const totalPnl  = positions.reduce((s, pos) => {
+          const priceObj = priceMap[pos.symbol] || { bid: pos.entryPrice, ask: pos.entryPrice };
+          const close    = pos.direction === 'long' ? priceObj.bid : priceObj.ask;
+          const pnl      = pos.direction === 'long'
+            ? (close - pos.entryPrice) * pos.contractSize * pos.lots
+            : (pos.entryPrice - close) * pos.contractSize * pos.lots;
+          return s + pnl;
+        }, 0);
+        const equity = account.balance + totalPnl;
+        await TradingAccountHistory.findOneAndUpdate(
+          { userId: account.userId, date },
+          { equity },
+          { upsert: true }
+        );
+        saved++;
+      } catch {}
+    }
+    console.log(`[trading-snapshot-cron] ${saved}/${accounts.length} equity snapshots saved for ${date}`);
+  } catch (err) {
+    console.error('[trading-snapshot-cron] Error:', err.message);
+  }
+});
+
+// Daily cron to close expired trading duels (00:05 UTC)
+cron.schedule('5 0 * * *', async () => {
+  try {
+    const TradingDuel = mongoose.model('TradingDuel');
+    const today = new Date().toISOString().split('T')[0];
+    const expired = await TradingDuel.find({ status: 'active', endDate: { $lte: today } });
+    for (const duel of expired) {
+      try {
+        const [cEquity, oEquity] = await Promise.all([
+          getTradingEquity(duel.challenger),
+          getTradingEquity(duel.opponent),
+        ]);
+        const cReturn = (cEquity - duel.challengerStartEquity) / duel.challengerStartEquity;
+        const oReturn = (oEquity - duel.opponentStartEquity)   / duel.opponentStartEquity;
+        duel.status = 'finished';
+        duel.winner = cReturn >= oReturn ? duel.challenger : duel.opponent;
+        await duel.save();
+      } catch {}
+    }
+    if (expired.length > 0)
+      console.log(`[trading-duel-cron] Closed ${expired.length} expired duel(s)`);
+  } catch (err) {
+    console.error('[trading-duel-cron] Error:', err.message);
+  }
+});
 
 // ── Stripe academy billing portal ─────────────────────────────────
 app.post('/stripe/academy-portal', async (req, res) => {
@@ -4125,7 +4102,7 @@ setInterval(async () => {
 
 // ── Price alerts ──────────────────────────────────────────────────
 app.get('/api/alerts', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
   const user = await User.findById(decoded.id).select('isPro');
   if (!user?.isPro) return res.status(403).json({ error: 'Pro required' });
@@ -4134,7 +4111,7 @@ app.get('/api/alerts', async (req, res) => {
 });
 
 app.post('/api/alerts', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
   const user = await User.findById(decoded.id).select('isPro');
   if (!user?.isPro) return res.status(403).json({ error: 'Pro required' });
@@ -4148,7 +4125,7 @@ app.post('/api/alerts', async (req, res) => {
 });
 
 app.delete('/api/alerts/:id', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
   await PriceAlert.deleteOne({ _id: req.params.id, userId: decoded.id });
   res.json({ ok: true });
@@ -4156,18 +4133,18 @@ app.delete('/api/alerts/:id', async (req, res) => {
 
 // ── Position notes (Pro) ─────────────────────────────────────────
 app.get('/api/portfolio/notes', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const user = await User.findById(decoded.id).select('isPro');
     if (!user?.isPro) return res.status(403).json({ error: 'Pro required' });
     const notes = await PositionNote.find({ userId: decoded.id });
     res.json(notes);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.post('/api/portfolio/note', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const user = await User.findById(decoded.id).select('isPro');
@@ -4180,21 +4157,21 @@ app.post('/api/portfolio/note', async (req, res) => {
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
     res.json({ ok: true, note: saved });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.delete('/api/portfolio/note/:ticker', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     await PositionNote.deleteOne({ userId: decoded.id, ticker: req.params.ticker });
     res.json({ ok: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 // ── Portfolio compare vs #1 (Pro) ─────────────────────────────────
 app.get('/api/portfolio/compare', async (req, res) => {
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const user = await User.findById(decoded.id).select('isPro');
@@ -4252,118 +4229,10 @@ app.get('/api/portfolio/compare', async (req, res) => {
         return { symbol: s, name: pos?.name || s, type: pos?.type, myReturn: calcReturn(s, myPortfolio.positions) };
       }),
     });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Internal server error' }); }
 });
 
 app.get('/', (req, res) => res.json({ status: 'ok' }));
-
-// ── Trading Mode — price adapter + routes (Fase 1-2) ─────────────
-const { priceRouter }         = require('./trading/priceProvider');
-const { StubPriceProvider }   = require('./trading/stubProvider');
-const tradingStub = new StubPriceProvider(redis);
-priceRouter.register('stub', tradingStub);
-console.log('[trading] StubPriceProvider registered');
-
-app.use('/api/trading', require('./routes/trading'));
-
-// ⚠️  DEV-ONLY — price override endpoints (Fase 1 testing).
-// La condición NODE_ENV aquí es la primera capa de seguridad:
-// en producción este router no se monta en absoluto.
-// La segunda capa está dentro del router (x-admin-secret).
-if (process.env.NODE_ENV !== 'production') {
-  const { makeTradingAdminRouter } = require('./routes/tradingAdmin');
-  app.use('/api/admin/trading', makeTradingAdminRouter(redis, ADMIN_SECRET));
-  console.log('[trading] admin override endpoints registered (dev only)');
-}
-
-// ── Trading Mode background worker (Fase 4) ───────────────────────────────────
-const { runTradingWorker } = require('./trading/worker');
-const { checkMarginLevel, checkStopLossTakeProfit, getTradingEquity } = require('./routes/trading');
-runTradingWorker(checkStopLossTakeProfit, checkMarginLevel);
-
-// ── Trading social crons (Fase 5) ─────────────────────────────────────────────
-
-// Daily equity snapshot at 23:30 UTC for all trading accounts
-cron.schedule('30 23 * * *', async () => {
-  try {
-    const TradingAccount        = mongoose.model('TradingAccount');
-    const TradingPosition       = mongoose.model('TradingPosition');
-    const TradingAccountHistory = mongoose.model('TradingAccountHistory');
-
-    const date     = new Date().toISOString().split('T')[0];
-    const accounts = await TradingAccount.find({});
-    const allPositions = await TradingPosition.find({});
-
-    // Group positions by userId
-    const posMap = {};
-    for (const pos of allPositions) {
-      const uid = pos.userId.toString();
-      if (!posMap[uid]) posMap[uid] = [];
-      posMap[uid].push(pos);
-    }
-
-    // Batch price fetch for all unique symbols
-    const uniqueSymbols = [...new Set(allPositions.map(p => p.symbol))];
-    const priceMap = {};
-    await Promise.all(uniqueSymbols.map(async sym => {
-      try {
-        priceMap[sym] = await priceRouter.getPrice(sym);
-      } catch {}
-    }));
-
-    let saved = 0;
-    for (const account of accounts) {
-      try {
-        const uid       = account.userId.toString();
-        const positions = posMap[uid] || [];
-        const totalPnl  = positions.reduce((s, pos) => {
-          const priceObj = priceMap[pos.symbol] || { bid: pos.entryPrice, ask: pos.entryPrice };
-          const close    = pos.direction === 'long' ? priceObj.bid : priceObj.ask;
-          const pnl      = pos.direction === 'long'
-            ? (close - pos.entryPrice) * pos.contractSize * pos.lots
-            : (pos.entryPrice - close) * pos.contractSize * pos.lots;
-          return s + pnl;
-        }, 0);
-        const equity = account.balance + totalPnl;
-        await TradingAccountHistory.findOneAndUpdate(
-          { userId: account.userId, date },
-          { equity },
-          { upsert: true }
-        );
-        saved++;
-      } catch {}
-    }
-    console.log(`[trading-snapshot-cron] ${saved}/${accounts.length} equity snapshots saved for ${date}`);
-  } catch (err) {
-    console.error('[trading-snapshot-cron] Error:', err.message);
-  }
-});
-
-// Daily cron to close expired trading duels (00:05 UTC)
-cron.schedule('5 0 * * *', async () => {
-  try {
-    const TradingDuel = mongoose.model('TradingDuel');
-    const today = new Date().toISOString().split('T')[0];
-    const expired = await TradingDuel.find({ status: 'active', endDate: { $lte: today } });
-    for (const duel of expired) {
-      try {
-        const [cEquity, oEquity] = await Promise.all([
-          getTradingEquity(duel.challenger),
-          getTradingEquity(duel.opponent),
-        ]);
-        const cReturn = (cEquity - duel.challengerStartEquity) / duel.challengerStartEquity;
-        const oReturn = (oEquity - duel.opponentStartEquity)   / duel.opponentStartEquity;
-        duel.status = 'finished';
-        duel.winner = cReturn >= oReturn ? duel.challenger : duel.opponent;
-        await duel.save();
-      } catch {}
-    }
-    if (expired.length > 0)
-      console.log(`[trading-duel-cron] Closed ${expired.length} expired duel(s)`);
-  } catch (err) {
-    console.error('[trading-duel-cron] Error:', err.message);
-  }
-});
 
 // ── Start ─────────────────────────────────────────────────────────
 httpServer.listen(PORT, () => {
