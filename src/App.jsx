@@ -32,7 +32,6 @@ import PublicProfile from './PublicProfile.jsx';
 import Tutorial from './Tutorial.jsx';
 import Landing from './Landing.jsx';
 import Stats from './Stats.jsx';
-import Inventory from './Inventory.jsx';
 import { incrementMission, recordModePlayed, incrementWeeklyMission, recordWeeklyModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
 import Settings from './Settings.jsx';
@@ -43,7 +42,11 @@ import StudentDashboard from './StudentDashboard.jsx';
 import AppLayout from './components/layout/AppLayout.jsx';
 import ModesPage from './components/ModesPage.jsx';
 import GameThemeBg from './GameThemeBg.jsx';
+import BattlePass from './BattlePass.jsx';
 import TradingMode from './TradingMode.jsx';
+import BattlePassNotification from './BattlePassNotification.jsx';
+import { useBattlePass } from './BattlePassContext.jsx';
+import Inventory from './Inventory.jsx';
 
 
 const CATEGORIES = [
@@ -95,6 +98,7 @@ export default function App() {
   const [activeEffect,setActiveEffect] = useState(false);
   const [missionToast, setMissionToast] = useState([]);
   const pushMission = data => setMissionToast(q => [...q, data]);
+  const [bpLevelUp,   setBpLevelUp]   = useState(null); // newLevel when Trader Pass levels up
   const floatingXPKeyRef = useRef(0);
   const gameStartRef     = useRef(Date.now());
   const wonCatsRef       = useRef(new Set());
@@ -103,6 +107,7 @@ export default function App() {
   const [shareStatus, setShareStatus] = useState('idle');
 
   const { syncProgress, activeCosmetics = {}, user, checkLevelUp } = useAuth();
+  const { refreshBattlePass } = useBattlePass();
   const { lang, setLang, t } = useLang();
   const chartRef = useRef(null);
 
@@ -386,6 +391,9 @@ export default function App() {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ mode: 'guess', score, correct: wins, wrong: losses, accuracy: acc, streak: maxStr, rounds: history.length }),
+    }).then(r => r.json()).then(data => {
+      if (data?.bpProgress?.awardedMissions?.length > 0) refreshBattlePass();
+      if (data?.bpProgress?.leveledUp) setBpLevelUp(data.bpProgress.newLevel);
     }).catch(() => {});
     fetch(`${SERVER}/stats/personal`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json()).then(setPersonalStats).catch(() => {});
@@ -637,13 +645,15 @@ export default function App() {
           else if (mode === 'portfolio') setScreen('portfolio');
           else if (mode === 'friends')   setScreen('friends');
           else if (mode === 'settings')  setScreen('settings');
-          else if (mode === 'trading')           setScreen('trading');
+          else if (mode === 'inventory') setScreen('inventory');
+          else if (mode === 'battle_pass')        setScreen('battle_pass');
           else if (mode === 'pricing')          setScreen('pricing');
           else if (mode === 'join_academy')      setScreen('join_academy');
           else if (mode === 'teacher_dashboard') setScreen('teacher_dashboard');
           else if (mode === 'student_dashboard') setScreen('student_dashboard');
           else if (mode === 'privacy')           setScreen('privacy');
           else if (mode === 'support')           setScreen('support');
+          else if (mode === 'trading')           setScreen('trading');
           else {
             setScreen('game');
             if (!localStorage.getItem('tradaria_tutorial_done')) setShowTutorial(true);
@@ -655,7 +665,8 @@ export default function App() {
     );
   }
 
-  if (screen === 'trading') return <TradingMode onBack={() => setScreen('home')} />;
+  if (screen === 'battle_pass') return <BattlePass onBack={() => setScreen('home')} onGoPricing={() => setScreen('pricing')} />;
+  if (screen === 'trading')    return <TradingMode onBack={() => setScreen('home')} />;
 
   if (screen === 'arena') return (
     <>
@@ -670,13 +681,13 @@ export default function App() {
   if (screen === 'support')    return <><Support    onSelect={setScreen} />{challengeOverlay}</>;
   if (screen === 'badges')     return <><Badges     onBack={() => setScreen('home')} onSelect={handleSelect} />{challengeOverlay}</>;
   if (screen === 'stats')      return <AppLayout currentScreen={screen} onSelect={handleSelect}><Stats      onBack={() => setScreen('home')} onSelect={handleSelect} />{challengeOverlay}</AppLayout>;
-  if (screen === 'inventory')  return <AppLayout currentScreen={screen} onSelect={handleSelect}><Inventory  onBack={() => setScreen('stats')} />{challengeOverlay}</AppLayout>;
   if (screen === 'daily')      return <><GameThemeBg screen={screen} /><Daily      onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'historical') return <><GameThemeBg screen={screen} /><Historical onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'tournament') return <><GameThemeBg screen={screen} /><Tournament onBack={() => { setAcademyTournamentCtx(null); setScreen(academyTournamentCtx ? 'student_dashboard' : 'home'); }} onViewProfile={(uname) => { setPublicProfileUsername(uname); setScreen('public_profile'); window.history.pushState({}, '', `/u/${uname}`); }} onGoPricing={() => { setPricingFromTournament(true); setScreen('pricing'); }} academyTournamentId={academyTournamentCtx?.tournamentId ?? null} academyId={academyTournamentCtx?.academyId ?? null} />{challengeOverlay}</>;
   if (screen === 'survival')   return <><GameThemeBg screen={screen} /><Survival   onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'shop')       return <><Shop       onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'settings')   return <><Settings   onBack={() => setScreen('home')} />{challengeOverlay}</>;
+  if (screen === 'inventory')  return <AppLayout currentScreen={screen} onSelect={handleSelect}><Inventory onBack={() => setScreen('stats')} /></AppLayout>;
   if (screen === 'portfolio')  return <AppLayout currentScreen={screen} onSelect={handleSelect}><Portfolio  onBack={() => setScreen('home')} onViewProfile={(uname) => { setPublicProfileUsername(uname); setScreen('public_profile'); window.history.pushState({}, '', `/u/${uname}`); }} onOpenLeague={(id) => { setLeagueId(id); setPrevScreen('portfolio'); setScreen('league'); }} onGoPricing={() => setScreen('pricing')} />{challengeOverlay}</AppLayout>;
   if (screen === 'league')          return <AppLayout currentScreen={screen} onSelect={handleSelect}><League leagueId={leagueId} onBack={() => setScreen(prevScreen === 'portfolio' ? 'portfolio' : 'home')} />{challengeOverlay}</AppLayout>;
   if (screen === 'join_academy')     return <JoinAcademy onBack={() => setScreen('home')} />;
@@ -908,6 +919,7 @@ export default function App() {
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
 
       {missionToast[0] && <MissionNotification data={missionToast[0]} onDone={() => setMissionToast(q => q.slice(1))} />}
+      {bpLevelUp && <BattlePassNotification level={bpLevelUp} onDone={() => setBpLevelUp(null)} />}
 
       <EffectOverlay effect={activeCosmetics.effect} active={activeEffect} />
       {challengeOverlay}

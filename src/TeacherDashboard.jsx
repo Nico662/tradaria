@@ -232,9 +232,13 @@ function AcademyDashboard({ academyId, onBack }) {
   const [toast,         setToast]         = useState(null);
   const [assignments,   setAssignments]   = useState([]);
   const [asgModal,      setAsgModal]      = useState(false);
-  const [asgForm,       setAsgForm]       = useState({ title: '', description: '', mode: 'guess', targetGames: 5, startsAt: '', endsAt: '' });
+  const [asgForm,       setAsgForm]       = useState({ title: '', description: '', mode: 'guess', targetGames: 5, minAccuracy: '', startsAt: '', endsAt: '' });
   const [asgErr,        setAsgErr]        = useState(null);
   const [asgSubmitting, setAsgSubmitting] = useState(false);
+  const [modeFilter,           setModeFilter]           = useState('');
+  const [filteredStudentStats, setFilteredStudentStats] = useState(null);
+  const [filterLoading,        setFilterLoading]        = useState(false);
+  const [teacherInbox,         setTeacherInbox]         = useState([]);
   const [feedbackModal,   setFeedbackModal]   = useState(null); // null | { studentId, studentName }
   const [feedbackMsg,     setFeedbackMsg]     = useState('');
   const [feedbackHist,    setFeedbackHist]    = useState([]);
@@ -282,6 +286,28 @@ function AcademyDashboard({ academyId, onBack }) {
       .then(data => setAssignments(data))
       .catch(() => {});
   }, [academyId]);
+
+  useEffect(() => {
+    if (!tok) return;
+    fetch(`${SERVER}/academy/${academyId}/feedback/teacher-inbox`, {
+      headers: { Authorization: `Bearer ${tok}` },
+    })
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setTeacherInbox(data))
+      .catch(() => {});
+  }, [academyId]);
+
+  useEffect(() => {
+    if (!modeFilter || !tok) { setFilteredStudentStats(null); return; }
+    setFilterLoading(true);
+    fetch(`${SERVER}/academy/${academyId}/dashboard?mode=${modeFilter}`, {
+      headers: { Authorization: `Bearer ${tok}` },
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => setFilteredStudentStats(data?.students ?? null))
+      .catch(() => setFilteredStudentStats(null))
+      .finally(() => setFilterLoading(false));
+  }, [modeFilter, academyId]);
 
   useEffect(() => {
     if (!feedbackModal) return;
@@ -390,23 +416,27 @@ function AcademyDashboard({ academyId, onBack }) {
     setAsgSubmitting(true);
     setAsgErr(null);
     try {
+      const body = {
+        title:       asgForm.title.trim(),
+        description: asgForm.description.trim(),
+        mode:        asgForm.mode,
+        targetGames: Number(asgForm.targetGames),
+        startsAt:    asgForm.startsAt,
+        endsAt:      asgForm.endsAt,
+      };
+      if (asgForm.minAccuracy !== '' && asgForm.minAccuracy !== null) {
+        body.minAccuracy = Number(asgForm.minAccuracy);
+      }
       const res  = await fetch(`${SERVER}/academy/${academyId}/assignment/create`, {
         method:  'POST',
         headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
-        body:    JSON.stringify({
-          title:       asgForm.title.trim(),
-          description: asgForm.description.trim(),
-          mode:        asgForm.mode,
-          targetGames: Number(asgForm.targetGames),
-          startsAt:    asgForm.startsAt,
-          endsAt:      asgForm.endsAt,
-        }),
+        body:    JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) { setAsgErr(data.error || t.academy.createError); setAsgSubmitting(false); return; }
       setAssignments(prev => [data, ...prev]);
       setAsgModal(false);
-      setAsgForm({ title: '', description: '', mode: 'guess', targetGames: 5, startsAt: '', endsAt: '' });
+      setAsgForm({ title: '', description: '', mode: 'guess', targetGames: 5, minAccuracy: '', startsAt: '', endsAt: '' });
     } catch { setAsgErr(t.academy.networkError); }
     setAsgSubmitting(false);
   }
@@ -501,7 +531,7 @@ function AcademyDashboard({ academyId, onBack }) {
   const daysLeft    = academy.trialEndsAt
     ? Math.max(0, Math.ceil((new Date(academy.trialEndsAt) - Date.now()) / 86400000))
     : null;
-  const students    = academy.students || [];
+  const students    = (modeFilter && filteredStudentStats) ? filteredStudentStats : (academy.students || []);
   const tournaments = academy.tournaments || [];
 
   return (
@@ -652,7 +682,7 @@ function AcademyDashboard({ academyId, onBack }) {
         <div style={{ opacity: expired ? 0.4 : 1, pointerEvents: expired ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
         {/* ── Student table ── */}
         <div style={{ marginBottom: '32px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
             <Label>{t.academy.studentsSection.replace('{n}', students.length)}</Label>
             {students.length > 0 && (
               <Btn onClick={handleExport} disabled={exporting} style={{ padding: '6px 11px', fontSize: '12px', marginBottom: '10px' }}>
@@ -660,6 +690,34 @@ function AcademyDashboard({ academyId, onBack }) {
               </Btn>
             )}
           </div>
+          {students.length > 0 && (
+            <div style={{ display: 'flex', gap: '6px', marginBottom: '10px', flexWrap: 'wrap' }}>
+              {[
+                { val: '',          label: 'All' },
+                { val: 'guess',     label: getModeLabel('guess') },
+                { val: 'survival',  label: getModeLabel('survival') },
+                { val: 'daily',     label: getModeLabel('daily') },
+                { val: 'portfolio', label: getModeLabel('portfolio') },
+              ].map(({ val, label }) => (
+                <button
+                  key={val}
+                  onClick={() => setModeFilter(val)}
+                  style={{
+                    padding: '5px 10px', borderRadius: '6px',
+                    fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700,
+                    letterSpacing: '0.06em', cursor: 'pointer',
+                    background: modeFilter === val ? 'rgba(0,229,160,0.12)' : 'transparent',
+                    border: modeFilter === val ? '1px solid rgba(0,229,160,0.5)' : '1px solid var(--bd)',
+                    color: modeFilter === val ? 'var(--green)' : 'var(--t5)',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+              {filterLoading && <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', alignSelf: 'center' }}>...</span>}
+            </div>
+          )}
 
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', overflowX: 'auto' }}>
             {students.length === 0 ? (
@@ -990,6 +1048,11 @@ function AcademyDashboard({ academyId, onBack }) {
                         {' — '}
                         {new Date(asg.endsAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
                         {' · '}{asg.targetGames} {t.academy.gamesUnit}
+                        {asg.minAccuracy != null && (
+                          <span style={{ marginLeft: '6px', padding: '1px 6px', borderRadius: '4px', background: 'rgba(232,184,75,0.1)', border: '1px solid rgba(232,184,75,0.3)', color: 'var(--color-neutral)', fontWeight: 700 }}>
+                            {`min ${asg.minAccuracy}% acc`}
+                          </span>
+                        )}
                       </div>
                       {asg.description && (
                         <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)', marginTop: '4px' }}>
@@ -1001,9 +1064,13 @@ function AcademyDashboard({ academyId, onBack }) {
                     {/* Student progress table */}
                     {(asg.submissions || []).length > 0 && (
                       <div style={{ borderTop: '1px solid var(--bd)' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 72px', gap: '8px', padding: '7px 14px', borderBottom: '1px solid var(--bd)' }}>
-                          {[t.academy.studentLabel, t.academy.colProgress, t.academy.colStatus].map((h, i) => (
-                            <div key={i} style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.08em', textAlign: i === 2 ? 'center' : 'left' }}>
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: asg.minAccuracy != null ? '1fr 1fr 64px 72px' : '1fr 1fr 72px',
+                          gap: '8px', padding: '7px 14px', borderBottom: '1px solid var(--bd)',
+                        }}>
+                          {[t.academy.studentLabel, t.academy.colProgress, ...(asg.minAccuracy != null ? ['Acc'] : []), t.academy.colStatus].map((h, i) => (
+                            <div key={i} style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.08em', textAlign: i >= 2 ? 'center' : 'left' }}>
                               {h}
                             </div>
                           ))}
@@ -1011,7 +1078,13 @@ function AcademyDashboard({ academyId, onBack }) {
                         {asg.submissions.map((sub, i) => {
                           const pct = Math.min(100, Math.round((sub.gamesPlayed / asg.targetGames) * 100));
                           return (
-                            <div key={String(sub.userId)} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 72px', gap: '8px', padding: '9px 14px', alignItems: 'center', borderBottom: i < asg.submissions.length - 1 ? '1px solid var(--bd)' : 'none', background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.012)' }}>
+                            <div key={String(sub.userId)} style={{
+                              display: 'grid',
+                              gridTemplateColumns: asg.minAccuracy != null ? '1fr 1fr 64px 72px' : '1fr 1fr 72px',
+                              gap: '8px', padding: '9px 14px', alignItems: 'center',
+                              borderBottom: i < asg.submissions.length - 1 ? '1px solid var(--bd)' : 'none',
+                              background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.012)',
+                            }}>
                               <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                 {sub.studentName || '—'}
                               </div>
@@ -1023,6 +1096,13 @@ function AcademyDashboard({ academyId, onBack }) {
                                   {sub.gamesPlayed}/{asg.targetGames}
                                 </span>
                               </div>
+                              {asg.minAccuracy != null && (
+                                <div style={{ textAlign: 'center', fontFamily: 'var(--font-body)', fontSize: '12px',
+                                  color: sub.avgAccuracy == null ? 'var(--t6)' : sub.avgAccuracy >= asg.minAccuracy ? 'var(--green)' : 'var(--color-down)',
+                                }}>
+                                  {sub.avgAccuracy != null ? `${sub.avgAccuracy}%` : '—'}
+                                </div>
+                              )}
                               <div style={{ textAlign: 'center' }}>
                                 {sub.completed
                                   ? <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, color: 'var(--green)' }}>✓</span>
@@ -1040,6 +1120,38 @@ function AcademyDashboard({ academyId, onBack }) {
             </div>
           )}
         </div>
+        {/* ── Student Messages (replies to teacher) ── */}
+        {teacherInbox.length > 0 && (
+          <div style={{ marginTop: '32px' }}>
+            <Label>{t.academy.studentMessagesLabel || 'Student Messages'} ({teacherInbox.filter(m => !m.read).length > 0 ? `${teacherInbox.filter(m => !m.read).length} new` : teacherInbox.length})</Label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {teacherInbox.map(m => (
+                <div key={String(m._id)} style={{
+                  background: 'var(--bg-card)', border: `1px solid ${!m.read ? 'rgba(0,229,160,0.3)' : 'var(--bd)'}`,
+                  borderRadius: '8px', padding: '12px 14px',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                    <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '13px', color: 'var(--t1)' }}>
+                      {m.senderName || '—'}
+                    </span>
+                    {!m.read && (
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, color: 'var(--green)', background: 'rgba(0,229,160,0.1)', border: '1px solid rgba(0,229,160,0.3)', borderRadius: '4px', padding: '1px 6px' }}>
+                        NEW
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t2)', lineHeight: 1.5, marginBottom: '6px' }}>
+                    {m.message}
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)' }}>
+                    {new Date(m.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         </div>{/* end expired overlay wrapper */}
       </div>
 
@@ -1230,6 +1342,16 @@ function AcademyDashboard({ academyId, onBack }) {
                 value={String(asgForm.targetGames)}
                 onChange={e => setAsgForm(f => ({ ...f, targetGames: Math.max(1, parseInt(e.target.value) || 1) }))}
                 placeholder="5"
+              />
+              <FieldInput
+                label={`${t.academy.fieldMinAccuracy || 'Min accuracy %'} (${t.academy.optional || 'optional'})`}
+                type="number"
+                value={String(asgForm.minAccuracy)}
+                onChange={e => {
+                  const v = e.target.value;
+                  setAsgForm(f => ({ ...f, minAccuracy: v === '' ? '' : Math.max(0, Math.min(100, parseInt(v) || 0)) }));
+                }}
+                placeholder="e.g. 60"
               />
               <FieldInput label={t.academy.startDate} type="date" value={asgForm.startsAt} onChange={e => setAsgForm(f => ({ ...f, startsAt: e.target.value }))} />
               <FieldInput label={t.academy.endDate}   type="date" value={asgForm.endsAt}   onChange={e => setAsgForm(f => ({ ...f, endsAt:   e.target.value }))} />
@@ -1446,6 +1568,33 @@ function AcademyDashboard({ academyId, onBack }) {
                     </section>
                   )}
 
+                  {/* ── Historial de torneos ── */}
+                  {studentDetail.tournamentHistory?.length > 0 && (
+                    <section>
+                      <Label>{t.academy.tournamentHistory || 'Tournament History'}</Label>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        {studentDetail.tournamentHistory.map(trn => (
+                          <div key={`${trn.name}-${trn.startsAt}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-card2)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '10px 14px' }}>
+                            <div>
+                              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '13px', color: 'var(--t1)', marginBottom: '2px' }}>{trn.name}</div>
+                              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)' }}>
+                                {new Date(trn.startsAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                              </div>
+                            </div>
+                            <div style={{ textAlign: 'right' }}>
+                              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: trn.rank === 1 ? 'var(--color-neutral)' : 'var(--t1)' }}>
+                                {trn.rank <= 3 ? ['🥇','🥈','🥉'][trn.rank - 1] : `#${trn.rank}`}
+                              </div>
+                              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)' }}>
+                                {trn.score}pts · {trn.totalParticipants} players
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
                   {/* ── Mensajes ── */}
                   <section>
                     <Label>{t.academy.messages}</Label>
@@ -1471,6 +1620,7 @@ function AcademyDashboard({ academyId, onBack }) {
                         </Btn>
                       </div>
                     </div>
+                    {/* Mensajes enviados por el profesor */}
                     {studentDetail.feedback.length > 0 && (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         {studentDetail.feedback.map(m => (
@@ -1483,7 +1633,25 @@ function AcademyDashboard({ academyId, onBack }) {
                         ))}
                       </div>
                     )}
-                    {studentDetail.feedback.length === 0 && (
+                    {/* Respuestas del alumno */}
+                    {studentDetail.studentReplies?.length > 0 && (
+                      <div style={{ marginTop: '12px', borderTop: '1px solid var(--bd)', paddingTop: '12px' }}>
+                        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>
+                          {t.academy.studentRepliesLabel || 'Student replies'}
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {studentDetail.studentReplies.map(m => (
+                            <div key={String(m._id)} style={{ background: 'rgba(0,229,160,0.04)', border: '1px solid rgba(0,229,160,0.2)', borderRadius: '6px', padding: '10px 12px' }}>
+                              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t1)', lineHeight: 1.5, marginBottom: '4px' }}>{m.message}</div>
+                              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)' }}>
+                                {new Date(m.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {studentDetail.feedback.length === 0 && !studentDetail.studentReplies?.length && (
                       <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', fontStyle: 'italic' }}>
                         {t.academy.noMessages}
                       </div>
