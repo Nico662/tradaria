@@ -6,6 +6,7 @@ const AcademyAssignmentSchema = new mongoose.Schema({
   description:  { type: String, default: '' },
   mode:         { type: String, enum: ['guess', 'survival', 'daily', 'portfolio'], required: true },
   targetGames:  { type: Number, required: true },
+  minAccuracy:  { type: Number, default: null, min: 0, max: 100 },
   startsAt:     { type: Date, required: true },
   endsAt:       { type: Date, required: true },
   createdBy:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },

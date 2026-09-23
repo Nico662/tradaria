@@ -459,6 +459,7 @@ const NOTIF_STRINGS = {
     weeklyTournament:   { title: '🏆 New weekly tournament!', body: "This week's tournament is live — jump in and climb the ranking." },
     orderExecuted: ({ type, name, qty, price }) => ({ title: '✅ Order executed', body: `Your ${type} order for ${qty} units of ${name} was executed at $${price}.` }),
     orderCancelled: ({ name, reason }) => ({ title: '❌ Order cancelled', body: `Your order for ${name} was cancelled: ${reason}` }),
+    orderPartialExecution: ({ type, name, qty, executedQty, price }) => ({ title: '⚠️ Order partially executed', body: `Your ${type} order for ${qty} units of ${name} was partially filled: ${executedQty} units at $${price}.` }),
   },
   es: {
     dailyChallenge:     { title: '⚡ Reto Diario', body: '¿Puedes predecir el gráfico de hoy? Un gráfico, una oportunidad.' },
@@ -468,6 +469,7 @@ const NOTIF_STRINGS = {
     weeklyTournament:   { title: '🏆 ¡Nuevo torneo semanal!', body: 'El torneo de esta semana ya está activo — entra y sube en el ranking.' },
     orderExecuted: ({ type, name, qty, price }) => ({ title: '✅ Orden ejecutada', body: `Tu orden de ${type === 'buy' ? 'compra' : 'venta'} de ${qty} unidades de ${name} se ejecutó a $${price}.` }),
     orderCancelled: ({ name, reason }) => ({ title: '❌ Orden cancelada', body: `Tu orden de ${name} fue cancelada: ${reason}` }),
+    orderPartialExecution: ({ type, name, qty, executedQty, price }) => ({ title: '⚠️ Orden ejecutada parcialmente', body: `Tu orden de ${type === 'buy' ? 'compra' : 'venta'} de ${qty} unidades de ${name} se ejecutó parcialmente: ${executedQty} unidades a $${price}.` }),
   },
 };
 
@@ -2775,12 +2777,21 @@ cron.schedule('0 0 * * *', async () => {
   }
 });
 
-// ── Portfolio pending orders execution (NYSE open + 1 min) ───────────────────
-cron.schedule('31 13 * * 1-5', async () => {
+// ── Portfolio pending orders execution (fires every minute, executes once at market open) ─
+let lastOrderExecutionDate = null;
+cron.schedule('* * * * 1-5', async () => {
+  if (!isPortfolioMarketOpen('stock')) return;
+  const todayNY = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
+  if (lastOrderExecutionDate === todayNY) return;
+  lastOrderExecutionDate = todayNY;
+
   const PortfolioOrder = mongoose.model('PortfolioOrder');
   try {
     const pendingOrders = await PortfolioOrder.find({ status: 'pending' });
-    if (!pendingOrders.length) return;
+    if (!pendingOrders.length) {
+      console.log('[portfolio-orders-cron] No pending orders at market open');
+      return;
+    }
     console.log(`[portfolio-orders-cron] Executing ${pendingOrders.length} pending order(s)`);
 
     async function cancelOrder(order, reason) {
@@ -2802,25 +2813,45 @@ cron.schedule('31 13 * * 1-5', async () => {
         if (!portfolio) { await cancelOrder(order, 'portfolio_not_found'); continue; }
 
         if (order.type === 'buy') {
-          // Refund reservation, then attempt buy at opening price
           portfolio.cash += order.reservedCash;
-          const total = execPrice * order.qty;
-          if (portfolio.cash < total) {
-            // Save refund so user gets reserved cash back, then cancel
-            await portfolio.save();
-            redis.del(`portfolio:${order.userId}`).catch(() => {});
-            await cancelOrder(order, 'insufficient_funds_at_open');
-            continue;
+          const fullTotal = execPrice * order.qty;
+          let execQty = order.qty;
+          if (portfolio.cash < fullTotal) {
+            execQty = Math.floor((portfolio.cash / execPrice) * 10000) / 10000;
+            if (execQty < 0.0001) {
+              await portfolio.save();
+              redis.del(`portfolio:${order.userId}`).catch(() => {});
+              await cancelOrder(order, 'insufficient_funds_at_open');
+              continue;
+            }
           }
+          const total = execPrice * execQty;
           portfolio.cash -= total;
           const existing = portfolio.positions.find(p => p.symbol === order.symbol);
           if (existing) {
-            existing.avgPrice = (existing.avgPrice * existing.qty + execPrice * order.qty) / (existing.qty + order.qty);
-            existing.qty += order.qty;
+            existing.avgPrice = (existing.avgPrice * existing.qty + execPrice * execQty) / (existing.qty + execQty);
+            existing.qty += execQty;
           } else {
-            portfolio.positions.push({ symbol: order.symbol, name: asset.name, qty: order.qty, avgPrice: execPrice, type: asset.type });
+            portfolio.positions.push({ symbol: order.symbol, name: asset.name, qty: execQty, avgPrice: execPrice, type: asset.type });
           }
-          portfolio.transactions.push({ symbol: order.symbol, name: asset.name, type: asset.type, action: 'buy', qty: order.qty, price: execPrice, total });
+          portfolio.transactions.push({ symbol: order.symbol, name: asset.name, type: asset.type, action: 'buy', qty: execQty, price: execPrice, total });
+          await portfolio.save();
+          redis.del(`portfolio:${order.userId}`).catch(() => {});
+          order.status = 'executed';
+          order.executedAt = new Date();
+          order.executedPrice = execPrice;
+          order.executedQty = execQty;
+          await order.save();
+          const lang = await getUserLang(order.userId);
+          const s = NOTIF_STRINGS[lang] || NOTIF_STRINGS.en;
+          const isPartial = execQty < order.qty;
+          await sendPushToUser(order.userId, {
+            ...(isPartial
+              ? s.orderPartialExecution({ type: order.type, name: order.name, qty: parseFloat(order.qty.toFixed(4)), executedQty: parseFloat(execQty.toFixed(4)), price: execPrice.toFixed(2) })
+              : s.orderExecuted({ type: order.type, name: order.name, qty: order.qty, price: execPrice.toFixed(2) })),
+            url: 'https://tradiko.dev',
+          });
+          console.log(`[portfolio-orders-cron] Executed buy ${execQty}/${order.qty}x${order.symbol} @ $${execPrice} for userId=${order.userId}`);
         } else {
           // sell
           const position = portfolio.positions.find(p => p.symbol === order.symbol);
@@ -2830,21 +2861,21 @@ cron.schedule('31 13 * * 1-5', async () => {
           position.qty = Math.round((position.qty - order.qty) * 10000) / 10000;
           if (position.qty < 0.0001) portfolio.positions = portfolio.positions.filter(p => p.symbol !== order.symbol);
           portfolio.transactions.push({ symbol: order.symbol, name: asset.name, type: asset.type, action: 'sell', qty: order.qty, price: execPrice, total });
+          await portfolio.save();
+          redis.del(`portfolio:${order.userId}`).catch(() => {});
+          order.status = 'executed';
+          order.executedAt = new Date();
+          order.executedPrice = execPrice;
+          order.executedQty = order.qty;
+          await order.save();
+          const lang = await getUserLang(order.userId);
+          const s = NOTIF_STRINGS[lang] || NOTIF_STRINGS.en;
+          await sendPushToUser(order.userId, {
+            ...s.orderExecuted({ type: order.type, name: order.name, qty: order.qty, price: execPrice.toFixed(2) }),
+            url: 'https://tradiko.dev',
+          });
+          console.log(`[portfolio-orders-cron] Executed sell ${order.qty}x${order.symbol} @ $${execPrice} for userId=${order.userId}`);
         }
-
-        await portfolio.save();
-        redis.del(`portfolio:${order.userId}`).catch(() => {});
-        order.status = 'executed';
-        order.executedAt = new Date();
-        order.executedPrice = execPrice;
-        await order.save();
-        const lang = await getUserLang(order.userId);
-        const s = NOTIF_STRINGS[lang] || NOTIF_STRINGS.en;
-        await sendPushToUser(order.userId, {
-          ...s.orderExecuted({ type: order.type, name: order.name, qty: order.qty, price: execPrice.toFixed(2) }),
-          url: 'https://tradiko.dev',
-        });
-        console.log(`[portfolio-orders-cron] Executed ${order.type} ${order.qty}x${order.symbol} @ $${execPrice} for userId=${order.userId}`);
       } catch (err) {
         console.error(`[portfolio-orders-cron] Error on order ${order._id}:`, err.message);
       }
@@ -2852,7 +2883,7 @@ cron.schedule('31 13 * * 1-5', async () => {
   } catch (err) {
     console.error('[portfolio-orders-cron] Error:', err.message);
   }
-}, { timezone: 'UTC' });
+}, { timezone: 'America/New_York' });
 
 // ── Phase 5E: weekly ranking BP missions cron ────────────────────────────────
 // Fires Sunday 23:55 Madrid time (CET/CEST handles DST automatically).
@@ -3383,13 +3414,19 @@ app.post('/portfolio/sell', async (req, res) => {
 // ── Portfolio pending orders ──────────────────────────────────────
 
 function isPortfolioMarketOpen(assetType) {
-  const now = new Date();
-  const day = now.getUTCDay();
   if (assetType === 'crypto') return true;
-  if (assetType === 'commodity') return day !== 0 && day !== 6;
-  if (day === 0 || day === 6) return false;
-  const minutes = now.getUTCHours() * 60 + now.getUTCMinutes();
-  return minutes >= 13 * 60 + 30 && minutes < 20 * 60;
+  const now   = new Date();
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/New_York',
+    weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false,
+  }).formatToParts(now);
+  const weekday = parts.find(p => p.type === 'weekday').value;
+  if (weekday === 'Sat' || weekday === 'Sun') return false;
+  if (assetType === 'commodity') return true;
+  const hour    = parseInt(parts.find(p => p.type === 'hour').value, 10);
+  const minute  = parseInt(parts.find(p => p.type === 'minute').value, 10);
+  const minutes = hour * 60 + minute;
+  return minutes >= 9 * 60 + 30 && minutes < 16 * 60;
 }
 
 app.post('/portfolio/order', async (req, res) => {

@@ -191,7 +191,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
         await fetch(`${SERVER}/academy/${academyId}/tournament/${academyTournamentId}/score`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ score: finalScore }),
+          body: JSON.stringify({ score: finalScore, rounds: history }),
         });
       } else {
         await fetch(`${SERVER}/tournament/score`, {
