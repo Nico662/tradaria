@@ -76,6 +76,8 @@ export default function RewardCard({
     ? 'rgba(224,85,133,0.22)'
     : 'rgba(0,192,135,0.18)';
 
+  const hasComingSoon = mission && mission.enabled === false;
+
   const cardBorder = hasComingSoon
     ? (isProTrack ? 'rgba(224,85,133,0.2)'  : 'rgba(0,192,135,0.15)')
     : isClaimable
@@ -84,7 +86,6 @@ export default function RewardCard({
         ? (isProTrack ? 'rgba(224,85,133,0.15)' : 'rgba(0,192,135,0.15)')
         : (isProTrack ? 'rgba(224,85,133,0.25)' : 'rgba(0,192,135,0.22)');
 
-  const hasComingSoon = mission && mission.enabled === false;
   const showProgress  = state !== 'claimed' && !!missionProgress && !hasComingSoon;
   const showRibbon    = isClaimable && !hasComingSoon;
 
