@@ -8,8 +8,23 @@ const router = express.Router();
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function computeLevel(bpPoints) {
-  return Math.min(30, Math.floor(bpPoints / season1.BP_POINTS_PER_LEVEL));
+// Sequential level system: level = 1 + number of consecutive levels (1–29)
+// where ALL required missions for the user's profile are in completedMissions.
+//
+// Free user: freeMission required (if null at that level → auto-pass).
+// Pro  user: both freeMission AND proMission required (those that exist).
+// Trading Mode missions (enabled:false) are NOT exempted — they block just
+// like any other mission until activated.
+function computeUserLevel(completedMissions, isPro) {
+  const done = new Set(completedMissions || []);
+  let level = 1;
+  for (const lvlCfg of season1.LEVELS.slice(0, 29)) { // levels 1–29
+    const freeDone = !lvlCfg.freeMission || done.has(lvlCfg.freeMission.id);
+    const proDone  = !isPro || !lvlCfg.proMission || done.has(lvlCfg.proMission.id);
+    if (freeDone && proDone) level++;
+    else break;
+  }
+  return level; // 1–30
 }
 
 /** Returns the active Season document if one exists, null otherwise. */
@@ -99,22 +114,23 @@ async function addBattlePassProgress(userId, points, missionId = null, source = 
     if (!r) {
       // Filter matched nothing → mission already completed
       const user = await User.findById(userId);
-      return { leveledUp: false, newLevel: computeLevel(user?.battlePass?.bpPoints ?? 0), alreadyCompleted: true };
+      const lvl = computeUserLevel(user?.battlePass?.completedMissions ?? [], user?.isPro ?? false);
+      return { leveledUp: false, newLevel: lvl, alreadyCompleted: true };
     }
-    const oldLevel = computeLevel(r.battlePass.bpPoints - points);
-    const newLevel = computeLevel(r.battlePass.bpPoints);
+    // r is the pre-update doc (new:false); compute level before and after adding missionId.
+    const oldLevel = computeUserLevel(r.battlePass.completedMissions, r.isPro);
+    const newLevel = computeUserLevel([...r.battlePass.completedMissions, missionId], r.isPro);
     return { leveledUp: newLevel > oldLevel, newLevel };
   } else {
-    // Game win: no idempotency by design (each win adds +10 BP)
+    // Game win: +10 BP (informational only — game wins no longer advance level).
     const r = await User.findOneAndUpdate(
       { _id: userId },
       { $inc: { 'battlePass.bpPoints': points } },
       { new: true }
     );
     if (!r) return { leveledUp: false, newLevel: 0 };
-    const oldLevel = computeLevel(r.battlePass.bpPoints - points);
-    const newLevel = computeLevel(r.battlePass.bpPoints);
-    return { leveledUp: newLevel > oldLevel, newLevel };
+    const newLevel = computeUserLevel(r.battlePass.completedMissions, r.isPro);
+    return { leveledUp: false, newLevel };
   }
 }
 
@@ -223,11 +239,30 @@ router.get('/current-season', requireAuth, async (req, res) => {
       ? user.battlePass
       : null;
 
-    const bpPoints    = bp ? bp.bpPoints : 0;
-    const level       = computeLevel(bpPoints);
-    const pointsToNextLevel = level < 30
-      ? (level + 1) * season1.BP_POINTS_PER_LEVEL - bpPoints
-      : 0;
+    const bpPoints = bp ? bp.bpPoints : 0;
+    const level    = computeUserLevel(
+      bp ? bp.completedMissions : [],
+      user.isPro,
+    );
+
+    // Missions needed at the current frontier level (= level the user is ON,
+    // completing its missions advances them to level+1).
+    // Returns { current: K, total: N } for the progress display.
+    const missionsForNextLevel = (() => {
+      if (level >= 30 || !bp) return { current: 0, total: 0 };
+      const lvlCfg = season1.LEVELS[level - 1]; // level is 1-based; index is level-1
+      const done   = new Set(bp.completedMissions);
+      let total = 0, current = 0;
+      if (lvlCfg.freeMission) {
+        total++;
+        if (done.has(lvlCfg.freeMission.id)) current++;
+      }
+      if (user.isPro && lvlCfg.proMission) {
+        total++;
+        if (done.has(lvlCfg.proMission.id)) current++;
+      }
+      return { current, total };
+    })();
 
     // Progress for all 30 levels — used by the UI to show progress bars on every card.
     const allMissionProgress = bp ? season1.LEVELS.reduce((acc, lvlCfg) => {
@@ -248,7 +283,7 @@ router.get('/current-season', requireAuth, async (req, res) => {
       user: {
         level,
         bpPoints,
-        pointsToNextLevel,
+        missionsForNextLevel,
         ...inferClaimedTracks(bp, user),
         completedMissions: bp ? bp.completedMissions : [],
         allMissionProgress,
@@ -308,7 +343,7 @@ router.post('/claim/:level', requireAuth, async (req, res) => {
     const proAlreadyClaimed  = claimedProRewards.includes(levelNum);
 
     // Level reached?
-    const userLevel = computeLevel(user.battlePass.bpPoints);
+    const userLevel = computeUserLevel(user.battlePass.completedMissions, user.isPro);
     if (userLevel < levelNum)
       return res.status(403).json({ error: 'LEVEL_NOT_REACHED', currentLevel: userLevel });
 
@@ -494,7 +529,7 @@ async function processGameBpProgress(userId, { mode, streak = 0, rounds = 0, cor
   if (!user) return { leveledUp: false, newLevel: 0, awardedMissions: [] };
 
   const bp             = user.battlePass;
-  const oldLevel       = computeLevel(bp.bpPoints);
+  const oldLevel       = computeUserLevel(bp.completedMissions, user.isPro);
   const awardedMissions = [];
   const missionsByType = buildMissionsByType();
 
@@ -540,8 +575,9 @@ async function processGameBpProgress(userId, { mode, streak = 0, rounds = 0, cor
   // Level-30 completion missions (checked after all other awards)
   await checkLevel30Atomic(userId, awardedMissions);
 
-  const finalUser = await User.findById(userId);
-  const newLevel  = computeLevel(finalUser.battlePass.bpPoints);
+  // Derive new level from missions awarded this call (avoids extra DB roundtrip).
+  const newCompletedMissions = [...new Set([...bp.completedMissions, ...awardedMissions])];
+  const newLevel = computeUserLevel(newCompletedMissions, user.isPro);
   return { leveledUp: newLevel > oldLevel, newLevel, awardedMissions };
 }
 
@@ -572,7 +608,7 @@ async function processDailyBpProgress(userId, { newStreak }) {
   if (!user) return { leveledUp: false, newLevel: 0, awardedMissions: [] };
 
   const bp             = user.battlePass;
-  const oldLevel       = computeLevel(bp.bpPoints);
+  const oldLevel       = computeUserLevel(bp.completedMissions, user.isPro);
   const awardedMissions = [];
   const missionsByType = buildMissionsByType();
 
@@ -596,8 +632,8 @@ async function processDailyBpProgress(userId, { newStreak }) {
 
   await checkLevel30Atomic(userId, awardedMissions);
 
-  const finalUser = await User.findById(userId);
-  const newLevel  = computeLevel(finalUser.battlePass.bpPoints);
+  const newCompletedMissions = [...new Set([...bp.completedMissions, ...awardedMissions])];
+  const newLevel = computeUserLevel(newCompletedMissions, user.isPro);
   return { leveledUp: newLevel > oldLevel, newLevel, awardedMissions };
 }
 
@@ -627,7 +663,7 @@ async function processArenaWinBpProgress(userId) {
   if (!user) return { leveledUp: false, newLevel: 0, awardedMissions: [] };
 
   const bp             = user.battlePass;
-  const oldLevel       = computeLevel(bp.bpPoints);
+  const oldLevel       = computeUserLevel(bp.completedMissions, user.isPro);
   const awardedMissions = [];
   const missionsByType = buildMissionsByType();
 
@@ -637,8 +673,8 @@ async function processArenaWinBpProgress(userId) {
 
   await checkLevel30Atomic(String(userId), awardedMissions);
 
-  const finalUser = await User.findById(String(userId));
-  const newLevel  = computeLevel(finalUser.battlePass.bpPoints);
+  const newCompletedMissions = [...new Set([...bp.completedMissions, ...awardedMissions])];
+  const newLevel = computeUserLevel(newCompletedMissions, user.isPro);
   return { leveledUp: newLevel > oldLevel, newLevel, awardedMissions };
 }
 
@@ -744,6 +780,7 @@ router.get('/admin/affected-count', async (req, res) => {
 
 module.exports = {
   router,
+  computeUserLevel,     // exported for unit tests
   inferClaimedTracks,   // exported for unit tests
   addBattlePassProgress,
   processGameBpProgress,

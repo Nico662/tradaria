@@ -11,12 +11,12 @@ const BattlePassContext = createContext(null);
 export function BattlePassProvider({ children }) {
   const { user, isPro } = useAuth();
 
-  const [season,             setSeason]             = useState(null);
-  const [userLevel,          setUserLevel]          = useState(0);
-  const [bpPoints,           setBpPoints]           = useState(0);
-  const [pointsToNextLevel,  setPointsToNextLevel]  = useState(0);
-  const [claimedFreeRewards, setClaimedFreeRewards] = useState([]);
-  const [claimedProRewards,  setClaimedProRewards]  = useState([]);
+  const [season,               setSeason]               = useState(null);
+  const [userLevel,            setUserLevel]            = useState(0);
+  const [bpPoints,             setBpPoints]             = useState(0);
+  const [missionsForNextLevel, setMissionsForNextLevel] = useState({ current: 0, total: 0 });
+  const [claimedFreeRewards,   setClaimedFreeRewards]   = useState([]);
+  const [claimedProRewards,    setClaimedProRewards]    = useState([]);
   const [completedMissions,    setCompletedMissions]    = useState([]);
   const [allMissionProgress,   setAllMissionProgress]   = useState(null);
   const [isLoading,            setIsLoading]            = useState(false);
@@ -38,7 +38,7 @@ export function BattlePassProvider({ children }) {
       setSeason(data.season);
       setUserLevel(data.user.level);
       setBpPoints(data.user.bpPoints);
-      setPointsToNextLevel(data.user.pointsToNextLevel);
+      setMissionsForNextLevel(data.user.missionsForNextLevel ?? { current: 0, total: 0 });
       setClaimedFreeRewards(data.user.claimedFreeRewards ?? []);
       setClaimedProRewards(data.user.claimedProRewards   ?? []);
       setCompletedMissions(data.user.completedMissions);
@@ -57,7 +57,7 @@ export function BattlePassProvider({ children }) {
       setSeason(null);
       setUserLevel(0);
       setBpPoints(0);
-      setPointsToNextLevel(0);
+      setMissionsForNextLevel({ current: 0, total: 0 });
       setClaimedFreeRewards([]);
       setClaimedProRewards([]);
       setCompletedMissions([]);
@@ -105,7 +105,7 @@ export function BattlePassProvider({ children }) {
       // BP level 1–30 (NOT the account tier — see levels.js for that)
       userLevel,
       bpPoints,
-      pointsToNextLevel,
+      missionsForNextLevel,
       claimedFreeRewards,
       claimedProRewards,
       completedMissions,

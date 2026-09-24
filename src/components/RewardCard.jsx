@@ -76,14 +76,16 @@ export default function RewardCard({
     ? 'rgba(224,85,133,0.22)'
     : 'rgba(0,192,135,0.18)';
 
-  const cardBorder = isClaimable
-    ? (isProTrack ? 'rgba(224,85,133,0.6)'  : 'rgba(0,192,135,0.6)')
-    : isClaimed
-      ? (isProTrack ? 'rgba(224,85,133,0.15)' : 'rgba(0,192,135,0.15)')
-      : (isProTrack ? 'rgba(224,85,133,0.25)' : 'rgba(0,192,135,0.22)');
+  const cardBorder = hasComingSoon
+    ? (isProTrack ? 'rgba(224,85,133,0.2)'  : 'rgba(0,192,135,0.15)')
+    : isClaimable
+      ? (isProTrack ? 'rgba(224,85,133,0.6)'  : 'rgba(0,192,135,0.6)')
+      : isClaimed
+        ? (isProTrack ? 'rgba(224,85,133,0.15)' : 'rgba(0,192,135,0.15)')
+        : (isProTrack ? 'rgba(224,85,133,0.25)' : 'rgba(0,192,135,0.22)');
 
   const hasComingSoon = mission && mission.enabled === false;
-  const showProgress  = !!missionProgress && !hasComingSoon;
+  const showProgress  = state !== 'claimed' && !!missionProgress && !hasComingSoon;
   const showRibbon    = isClaimable && !hasComingSoon;
 
   const Icon = reward ? REWARD_ICONS[reward.type] : null;
@@ -276,14 +278,6 @@ export default function RewardCard({
           background: 'rgba(13,13,13,0.75)',
           borderRadius: '12px',
         }}>
-          {swatchHex && (
-            <div style={{
-              width: 9, height: 9, borderRadius: '50%',
-              background: swatchHex,
-              boxShadow: `0 0 7px ${swatchHex}bb`,
-              flexShrink: 0,
-            }} />
-          )}
           <Lock size={11} color="#e05585" strokeWidth={2} />
           {onGoPricing && (
             <button

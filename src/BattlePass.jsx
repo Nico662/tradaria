@@ -120,12 +120,13 @@ function ProgressRing({ pct, level }) {
 
 export default function BattlePass({ onBack, onGoPricing }) {
   const {
-    season:              ctxSeason,
-    userLevel:           ctxUserLevel,
-    bpPoints:            ctxBpPoints,
-    claimedFreeRewards:  ctxClaimedFreeRewards,
-    claimedProRewards:   ctxClaimedProRewards,
-    allMissionProgress:  ctxAllMissionProgress,
+    season:               ctxSeason,
+    userLevel:            ctxUserLevel,
+    bpPoints:             ctxBpPoints,
+    missionsForNextLevel: ctxMissionsForNextLevel,
+    claimedFreeRewards:   ctxClaimedFreeRewards,
+    claimedProRewards:    ctxClaimedProRewards,
+    allMissionProgress:   ctxAllMissionProgress,
     isLoading,
     claimReward,
   } = useBattlePass();
@@ -144,13 +145,16 @@ export default function BattlePass({ onBack, onGoPricing }) {
   const mockActive = USE_MOCK_BP && import.meta.env.DEV && !ctxSeason;
 
   // ── Fuente de datos: real o mock ────────────────────────────────────────────
-  const season             = mockActive ? MOCK_SEASON    : ctxSeason;
-  const userLevel          = mockActive ? MOCK_USER_LEVEL : ctxUserLevel;
-  const bpPoints           = mockActive ? MOCK_BP_POINTS  : ctxBpPoints;
-  const claimedFreeRewards = mockActive ? mockClaimed          : ctxClaimedFreeRewards;
-  const claimedProRewards  = mockActive ? mockClaimed          : ctxClaimedProRewards;
-  const isPro              = mockActive ? MOCK_IS_PRO          : ctxIsPro;
-  const allMissionProgress = mockActive ? MOCK_ALL_PROGRESS    : ctxAllMissionProgress;
+  const season               = mockActive ? MOCK_SEASON      : ctxSeason;
+  const userLevel            = mockActive ? MOCK_USER_LEVEL   : ctxUserLevel;
+  const bpPoints             = mockActive ? MOCK_BP_POINTS    : ctxBpPoints;   // kept for mock display
+  const missionsForNextLevel = mockActive
+    ? { current: MOCK_ALL_PROGRESS[MOCK_USER_LEVEL]?.pro?.current ?? 0, total: MOCK_ALL_PROGRESS[MOCK_USER_LEVEL]?.pro?.target ?? 1 }
+    : ctxMissionsForNextLevel;
+  const claimedFreeRewards   = mockActive ? mockClaimed        : ctxClaimedFreeRewards;
+  const claimedProRewards    = mockActive ? mockClaimed        : ctxClaimedProRewards;
+  const isPro                = mockActive ? MOCK_IS_PRO        : ctxIsPro;
+  const allMissionProgress   = mockActive ? MOCK_ALL_PROGRESS  : ctxAllMissionProgress;
 
   useEffect(() => {
     if (!scrollRef.current || didScroll.current) return;
@@ -195,9 +199,9 @@ export default function BattlePass({ onBack, onGoPricing }) {
 
   const progressPct = userLevel >= 30
     ? 100
-    : Math.min(100, ((bpPoints % 300) / 300) * 100);
-
-  const pointsInLevel = userLevel >= 30 ? 300 : (bpPoints % 300);
+    : missionsForNextLevel.total > 0
+      ? Math.min(100, (missionsForNextLevel.current / missionsForNextLevel.total) * 100)
+      : 0;
 
   // Extrae la parte de texto después de {n}, p.ej. "días restantes" / "days remaining"
   const daysUnit = tp.daysLeft.split('{n}').pop()?.trim() ?? '';
@@ -340,7 +344,12 @@ export default function BattlePass({ onBack, onGoPricing }) {
                   fontFamily: 'var(--font-body)', fontSize: '12px',
                   color: 'var(--text-muted)', marginTop: 5,
                 }}>
-                  {userLevel >= 30 ? 'MAX' : `${pointsInLevel} / 300 BP`}
+                  {userLevel >= 30
+                  ? 'MAX'
+                  : missionsForNextLevel.total === 0
+                    ? `${tp.levelOf.replace('{n}', userLevel + 1)}`
+                    : `${missionsForNextLevel.current}/${missionsForNextLevel.total} misiones → nv. ${userLevel + 1}`
+                }
                 </div>
               </div>
             </div>
