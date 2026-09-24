@@ -41,11 +41,15 @@ const MOCK_ALL_PROGRESS = {
 const CARD_H = 80;
 const ROW_PY = 5;
 
-function getCardState(reward, mission, levelNum, track, userLevel, claimedRewards, isPro) {
+function getCardState(reward, mission, levelNum, track, userLevel, claimedRewards, isPro, missionProgress) {
   if (!reward && !mission) return 'empty';
   if (claimedRewards.includes(levelNum)) return 'claimed';
   if (track === 'pro' && !isPro) return 'pro_locked';
   if (userLevel < levelNum) return 'locked';
+  // Mirror server Fix G: mission must be complete (unless disabled) to be claimable
+  if (mission && mission.enabled !== false && missionProgress && missionProgress.current < missionProgress.target) {
+    return 'mission_pending';
+  }
   return 'claimable';
 }
 
@@ -352,11 +356,24 @@ export default function BattlePass({ onBack, onGoPricing }) {
 
         {claimError && (
           <div style={{
-            marginBottom: '12px', padding: '8px 12px',
+            marginBottom: '12px', padding: '8px 32px 8px 12px',
             background: 'rgba(224,85,85,0.1)', border: '1px solid rgba(224,85,85,0.3)',
             borderRadius: '8px', fontFamily: 'var(--font-body)', fontSize: '12px', color: '#e05555',
+            position: 'relative',
           }}>
             {claimError}
+            <button
+              onClick={() => setClaimError(null)}
+              style={{
+                position: 'absolute', top: '50%', right: 10,
+                transform: 'translateY(-50%)',
+                background: 'none', border: 'none', padding: 0,
+                color: '#e05555', cursor: 'pointer', fontSize: '16px', lineHeight: 1,
+                opacity: 0.7,
+              }}
+            >
+              ×
+            </button>
           </div>
         )}
       </div>
@@ -400,8 +417,8 @@ export default function BattlePass({ onBack, onGoPricing }) {
 
         {/* Level rows */}
         {SEASON1_LEVELS.map((lvl) => {
-          const freeState  = getCardState(lvl.freeReward, lvl.freeMission, lvl.level, 'free', userLevel, claimedFreeRewards, isPro);
-          const proState   = getCardState(lvl.proReward,  lvl.proMission,  lvl.level, 'pro',  userLevel, claimedProRewards,  isPro);
+          const freeState  = getCardState(lvl.freeReward, lvl.freeMission, lvl.level, 'free', userLevel, claimedFreeRewards, isPro, allMissionProgress?.[lvl.level]?.free ?? null);
+          const proState   = getCardState(lvl.proReward,  lvl.proMission,  lvl.level, 'pro',  userLevel, claimedProRewards,  isPro, allMissionProgress?.[lvl.level]?.pro  ?? null);
           const isClaiming = claimingLevel === lvl.level;
           const isActive   = lvl.level === userLevel;
           const isClaimed  = claimedFreeRewards.includes(lvl.level) || claimedProRewards.includes(lvl.level);

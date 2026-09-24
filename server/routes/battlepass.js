@@ -154,9 +154,13 @@ function inferClaimedTracks(bp, user) {
       claimedPro.add(levelNum);
     } else if (hasFree && hasPro) {
       claimedFree.add(levelNum);
+      // Only infer Pro as claimed if the Pro mission was explicitly completed.
+      // Removing user.isPro from this condition fixes the bug where a non-Pro user
+      // who claimed the Free reward and later upgraded to Pro would be permanently
+      // blocked from claiming their Pro reward (both UI and server would see it as
+      // already claimed via this false inference).
       const proMissionId = lvlCfg.proMission ? lvlCfg.proMission.id : null;
-      const proWasClaimed = user.isPro ||
-        (proMissionId && (bp.completedMissions || []).includes(proMissionId));
+      const proWasClaimed = proMissionId && (bp.completedMissions || []).includes(proMissionId);
       if (proWasClaimed) claimedPro.add(levelNum);
     }
   }
@@ -650,8 +654,97 @@ async function checkCompletionBpMissions(userId) {
   await checkLevel30Atomic(String(userId), awardedMissions);
 }
 
+// ── GET /battle-pass/admin/diagnostic/:userId ─────────────────────────────────
+// Returns raw BP fields for a user + inferClaimedTracks result for debugging.
+// Protected by x-admin-secret header.
+
+router.get('/admin/diagnostic/:userId', async (req, res) => {
+  const key = req.headers['x-admin-secret'];
+  if (!process.env.ADMIN_SECRET || key !== process.env.ADMIN_SECRET)
+    return res.status(403).json({ error: 'Forbidden' });
+
+  try {
+    const User   = mongoose.model('User');
+    const season = await getActiveSeason();
+    const user   = await User.findById(req.params.userId).lean();
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const bp = (season && user.battlePass?.seasonId === season.seasonId)
+      ? user.battlePass
+      : (user.battlePass ?? null);
+
+    const inferred = bp ? inferClaimedTracks(bp, user) : { claimedFreeRewards: [], claimedProRewards: [] };
+
+    res.json({
+      userId:   user._id,
+      email:    user.email ?? '(no email field)',
+      isPro:    user.isPro,
+      badges:   user.badges ?? [],
+      hasBadge_bp_s1_early_trader: (user.badges ?? []).includes('bp_s1_early_trader'),
+      battlePass: {
+        seasonId:                     bp?.seasonId,
+        bpPoints:                     bp?.bpPoints,
+        claimedRewards:               bp?.claimedRewards     ?? [],
+        claimedFreeRewards:           bp?.claimedFreeRewards ?? [],
+        claimedProRewards:            bp?.claimedProRewards  ?? [],
+        completedMissions:            bp?.completedMissions  ?? [],
+        level2_in_claimedRewards:     (bp?.claimedRewards     ?? []).includes(2),
+        level2_in_claimedFreeRewards: (bp?.claimedFreeRewards ?? []).includes(2),
+        level2_in_claimedProRewards:  (bp?.claimedProRewards  ?? []).includes(2),
+        has_l2_pro_mission_completed: (bp?.completedMissions  ?? []).includes('bp_s1_l2_pro'),
+        dailiesCompleted:             bp?.dailiesCompleted ?? 0,
+      },
+      inferred_after_fix: inferred,
+    });
+  } catch (err) {
+    console.error('[BP admin] diagnostic error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ── GET /battle-pass/admin/affected-count ─────────────────────────────────────
+// Counts Pro users whose Pro claims were incorrectly inferred due to the
+// user.isPro bug in inferClaimedTracks (before this fix).
+// Protected by x-admin-secret header.
+
+router.get('/admin/affected-count', async (req, res) => {
+  const key = req.headers['x-admin-secret'];
+  if (!process.env.ADMIN_SECRET || key !== process.env.ADMIN_SECRET)
+    return res.status(403).json({ error: 'Forbidden' });
+
+  try {
+    const User = mongoose.model('User');
+
+    // Fully affected: Pro users with legacy claims (claimedRewards non-empty) but
+    // no explicit Pro-track claims (claimedProRewards empty).
+    // These users had Pro rewards shown as already-claimed by inference only.
+    const fullyAffected = await User.countDocuments({
+      isPro: true,
+      'battlePass.claimedRewards.0':    { $exists: true },
+      'battlePass.claimedProRewards.0': { $exists: false },
+    });
+
+    // Broader: all Pro users with legacy claims (some may have explicit Pro claims too,
+    // but could still be partially affected for other levels).
+    const totalProWithLegacyClaims = await User.countDocuments({
+      isPro: true,
+      'battlePass.claimedRewards.0': { $exists: true },
+    });
+
+    res.json({
+      fully_affected: fullyAffected,
+      total_pro_with_legacy_claims: totalProWithLegacyClaims,
+      note: 'fully_affected = Pro users blocked from ALL Pro rewards by the isPro inference bug',
+    });
+  } catch (err) {
+    console.error('[BP admin] affected-count error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 module.exports = {
   router,
+  inferClaimedTracks,   // exported for unit tests
   addBattlePassProgress,
   processGameBpProgress,
   processDailyBpProgress,
