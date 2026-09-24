@@ -39,31 +39,20 @@ function getSwatchHex(reward) {
 //   state           — 'empty' | 'locked' | 'claimable' | 'claimed' | 'pro_locked'
 //   track           — 'free' | 'pro'
 //   isActive        — true when this card is at the user's current level
-//   missionProgress — { current, target } | null — shows progress bar at active level
+//   missionProgress — { current, target } | null — shows progress bar when non-null
 //   isClaiming      — true while the claim request is in-flight
 //   onClaim         — called when the user taps the ribbon
 //   t               — translation object (needs t.traderPass)
 //   onGoPricing     — called when free user taps the PRO lock button
 export default function RewardCard({
-  reward, mission, state, track, isActive, missionProgress,
+  reward, mission, state, track, missionProgress,
   animate, isClaiming, onClaim, t, onGoPricing,
 }) {
   const isProTrack = track === 'pro';
   const swatchHex  = getSwatchHex(reward);
 
   if (state === 'empty') {
-    return (
-      <div style={{
-        flex: 1, width: '100%', minHeight: 68,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
-        <div style={{
-          width: 4, height: 4, borderRadius: '50%',
-          background: isActive ? 'rgba(0,192,135,0.5)' : 'var(--border-default)',
-          transition: 'background 0.2s',
-        }} />
-      </div>
-    );
+    return <div style={{ flex: 1, width: '100%', minHeight: 68 }} />;
   }
 
   const isClaimable = state === 'claimable';
@@ -94,7 +83,7 @@ export default function RewardCard({
       : (isProTrack ? 'rgba(224,85,133,0.25)' : 'rgba(0,192,135,0.22)');
 
   const hasComingSoon = mission && mission.enabled === false;
-  const showProgress  = isActive && !!missionProgress && !hasComingSoon && !isClaimed;
+  const showProgress  = !!missionProgress && !hasComingSoon;
   const showRibbon    = isClaimable && !hasComingSoon;
 
   const Icon = reward ? REWARD_ICONS[reward.type] : null;

@@ -21,18 +21,28 @@ const MOCK_USER_LEVEL    = 7;    // nivel actual del usuario de ejemplo
 const MOCK_BP_POINTS     = 2240; // 7×300 base + 140 puntos en el nivel actual
 const MOCK_CLAIMED_INIT  = [2, 4]; // niveles ya reclamados en el mock
 const MOCK_IS_PRO        = true;   // true → columna Pro desbloqueada · false → pro_locked
-// Mock mission progress for the active level (Phase 5 will replace with real server data)
-const MOCK_ACTIVE_PROGRESS = {
-  free: null,                      // level 7 has no free mission (odd level)
-  pro:  { current: 3, target: 10 }, // Racha Classic: 3/10 rondas seguidas
+const MOCK_ALL_PROGRESS = {
+  // Niveles reclamados (claimed) → misiones completas al 100%
+  2: { free: { current: 1,  target: 1  }, pro: { current: 5,  target: 5  } },
+  4: { free: { current: 3,  target: 3  }, pro: { current: 30, target: 30 } },
+  // Niveles pasados sin reclamar (completed, unclaimed)
+  6: { free: null,                         pro: { current: 5,  target: 5  } },
+  // Nivel activo
+  [MOCK_USER_LEVEL]: { free: null, pro: { current: 3, target: 10 } },
+  // Nivel bloqueado con progreso parcial (survival_rounds: 8 de 20)
+  8: { free: { current: 8,  target: 20 }, pro: null },
+  // Nivel bloqueado con progreso parcial (survival_rounds: 8 de 75)
+  9: { free: null,                         pro: { current: 8,  target: 75 } },
+  // Nivel bloqueado sin progreso
+  12: { free: { current: 0,  target: 1  }, pro: { current: 0,  target: 50 } },
 };
 // ─────────────────────────────────────────────────────────────────────────────
 
 const CARD_H = 80;
 const ROW_PY = 5;
 
-function getCardState(reward, levelNum, track, userLevel, claimedRewards, isPro) {
-  if (!reward) return 'empty';
+function getCardState(reward, mission, levelNum, track, userLevel, claimedRewards, isPro) {
+  if (!reward && !mission) return 'empty';
   if (claimedRewards.includes(levelNum)) return 'claimed';
   if (track === 'pro' && !isPro) return 'pro_locked';
   if (userLevel < levelNum) return 'locked';
@@ -111,7 +121,7 @@ export default function BattlePass({ onBack, onGoPricing }) {
     bpPoints:            ctxBpPoints,
     claimedFreeRewards:  ctxClaimedFreeRewards,
     claimedProRewards:   ctxClaimedProRewards,
-    missionProgress:     ctxMissionProgress,
+    allMissionProgress:  ctxAllMissionProgress,
     isLoading,
     claimReward,
   } = useBattlePass();
@@ -133,9 +143,10 @@ export default function BattlePass({ onBack, onGoPricing }) {
   const season             = mockActive ? MOCK_SEASON    : ctxSeason;
   const userLevel          = mockActive ? MOCK_USER_LEVEL : ctxUserLevel;
   const bpPoints           = mockActive ? MOCK_BP_POINTS  : ctxBpPoints;
-  const claimedFreeRewards = mockActive ? mockClaimed     : ctxClaimedFreeRewards;
-  const claimedProRewards  = mockActive ? mockClaimed     : ctxClaimedProRewards;
-  const isPro              = mockActive ? MOCK_IS_PRO     : ctxIsPro;
+  const claimedFreeRewards = mockActive ? mockClaimed          : ctxClaimedFreeRewards;
+  const claimedProRewards  = mockActive ? mockClaimed          : ctxClaimedProRewards;
+  const isPro              = mockActive ? MOCK_IS_PRO          : ctxIsPro;
+  const allMissionProgress = mockActive ? MOCK_ALL_PROGRESS    : ctxAllMissionProgress;
 
   useEffect(() => {
     if (!scrollRef.current || didScroll.current) return;
@@ -389,8 +400,8 @@ export default function BattlePass({ onBack, onGoPricing }) {
 
         {/* Level rows */}
         {SEASON1_LEVELS.map((lvl) => {
-          const freeState  = getCardState(lvl.freeReward, lvl.level, 'free', userLevel, claimedFreeRewards, isPro);
-          const proState   = getCardState(lvl.proReward,  lvl.level, 'pro',  userLevel, claimedProRewards,  isPro);
+          const freeState  = getCardState(lvl.freeReward, lvl.freeMission, lvl.level, 'free', userLevel, claimedFreeRewards, isPro);
+          const proState   = getCardState(lvl.proReward,  lvl.proMission,  lvl.level, 'pro',  userLevel, claimedProRewards,  isPro);
           const isClaiming = claimingLevel === lvl.level;
           const isActive   = lvl.level === userLevel;
           const isClaimed  = claimedFreeRewards.includes(lvl.level) || claimedProRewards.includes(lvl.level);
@@ -399,13 +410,29 @@ export default function BattlePass({ onBack, onGoPricing }) {
             ? 'var(--green)'
             : 'rgba(255,255,255,0.08)';
 
-          const bubbleBorder = (isClaimed || lvl.level <= userLevel || isActive)
+          const isCompleted = lvl.level < userLevel;
+
+          const bubbleBg = isClaimed
             ? 'var(--green)'
-            : 'rgba(255,255,255,0.15)';
-          const bubbleBg = isClaimed ? 'var(--green)' : 'var(--bg-base)';
-          const bubbleTextColor = (isActive || lvl.level <= userLevel)
+            : isActive
+              ? 'rgba(224,85,133,0.18)'
+              : 'var(--bg-base)';
+
+          const bubbleBorder = isClaimed
             ? 'var(--green)'
-            : 'var(--text-hint)';
+            : isActive
+              ? '#e05585'
+              : isCompleted
+                ? 'rgba(0,192,135,0.5)'
+                : 'rgba(255,255,255,0.12)';
+
+          const bubbleTextColor = isClaimed
+            ? '#000'
+            : isActive
+              ? '#e05585'
+              : isCompleted
+                ? 'rgba(0,192,135,0.65)'
+                : 'rgba(255,255,255,0.22)';
 
           return (
             <div
@@ -416,7 +443,7 @@ export default function BattlePass({ onBack, onGoPricing }) {
                 padding: `${ROW_PY}px 16px`,
                 gap: 6,
                 borderBottom: '0.5px solid rgba(255,255,255,0.03)',
-                background: isActive ? 'rgba(0,192,135,0.02)' : 'transparent',
+                background: isActive ? 'rgba(224,85,133,0.025)' : 'transparent',
                 position: 'relative',
               }}
             >
@@ -437,7 +464,7 @@ export default function BattlePass({ onBack, onGoPricing }) {
                   state={freeState}
                   track="free"
                   isActive={isActive}
-                  missionProgress={isActive ? ctxMissionProgress?.free : null}
+                  missionProgress={allMissionProgress?.[lvl.level]?.free ?? null}
                   animate={justClaimed === lvl.level}
                   isClaiming={isClaiming}
                   onClaim={() => handleClaim(lvl.level)}
@@ -480,7 +507,7 @@ export default function BattlePass({ onBack, onGoPricing }) {
                   state={proState}
                   track="pro"
                   isActive={isActive}
-                  missionProgress={isActive ? ctxMissionProgress?.pro : null}
+                  missionProgress={allMissionProgress?.[lvl.level]?.pro ?? null}
                   animate={justClaimed === lvl.level}
                   isClaiming={isClaiming}
                   onClaim={() => handleClaim(lvl.level)}

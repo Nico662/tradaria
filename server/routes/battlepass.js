@@ -172,6 +172,23 @@ function inferClaimedTracks(bp, user) {
 // Returns null for disabled missions or unrecognised types (no progress bar shown).
 function progressFor(m, bp, user) {
   if (!m || m.enabled === false || !bp) return null;
+
+  // Level-30 completion missions have target=0 in config; compute real target dynamically.
+  if (m.type === 'complete_all_free_missions') {
+    const enabledFreeIds = season1.LEVELS.slice(0, 29)
+      .filter(l => l.freeMission && l.freeMission.enabled !== false)
+      .map(l => l.freeMission.id);
+    const done = enabledFreeIds.filter(id => bp.completedMissions.includes(id)).length;
+    return { current: done, target: enabledFreeIds.length };
+  }
+  if (m.type === 'complete_all_pro_missions') {
+    const enabledProIds = season1.LEVELS.slice(0, 29)
+      .filter(l => l.proMission && l.proMission.enabled !== false)
+      .map(l => l.proMission.id);
+    const done = enabledProIds.filter(id => bp.completedMissions.includes(id)).length;
+    return { current: done, target: enabledProIds.length };
+  }
+
   if (bp.completedMissions.includes(m.id)) return { current: m.target, target: m.target };
   switch (m.type) {
     case 'play_any_game':         return { current: 0,                                       target: m.target };
@@ -208,13 +225,14 @@ router.get('/current-season', requireAuth, async (req, res) => {
       ? (level + 1) * season1.BP_POINTS_PER_LEVEL - bpPoints
       : 0;
 
-    // Progress toward the active level's missions (the row marked isActive in the UI).
-    // level=0 → no active row → null.
-    const activeLevelCfg = (level > 0 && level <= 30) ? season1.LEVELS[level - 1] : null;
-    const missionProgress = (activeLevelCfg && bp) ? {
-      free: activeLevelCfg.freeMission ? progressFor(activeLevelCfg.freeMission, bp, user) : null,
-      pro:  activeLevelCfg.proMission  ? progressFor(activeLevelCfg.proMission,  bp, user) : null,
-    } : null;
+    // Progress for all 30 levels — used by the UI to show progress bars on every card.
+    const allMissionProgress = bp ? season1.LEVELS.reduce((acc, lvlCfg) => {
+      acc[lvlCfg.level] = {
+        free: lvlCfg.freeMission ? progressFor(lvlCfg.freeMission, bp, user) : null,
+        pro:  lvlCfg.proMission  ? progressFor(lvlCfg.proMission,  bp, user) : null,
+      };
+      return acc;
+    }, {}) : null;
 
     res.json({
       season: {
@@ -229,7 +247,7 @@ router.get('/current-season', requireAuth, async (req, res) => {
         pointsToNextLevel,
         ...inferClaimedTracks(bp, user),
         completedMissions: bp ? bp.completedMissions : [],
-        missionProgress,
+        allMissionProgress,
       },
     });
   } catch (err) {

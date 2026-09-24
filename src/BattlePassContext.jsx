@@ -17,9 +17,9 @@ export function BattlePassProvider({ children }) {
   const [pointsToNextLevel,  setPointsToNextLevel]  = useState(0);
   const [claimedFreeRewards, setClaimedFreeRewards] = useState([]);
   const [claimedProRewards,  setClaimedProRewards]  = useState([]);
-  const [completedMissions,  setCompletedMissions]  = useState([]);
-  const [missionProgress,    setMissionProgress]    = useState(null);
-  const [isLoading,          setIsLoading]          = useState(false);
+  const [completedMissions,    setCompletedMissions]    = useState([]);
+  const [allMissionProgress,   setAllMissionProgress]   = useState(null);
+  const [isLoading,            setIsLoading]            = useState(false);
 
   const fetchBattlePass = useCallback(async () => {
     const token = localStorage.getItem('tradaria_token');
@@ -42,7 +42,7 @@ export function BattlePassProvider({ children }) {
       setClaimedFreeRewards(data.user.claimedFreeRewards ?? []);
       setClaimedProRewards(data.user.claimedProRewards   ?? []);
       setCompletedMissions(data.user.completedMissions);
-      setMissionProgress(data.user.missionProgress ?? null);
+      setAllMissionProgress(data.user.allMissionProgress ?? null);
     } catch {}
     finally {
       setIsLoading(false);
@@ -61,7 +61,7 @@ export function BattlePassProvider({ children }) {
       setClaimedFreeRewards([]);
       setClaimedProRewards([]);
       setCompletedMissions([]);
-      setMissionProgress(null);
+      setAllMissionProgress(null);
     }
   }, [user, fetchBattlePass]);
 
@@ -109,7 +109,7 @@ export function BattlePassProvider({ children }) {
       claimedFreeRewards,
       claimedProRewards,
       completedMissions,
-      missionProgress,
+      allMissionProgress,
       isLoading,
       claimReward,
       refreshBattlePass: fetchBattlePass,
