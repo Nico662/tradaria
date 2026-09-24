@@ -877,11 +877,30 @@ app.post('/daily/complete', async (req, res) => {
   startOfToday.setUTCHours(0, 0, 0, 0);
   const startOfYesterday = new Date(startOfToday);
   startOfYesterday.setUTCDate(startOfYesterday.getUTCDate() - 1);
+  const todayStr = startOfToday.toISOString().slice(0, 10);
 
   const safeXp = Math.max(0, Math.min(Number(xp) || 0, 1000000));
   const safeBadges = Array.isArray(badges)
     ? badges.filter(b => VALID_BADGE_IDS.has(b))
     : [];
+
+  // Resolve $lastPlayed to a BSON Date for comparison regardless of whether it is
+  // stored as a String ("YYYY-MM-DD", original schema) or as a Date (set by $$NOW
+  // before this fix was applied). Without this, cross-type BSON ordering (String < Date)
+  // made $gte/$lt always wrong when comparing a string field against a Date literal.
+  const lastPlayedAsDate = {
+    $cond: {
+      if: { $eq: [{ $type: '$lastPlayed' }, 'date'] },
+      then: '$lastPlayed',
+      else: {
+        $cond: {
+          if: { $ne: [{ $ifNull: ['$lastPlayed', null] }, null] },
+          then: { $dateFromString: { dateString: '$lastPlayed', onError: null, onNull: null } },
+          else: null,
+        },
+      },
+    },
+  };
 
   try {
     const updatedUser = await User.findOneAndUpdate(
@@ -890,19 +909,22 @@ app.post('/daily/complete', async (req, res) => {
         $or: [
           { lastPlayed: { $exists: false } },
           { lastPlayed: null },
-          { lastPlayed: { $lt: startOfToday } },
+          // String-type lastPlayed (normal case, original schema): lexicographic comparison works
+          { lastPlayed: { $type: 'string', $lt: todayStr } },
+          // Date-type lastPlayed (written by the buggy $$NOW before this fix): Date comparison
+          { lastPlayed: { $type: 'date', $lt: startOfToday } },
         ],
       },
       [
         {
           $set: {
-            lastPlayed: '$$NOW',
+            lastPlayed: todayStr,
             dailyStreak: {
               $cond: {
                 if: {
                   $and: [
                     { $ne: [{ $ifNull: ['$lastPlayed', null] }, null] },
-                    { $gte: ['$lastPlayed', startOfYesterday] },
+                    { $gte: [lastPlayedAsDate, startOfYesterday] },
                   ],
                 },
                 then: { $add: ['$dailyStreak', 1] },
@@ -917,7 +939,7 @@ app.post('/daily/complete', async (req, res) => {
                     {
                       $or: [
                         { $eq: [{ $ifNull: ['$lastPlayed', null] }, null] },
-                        { $lt: ['$lastPlayed', startOfYesterday] },
+                        { $lt: [lastPlayedAsDate, startOfYesterday] },
                       ],
                     },
                   ],
