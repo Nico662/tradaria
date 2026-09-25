@@ -988,10 +988,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
 
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--green)', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(0,229,160,0.2)' }}>
-            <Briefcase size={18} strokeWidth={2} aria-hidden style={{ display: 'inline', verticalAlign: 'middle' }} /> {t.portfolio.title}
-          </div>
-          <div style={{ fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: 'var(--font-body)' }}>
-            {t.portfolio.mode}
+            {t.portfolio.title}
           </div>
         </div>
 
@@ -1011,42 +1008,36 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
       )}
 
       {/* Summary */}
-      <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--bd)', position: 'relative', zIndex: 2 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
-            <div style={{ fontSize: '12px', color: 'var(--t5)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>{t.portfolio.cash}</div>
-            {portfolio === null
-              ? <div className="skeleton-bar" style={{ height: '16px', width: '80px', margin: '0 auto' }} />
-              : <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>{formatCash(portfolio.cash)}</div>}
-          </div>
-          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
-            <div style={{ fontSize: '12px', color: 'var(--t5)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>{t.portfolio.invested}</div>
-            {portfolio === null
-              ? <div className="skeleton-bar" style={{ height: '16px', width: '80px', margin: '0 auto' }} />
-              : <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>{formatCash(totalInvested)}</div>}
-          </div>
-        </div>
-        {(() => {
-          if (portfolio === null) return (
-            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ fontSize: '12px', color: 'var(--t5)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{t.portfolio.pnlTotal}</div>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
-                <div className="skeleton-bar" style={{ height: '18px', width: '90px' }} />
-                <div className="skeleton-bar" style={{ height: '10px', width: '50px' }} />
-              </div>
+      <div style={{ padding: '16px 20px 20px', borderBottom: '1px solid var(--bd)', position: 'relative', zIndex: 2, textAlign: 'center' }}>
+        {portfolio === null ? (
+          <>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '6px' }}>
+              <div className="skeleton-bar" style={{ height: '32px', width: '160px' }} />
             </div>
-          );
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}>
+              <div className="skeleton-bar" style={{ height: '18px', width: '70px' }} />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <div className="skeleton-bar" style={{ height: '12px', width: '200px' }} />
+            </div>
+          </>
+        ) : (() => {
           const pnl    = totalValue - 50000;
           const pnlPct = (pnl / 50000) * 100;
           const color  = pnl >= 0 ? 'var(--green)' : 'var(--color-down)';
+          const arrow  = pnl >= 0 ? '↑' : '↓';
           return (
-            <div style={{ background: 'var(--bg-card)', border: `1px solid ${pnl >= 0 ? 'rgba(0,229,160,0.3)' : 'rgba(255,126,179,0.3)'}`, borderRadius: '8px', padding: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ fontSize: '12px', color: 'var(--t5)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{t.portfolio.pnlTotal}</div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '15px', color }}>{pnl >= 0 ? '+' : ''}{formatCash(pnl)}</div>
-                <div style={{ fontSize: '12px', color, fontFamily: 'var(--font-body)', marginTop: '1px' }}>{pnlPct >= 0 ? '+' : ''}{pnlPct.toFixed(2)}%</div>
+            <>
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '28px', color, letterSpacing: '-0.01em', lineHeight: 1, marginBottom: '5px' }}>
+                {arrow} {pnl >= 0 ? '+' : ''}{formatCash(pnl)}
               </div>
-            </div>
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '16px', color, marginBottom: '12px' }}>
+                {pnlPct >= 0 ? '+' : ''}{pnlPct.toFixed(2)}%
+              </div>
+              <div style={{ fontSize: '11px', color: 'var(--t5)', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                {t.portfolio.cash} {formatCash(portfolio.cash)} · {t.portfolio.invested} {formatCash(totalInvested)}
+              </div>
+            </>
           );
         })()}
       </div>
