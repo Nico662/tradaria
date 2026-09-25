@@ -1043,42 +1043,64 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
       </div>
 
       {/* Gráfico histórico */}
-      {portfolioHistory.length > 1 && (
-        <div style={{ padding: '16px 20px 0', position: 'relative', zIndex: 2 }}>
-          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '16px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <div style={{ fontSize: '12px', color: 'var(--t4)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{t.portfolio.totalValue}</div>
-              <div style={{ fontSize: '12px', color: portfolioHistory[portfolioHistory.length - 1].totalValue >= 50000 ? 'var(--green)' : 'var(--color-down)', fontWeight: 700 }}>
-                {portfolioHistory[portfolioHistory.length - 1].totalValue >= 50000 ? '+' : ''}
-                {((portfolioHistory[portfolioHistory.length - 1].totalValue - 50000) / 50000 * 100).toFixed(2)}% {t.portfolio.vsInitial}
+      {portfolioHistory.length > 1 && (() => {
+        const values    = portfolioHistory.map(h => h.totalValue);
+        const min       = Math.min(...values) * 0.998;
+        const max       = Math.max(...values) * 1.002;
+        const range     = max - min || 1;
+        const n         = values.length;
+        const w         = n * 20;
+        const toY       = v => 80 - ((v - min) / range) * 72;
+        const points    = values.map((v, i) => `${i * 20},${toY(v)}`).join(' ');
+        const isUp      = values[n - 1] >= values[0];
+        const color     = isUp ? 'var(--green)' : 'var(--color-down)';
+        const colorRgba = isUp ? 'rgba(0,229,160,' : 'rgba(255,126,179,';
+        const fillPts   = `0,80 ${points} ${w},80`;
+        // x as CSS % relative to SVG width: point i sits at (i/n)*100% of the viewBox
+        const toXPct    = i => `${(i / n) * 100}%`;
+        const lastIdx   = n - 1;
+        const maxIdx    = values.reduce((best, v, i) => v > values[best] ? i : best, 0);
+        const lastY     = toY(values[lastIdx]);
+        const maxY      = toY(values[maxIdx]);
+        return (
+          <div style={{ padding: '16px 20px 0', position: 'relative', zIndex: 2 }}>
+            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--t4)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{t.portfolio.totalValue}</div>
+                <div style={{ fontSize: '12px', color: isUp ? 'var(--green)' : 'var(--color-down)', fontWeight: 700 }}>
+                  {isUp ? '+' : ''}{((values[n - 1] - 50000) / 50000 * 100).toFixed(2)}% {t.portfolio.vsInitial}
+                </div>
+              </div>
+
+              {/* SVG + overlay markers */}
+              <div style={{ position: 'relative' }}>
+                <svg width="100%" height="80" viewBox={`0 0 ${w} 80`} preserveAspectRatio="none" style={{ display: 'block' }}>
+                  {/* Horizontal guide lines — horizontal lines are unaffected by x-distortion */}
+                  <line x1="0" y1={80 / 3}  x2={w} y2={80 / 3}  stroke="white" strokeOpacity="0.05" strokeWidth="1" strokeDasharray="4,4" />
+                  <line x1="0" y1={160 / 3} x2={w} y2={160 / 3} stroke="white" strokeOpacity="0.05" strokeWidth="1" strokeDasharray="4,4" />
+                  <polygon points={fillPts} fill={`${colorRgba}0.08)`} />
+                  <polyline points={points} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+
+                {/* Max point — CSS div avoids SVG circle distortion from preserveAspectRatio:none */}
+                {maxIdx !== lastIdx && (
+                  <div style={{ position: 'absolute', left: toXPct(maxIdx), top: `${maxY}px`, transform: 'translate(-50%, -50%)', width: '4px', height: '4px', borderRadius: '50%', background: color, opacity: 0.5, pointerEvents: 'none' }} />
+                )}
+
+                {/* Last point halo */}
+                <div style={{ position: 'absolute', left: toXPct(lastIdx), top: `${lastY}px`, transform: 'translate(-50%, -50%)', width: '12px', height: '12px', borderRadius: '50%', border: `1px solid ${colorRgba}0.4)`, pointerEvents: 'none' }} />
+                {/* Last point dot */}
+                <div style={{ position: 'absolute', left: toXPct(lastIdx), top: `${lastY}px`, transform: 'translate(-50%, -50%)', width: '6px', height: '6px', borderRadius: '50%', background: color, pointerEvents: 'none' }} />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--t6)' }}>{portfolioHistory[0]?.date}</div>
+                <div style={{ fontSize: '12px', color: 'var(--t6)' }}>{portfolioHistory[n - 1]?.date}</div>
               </div>
             </div>
-            <svg width="100%" height="80" viewBox={`0 0 ${portfolioHistory.length * 20} 80`} preserveAspectRatio="none">
-              {(() => {
-                const values     = portfolioHistory.map(h => h.totalValue);
-                const min        = Math.min(...values) * 0.998;
-                const max        = Math.max(...values) * 1.002;
-                const range      = max - min || 1;
-                const w          = portfolioHistory.length * 20;
-                const points     = values.map((v, i) => `${i * 20},${80 - ((v - min) / range) * 72}`).join(' ');
-                const isUp       = values[values.length - 1] >= values[0];
-                const color      = isUp ? 'var(--green)' : 'var(--color-down)';
-                const fillPoints = `0,80 ${points} ${w},80`;
-                return (
-                  <>
-                    <polygon points={fillPoints} fill={isUp ? 'rgba(0,229,160,0.08)' : 'rgba(255,126,179,0.08)'} />
-                    <polyline points={points} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </>
-                );
-              })()}
-            </svg>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px' }}>
-              <div style={{ fontSize: '12px', color: 'var(--t6)' }}>{portfolioHistory[0]?.date}</div>
-              <div style={{ fontSize: '12px', color: 'var(--t6)' }}>{portfolioHistory[portfolioHistory.length - 1]?.date}</div>
-            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Tabs */}
       <style>{`
