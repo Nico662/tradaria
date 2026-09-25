@@ -239,7 +239,21 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
   const [pendingOrders, setPendingOrders]   = useState([]);
   const [orderModal, setOrderModal]         = useState(null);
   const [orderMsg, setOrderMsg]             = useState('');
-  const chartRef = useRef(null);
+  const chartRef   = useRef(null);
+  const tabBarRef  = useRef(null);
+  const [tabsAtEnd, setTabsAtEnd] = useState(true);
+
+  useEffect(() => {
+    const el = tabBarRef.current;
+    if (!el) return;
+    function check() {
+      setTabsAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 4);
+    }
+    check();
+    el.addEventListener('scroll', check, { passive: true });
+    window.addEventListener('resize', check, { passive: true });
+    return () => { el.removeEventListener('scroll', check); window.removeEventListener('resize', check); };
+  }, []);
 
   const token = localStorage.getItem('tradaria_token');
   const hasDualPortfolio = user?.battlePassMechanics?.includes('mechanic_portfolio_double') || false;
@@ -1076,21 +1090,49 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
       )}
 
       {/* Tabs */}
-      <div style={{ display: 'flex', borderBottom: '1px solid var(--bd)', position: 'relative', zIndex: 2, marginTop: '16px' }}>
-        {[
-          ['market',      t.portfolio.market],
-          ['portfolio',   t.portfolio.positions],
-          ['leaderboard', t.portfolio.ranking],
-          ['duel',        t.portfolio.duelTab],
-          ['history',     t.portfolio.history],
-          ['orders',      t.portfolio.ordersTab],
-          ['leagues',     t.portfolio.leagues],
-        ].map(([id, label]) => (
-          <button key={id} onClick={() => setTab(id)}
-            style={{ flex: 1, padding: '12px 4px', background: 'transparent', border: 'none', borderBottom: `2px solid ${tab === id ? 'var(--green)' : 'transparent'}`, color: tab === id ? 'var(--green)' : 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.15s' }}>
-            {label}
-          </button>
-        ))}
+      <style>{`
+        .portfolio-tab-bar::-webkit-scrollbar { display: none; }
+        @media (max-width: 600px) {
+          .portfolio-tab-btn { padding: 10px 8px !important; font-size: 11px !important; }
+        }
+      `}</style>
+      <div style={{ position: 'relative', zIndex: 2, marginTop: '16px' }}>
+        <div
+          ref={tabBarRef}
+          className="portfolio-tab-bar"
+          style={{
+            display: 'flex',
+            borderBottom: '1px solid var(--bd)',
+            overflowX: 'auto',
+            WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+          }}
+        >
+          {[
+            ['market',      t.portfolio.market],
+            ['portfolio',   t.portfolio.positions],
+            ['leaderboard', t.portfolio.ranking],
+            ['duel',        t.portfolio.duelTab],
+            ['history',     t.portfolio.history],
+            ['orders',      t.portfolio.ordersTab],
+            ['leagues',     t.portfolio.leagues],
+          ].map(([id, label]) => (
+            <button key={id} onClick={() => setTab(id)}
+              className="portfolio-tab-btn"
+              style={{ flexShrink: 0, padding: '12px 10px', background: 'transparent', border: 'none', borderBottom: `2px solid ${tab === id ? 'var(--green)' : 'transparent'}`, color: tab === id ? 'var(--green)' : 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
+              {label}
+            </button>
+          ))}
+        </div>
+        {!tabsAtEnd && (
+          <div style={{
+            position: 'absolute', top: 0, right: 0, bottom: '1px',
+            width: '48px', pointerEvents: 'none',
+            background: 'linear-gradient(to right, transparent, var(--bg-page, #060b10) 80%)',
+            zIndex: 3,
+          }} />
+        )}
       </div>
 
       {/* ── Mercado ── */}
