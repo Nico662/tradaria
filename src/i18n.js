@@ -582,6 +582,10 @@ export const LANGS = {
     maintenance: {
       banner: "We're making changes to the site. Things might look a bit off for a while.",
     },
+    update: {
+      banner: 'A new version is available.',
+      action: 'Update',
+    },
     landing: {
       headline: 'Test Your Market Instinct',
       subheadline: 'Real charts. Real assets. Zero risk.',
@@ -1275,6 +1279,10 @@ export const LANGS = {
     maintenance: {
       banner: 'Estamos realizando mejoras en la plataforma. Es posible que experimentes algunas interrupciones temporales.',
     },
+    update: {
+      banner: 'Nueva versión disponible.',
+      action: 'Actualizar',
+    },
     landing: {
       headline: 'Pon a prueba tu instinto',
       subheadline: 'Gráficos reales. Activos reales. Riesgo cero.',
@@ -1967,6 +1975,10 @@ export const LANGS = {
     },
     maintenance: {
       banner: 'Wir nehmen gerade Änderungen vor. Es kann kurzzeitig zu Darstellungsfehlern kommen.',
+    },
+    update: {
+      banner: 'Neue Version verfügbar.',
+      action: 'Aktualisieren',
     },
     landing: {
       headline: 'Teste deinen Marktinstinkt',

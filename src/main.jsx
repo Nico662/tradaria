@@ -7,11 +7,16 @@ import { LangProvider } from './LangContext.jsx';
 import { AuthProvider } from './AuthContext.jsx';
 import { BattlePassProvider } from './BattlePassContext.jsx';
 import MaintenanceBanner from './MaintenanceBanner.jsx';
+import UpdateBanner from './UpdateBanner.jsx';
 import { SERVER } from './config.js';
 import { inject } from '@vercel/analytics';
 inject();
 
 if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    window.dispatchEvent(new CustomEvent('swUpdated'));
+  });
+
   window.addEventListener('load', async () => {
     try {
       // Migrar token de Tradaria a Tradiko
@@ -25,6 +30,11 @@ if ('serviceWorker' in navigator) {
 
       // Forzar re-suscripción push para usuarios con suscripciones antiguas
       const reg = await navigator.serviceWorker.ready;
+
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') reg.update();
+      });
+
       const existingSub = await reg.pushManager.getSubscription();
       if (existingSub && existingSub.endpoint.includes('tradara')) {
         await existingSub.unsubscribe();
@@ -59,6 +69,7 @@ createRoot(document.getElementById('root')).render(
   <AuthProvider>
     <LangProvider>
       <BattlePassProvider>
+        <UpdateBanner />
         <MaintenanceBanner />
         <App />
       </BattlePassProvider>
