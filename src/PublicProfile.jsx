@@ -120,9 +120,9 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
           ))}
         </div>
 
-        {/* Portfolio */}
+        {/* Portfolio A */}
         {profile.portfolioReturn !== null && profile.totalValue !== null && (
-          <div style={{ background: 'var(--bg-card)', border: `1px solid ${profile.portfolioReturn >= 0 ? 'rgba(0,229,160,0.3)' : 'rgba(255,126,179,0.3)'}`, borderRadius: '10px', padding: '16px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ background: 'var(--bg-card)', border: `1px solid ${profile.portfolioReturn >= 0 ? 'rgba(0,229,160,0.3)' : 'rgba(255,126,179,0.3)'}`, borderRadius: '10px', padding: '16px', marginBottom: profile.positions?.length ? '8px' : '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <div style={{ fontSize: '12px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}><Briefcase size={14} strokeWidth={2} aria-hidden /> Portfolio</div>
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t1)' }}>
@@ -135,6 +135,70 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
               </div>
               <div style={{ fontSize: '12px', color: 'var(--t5)' }}>{t.profile.vsInitial}</div>
             </div>
+          </div>
+        )}
+
+        {/* Portfolio A positions (mechanic_portfolio_view) */}
+        {profile.positions && profile.positions.length > 0 && (
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '14px', marginBottom: '16px' }}>
+            <div style={{ fontSize: '11px', color: 'var(--t6)', letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '10px' }}>{t.profile.positions}</div>
+            {profile.positions.map((pos, i) => (
+              <div key={pos.symbol} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderTop: i > 0 ? '1px solid var(--bd)' : 'none' }}>
+                <div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>{pos.symbol}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--t5)', marginTop: '2px' }}>{pos.qty} × ${pos.avgPrice.toFixed(2)}</div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: pos.pnl >= 0 ? 'var(--green)' : 'var(--color-down)' }}>
+                    {pos.pnl >= 0 ? '+' : ''}{pos.pnlPct.toFixed(2)}%
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--t5)', marginTop: '2px' }}>
+                    {pos.pnl >= 0 ? '+' : ''}${Math.abs(pos.pnl).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Portfolio B (mechanic_portfolio_double on target user) */}
+        {profile.portfolio2Return !== null && profile.totalValue2 !== null && (
+          <div style={{ background: 'var(--bg-card)', border: `1px solid ${profile.portfolio2Return >= 0 ? 'rgba(0,229,160,0.3)' : 'rgba(255,126,179,0.3)'}`, borderRadius: '10px', padding: '16px', marginBottom: profile.positions2?.length ? '8px' : '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ fontSize: '12px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}><Briefcase size={14} strokeWidth={2} aria-hidden /> Portfolio B</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t1)' }}>
+                ${profile.totalValue2.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: profile.portfolio2Return >= 0 ? 'var(--green)' : 'var(--color-down)' }}>
+                {profile.portfolio2Return >= 0 ? '+' : ''}{profile.portfolio2Return.toFixed(2)}%
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--t5)' }}>{t.profile.vsInitial}</div>
+            </div>
+          </div>
+        )}
+
+        {/* Portfolio B positions (mechanic_portfolio_view) */}
+        {profile.positions2 && profile.positions2.length > 0 && (
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '14px', marginBottom: '16px' }}>
+            <div style={{ fontSize: '11px', color: 'var(--t6)', letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '10px' }}>{t.profile.positions} (B)</div>
+            {profile.positions2.map((pos, i) => (
+              <div key={pos.symbol} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderTop: i > 0 ? '1px solid var(--bd)' : 'none' }}>
+                <div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>{pos.symbol}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--t5)', marginTop: '2px' }}>{pos.qty} × ${pos.avgPrice.toFixed(2)}</div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: pos.pnl >= 0 ? 'var(--green)' : 'var(--color-down)' }}>
+                    {pos.pnl >= 0 ? '+' : ''}{pos.pnlPct.toFixed(2)}%
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--t5)', marginTop: '2px' }}>
+                    {pos.pnl >= 0 ? '+' : ''}${Math.abs(pos.pnl).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
