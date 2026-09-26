@@ -411,7 +411,7 @@ export default function App() {
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ mode: 'guess', score, correct: wins, wrong: losses, accuracy: acc, streak: maxStr, rounds: history.length, sessionToken: sessionTokenRef.current }),
     }).then(r => r.json()).then(data => {
-      if (data?.bpProgress?.awardedMissions?.length > 0) refreshBattlePass();
+      if (data?.ok) refreshBattlePass();
       if (data?.bpProgress?.leveledUp) setBpLevelUp(data.bpProgress.newLevel);
     }).catch(() => {});
     fetch(`${SERVER}/stats/personal`, { headers: { Authorization: `Bearer ${token}` } })
