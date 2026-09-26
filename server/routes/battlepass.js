@@ -6,6 +6,41 @@ const season1   = require('../config/season1');
 
 const router = express.Router();
 
+// ── Baseline system helpers ───────────────────────────────────────────────────
+// 5 mission types accumulate a season-wide absolute counter.  Each mission gets
+// a per-mission baseline (counter snapshot at first unlock) so progress is
+// relative to the moment the mission became reachable for that user.
+// classic_streak is handled separately via missionStreakCounters (reset to 0 at
+// unlock) because the streak itself is not a cumulative counter.
+
+const BASELINE_TYPES = new Set([
+  'classic_wins', 'survival_rounds', 'arena_wins',
+  'historical_event', 'historical_all_events',
+]);
+
+function mapGet(m, key) {
+  if (!m) return undefined;
+  if (typeof m.get === 'function') return m.get(key);
+  return m[key];
+}
+
+function rawCounterFor(type, bp) {
+  switch (type) {
+    case 'classic_wins':          return bp.classicWinsTotal            || 0;
+    case 'survival_rounds':       return bp.survivalRoundsTotal         || 0;
+    case 'arena_wins':            return bp.arenaWinsTotal              || 0;
+    case 'historical_event':      return bp.historicalEventsCompleted   || 0;
+    case 'historical_all_events': return (bp.completedEventIds          || []).length;
+    default:                      return 0;
+  }
+}
+
+function relativeProgress(missionId, type, bp) {
+  if (type === 'classic_streak') return mapGet(bp.missionStreakCounters, missionId) ?? 0;
+  const baseline = mapGet(bp.missionBaselines, missionId) ?? 0;
+  return Math.max(0, rawCounterFor(type, bp) - baseline);
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 // Sequential level system: level = 1 + number of consecutive levels (1–29)
@@ -211,16 +246,16 @@ function progressFor(m, bp, user) {
 
   if (bp.completedMissions.includes(m.id)) return { current: m.target, target: m.target };
   switch (m.type) {
-    case 'play_any_game':         return { current: 0,                                       target: m.target };
-    case 'survival_rounds':       return { current: bp.survivalRoundsTotal       || 0,        target: m.target };
-    case 'classic_streak':        return { current: bp.classicMaxStreak          || 0,        target: m.target };
-    case 'classic_wins':          return { current: bp.classicWinsTotal          || 0,        target: m.target };
-    case 'complete_daily':        return { current: bp.dailiesCompleted          || 0,        target: m.target };
+    case 'play_any_game':         return { current: 0,                                                              target: m.target };
+    case 'survival_rounds':       return { current: relativeProgress(m.id, 'survival_rounds',       bp),          target: m.target };
+    case 'classic_streak':        return { current: relativeProgress(m.id, 'classic_streak',        bp),          target: m.target };
+    case 'classic_wins':          return { current: relativeProgress(m.id, 'classic_wins',          bp),          target: m.target };
+    case 'complete_daily':        return { current: bp.dailiesCompleted                              || 0,         target: m.target };
     case 'daily_streak':
-    case 'streak_days':           return { current: user.dailyStreak             || 0,        target: m.target };
-    case 'arena_wins':            return { current: bp.arenaWinsTotal            || 0,        target: m.target };
-    case 'historical_event':      return { current: bp.historicalEventsCompleted || 0,        target: m.target };
-    case 'historical_all_events': return { current: (bp.completedEventIds || []).length,      target: m.target };
+    case 'streak_days':           return { current: user.dailyStreak                                 || 0,         target: m.target };
+    case 'arena_wins':            return { current: relativeProgress(m.id, 'arena_wins',            bp),          target: m.target };
+    case 'historical_event':      return { current: relativeProgress(m.id, 'historical_event',      bp),          target: m.target };
+    case 'historical_all_events': return { current: relativeProgress(m.id, 'historical_all_events', bp),          target: m.target };
     default:                      return null;
   }
 }
@@ -478,6 +513,48 @@ async function checkLevel30Atomic(userId, awardedMissions) {
   }
 }
 
+// ── snapshotNewlyUnlockedMissions ─────────────────────────────────────────────
+// Called at the end of every process*BpProgress function.  Reads the latest
+// user state (after all mission awards) and initialises per-mission baselines
+// for any BASELINE_TYPES or classic_streak mission that has just become
+// accessible (level <= current user level) but has not yet been snapshotted.
+//
+// BASELINE_TYPES: missionBaselines[id] = current raw counter at unlock.
+// classic_streak: missionStreakCounters[id] = 0 at unlock.
+//
+// The "already initialised" guard makes this idempotent — existing entries are
+// never overwritten.
+
+async function snapshotNewlyUnlockedMissions(userId) {
+  const User = mongoose.model('User');
+  const user = await User.findById(userId);
+  if (!user?.battlePass) return;
+
+  const bp        = user.battlePass;
+  const userLevel = computeUserLevel(bp.completedMissions, user.isPro);
+  const setOps    = {};
+
+  for (let i = 0; i < userLevel && i < season1.LEVELS.length; i++) {
+    const lvlCfg = season1.LEVELS[i];
+    for (const m of [lvlCfg.freeMission, lvlCfg.proMission].filter(Boolean)) {
+      if (!BASELINE_TYPES.has(m.type) && m.type !== 'classic_streak') continue;
+      if (bp.completedMissions.includes(m.id)) continue;
+
+      if (m.type === 'classic_streak') {
+        if (mapGet(bp.missionStreakCounters, m.id) !== undefined) continue;
+        setOps[`battlePass.missionStreakCounters.${m.id}`] = 0;
+      } else {
+        if (mapGet(bp.missionBaselines, m.id) !== undefined) continue;
+        setOps[`battlePass.missionBaselines.${m.id}`] = rawCounterFor(m.type, bp);
+      }
+    }
+  }
+
+  if (Object.keys(setOps).length > 0) {
+    await User.findOneAndUpdate({ _id: userId }, { $set: setOps });
+  }
+}
+
 // ── processGameBpProgress ─────────────────────────────────────────────────────
 // Called from POST /stats/game after recording the game in GameHistory.
 // Fix D: all counter updates use atomic $inc/$max/$addToSet.
@@ -491,13 +568,29 @@ async function processGameBpProgress(userId, { mode, streak = 0, rounds = 0, cor
   const season = await getActiveSeason();
   if (!season) return { leveledUp: false, newLevel: 0, awardedMissions: [] };
 
+  // Build mission index early — needed to populate maxOps for classic_streak.
+  const missionsByType = buildMissionsByType();
+
   // 1. Ensure BP initialised for this season (atomic, no-op if already correct)
   await User.findOneAndUpdate(
     { _id: userId, 'battlePass.seasonId': { $ne: season.seasonId } },
     { $set: { battlePass: { seasonId: season.seasonId, bpPoints: 0, completedMissions: [], claimedRewards: [] } } }
   );
 
-  // 2. Build atomic counter update for this game's mode
+  // 2. Pre-read for classic_streak: only $max missionStreakCounters for missions
+  //    that are already initialised so pre-unlock streaks are not counted.
+  const initializedStreakIds = new Set();
+  if (mode === 'guess' && streak > 0) {
+    const preUser = await User.findById(userId).lean();
+    if (preUser?.battlePass?.missionStreakCounters) {
+      const smap = preUser.battlePass.missionStreakCounters;
+      for (const m of missionsByType['classic_streak'] || []) {
+        if (mapGet(smap, m.id) !== undefined) initializedStreakIds.add(m.id);
+      }
+    }
+  }
+
+  // 3. Build atomic counter update for this game's mode
   const incOps    = {};
   const maxOps    = {};
   const addSetOps = {};
@@ -509,6 +602,11 @@ async function processGameBpProgress(userId, { mode, streak = 0, rounds = 0, cor
   if (mode === 'guess') {
     if (streak  > 0) maxOps['battlePass.classicMaxStreak']  = streak;
     if (correct > 0) incOps['battlePass.classicWinsTotal']  = correct;
+    if (streak  > 0) {
+      for (const id of initializedStreakIds) {
+        maxOps[`battlePass.missionStreakCounters.${id}`] = streak;
+      }
+    }
   }
   if (mode === 'historical') {
     incOps['battlePass.historicalEventsCompleted'] = 1;
@@ -528,22 +626,22 @@ async function processGameBpProgress(userId, { mode, streak = 0, rounds = 0, cor
   }
   if (!user) return { leveledUp: false, newLevel: 0, awardedMissions: [] };
 
-  const bp             = user.battlePass;
-  const oldLevel       = computeUserLevel(bp.completedMissions, user.isPro);
+  const bp              = user.battlePass;
+  const oldLevel        = computeUserLevel(bp.completedMissions, user.isPro);
   const awardedMissions = [];
-  const missionsByType = buildMissionsByType();
 
-  // 3. Award missions atomically based on updated counter values
+  // 4. Award missions atomically based on updated counter values (relative progress)
 
   // play_any_game — any game in any mode counts (Fix F: now also fires for Daily/Historical)
   for (const m of missionsByType['play_any_game'] || []) {
     await tryAwardAtomic(userId, m.id, awardedMissions);
   }
 
-  // survival_rounds — cumulative rounds survived
+  // survival_rounds — relative to baseline at mission unlock
   if (mode === 'survival' && rounds > 0) {
     for (const m of missionsByType['survival_rounds'] || []) {
-      if (bp.survivalRoundsTotal >= m.target) await tryAwardAtomic(userId, m.id, awardedMissions);
+      if (relativeProgress(m.id, 'survival_rounds', bp) >= m.target)
+        await tryAwardAtomic(userId, m.id, awardedMissions);
     }
   }
 
@@ -551,29 +649,33 @@ async function processGameBpProgress(userId, { mode, streak = 0, rounds = 0, cor
   if (mode === 'guess') {
     if (streak > 0) {
       for (const m of missionsByType['classic_streak'] || []) {
-        if (bp.classicMaxStreak >= m.target) await tryAwardAtomic(userId, m.id, awardedMissions);
+        if (relativeProgress(m.id, 'classic_streak', bp) >= m.target)
+          await tryAwardAtomic(userId, m.id, awardedMissions);
       }
     }
     if (correct > 0) {
       for (const m of missionsByType['classic_wins'] || []) {
-        if (bp.classicWinsTotal >= m.target) await tryAwardAtomic(userId, m.id, awardedMissions);
+        if (relativeProgress(m.id, 'classic_wins', bp) >= m.target)
+          await tryAwardAtomic(userId, m.id, awardedMissions);
       }
     }
   }
 
-  // historical_event + historical_all_events (Fix F: Historical.jsx now calls /stats/game)
+  // historical_event + historical_all_events — relative to baseline at mission unlock
   if (mode === 'historical') {
     for (const m of missionsByType['historical_event'] || []) {
-      if (bp.historicalEventsCompleted >= m.target) await tryAwardAtomic(userId, m.id, awardedMissions);
+      if (relativeProgress(m.id, 'historical_event', bp) >= m.target)
+        await tryAwardAtomic(userId, m.id, awardedMissions);
     }
-    const uniqueCount = (bp.completedEventIds || []).length;
     for (const m of missionsByType['historical_all_events'] || []) {
-      if (uniqueCount >= m.target) await tryAwardAtomic(userId, m.id, awardedMissions);
+      if (relativeProgress(m.id, 'historical_all_events', bp) >= m.target)
+        await tryAwardAtomic(userId, m.id, awardedMissions);
     }
   }
 
   // Level-30 completion missions (checked after all other awards)
   await checkLevel30Atomic(userId, awardedMissions);
+  await snapshotNewlyUnlockedMissions(userId);
 
   // Derive new level from missions awarded this call (avoids extra DB roundtrip).
   const newCompletedMissions = [...new Set([...bp.completedMissions, ...awardedMissions])];
@@ -631,6 +733,7 @@ async function processDailyBpProgress(userId, { newStreak }) {
   }
 
   await checkLevel30Atomic(userId, awardedMissions);
+  await snapshotNewlyUnlockedMissions(userId);
 
   const newCompletedMissions = [...new Set([...bp.completedMissions, ...awardedMissions])];
   const newLevel = computeUserLevel(newCompletedMissions, user.isPro);
@@ -668,10 +771,12 @@ async function processArenaWinBpProgress(userId) {
   const missionsByType = buildMissionsByType();
 
   for (const m of missionsByType['arena_wins'] || []) {
-    if (bp.arenaWinsTotal >= m.target) await tryAwardAtomic(String(userId), m.id, awardedMissions);
+    if (relativeProgress(m.id, 'arena_wins', bp) >= m.target)
+      await tryAwardAtomic(String(userId), m.id, awardedMissions);
   }
 
   await checkLevel30Atomic(String(userId), awardedMissions);
+  await snapshotNewlyUnlockedMissions(String(userId));
 
   const newCompletedMissions = [...new Set([...bp.completedMissions, ...awardedMissions])];
   const newLevel = computeUserLevel(newCompletedMissions, user.isPro);
@@ -780,8 +885,13 @@ router.get('/admin/affected-count', async (req, res) => {
 
 module.exports = {
   router,
-  computeUserLevel,     // exported for unit tests
-  inferClaimedTracks,   // exported for unit tests
+  computeUserLevel,              // exported for unit tests
+  inferClaimedTracks,            // exported for unit tests
+  BASELINE_TYPES,                // exported for migration script + tests
+  mapGet,                        // exported for migration script + tests
+  rawCounterFor,                 // exported for migration script + tests
+  relativeProgress,              // exported for tests
+  snapshotNewlyUnlockedMissions, // exported for tests + migration script
   addBattlePassProgress,
   processGameBpProgress,
   processDailyBpProgress,

@@ -178,6 +178,9 @@ const UserSchema = new mongoose.Schema({
     completedEventIds:         { type: [String], default: [] }, // unique historical event IDs
     // ── Phase 5D counters ───────────────────────────────────────────────────────
     arenaWinsTotal:            { type: Number, default: 0 }, // real-time + async arena wins
+    // ── Phase 5E baselines ──────────────────────────────────────────────────────
+    missionBaselines:          { type: Map, of: Number, default: new Map() }, // per-mission counter baseline at unlock
+    missionStreakCounters:     { type: Map, of: Number, default: new Map() }, // best post-unlock streak per classic_streak mission
   },
   // Mechanics unlocked through the Battle Pass (e.g. portfolio view, verified badge).
   // Stored as an array of mechanic IDs. Effects are applied elsewhere; this field
