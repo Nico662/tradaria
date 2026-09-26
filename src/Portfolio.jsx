@@ -1007,72 +1007,62 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
         </div>
       )}
 
-      {/* Summary */}
-      <div style={{ padding: '16px 20px 20px', borderBottom: '1px solid var(--bd)', position: 'relative', zIndex: 2, textAlign: 'center' }}>
-        {portfolio === null ? (
-          <>
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '6px' }}>
-              <div className="skeleton-bar" style={{ height: '32px', width: '160px' }} />
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}>
-              <div className="skeleton-bar" style={{ height: '18px', width: '70px' }} />
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
-              <div className="skeleton-bar" style={{ height: '12px', width: '200px' }} />
-            </div>
-          </>
-        ) : (() => {
-          const pnl    = totalValue - 50000;
-          const pnlPct = (pnl / 50000) * 100;
-          const color  = pnl >= 0 ? 'var(--green)' : 'var(--color-down)';
-          const arrow  = pnl >= 0 ? '↑' : '↓';
-          return (
+      {/* Summary + Chart — unified card */}
+      <div style={{ margin: '16px 20px 0', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', overflow: 'hidden', position: 'relative', zIndex: 2 }}>
+        <div style={{ padding: '16px 16px 10px', textAlign: 'center' }}>
+          {portfolio === null ? (
             <>
-              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '28px', color, letterSpacing: '-0.01em', lineHeight: 1, marginBottom: '5px' }}>
-                {arrow} {pnl >= 0 ? '+' : ''}{formatCash(pnl)}
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '6px' }}>
+                <div className="skeleton-bar" style={{ height: '32px', width: '160px' }} />
               </div>
-              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '16px', color, marginBottom: '12px' }}>
-                {pnlPct >= 0 ? '+' : ''}{pnlPct.toFixed(2)}%
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}>
+                <div className="skeleton-bar" style={{ height: '18px', width: '70px' }} />
               </div>
-              <div style={{ fontSize: '11px', color: 'var(--t5)', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                {t.portfolio.cash} {formatCash(portfolio.cash)} · {t.portfolio.invested} {formatCash(totalInvested)}
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <div className="skeleton-bar" style={{ height: '12px', width: '200px' }} />
               </div>
             </>
-          );
-        })()}
-      </div>
-
-      {/* Gráfico histórico */}
-      {portfolioHistory.length > 1 && (() => {
-        const values    = portfolioHistory.map(h => h.totalValue);
-        const min       = Math.min(...values) * 0.998;
-        const max       = Math.max(...values) * 1.002;
-        const range     = max - min || 1;
-        const n         = values.length;
-        const w         = n * 20;
-        const toY       = v => 80 - ((v - min) / range) * 72;
-        const points    = values.map((v, i) => `${i * 20},${toY(v)}`).join(' ');
-        const isUp      = values[n - 1] >= values[0];
-        const color     = isUp ? 'var(--green)' : 'var(--color-down)';
-        const colorRgba = isUp ? 'rgba(0,229,160,' : 'rgba(255,126,179,';
-        const fillPts   = `0,80 ${points} ${w},80`;
-        // x as CSS % relative to SVG width: point i sits at (i/n)*100% of the viewBox
-        const toXPct    = i => `${(i / n) * 100}%`;
-        const lastIdx   = n - 1;
-        const maxIdx    = values.reduce((best, v, i) => v > values[best] ? i : best, 0);
-        const lastY     = toY(values[lastIdx]);
-        const maxY      = toY(values[maxIdx]);
-        return (
-          <div style={{ padding: '16px 20px 0', position: 'relative', zIndex: 2 }}>
-            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '16px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <div style={{ fontSize: '12px', color: 'var(--t4)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{t.portfolio.totalValue}</div>
-                <div style={{ fontSize: '12px', color: isUp ? 'var(--green)' : 'var(--color-down)', fontWeight: 700 }}>
-                  {isUp ? '+' : ''}{((values[n - 1] - 50000) / 50000 * 100).toFixed(2)}% {t.portfolio.vsInitial}
+          ) : (() => {
+            const pnl    = totalValue - 50000;
+            const pnlPct = (pnl / 50000) * 100;
+            const color  = pnl >= 0 ? 'var(--green)' : 'var(--color-down)';
+            const arrow  = pnl >= 0 ? '↑' : '↓';
+            return (
+              <>
+                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '28px', color, letterSpacing: '-0.01em', lineHeight: 1, marginBottom: '5px' }}>
+                  {arrow} {pnl >= 0 ? '+' : ''}{formatCash(pnl)}
                 </div>
-              </div>
+                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '16px', color, marginBottom: '10px' }}>
+                  {pnlPct >= 0 ? '+' : ''}{pnlPct.toFixed(2)}%
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--t5)', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                  {t.portfolio.cash} {formatCash(portfolio.cash)} · {t.portfolio.invested} {formatCash(totalInvested)}
+                </div>
+              </>
+            );
+          })()}
+        </div>
 
-              {/* SVG + overlay markers */}
+        {portfolioHistory.length > 1 && (() => {
+          const values    = portfolioHistory.map(h => h.totalValue);
+          const min       = Math.min(...values) * 0.998;
+          const max       = Math.max(...values) * 1.002;
+          const range     = max - min || 1;
+          const n         = values.length;
+          const w         = n * 20;
+          const toY       = v => 80 - ((v - min) / range) * 72;
+          const points    = values.map((v, i) => `${i * 20},${toY(v)}`).join(' ');
+          const isUp      = values[n - 1] >= values[0];
+          const color     = isUp ? 'var(--green)' : 'var(--color-down)';
+          const colorRgba = isUp ? 'rgba(0,229,160,' : 'rgba(255,126,179,';
+          const fillPts   = `0,80 ${points} ${w},80`;
+          const toXPct    = i => `${(i / n) * 100}%`;
+          const lastIdx   = n - 1;
+          const maxIdx    = values.reduce((best, v, i) => v > values[best] ? i : best, 0);
+          const lastY     = toY(values[lastIdx]);
+          const maxY      = toY(values[maxIdx]);
+          return (
+            <div style={{ padding: '4px 16px 12px' }}>
               <div style={{ position: 'relative' }}>
                 <svg width="100%" height="80" viewBox={`0 0 ${w} 80`} preserveAspectRatio="none" style={{ display: 'block' }}>
                   {/* Horizontal guide lines — horizontal lines are unaffected by x-distortion */}
@@ -1082,14 +1072,10 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                   <polyline points={points} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
 
-                {/* Max point — CSS div avoids SVG circle distortion from preserveAspectRatio:none */}
                 {maxIdx !== lastIdx && (
                   <div style={{ position: 'absolute', left: toXPct(maxIdx), top: `${maxY}px`, transform: 'translate(-50%, -50%)', width: '4px', height: '4px', borderRadius: '50%', background: color, opacity: 0.5, pointerEvents: 'none' }} />
                 )}
-
-                {/* Last point halo */}
                 <div style={{ position: 'absolute', left: toXPct(lastIdx), top: `${lastY}px`, transform: 'translate(-50%, -50%)', width: '12px', height: '12px', borderRadius: '50%', border: `1px solid ${colorRgba}0.4)`, pointerEvents: 'none' }} />
-                {/* Last point dot */}
                 <div style={{ position: 'absolute', left: toXPct(lastIdx), top: `${lastY}px`, transform: 'translate(-50%, -50%)', width: '6px', height: '6px', borderRadius: '50%', background: color, pointerEvents: 'none' }} />
               </div>
 
@@ -1098,9 +1084,9 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                 <div style={{ fontSize: '12px', color: 'var(--t6)' }}>{portfolioHistory[n - 1]?.date}</div>
               </div>
             </div>
-          </div>
-        );
-      })()}
+          );
+        })()}
+      </div>
 
       {/* Tabs */}
       <style>{`
