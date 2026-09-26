@@ -11,7 +11,7 @@ import { useAuth, isIOSApp } from './AuthContext';
 import UsernameModal from './UsernameModal.jsx';
 import { FRAME_STYLES } from './UserAvatar.jsx';
 import { AvatarSVG } from './components/AvatarSVGs.jsx';
-import FounderBadge, { isFounder } from './FounderBadge.jsx';
+import SpecialBadge, { getSpecialUserByUsername } from './SpecialBadge.jsx';
 import SpainGarland from './SpainGarland.jsx';
 import LevelsPanel from './LevelsPanel.jsx';
 const TOURNAMENT_SUB = {
@@ -230,7 +230,7 @@ export default function Home({ onSelect }) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                   <span style={{ fontSize: '12px', color: 'var(--t3)', fontFamily: 'var(--font-body)', display: 'inline-flex', alignItems: 'center' }}>
                     {user.username ? `@${user.username}` : user.name}
-                    {isFounder(user.username) && <FounderBadge size={12} />}
+                    <SpecialBadge specialUser={getSpecialUserByUsername(user.username)} size={12} />
                   </span>
                   {activeCosmetics.avatar && (
                     <AvatarSVG id={activeCosmetics.avatar} size={22} />

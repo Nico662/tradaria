@@ -8,7 +8,7 @@ import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
 import { Trophy, Clipboard } from 'lucide-react';
 import EffectOverlay from './EffectOverlay.jsx';
-import FounderBadge, { isFounder } from './FounderBadge.jsx';
+import SpecialBadge, { getSpecialUserByUsername } from './SpecialBadge.jsx';
 
 import { SERVER } from './config.js';
 import UserAvatar from './UserAvatar.jsx';
@@ -344,7 +344,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                     <UserAvatar user={entry} size={24} showBadge style={{ marginLeft: '8px' }} />
                     <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
                       <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: isMe ? 'var(--green)' : (getUsernameColor(entry.activeCosmetics) || 'var(--text-primary)'), overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{displayName}</span>
-                      {isFounder(entry.username) && <FounderBadge size={11} />}
+                      <SpecialBadge specialUser={getSpecialUserByUsername(entry.username)} size={11} />
                       {entry.hasVerifiedBadge && <VerifiedBadge size={11} />}
                       {isMe && <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>{t.common.you}</span>}
                     </div>

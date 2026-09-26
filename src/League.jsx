@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { useLang } from './LangContext.jsx';
 import UserAvatar from './UserAvatar.jsx';
-import FounderBadge, { isFounder } from './FounderBadge.jsx';
+import SpecialBadge, { getSpecialUserByUsername } from './SpecialBadge.jsx';
 import { SERVER } from './config.js';
 import { getUsernameColor } from './cosmeticColors';
 import TitleBadge from './components/TitleBadge';
@@ -145,7 +145,7 @@ export default function League({ leagueId, onBack }) {
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: isMe ? 'var(--pink)' : (getUsernameColor(entry.activeCosmetics) || 'var(--text-primary)'), overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 {name}
-                {isFounder(entry.username) && <FounderBadge size={10} />}
+                <SpecialBadge specialUser={getSpecialUserByUsername(entry.username)} size={10} />
                 {isMe && <span style={{ fontSize: '12px', color: 'var(--pink)' }}>{t.league.you}</span>}
                 <TitleBadge title={entry.activeCosmetics?.title} />
               </div>

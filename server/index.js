@@ -4270,6 +4270,7 @@ app.get('/u/:username', async (req, res) => {
 
     res.json({
       username:        target.username,
+      googleId:        target.googleId,
       name:            target.name,
       avatar:          target.avatar,
       customAvatar:    target.customAvatar || null,

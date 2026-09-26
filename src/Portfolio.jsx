@@ -11,7 +11,7 @@ import { incrementMission, recordModePlayed, incrementWeeklyMission, recordWeekl
 import MissionNotification from './MissionNotification.jsx';
 import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
-import FounderBadge, { isFounder } from './FounderBadge.jsx';
+import SpecialBadge, { getSpecialUserByUsername } from './SpecialBadge.jsx';
 import { getUsernameColor } from './cosmeticColors';
 import TitleBadge from './components/TitleBadge';
 import PortfolioTutorial from './PortfolioTutorial.jsx';
@@ -118,7 +118,7 @@ function LeaderboardList({ entries, userPosition, user, onViewProfile, t }) {
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: isMe ? 'var(--pink)' : (getUsernameColor(entry.activeCosmetics) || 'var(--text-primary)'), overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 {entry.username ? `@${entry.username}` : entry.name}{entry.slot === 1 ? ' (2)' : ''}
-                {isFounder(entry.username) && <FounderBadge size={11} />}
+                <SpecialBadge specialUser={getSpecialUserByUsername(entry.username)} size={11} />
                 {isMe && <span style={{ fontSize: '12px', color: 'var(--pink)', flexShrink: 0 }}>{t.common.you}</span>}
                 <TitleBadge title={entry.activeCosmetics?.title} />
               </div>
@@ -1506,7 +1506,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
               <div style={{ display: 'flex', gap: '8px' }}>
                 {[activeDuel.challenger, activeDuel.opponent].map((p, i) => (
                   <div key={i} style={{ flex: 1, background: 'var(--bg-page)', border: `1px solid ${p.returnPct >= 0 ? 'rgba(0,229,160,0.2)' : 'rgba(255,126,179,0.2)'}`, borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '12px', color: 'var(--t5)', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{p.username || p.name}{isFounder(p.username) && <FounderBadge size={9} />}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--t5)', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{p.username || p.name}<SpecialBadge specialUser={getSpecialUserByUsername(p.username)} size={9} /></div>
                     <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: p.returnPct >= 0 ? 'var(--green)' : 'var(--color-down)' }}>
                       {p.returnPct >= 0 ? '+' : ''}{p.returnPct.toFixed(2)}%
                     </div>
@@ -1575,7 +1575,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                 duelFriends.map(f => (
                   <div key={f.username} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', borderRadius: '6px', marginBottom: '4px', background: 'var(--bg-page)' }}>
                     <UserAvatar user={f} size={28} showBadge />
-                    <div style={{ flex: 1, fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: 'var(--t1)', display: 'flex', alignItems: 'center' }}>{f.username || f.name}{isFounder(f.username) && <FounderBadge size={11} />}</div>
+                    <div style={{ flex: 1, fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: 'var(--t1)', display: 'flex', alignItems: 'center' }}>{f.username || f.name}<SpecialBadge specialUser={getSpecialUserByUsername(f.username)} size={11} /></div>
                     <button onClick={() => challengeFriendDuel(f.username)} disabled={duelLoading}
                       style={{ padding: '6px 12px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', opacity: duelLoading ? 0.5 : 1 }}>
                       {t.portfolio.challengeBtn}
