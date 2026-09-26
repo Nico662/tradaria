@@ -37,7 +37,8 @@ function rawCounterFor(type, bp) {
 
 function relativeProgress(missionId, type, bp) {
   if (type === 'classic_streak') return mapGet(bp.missionStreakCounters, missionId) ?? 0;
-  const baseline = mapGet(bp.missionBaselines, missionId) ?? 0;
+  const baseline = mapGet(bp.missionBaselines, missionId);
+  if (baseline === undefined) return -1; // mission not yet unlocked — never satisfies >= target
   return Math.max(0, rawCounterFor(type, bp) - baseline);
 }
 
@@ -246,16 +247,16 @@ function progressFor(m, bp, user) {
 
   if (bp.completedMissions.includes(m.id)) return { current: m.target, target: m.target };
   switch (m.type) {
-    case 'play_any_game':         return { current: 0,                                                              target: m.target };
-    case 'survival_rounds':       return { current: relativeProgress(m.id, 'survival_rounds',       bp),          target: m.target };
-    case 'classic_streak':        return { current: relativeProgress(m.id, 'classic_streak',        bp),          target: m.target };
-    case 'classic_wins':          return { current: relativeProgress(m.id, 'classic_wins',          bp),          target: m.target };
-    case 'complete_daily':        return { current: bp.dailiesCompleted                              || 0,         target: m.target };
+    case 'play_any_game':         return { current: 0,                                                                        target: m.target };
+    case 'survival_rounds':       return { current: Math.max(0, relativeProgress(m.id, 'survival_rounds',       bp)),      target: m.target };
+    case 'classic_streak':        return { current: relativeProgress(m.id, 'classic_streak',        bp),                  target: m.target };
+    case 'classic_wins':          return { current: Math.max(0, relativeProgress(m.id, 'classic_wins',          bp)),      target: m.target };
+    case 'complete_daily':        return { current: bp.dailiesCompleted                                          || 0,     target: m.target };
     case 'daily_streak':
-    case 'streak_days':           return { current: user.dailyStreak                                 || 0,         target: m.target };
-    case 'arena_wins':            return { current: relativeProgress(m.id, 'arena_wins',            bp),          target: m.target };
-    case 'historical_event':      return { current: relativeProgress(m.id, 'historical_event',      bp),          target: m.target };
-    case 'historical_all_events': return { current: relativeProgress(m.id, 'historical_all_events', bp),          target: m.target };
+    case 'streak_days':           return { current: user.dailyStreak                                             || 0,     target: m.target };
+    case 'arena_wins':            return { current: Math.max(0, relativeProgress(m.id, 'arena_wins',            bp)),      target: m.target };
+    case 'historical_event':      return { current: Math.max(0, relativeProgress(m.id, 'historical_event',      bp)),      target: m.target };
+    case 'historical_all_events': return { current: Math.max(0, relativeProgress(m.id, 'historical_all_events', bp)),      target: m.target };
     default:                      return null;
   }
 }

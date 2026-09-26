@@ -296,3 +296,39 @@ test('arena_wins awards at relative target, then is not double-awarded', async (
   const r6 = await processArenaWinBpProgress(user._id);
   expect(r6.awardedMissions).not.toContain('bp_s1_l6_pro');
 });
+
+// ── Test 11: mission without baseline is never awarded (locked-level guard) ───
+//
+// Regression for the ?? 0 fallback bug: when missionBaselines has no entry for
+// a mission the user has NOT yet unlocked (level > current sequential level),
+// relativeProgress must return -1, NOT rawCounter.
+//
+// Scenario: Pro user stuck at level 2 (l2_pro not done), survivalRoundsTotal=200
+// (way above bp_s1_l4_pro target=30).  Without the guard they would get awarded
+// bp_s1_l4_pro immediately — a level-4 mission they haven't sequentially reached.
+
+test('mission with no baseline is never awarded even if raw counter exceeds target', async () => {
+  const User = getUser();
+  await createSeason();
+
+  // User at level 2: only l1_pro + l2_free done; l2_pro missing → cannot reach level 3+
+  const user = await createUser(User, {
+    isPro: true,
+    completedMissions: ['bp_s1_l1_pro', 'bp_s1_l2_free'],
+    bp: {
+      survivalRoundsTotal: 200, // far above bp_s1_l4_pro target=30
+      // missionBaselines intentionally empty — no snapshot taken yet
+    },
+  });
+
+  const result = await processGameBpProgress(user._id, { mode: 'survival', rounds: 10 });
+
+  // Must NOT be awarded — no baseline means not yet unlocked
+  expect(result.awardedMissions).not.toContain('bp_s1_l4_pro');
+
+  // Also confirm relativeProgress returns -1 for a missing baseline
+  const updated = await User.findById(user._id).lean();
+  const { relativeProgress, mapGet } = require('../routes/battlepass');
+  expect(mapGet(updated.battlePass.missionBaselines, 'bp_s1_l4_pro')).toBeUndefined();
+  expect(relativeProgress('bp_s1_l4_pro', 'survival_rounds', updated.battlePass)).toBe(-1);
+});
