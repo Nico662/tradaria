@@ -416,6 +416,17 @@ router.post('/claim/:level', requireAuth, async (req, res) => {
     const incOps      = {};
     const addToSetMap = {};
     const pushMap     = {};
+    // Auto-equip: cosmetic rewards are immediately set as the active cosmetic so
+    // players see them without having to visit Inventory. Replaces any existing
+    // cosmetic of the same type (last claimed wins, can always change via Inventory).
+    const COSMETIC_EQUIP_KEY = {
+      title:          'title',
+      frame:          'frame',
+      avatar:         'avatar',
+      theme:          'theme',
+      username_color: 'username_color',
+    };
+    const setOps = {};
 
     for (const reward of toGrant) {
       switch (reward.type) {
@@ -434,6 +445,9 @@ router.post('/claim/:level', requireAuth, async (req, res) => {
         case 'username_color':
           if (!addToSetMap.purchases) addToSetMap.purchases = { $each: [] };
           addToSetMap.purchases.$each.push(reward.itemId);
+          if (COSMETIC_EQUIP_KEY[reward.type]) {
+            setOps[`activeCosmetics.${COSMETIC_EQUIP_KEY[reward.type]}`] = reward.itemId;
+          }
           break;
         case 'mechanic':
           if (reward.itemId) {
@@ -458,6 +472,7 @@ router.post('/claim/:level', requireAuth, async (req, res) => {
     if (Object.keys(incOps).length)      atomicUpdate.$inc      = incOps;
     if (Object.keys(addToSetMap).length) atomicUpdate.$addToSet = addToSetMap;
     if (Object.keys(pushMap).length)     atomicUpdate.$push     = pushMap;
+    if (Object.keys(setOps).length)      atomicUpdate.$set      = setOps;
 
     const User = mongoose.model('User');
     await User.findByIdAndUpdate(user._id, atomicUpdate);

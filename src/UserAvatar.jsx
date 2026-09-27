@@ -6,6 +6,7 @@ export const FRAME_STYLES = {
   frame_neon:    { border: '2px solid var(--green)', boxShadow: '0 0 8px rgba(0,229,160,0.6)' },
   frame_fire:    { border: '2px solid var(--color-down)', boxShadow: '0 0 8px rgba(255,126,179,0.6)' },
   frame_diamond: { border: '2px solid var(--t3)', boxShadow: '0 0 8px rgba(136,153,176,0.6)' },
+  frame_season1: { border: '2px solid var(--color-neutral)', boxShadow: '0 0 10px rgba(245,200,66,0.7), 0 0 20px rgba(34,211,165,0.35)' },
 };
 
 export default function UserAvatar({ user, size = 32, showBadge = false, style }) {

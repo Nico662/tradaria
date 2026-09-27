@@ -192,7 +192,7 @@ export default function App() {
  useEffect(() => {
      const root = document.getElementById('root');
      if (!root) return;
-     root.classList.remove('theme_matrix', 'theme_blood', 'theme_gold', 'theme_midnight');
+     root.classList.remove('theme_matrix', 'theme_blood', 'theme_gold', 'theme_midnight', 'theme_aurora');
      if (activeCosmetics?.theme) root.classList.add(activeCosmetics.theme);
    }, [activeCosmetics?.theme]);
 

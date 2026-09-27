@@ -3862,7 +3862,7 @@ app.get('/portfolio/weekly/leaderboard', async (req, res) => {
     baselineHistory.forEach(h => { baselineMap[`${h._id.userId}:${h._id.slot}`] = h.totalValue; });
 
     const portfolios = await Portfolio.find({ userId: { $in: activeUserIds } })
-      .populate('userId', 'name avatar customAvatar username activeCosmetics');
+      .populate('userId', 'name avatar customAvatar username activeCosmetics battlePassMechanics');
     const prices     = await Promise.all(PORTFOLIO_ASSETS.map(a => getPrice(a).catch(() => null)));
     const priceMap   = {};
     prices.filter(Boolean).forEach(p => { priceMap[p.symbol] = p.price; });
@@ -3874,16 +3874,17 @@ app.get('/portfolio/weekly/leaderboard', async (req, res) => {
       const baseline   = baselineMap[`${p.userId?._id}:${slotNum}`] ?? 50000;
       const returnPct  = ((totalValue - baseline) / baseline) * 100;
       return {
-        userId:          String(p.userId?._id || ''),
-        name:            p.userId?.username || p.userId?.name || 'Anonymous',
-        username:        p.userId?.username || null,
-        avatar:          p.userId?.avatar || null,
-        customAvatar:    p.userId?.customAvatar || null,
-        activeCosmetics: p.userId?.activeCosmetics || {},
+        userId:           String(p.userId?._id || ''),
+        name:             p.userId?.username || p.userId?.name || 'Anonymous',
+        username:         p.userId?.username || null,
+        avatar:           p.userId?.avatar || null,
+        customAvatar:     p.userId?.customAvatar || null,
+        activeCosmetics:  p.userId?.activeCosmetics || {},
+        hasVerifiedBadge: p.userId?.battlePassMechanics?.includes('mechanic_verified_badge') || false,
         totalValue,
         returnPct,
-        cash:            p.cash,
-        slot:            slotNum,
+        cash:             p.cash,
+        slot:             slotNum,
       };
     }).sort((a, b) => b.returnPct - a.returnPct);
 
@@ -3895,7 +3896,7 @@ app.get('/portfolio/weekly/leaderboard', async (req, res) => {
       const outsideTop10 = allEntries.filter(e => e.userId === String(userId) && e.rank > 10);
       if (outsideTop10.length > 0) {
         const best = outsideTop10.reduce((a, b) => a.rank < b.rank ? a : b);
-        userPosition = { rank: best.rank, returnPct: best.returnPct, totalValue: best.totalValue, name: best.name, username: best.username, avatar: best.avatar, customAvatar: best.customAvatar, activeCosmetics: best.activeCosmetics, slot: best.slot };
+        userPosition = { rank: best.rank, returnPct: best.returnPct, totalValue: best.totalValue, name: best.name, username: best.username, avatar: best.avatar, customAvatar: best.customAvatar, activeCosmetics: best.activeCosmetics, hasVerifiedBadge: best.hasVerifiedBadge, slot: best.slot };
       }
     }
     res.json({ leaderboard: top10, userPosition });
@@ -3907,7 +3908,7 @@ app.get('/portfolio/weekly/leaderboard', async (req, res) => {
 app.get('/portfolio/leaderboard', async (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
   try {
-    const portfolios = await Portfolio.find({}).populate('userId', 'name avatar customAvatar username activeCosmetics');
+    const portfolios = await Portfolio.find({}).populate('userId', 'name avatar customAvatar username activeCosmetics battlePassMechanics');
     const prices     = await Promise.all(PORTFOLIO_ASSETS.map(a => getPrice(a).catch(() => null)));
     const priceMap   = {};
     prices.filter(Boolean).forEach(p => { priceMap[p.symbol] = p.price; });
@@ -3921,16 +3922,17 @@ app.get('/portfolio/leaderboard', async (req, res) => {
       const totalValue = p.cash + invested;
       const returnPct  = ((totalValue - 50000) / 50000) * 100;
       return {
-        userId:          String(p.userId?._id || ''),
-        name:            p.userId?.username || p.userId?.name || 'Anonymous',
-        username:        p.userId?.username || null,
-        avatar:          p.userId?.avatar || null,
-        customAvatar:    p.userId?.customAvatar || null,
-        activeCosmetics: p.userId?.activeCosmetics || {},
+        userId:           String(p.userId?._id || ''),
+        name:             p.userId?.username || p.userId?.name || 'Anonymous',
+        username:         p.userId?.username || null,
+        avatar:           p.userId?.avatar || null,
+        customAvatar:     p.userId?.customAvatar || null,
+        activeCosmetics:  p.userId?.activeCosmetics || {},
+        hasVerifiedBadge: p.userId?.battlePassMechanics?.includes('mechanic_verified_badge') || false,
         totalValue,
         returnPct,
-        cash:            p.cash,
-        slot:            slotNum,
+        cash:             p.cash,
+        slot:             slotNum,
       };
     })
     .filter(p => p.totalValue !== 50000)
@@ -3944,7 +3946,7 @@ app.get('/portfolio/leaderboard', async (req, res) => {
       const outsideTop10 = allEntries.filter(e => e.userId === String(userId) && e.rank > 10);
       if (outsideTop10.length > 0) {
         const best = outsideTop10.reduce((a, b) => a.rank < b.rank ? a : b);
-        userPosition = { rank: best.rank, returnPct: best.returnPct, totalValue: best.totalValue, name: best.name, username: best.username, avatar: best.avatar, customAvatar: best.customAvatar, activeCosmetics: best.activeCosmetics, slot: best.slot };
+        userPosition = { rank: best.rank, returnPct: best.returnPct, totalValue: best.totalValue, name: best.name, username: best.username, avatar: best.avatar, customAvatar: best.customAvatar, activeCosmetics: best.activeCosmetics, hasVerifiedBadge: best.hasVerifiedBadge, slot: best.slot };
       }
     }
     res.json({ leaderboard: top10, userPosition });
@@ -4272,18 +4274,19 @@ app.get('/u/:username', async (req, res) => {
     }
 
     res.json({
-      username:        target.username,
-      googleId:        target.googleId,
-      name:            target.name,
-      avatar:          target.avatar,
-      customAvatar:    target.customAvatar || null,
-      activeCosmetics: target.activeCosmetics || {},
-      xp:              target.xp,
-      badges:          target.badges,
-      dailyStreak:     target.dailyStreak,
+      username:         target.username,
+      googleId:         target.googleId,
+      name:             target.name,
+      avatar:           target.avatar,
+      customAvatar:     target.customAvatar || null,
+      activeCosmetics:  target.activeCosmetics || {},
+      hasVerifiedBadge: target.battlePassMechanics?.includes('mechanic_verified_badge') || false,
+      xp:               target.xp,
+      badges:           target.badges,
+      dailyStreak:      target.dailyStreak,
       portfolioReturn,
       totalValue,
-      positions:       requesterMechanics.includes('mechanic_portfolio_view') ? enrichedPositions : null,
+      positions:        requesterMechanics.includes('mechanic_portfolio_view') ? enrichedPositions : null,
       portfolio2Return,
       totalValue2,
       positions2:      requesterMechanics.includes('mechanic_portfolio_view') ? enrichedPositions2 : null,

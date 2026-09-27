@@ -10,6 +10,7 @@ import { LevelIcon } from './components/AppIcons';
 import { User, Flame, Medal, Briefcase, Zap } from 'lucide-react';
 import { getUsernameColor } from './cosmeticColors';
 import TitleBadge from './components/TitleBadge';
+import VerifiedBadge from './VerifiedBadge';
 import BadgeIcon, { RARITY_COLORS } from './BadgeIcon.jsx';
 
 export default function PublicProfile({ username, onBack, onChallenge }) {
@@ -95,6 +96,7 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
           <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '22px', color: getUsernameColor(profile.activeCosmetics) || 'var(--t1)', marginBottom: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
             @{profile.username}
             <SpecialBadge specialUser={getSpecialUser(profile.googleId)} size={18} />
+            {profile.hasVerifiedBadge && <VerifiedBadge size={18} />}
             <TitleBadge title={profile.activeCosmetics?.title} />
             {profile.isPro && (
               <span style={{ fontSize: '12px', color: 'var(--green)', background: 'rgba(0,229,160,0.1)', border: '1px solid var(--green)', borderRadius: '20px', padding: '2px 7px', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>

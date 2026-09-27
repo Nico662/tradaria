@@ -6,6 +6,7 @@ import SpecialBadge, { getSpecialUserByUsername } from './SpecialBadge.jsx';
 import { SERVER } from './config.js';
 import { getUsernameColor } from './cosmeticColors';
 import TitleBadge from './components/TitleBadge';
+import VerifiedBadge from './VerifiedBadge';
 
 function formatCash(n) {
   return '$' + Math.abs(n).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -146,6 +147,7 @@ export default function League({ leagueId, onBack }) {
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: isMe ? 'var(--pink)' : (getUsernameColor(entry.activeCosmetics) || 'var(--text-primary)'), overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 {name}
                 <SpecialBadge specialUser={getSpecialUserByUsername(entry.username)} size={10} />
+                {entry.hasVerifiedBadge && <VerifiedBadge size={10} />}
                 {isMe && <span style={{ fontSize: '12px', color: 'var(--pink)' }}>{t.league.you}</span>}
                 <TitleBadge title={entry.activeCosmetics?.title} />
               </div>
@@ -183,6 +185,7 @@ export default function League({ leagueId, onBack }) {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--pink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px' }}>
                   {name}
+                  {up.hasVerifiedBadge && <VerifiedBadge size={10} />}
                   <span style={{ fontSize: '12px', color: 'var(--pink)' }}>{t.league.you}</span>
                   <TitleBadge title={up.activeCosmetics?.title} />
                 </div>

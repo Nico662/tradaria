@@ -14,6 +14,7 @@ import BadgeNotification from './BadgeNotification.jsx';
 import SpecialBadge, { getSpecialUserByUsername } from './SpecialBadge.jsx';
 import { getUsernameColor } from './cosmeticColors';
 import TitleBadge from './components/TitleBadge';
+import VerifiedBadge from './VerifiedBadge.jsx';
 import PortfolioTutorial from './PortfolioTutorial.jsx';
 import Leagues from './Leagues.jsx';
 
@@ -119,6 +120,7 @@ function LeaderboardList({ entries, userPosition, user, onViewProfile, t }) {
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: isMe ? 'var(--pink)' : (getUsernameColor(entry.activeCosmetics) || 'var(--text-primary)'), overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 {entry.username ? `@${entry.username}` : entry.name}{entry.slot === 1 ? ' (2)' : ''}
                 <SpecialBadge specialUser={getSpecialUserByUsername(entry.username)} size={11} />
+                {entry.hasVerifiedBadge && <VerifiedBadge size={11} />}
                 {isMe && <span style={{ fontSize: '12px', color: 'var(--pink)', flexShrink: 0 }}>{t.common.you}</span>}
                 <TitleBadge title={entry.activeCosmetics?.title} />
               </div>
@@ -149,6 +151,7 @@ function LeaderboardList({ entries, userPosition, user, onViewProfile, t }) {
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--pink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 {userPosition.username ? `@${userPosition.username}` : userPosition.name}{userPosition.slot === 1 ? ' (2)' : ''}
+                {userPosition.hasVerifiedBadge && <VerifiedBadge size={11} />}
                 <span style={{ fontSize: '12px', color: 'var(--pink)', flexShrink: 0 }}>{t.common.you}</span>
                 <TitleBadge title={userPosition.activeCosmetics?.title} />
               </div>

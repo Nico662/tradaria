@@ -11,6 +11,7 @@ import { LevelIcon } from './components/AppIcons';
 import { Handshake, Link, Swords, Clock } from 'lucide-react';
 import { getUsernameColor } from './cosmeticColors';
 import TitleBadge from './components/TitleBadge';
+import VerifiedBadge from './VerifiedBadge';
 
 function authHeaders() {
   return {
@@ -40,6 +41,7 @@ function FriendCard({ f, onChallenge, isChallenging, challengeStatus, onViewProf
         <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: getUsernameColor(f.activeCosmetics) || 'var(--t1)', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
           {f.username ? `@${f.username}` : f.name}
           <SpecialBadge specialUser={getSpecialUserByUsername(f.username)} size={11} />
+          {f.hasVerifiedBadge && <VerifiedBadge size={11} />}
           <TitleBadge title={f.activeCosmetics?.title} />
         </div>
         <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)', marginTop: '2px' }}>
@@ -78,6 +80,7 @@ function PendingCard({ req, onAccept, onReject }) {
         <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: getUsernameColor(req.activeCosmetics) || 'var(--t1)', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
           {req.username ? `@${req.username}` : req.name}
           <SpecialBadge specialUser={getSpecialUserByUsername(req.username)} size={11} />
+          {req.hasVerifiedBadge && <VerifiedBadge size={11} />}
           <TitleBadge title={req.activeCosmetics?.title} />
         </div>
         <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)', marginTop: '2px' }}>
@@ -120,6 +123,7 @@ function SearchResultCard({ profile, onSendRequest }) {
           <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: getUsernameColor(profile.activeCosmetics) || 'var(--t1)', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
             @{profile.username}
             <SpecialBadge specialUser={getSpecialUserByUsername(profile.username)} size={12} />
+            {profile.hasVerifiedBadge && <VerifiedBadge size={12} />}
             <TitleBadge title={profile.activeCosmetics?.title} />
           </div>
           <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)', marginTop: '2px' }}>
