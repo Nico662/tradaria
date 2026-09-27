@@ -38,8 +38,8 @@ function FriendCard({ f, onChallenge, isChallenging, challengeStatus, onViewProf
     <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
       <UserAvatar user={f} size={38} showBadge />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: getUsernameColor(f.activeCosmetics) || 'var(--t1)', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }}>
-          {f.username ? `@${f.username}` : f.name}
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: getUsernameColor(f.activeCosmetics) || 'var(--t1)', fontWeight: 700, display: 'flex', alignItems: 'center', minWidth: 0 }}>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{f.username ? `@${f.username}` : f.name}</span>
           <SpecialBadge specialUser={getSpecialUserByUsername(f.username)} size={11} />
           {f.hasVerifiedBadge && <VerifiedBadge size={11} />}
           <TitleBadge title={f.activeCosmetics?.title} />

@@ -88,8 +88,11 @@ export default function Stats({ onBack, onSelect }) {
             )}
           </div>
           {user?.username && (
-            <div style={{ position: 'absolute', bottom: '-16px', left: '50%', transform: 'translateX(-50%)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: getUsernameColor(activeCosmetics) || 'var(--text-muted)', whiteSpace: 'nowrap', letterSpacing: '0.04em', display: 'flex', alignItems: 'center' }}>
-              @{user.username}{user?.battlePassMechanics?.includes('mechanic_verified_badge') && <VerifiedBadge size={11} />}<TitleBadge title={activeCosmetics?.title} />
+            <div style={{ position: 'absolute', bottom: '-28px', left: '50%', transform: 'translateX(-50%)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: getUsernameColor(activeCosmetics) || 'var(--text-muted)', letterSpacing: '0.04em', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+              <span style={{ display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}>
+                @{user.username}{user?.battlePassMechanics?.includes('mechanic_verified_badge') && <VerifiedBadge size={11} />}
+              </span>
+              <TitleBadge title={activeCosmetics?.title} />
             </div>
           )}
         </div>

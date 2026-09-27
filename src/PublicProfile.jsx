@@ -93,7 +93,7 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
           <div style={{ marginBottom: '14px' }}>
             <UserAvatar user={profile} size={80} showBadge />
           </div>
-          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '22px', color: getUsernameColor(profile.activeCosmetics) || 'var(--t1)', marginBottom: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '22px', color: getUsernameColor(profile.activeCosmetics) || 'var(--t1)', marginBottom: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: '4px' }}>
             @{profile.username}
             <SpecialBadge specialUser={getSpecialUser(profile.googleId)} size={18} />
             {profile.hasVerifiedBadge && <VerifiedBadge size={18} />}
