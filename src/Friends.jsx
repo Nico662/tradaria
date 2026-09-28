@@ -38,8 +38,8 @@ function FriendCard({ f, onChallenge, isChallenging, challengeStatus, onViewProf
     <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
       <UserAvatar user={f} size={38} showBadge />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: getUsernameColor(f.activeCosmetics) || 'var(--t1)', fontWeight: 700, display: 'flex', alignItems: 'center', minWidth: 0 }}>
-          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{f.username ? `@${f.username}` : f.name}</span>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: getUsernameColor(f.activeCosmetics) || 'var(--t1)', fontWeight: 700, display: 'flex', alignItems: 'center', minWidth: 0, flexWrap: 'wrap' }}>
+          <span style={{ flex: '1 1 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{f.username ? `@${f.username}` : f.name}</span>
           <SpecialBadge specialUser={getSpecialUserByUsername(f.username)} size={11} />
           {f.hasVerifiedBadge && <VerifiedBadge size={11} />}
           <TitleBadge title={f.activeCosmetics?.title} />
@@ -77,8 +77,8 @@ function PendingCard({ req, onAccept, onReject }) {
     <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
       <UserAvatar user={req} size={38} />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: getUsernameColor(req.activeCosmetics) || 'var(--t1)', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
-          {req.username ? `@${req.username}` : req.name}
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: getUsernameColor(req.activeCosmetics) || 'var(--t1)', fontWeight: 700, display: 'flex', alignItems: 'center', minWidth: 0, flexWrap: 'wrap' }}>
+          <span style={{ flex: '1 1 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{req.username ? `@${req.username}` : req.name}</span>
           <SpecialBadge specialUser={getSpecialUserByUsername(req.username)} size={11} />
           {req.hasVerifiedBadge && <VerifiedBadge size={11} />}
           <TitleBadge title={req.activeCosmetics?.title} />
@@ -120,8 +120,8 @@ function SearchResultCard({ profile, onSendRequest }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <UserAvatar user={profile} size={42} showBadge />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: getUsernameColor(profile.activeCosmetics) || 'var(--t1)', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
-            @{profile.username}
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: getUsernameColor(profile.activeCosmetics) || 'var(--t1)', fontWeight: 700, display: 'flex', alignItems: 'center', minWidth: 0, flexWrap: 'wrap' }}>
+            <span style={{ flex: '1 1 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>@{profile.username}</span>
             <SpecialBadge specialUser={getSpecialUserByUsername(profile.username)} size={12} />
             {profile.hasVerifiedBadge && <VerifiedBadge size={12} />}
             <TitleBadge title={profile.activeCosmetics?.title} />
@@ -300,7 +300,7 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
   return (
     <div id="gtm-root">
       <div className="scanlines" />
-      <div style={{ padding: '48px 20px 48px', position: 'relative', zIndex: 2, maxWidth: '480px', margin: '0 auto' }}>
+      <div style={{ padding: '48px 20px 48px', position: 'relative', zIndex: 2, maxWidth: '480px', margin: '0 auto', overflowX: 'hidden' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
