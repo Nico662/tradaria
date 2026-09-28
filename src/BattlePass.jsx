@@ -136,10 +136,11 @@ export default function BattlePass({ onBack, onGoPricing }) {
   const { t } = useLang();
   const tp = t.traderPass;
 
-  const [claimingLevel, setClaimingLevel] = useState(null);
+  // { level, track } | null — tracks which specific card is in-flight / just claimed
+  const [claimingCard,  setClaimingCard]  = useState(null);
   const [claimError,    setClaimError]    = useState(null);
   const [mockClaimed,   setMockClaimed]   = useState(MOCK_CLAIMED_INIT);
-  const [justClaimed,   setJustClaimed]   = useState(null);
+  const [justClaimed,   setJustClaimed]   = useState(null); // { level, track } | null
   const scrollRef  = useRef(null);
   const didScroll  = useRef(false);
 
@@ -182,27 +183,27 @@ export default function BattlePass({ onBack, onGoPricing }) {
   };
 
   async function handleClaim(levelNum, track) {
-    if (claimingLevel !== null) return;
-    setClaimingLevel(levelNum);
+    if (claimingCard !== null) return;
+    setClaimingCard({ level: levelNum, track });
     setClaimError(null);
 
     if (mockActive) {
       await new Promise(r => setTimeout(r, 450));
       setMockClaimed(prev => [...prev, levelNum]);
-      setJustClaimed(levelNum);
+      setJustClaimed({ level: levelNum, track });
       setTimeout(() => setJustClaimed(null), 650);
-      setClaimingLevel(null);
+      setClaimingCard(null);
       return;
     }
 
     const result = await claimReward(levelNum, track);
-    setClaimingLevel(null);
+    setClaimingCard(null);
     if (!result.ok) {
       const msg = CLAIM_ERROR_MESSAGES[result.error] ?? result.error ?? 'ERROR';
       setClaimError(msg);
       setTimeout(() => setClaimError(null), 3000);
     } else {
-      setJustClaimed(levelNum);
+      setJustClaimed({ level: levelNum, track });
       setTimeout(() => setJustClaimed(null), 650);
     }
   }
@@ -453,7 +454,8 @@ export default function BattlePass({ onBack, onGoPricing }) {
             ? 'claimed'
             : (cardStates?.[lvl.level]?.pro
               ?? getCardState(lvl.proReward, lvl.proMission, lvl.level, 'pro', userLevel, claimedProRewards, isPro, allMissionProgress?.[lvl.level]?.pro ?? null));
-          const isClaiming = claimingLevel === lvl.level;
+          const isFreeClaiming = claimingCard?.level === lvl.level && claimingCard?.track === 'free';
+          const isProClaiming  = claimingCard?.level === lvl.level && claimingCard?.track === 'pro';
           const isActive   = lvl.level === userLevel;
           const isClaimed  = claimedFreeRewards.includes(lvl.level) || claimedProRewards.includes(lvl.level);
 
@@ -516,8 +518,8 @@ export default function BattlePass({ onBack, onGoPricing }) {
                   track="free"
                   isActive={isActive}
                   missionProgress={allMissionProgress?.[lvl.level]?.free ?? null}
-                  animate={justClaimed === lvl.level}
-                  isClaiming={isClaiming}
+                  animate={justClaimed?.level === lvl.level && justClaimed?.track === 'free'}
+                  isClaiming={isFreeClaiming}
                   onClaim={() => handleClaim(lvl.level, 'free')}
                   t={t}
                 />
@@ -559,8 +561,8 @@ export default function BattlePass({ onBack, onGoPricing }) {
                   track="pro"
                   isActive={isActive}
                   missionProgress={allMissionProgress?.[lvl.level]?.pro ?? null}
-                  animate={justClaimed === lvl.level}
-                  isClaiming={isClaiming}
+                  animate={justClaimed?.level === lvl.level && justClaimed?.track === 'pro'}
+                  isClaiming={isProClaiming}
                   onClaim={() => handleClaim(lvl.level, 'pro')}
                   t={t}
                   onGoPricing={onGoPricing}
