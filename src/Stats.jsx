@@ -98,7 +98,7 @@ export default function Stats({ onBack, onSelect }) {
         </div>
       </div>
 
-      <div style={{ height: '40px' }} />
+      <div style={{ height: '20px' }} />
 
       {/* Inventory shortcut */}
       <div style={{ padding: '0 16px 16px' }}>
