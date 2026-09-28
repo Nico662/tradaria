@@ -8,6 +8,7 @@ import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
 import { Scroll } from 'lucide-react';
 import { useAuth } from './AuthContext';
+import { useBattlePass } from './BattlePassContext.jsx';
 import EffectOverlay from './EffectOverlay.jsx';
 import { incrementMission, recordModePlayed, recordWeeklyModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
@@ -37,6 +38,7 @@ function EventIcon({ event, size = 32 }) {
 export default function Historical({ onBack }) {
   const { t, lang, setLang } = useLang();
   const { activeCosmetics, user } = useAuth();
+  const { refreshBattlePass } = useBattlePass();
   const [activeEffect, setActiveEffect] = useState(false);
   function triggerEffect() { setActiveEffect(true); clearTimeout(effectTimerRef.current); effectTimerRef.current = setTimeout(() => setActiveEffect(false), 1500); }
   const [phase, setPhase]         = useState('select');
@@ -140,6 +142,9 @@ export default function Historical({ onBack }) {
             accuracy: win ? 100 : 0, streak: 0,
             sessionToken: sessionTokenRef.current,
           }),
+        }).then(r => r.json()).then(data => {
+          if (data?.bpProgress) refreshBattlePass({ force: true });
+          return data;
         }).then(() => {
           // Pre-fetch session token for the next historical event
           fetch(`${SERVER}/game/start`, {

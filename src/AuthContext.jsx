@@ -313,10 +313,24 @@ export function AuthProvider({ children }) {
     setUser(prev => prev ? { ...prev, ...updates } : prev);
   }
 
+  function mergeUser(updates) {
+    if (updates.badges) {
+      const local = JSON.parse(localStorage.getItem('tradaria_badges') || '[]');
+      const merged = [...new Set([...updates.badges, ...local])];
+      localStorage.setItem('tradaria_badges', JSON.stringify(merged));
+    }
+    if (updates.purchases !== undefined) setPurchases(updates.purchases);
+    if (updates.activeCosmetics && Object.keys(updates.activeCosmetics).length > 0) {
+      setActiveCosmetics(updates.activeCosmetics);
+      localStorage.setItem('tradaria_cosmetics', JSON.stringify(updates.activeCosmetics));
+    }
+    setUser(prev => prev ? { ...prev, ...updates } : prev);
+  }
+
   const isPro = user?.isPro || false;
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, loginWithApple, logout, syncProgress, purchases, refreshPurchases, activeCosmetics, equipCosmetic, unequipCosmetic, updateUser, checkLevelUp, isPro }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithApple, logout, syncProgress, purchases, refreshPurchases, activeCosmetics, equipCosmetic, unequipCosmetic, updateUser, mergeUser, checkLevelUp, isPro }}>
       {children}
       {levelUpData && <LevelUpOverlay {...levelUpData} onClose={() => setLevelUpData(null)} />}
     </AuthContext.Provider>

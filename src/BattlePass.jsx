@@ -127,8 +127,10 @@ export default function BattlePass({ onBack, onGoPricing }) {
     claimedFreeRewards:   ctxClaimedFreeRewards,
     claimedProRewards:    ctxClaimedProRewards,
     allMissionProgress:   ctxAllMissionProgress,
+    cardStates:           ctxCardStates,
     isLoading,
     claimReward,
+    refreshBattlePass,
   } = useBattlePass();
   const { isPro: ctxIsPro } = useAuth();
   const { t } = useLang();
@@ -140,6 +142,9 @@ export default function BattlePass({ onBack, onGoPricing }) {
   const [justClaimed,   setJustClaimed]   = useState(null);
   const scrollRef  = useRef(null);
   const didScroll  = useRef(false);
+
+  // Refresh BP state on mount to pick up any changes since last visit
+  useEffect(() => { refreshBattlePass({ force: true }); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Decide si el mock está activo ───────────────────────────────────────────
   const mockActive = USE_MOCK_BP && import.meta.env.DEV && !ctxSeason;
@@ -155,6 +160,8 @@ export default function BattlePass({ onBack, onGoPricing }) {
   const claimedProRewards    = mockActive ? mockClaimed        : ctxClaimedProRewards;
   const isPro                = mockActive ? MOCK_IS_PRO        : ctxIsPro;
   const allMissionProgress   = mockActive ? MOCK_ALL_PROGRESS  : ctxAllMissionProgress;
+  // Server-computed card states. null until first /current-season response; getCardState is the fallback.
+  const cardStates           = mockActive ? null               : ctxCardStates;
 
   useEffect(() => {
     if (!scrollRef.current || didScroll.current) return;
@@ -165,13 +172,21 @@ export default function BattlePass({ onBack, onGoPricing }) {
     scrollRef.current.scrollTop = Math.max(0, (targetLevel - 2) * rowH - 20);
   }, [userLevel, claimedFreeRewards, claimedProRewards]);
 
-  async function handleClaim(levelNum) {
+  const CLAIM_ERROR_MESSAGES = {
+    MISSION_NOT_COMPLETED: tp.errorMissionNotCompleted ?? 'Complete the mission first.',
+    ALREADY_CLAIMED:       tp.errorAlreadyClaimed      ?? 'Already claimed.',
+    PRO_REQUIRED:          tp.errorProRequired         ?? 'Trader Pass Pro required.',
+    LEVEL_NOT_REACHED:     tp.errorLevelNotReached     ?? 'Level not reached yet.',
+    NO_ACTIVE_SEASON:      tp.errorNoSeason            ?? 'No active season.',
+    NETWORK_ERROR:         tp.errorNetwork             ?? 'Connection error. Try again.',
+  };
+
+  async function handleClaim(levelNum, track) {
     if (claimingLevel !== null) return;
     setClaimingLevel(levelNum);
     setClaimError(null);
 
     if (mockActive) {
-      // Mock: simula latencia, actualiza estado local sin tocar BD
       await new Promise(r => setTimeout(r, 450));
       setMockClaimed(prev => [...prev, levelNum]);
       setJustClaimed(levelNum);
@@ -180,10 +195,11 @@ export default function BattlePass({ onBack, onGoPricing }) {
       return;
     }
 
-    const result = await claimReward(levelNum);
+    const result = await claimReward(levelNum, track);
     setClaimingLevel(null);
     if (!result.ok) {
-      setClaimError(result.error ?? 'ERROR');
+      const msg = CLAIM_ERROR_MESSAGES[result.error] ?? result.error ?? 'ERROR';
+      setClaimError(msg);
       setTimeout(() => setClaimError(null), 3000);
     } else {
       setJustClaimed(levelNum);
@@ -426,8 +442,17 @@ export default function BattlePass({ onBack, onGoPricing }) {
 
         {/* Level rows */}
         {SEASON1_LEVELS.map((lvl) => {
-          const freeState  = getCardState(lvl.freeReward, lvl.freeMission, lvl.level, 'free', userLevel, claimedFreeRewards, isPro, allMissionProgress?.[lvl.level]?.free ?? null);
-          const proState   = getCardState(lvl.proReward,  lvl.proMission,  lvl.level, 'pro',  userLevel, claimedProRewards,  isPro, allMissionProgress?.[lvl.level]?.pro  ?? null);
+          // Server cardStates is primary source of truth once loaded.
+          // Optimistic claim overrides to 'claimed' immediately (claimedFreeRewards is updated
+          // before the server responds); getCardState is the fallback before cardStates arrives.
+          const freeState = claimedFreeRewards.includes(lvl.level)
+            ? 'claimed'
+            : (cardStates?.[lvl.level]?.free
+              ?? getCardState(lvl.freeReward, lvl.freeMission, lvl.level, 'free', userLevel, claimedFreeRewards, isPro, allMissionProgress?.[lvl.level]?.free ?? null));
+          const proState = claimedProRewards.includes(lvl.level)
+            ? 'claimed'
+            : (cardStates?.[lvl.level]?.pro
+              ?? getCardState(lvl.proReward, lvl.proMission, lvl.level, 'pro', userLevel, claimedProRewards, isPro, allMissionProgress?.[lvl.level]?.pro ?? null));
           const isClaiming = claimingLevel === lvl.level;
           const isActive   = lvl.level === userLevel;
           const isClaimed  = claimedFreeRewards.includes(lvl.level) || claimedProRewards.includes(lvl.level);
@@ -493,7 +518,7 @@ export default function BattlePass({ onBack, onGoPricing }) {
                   missionProgress={allMissionProgress?.[lvl.level]?.free ?? null}
                   animate={justClaimed === lvl.level}
                   isClaiming={isClaiming}
-                  onClaim={() => handleClaim(lvl.level)}
+                  onClaim={() => handleClaim(lvl.level, 'free')}
                   t={t}
                 />
               </div>
@@ -536,7 +561,7 @@ export default function BattlePass({ onBack, onGoPricing }) {
                   missionProgress={allMissionProgress?.[lvl.level]?.pro ?? null}
                   animate={justClaimed === lvl.level}
                   isClaiming={isClaiming}
-                  onClaim={() => handleClaim(lvl.level)}
+                  onClaim={() => handleClaim(lvl.level, 'pro')}
                   t={t}
                   onGoPricing={onGoPricing}
                 />

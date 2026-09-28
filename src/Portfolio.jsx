@@ -6,6 +6,7 @@ const Chart = lazy(() => import('./Chart.jsx'));
 import { ASSET_INFO } from './assetInfo.js';
 
 import { SERVER } from './config.js';
+import { useBattlePass } from './BattlePassContext.jsx';
 import UserAvatar from './UserAvatar.jsx';
 import { incrementMission, recordModePlayed, incrementWeeklyMission, recordWeeklyModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
@@ -192,6 +193,7 @@ function PortfolioTabSwitcher({ activeSlot, setActiveSlot }) {
 
 export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPricing }) {
   const { user, login } = useAuth();
+  const { refreshBattlePass } = useBattlePass();
   const { t, lang } = useLang();
   const [screen, setScreen]                 = useState('main');
   const [prices, setPrices]                 = useState([]);
@@ -664,7 +666,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ mode: 'portfolio', score: 0, correct: 0, wrong: 0, accuracy: 0, streak: 0, rounds: 1, gameId: crypto.randomUUID() }),
-      }).catch(() => {});
+      }).then(r => r.json()).then(data => { if (data?.bpProgress) refreshBattlePass({ force: true }); }).catch(() => {});
       if (action === 'buy') {
         const info = ASSET_INFO[selected.symbol];
         if (info?.fact) {

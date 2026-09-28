@@ -12,6 +12,7 @@ import { addXP, getXP, getLevel } from './levels.js';
 import { incrementMission, recordModePlayed, incrementWeeklyMission, recordWeeklyModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
 import { useAuth } from './AuthContext';
+import { useBattlePass } from './BattlePassContext.jsx';
 import { SERVER } from './config.js';
 
 
@@ -22,6 +23,7 @@ function randomAsset() {
 export default function Survival({ onBack }) {
   const { t, lang } = useLang();
   const { syncProgress, activeCosmetics, checkLevelUp, isPro } = useAuth();
+  const { refreshBattlePass } = useBattlePass();
   const MAX_LIVES = isPro ? 5 : 3;
 
   const [phase,       setPhase]      = useState('choose');
@@ -237,7 +239,7 @@ export default function Survival({ onBack }) {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ mode: 'survival', score, correct: wins, wrong: losses, accuracy: acc, streak, rounds: history.length, sessionToken: sessionTokenRef.current }),
-    }).catch(() => {});
+    }).then(r => r.json()).then(data => { if (data?.bpProgress) refreshBattlePass({ force: true }); }).catch(() => {});
     fetch(`${SERVER}/stats/personal`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json()).then(setPersonalStats).catch(() => {});
   }, [gameOver]);

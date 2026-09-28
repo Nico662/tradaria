@@ -7,6 +7,7 @@ import { LANGS } from './i18n.js';
 import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
 import { useAuth } from './AuthContext';
+import { useBattlePass } from './BattlePassContext.jsx';
 import EffectOverlay from './EffectOverlay.jsx';
 import { Swords, Lock, Clock, Target, Camera, Bot, MessageCircle, Zap, Handshake } from 'lucide-react';
 
@@ -64,6 +65,7 @@ function botMakeChoice(direction) {
 export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
   const { t, lang, setLang } = useLang();
   const { activeCosmetics, user } = useAuth();
+  const { refreshBattlePass } = useBattlePass();
   const [activeEffect, setActiveEffect] = useState(false);
   function triggerEffect() { setActiveEffect(true); clearTimeout(effectTimerRef.current); effectTimerRef.current = setTimeout(() => setActiveEffect(false), 1500); }
   const [screen,    setScreen]   = useState('lobby');
@@ -157,7 +159,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ mode: 'arena', score: myScore, correct: won, wrong: 1 - won, accuracy: won * 100, streak: 0, rounds: total, gameId: gameIdRef.current }),
-    }).catch(() => {});
+    }).then(r => r.json()).then(data => { if (data?.bpProgress) refreshBattlePass({ force: true }); }).catch(() => {});
     fetch(`${SERVER}/stats/personal`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json()).then(setPersonalStats).catch(() => {});
   }, [screen]); // eslint-disable-line react-hooks/exhaustive-deps

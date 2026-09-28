@@ -1,15 +1,11 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { SERVER } from './config.js';
 import { useAuth } from './AuthContext.jsx';
-
-// BP level (1–30) is the Battle Pass seasonal level.
-// It is completely separate from the account tier ("Trader", "Expert", etc.)
-// that lives in levels.js and is derived from total XP.
 
 const BattlePassContext = createContext(null);
 
 export function BattlePassProvider({ children }) {
-  const { user, isPro } = useAuth();
+  const { user, isPro, mergeUser } = useAuth();
 
   const [season,               setSeason]               = useState(null);
   const [userLevel,            setUserLevel]            = useState(0);
@@ -19,11 +15,22 @@ export function BattlePassProvider({ children }) {
   const [claimedProRewards,    setClaimedProRewards]    = useState([]);
   const [completedMissions,    setCompletedMissions]    = useState([]);
   const [allMissionProgress,   setAllMissionProgress]   = useState(null);
+  const [cardStates,           setCardStates]           = useState(null);
   const [isLoading,            setIsLoading]            = useState(false);
 
-  const fetchBattlePass = useCallback(async () => {
+  const lastFetchRef = useRef(0);
+  const inFlightRef  = useRef(false);
+
+  const fetchBattlePass = useCallback(async ({ force = false } = {}) => {
     const token = localStorage.getItem('tradaria_token');
     if (!token) return;
+
+    const now = Date.now();
+    if (!force && inFlightRef.current) return;
+    if (!force && now - lastFetchRef.current < 1500) return;
+
+    inFlightRef.current = true;
+    lastFetchRef.current = now;
     setIsLoading(true);
     try {
       const res = await fetch(`${SERVER}/battle-pass/current-season`, {
@@ -43,16 +50,18 @@ export function BattlePassProvider({ children }) {
       setClaimedProRewards(data.user.claimedProRewards   ?? []);
       setCompletedMissions(data.user.completedMissions);
       setAllMissionProgress(data.user.allMissionProgress ?? null);
+      setCardStates(data.user.cardStates ?? null);
     } catch {}
     finally {
       setIsLoading(false);
+      inFlightRef.current = false;
     }
   }, []);
 
   // Fetch once when the user session is established; clear state on logout.
   useEffect(() => {
     if (user) {
-      fetchBattlePass();
+      fetchBattlePass({ force: true });
     } else {
       setSeason(null);
       setUserLevel(0);
@@ -62,27 +71,43 @@ export function BattlePassProvider({ children }) {
       setClaimedProRewards([]);
       setCompletedMissions([]);
       setAllMissionProgress(null);
+      setCardStates(null);
     }
   }, [user, fetchBattlePass]);
 
-  // Claim the reward(s) for a given BP level.
-  // Applies an optimistic update that is reverted if the server returns 403.
+  // Refresh on tab focus / visibility change
+  useEffect(() => {
+    function onFocus() { fetchBattlePass(); }
+    function onVisible() { if (document.visibilityState === 'visible') fetchBattlePass(); }
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [fetchBattlePass]);
+
+  // Claim the reward for a given BP level and track.
   // Returns { ok: true, rewards } on success, or { ok: false, error } on failure.
-  async function claimReward(levelNum) {
+  async function claimReward(levelNum, track) {
     const token = localStorage.getItem('tradaria_token');
     if (!token) return { ok: false, error: 'NOT_AUTHENTICATED' };
 
     const snapshotFree = [...claimedFreeRewards];
     const snapshotPro  = [...claimedProRewards];
-    // Free reward is always optimistically claimed (claim button only shows when claimable).
-    // Pro reward is only claimed if the user is currently Pro.
-    setClaimedFreeRewards(prev => [...prev, levelNum]);
-    if (isPro) setClaimedProRewards(prev => [...prev, levelNum]);
+
+    // Optimistic update
+    if (track !== 'pro')  setClaimedFreeRewards(prev => [...prev, levelNum]);
+    if (track !== 'free' && isPro) setClaimedProRewards(prev => [...prev, levelNum]);
 
     try {
       const res = await fetch(`${SERVER}/battle-pass/claim/${levelNum}`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ track }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -90,6 +115,26 @@ export function BattlePassProvider({ children }) {
         setClaimedProRewards(snapshotPro);
         return { ok: false, error: data.error };
       }
+
+      // Merge full user state returned by server into AuthContext
+      if (data.user) {
+        mergeUser?.({
+          badges:          data.user.badges,
+          purchases:       data.user.purchases,
+          activeCosmetics: data.user.activeCosmetics,
+          battlePassItems: data.user.battlePassItems,
+          battlePassMechanics: data.user.battlePassMechanics,
+        });
+        // Sync BP state from server response
+        if (data.user.battlePass) {
+          setClaimedFreeRewards(data.user.battlePass.claimedFreeRewards ?? snapshotFree);
+          setClaimedProRewards(data.user.battlePass.claimedProRewards   ?? snapshotPro);
+        }
+      }
+
+      // Force-refresh to get updated cardStates and mission progress
+      fetchBattlePass({ force: true });
+
       return { ok: true, rewards: data.rewards };
     } catch {
       setClaimedFreeRewards(snapshotFree);
@@ -100,9 +145,7 @@ export function BattlePassProvider({ children }) {
 
   return (
     <BattlePassContext.Provider value={{
-      // Season metadata (null when no season is active)
       season,
-      // BP level 1–30 (NOT the account tier — see levels.js for that)
       userLevel,
       bpPoints,
       missionsForNextLevel,
@@ -110,6 +153,7 @@ export function BattlePassProvider({ children }) {
       claimedProRewards,
       completedMissions,
       allMissionProgress,
+      cardStates,
       isLoading,
       claimReward,
       refreshBattlePass: fetchBattlePass,

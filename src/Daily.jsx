@@ -7,6 +7,7 @@ import BadgeNotification from './BadgeNotification.jsx';
 import { addXP, getXP } from './levels.js';
 import { useLang } from './LangContext.jsx';
 import { useAuth } from './AuthContext';
+import { useBattlePass } from './BattlePassContext.jsx';
 import EffectOverlay from './EffectOverlay.jsx';
 import { incrementMission, recordModePlayed, incrementWeeklyMission, recordWeeklyModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
@@ -27,6 +28,7 @@ function ShareButton({ onShare, shareStatus }) {
 export default function Daily({ onBack }) {
   const { t, lang, setLang } = useLang();
   const { activeCosmetics, user, checkLevelUp, syncProgress } = useAuth();
+  const { refreshBattlePass } = useBattlePass();
   const [activeEffect, setActiveEffect] = useState(false);
   function triggerEffect() { setActiveEffect(true); clearTimeout(effectTimerRef.current); effectTimerRef.current = setTimeout(() => setActiveEffect(false), 1500); }
   const [phase, setPhase]           = useState('loading');
@@ -196,6 +198,7 @@ export default function Daily({ onBack }) {
         localStorage.setItem('tradaria_daily_streak', String(data.dailyStreak));
         localStorage.setItem('tradaria_daily_last', new Date().toISOString().split('T')[0]);
       }
+      if (data.bpProgress) refreshBattlePass({ force: true });
     } catch (e) {
       console.error('Daily sync error:', e);
     }
