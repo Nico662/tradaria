@@ -169,6 +169,30 @@ async function addBattlePassProgress(userId, points, missionId = null, source = 
   }
 }
 
+// Returns true only if there is physical evidence that the Pro reward was delivered.
+// XP rewards are unverifiable (no XP audit log) → always return false for those.
+function isProRewardDelivered(proReward, user) {
+  if (!proReward || !user) return false;
+  switch (proReward.type) {
+    case 'badge':
+      return (user.badges || []).includes(proReward.itemId);
+    case 'title':
+    case 'frame':
+    case 'avatar':
+    case 'theme':
+    case 'effect':
+    case 'username_color':
+      return (user.purchases || []).includes(proReward.itemId);
+    case 'mechanic':
+      return (user.battlePassMechanics || []).includes(proReward.itemId);
+    case 'ticket':
+      return (user.battlePassItems || []).some(item => item.itemId === proReward.itemId);
+    case 'xp':
+    default:
+      return false;
+  }
+}
+
 // ── inferClaimedTracks ────────────────────────────────────────────────────────
 // For users who claimed rewards before the claimedFreeRewards/claimedProRewards
 // fields existed, reconstruct which tracks were claimed from the legacy
@@ -179,8 +203,7 @@ async function addBattlePassProgress(userId, points, missionId = null, source = 
 //   • pro-only level   → claimedPro
 //   • both tracks exist:
 //       always → claimedFree (free reward was definitely claimed)
-//       → claimedPro if user.isPro OR proMission is in completedMissions
-//         (covers former-Pro users who downgraded after claiming)
+//       → claimedPro only if physical evidence exists (badge/cosmetic/mechanic/ticket in user)
 //
 // Returns plain arrays (not Sets) ready to send to the client.
 function inferClaimedTracks(bp, user) {
@@ -205,14 +228,7 @@ function inferClaimedTracks(bp, user) {
       claimedPro.add(levelNum);
     } else if (hasFree && hasPro) {
       claimedFree.add(levelNum);
-      // Only infer Pro as claimed if the Pro mission was explicitly completed.
-      // Removing user.isPro from this condition fixes the bug where a non-Pro user
-      // who claimed the Free reward and later upgraded to Pro would be permanently
-      // blocked from claiming their Pro reward (both UI and server would see it as
-      // already claimed via this false inference).
-      const proMissionId = lvlCfg.proMission ? lvlCfg.proMission.id : null;
-      const proWasClaimed = proMissionId && (bp.completedMissions || []).includes(proMissionId);
-      if (proWasClaimed) claimedPro.add(levelNum);
+      if (isProRewardDelivered(lvlCfg.proReward, user)) claimedPro.add(levelNum);
     }
   }
 
@@ -258,6 +274,24 @@ function progressFor(m, bp, user) {
     case 'historical_all_events': return { current: relativeProgress(m.id, 'historical_all_events', bp),          target: m.target };
     default:                      return null;
   }
+}
+
+// Server-side card state computation — mirrors client getCardState in BattlePass.jsx.
+// 'allMissionProgress' is the same object returned in the /current-season response.
+function computeCardState(lvlCfg, track, userLevel, claimedForTrack, isPro, allMissionProgress) {
+  const reward  = track === 'free' ? lvlCfg.freeReward  : lvlCfg.proReward;
+  const mission = track === 'free' ? lvlCfg.freeMission : lvlCfg.proMission;
+  const levelNum = lvlCfg.level;
+
+  if (!reward && !mission) return 'empty';
+  if (claimedForTrack.includes(levelNum)) return 'claimed';
+  if (track === 'pro' && !isPro) return 'pro_locked';
+  if (userLevel < levelNum) return 'locked';
+  if (mission && mission.enabled !== false && allMissionProgress) {
+    const prog = allMissionProgress[levelNum]?.[track];
+    if (prog && prog.current < prog.target) return 'mission_pending';
+  }
+  return 'claimable';
 }
 
 // ── GET /battle-pass/current-season ──────────────────────────────────────────
@@ -308,6 +342,17 @@ router.get('/current-season', requireAuth, async (req, res) => {
       return acc;
     }, {}) : null;
 
+    const inferred = inferClaimedTracks(bp, user);
+
+    // Server-computed card states — mirrors client getCardState for guaranteed consistency
+    const cardStates = bp ? season1.LEVELS.reduce((acc, lvlCfg) => {
+      acc[lvlCfg.level] = {
+        free: computeCardState(lvlCfg, 'free', level, inferred.claimedFreeRewards, user.isPro, allMissionProgress),
+        pro:  computeCardState(lvlCfg, 'pro',  level, inferred.claimedProRewards,  user.isPro, allMissionProgress),
+      };
+      return acc;
+    }, {}) : null;
+
     res.json({
       season: {
         seasonId:  season.seasonId,
@@ -319,9 +364,10 @@ router.get('/current-season', requireAuth, async (req, res) => {
         level,
         bpPoints,
         missionsForNextLevel,
-        ...inferClaimedTracks(bp, user),
+        ...inferred,
         completedMissions: bp ? bp.completedMissions : [],
         allMissionProgress,
+        cardStates,
       },
     });
   } catch (err) {
@@ -363,6 +409,8 @@ router.post('/claim/:level', requireAuth, async (req, res) => {
     if (isNaN(levelNum) || levelNum < 1 || levelNum > 30)
       return res.status(400).json({ error: 'INVALID_LEVEL' });
 
+    const track = req.body?.track; // 'free' | 'pro' | undefined (undefined = claim both)
+
     const season = await getActiveSeason();
     if (!season) return res.status(403).json({ error: 'NO_ACTIVE_SEASON' });
 
@@ -383,8 +431,10 @@ router.post('/claim/:level', requireAuth, async (req, res) => {
       return res.status(403).json({ error: 'LEVEL_NOT_REACHED', currentLevel: userLevel });
 
     // Determine which tracks will be granted (accounting for already-claimed tracks)
-    const grantFree = !!levelCfg.freeReward  && !freeAlreadyClaimed;
-    const grantPro  = !!levelCfg.proReward   && user.isPro && !proAlreadyClaimed;
+    const grantFree = !!levelCfg.freeReward && !freeAlreadyClaimed
+      && (track !== 'pro');
+    const grantPro  = !!levelCfg.proReward  && user.isPro && !proAlreadyClaimed
+      && (track !== 'free');
 
     // No reward available (all applicable tracks already claimed, or user is Free at Pro-only level)?
     if (!grantFree && !grantPro) {
@@ -463,8 +513,7 @@ router.post('/claim/:level', requireAuth, async (req, res) => {
       rewardsGranted.push(reward);
     }
 
-    // Claimed tracking — $addToSet prevents duplicates (fixes Bloque 8 too)
-    addToSetMap['battlePass.claimedRewards']     = { $each: [levelNum] };
+    // Claimed tracking — $addToSet prevents duplicates
     if (grantFree) addToSetMap['battlePass.claimedFreeRewards'] = { $each: [levelNum] };
     if (grantPro)  addToSetMap['battlePass.claimedProRewards']  = { $each: [levelNum] };
 
@@ -475,9 +524,31 @@ router.post('/claim/:level', requireAuth, async (req, res) => {
     if (Object.keys(setOps).length)      atomicUpdate.$set      = setOps;
 
     const User = mongoose.model('User');
-    await User.findByIdAndUpdate(user._id, atomicUpdate);
 
-    res.json({ claimed: levelNum, rewards: rewardsGranted });
+    // Build dedup filter: if this track was already claimed by a concurrent request, abort.
+    const dedupeFilter = { _id: user._id };
+    if (grantFree) dedupeFilter['battlePass.claimedFreeRewards'] = { $ne: levelNum };
+    if (grantPro)  dedupeFilter['battlePass.claimedProRewards']  = { $ne: levelNum };
+
+    const updated = await User.findOneAndUpdate(dedupeFilter, atomicUpdate, { new: true });
+    if (!updated) return res.status(409).json({ error: 'ALREADY_CLAIMED' });
+
+    // Build full user state for client merge (so client doesn't need a reload)
+    const fullState = {
+      xp:                 updated.xp,
+      badges:             updated.badges             ?? [],
+      purchases:          updated.purchases           ?? [],
+      activeCosmetics:    updated.activeCosmetics     ?? {},
+      battlePassItems:    updated.battlePassItems      ?? [],
+      battlePassMechanics: updated.battlePassMechanics ?? [],
+      battlePass: {
+        ...inferClaimedTracks(updated.battlePass, updated),
+        completedMissions: updated.battlePass?.completedMissions ?? [],
+        bpPoints:          updated.battlePass?.bpPoints          ?? 0,
+      },
+    };
+
+    res.json({ claimed: levelNum, rewards: rewardsGranted, user: fullState });
   } catch (err) {
     console.error('[BP] POST /claim error:', err);
     res.status(500).json({ error: 'Internal server error' });

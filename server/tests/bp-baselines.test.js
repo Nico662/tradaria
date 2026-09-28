@@ -296,3 +296,26 @@ test('arena_wins awards at relative target, then is not double-awarded', async (
   const r6 = await processArenaWinBpProgress(user._id);
   expect(r6.awardedMissions).not.toContain('bp_s1_l6_pro');
 });
+
+// ── Test 11: baseline = 0 is not treated as falsy ────────────────────────────
+
+test('relativeProgress with baseline=0 returns correct value (0 is not treated as absent)', async () => {
+  const User = getUser();
+  await createSeason();
+
+  // baseline explicitly set to 0 at unlock time (user had 0 wins when mission unlocked)
+  const baselines = new Map([['bp_s1_l3_pro', 0]]);
+  const user = await createUser(User, {
+    isPro: true,
+    completedMissions: PRE_L3_PRO,
+    bp: { classicWinsTotal: 5, missionBaselines: baselines },
+  });
+
+  // relativeProgress = 5 - 0 = 5; target is 15 → NOT awarded yet
+  const result = await processGameBpProgress(user._id, { mode: 'guess', correct: 5 });
+  expect(result.awardedMissions).not.toContain('bp_s1_l3_pro');
+
+  // Confirm baseline 0 was preserved, not re-snapshotted to 5
+  const updated = await User.findById(user._id);
+  expect(mapGet(updated.battlePass.missionBaselines, 'bp_s1_l3_pro')).toBe(0);
+});

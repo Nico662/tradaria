@@ -57,7 +57,6 @@ function fixGCheck(completedMissions, levelNum, isPro) {
 // Minimal atomic reward writer — mirrors the switch in the real claim endpoint.
 async function applyClaimReward(User, userId, reward, levelNum) {
   const addToSetMap = {
-    'battlePass.claimedRewards':     { $each: [levelNum] },
     'battlePass.claimedFreeRewards': { $each: [levelNum] },
   };
   if (reward.type === 'title' || reward.type === 'frame' || reward.type === 'theme') {

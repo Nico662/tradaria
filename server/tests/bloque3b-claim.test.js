@@ -51,8 +51,7 @@ async function applyRewardsAtomic(User, userId, rewards, levelNum, grantFree, gr
     }
   }
 
-  // Claimed tracking with $addToSet (Bloque 8 fix)
-  addToSetMap['battlePass.claimedRewards']     = { $each: [levelNum] };
+  // Claimed tracking with $addToSet
   if (grantFree) addToSetMap['battlePass.claimedFreeRewards'] = { $each: [levelNum] };
   if (grantPro)  addToSetMap['battlePass.claimedProRewards']  = { $each: [levelNum] };
 
@@ -149,15 +148,17 @@ describe('Bloque 3B: /claim/:level atomic reward application', () => {
     expect(updated.battlePassMechanics).toContain('extended_rounds');
   });
 
-  test('claimedRewards uses $addToSet (no duplicates) — Bloque 8', async () => {
+  test('claimedFreeRewards uses $addToSet (no duplicates) — no legacy write', async () => {
     const User = getUser();
-    const u = await User.create({ 'battlePass.claimedRewards': [1, 2] });
+    const u = await User.create({ 'battlePass.claimedFreeRewards': [1, 2] });
 
     // Apply level 2 again (simulating a race condition)
     await applyRewardsAtomic(User, u._id, [], 2, true, false);
 
     const updated = await User.findById(u._id);
-    expect(updated.battlePass.claimedRewards.filter(n => n === 2).length).toBe(1);
+    expect(updated.battlePass.claimedFreeRewards.filter(n => n === 2).length).toBe(1);
+    // Legacy claimedRewards should NOT be written anymore
+    expect(updated.battlePass.claimedRewards || []).not.toContain(2);
   });
 
   test('claimedFreeRewards is set for free track claim', async () => {
@@ -195,7 +196,7 @@ describe('Bloque 3B: /claim/:level atomic reward application', () => {
     const updated = await User.findById(u._id);
     // $addToSet ensures no duplicates in purchases
     expect(updated.purchases.filter(p => p === 'frame_season1').length).toBe(1);
-    // $addToSet ensures no duplicates in claimedRewards
-    expect(updated.battlePass.claimedRewards.filter(n => n === 3).length).toBe(1);
+    // $addToSet ensures no duplicates in claimedFreeRewards (legacy claimedRewards no longer written)
+    expect(updated.battlePass.claimedFreeRewards.filter(n => n === 3).length).toBe(1);
   });
 });

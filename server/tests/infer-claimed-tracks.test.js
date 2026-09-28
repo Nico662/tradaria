@@ -1,15 +1,19 @@
 /**
  * inferClaimedTracks — regression tests
  *
- * The key bug: user.isPro was used to infer Pro track as claimed, which
- * permanently blocked any Pro user who had claimed a Free reward (before the
- * per-track arrays existed) from ever claiming their Pro reward.
+ * The key bug: user.isPro (and later completedMissions) was used to infer
+ * Pro track as claimed, which permanently blocked any Pro user who had claimed
+ * a Free reward (before the per-track arrays existed) from ever claiming their
+ * Pro reward.
  *
  * Level 2 config (from season1.js):
  *   freeMission: bp_s1_l2_free (play 1 game)
  *   freeReward:  xp(300)
  *   proMission:  bp_s1_l2_pro  (complete 5 daily challenges)
  *   proReward:   badge(bp_s1_early_trader)
+ *
+ * Level 4 config:
+ *   proReward:   xp(750)  ← XP not verifiable → Pro never inferred from legacy
  */
 
 const { inferClaimedTracks } = require('../routes/battlepass');
@@ -31,16 +35,8 @@ function makeBp(overrides = {}) {
 describe('inferClaimedTracks — user.isPro regression', () => {
 
   test('Free-only claim + later upgrade to Pro does NOT mark Pro as claimed', () => {
-    // Exact scenario for tradara.nvidalc@gmail.com:
-    //   1. User claimed Free reward for level 2 when not Pro
-    //      → level 2 in claimedRewards (legacy), claimedProRewards still empty
-    //   2. User later became Pro
-    //   3. BEFORE fix: inferClaimedTracks returned claimedProRewards=[2] due to user.isPro
-    //      → UI showed ✓ on Pro card, server rejected claim with ALREADY_CLAIMED
-    //   AFTER fix: Pro NOT inferred, user can claim their Pro reward normally
-
     const bp   = makeBp({ claimedRewards: [2], completedMissions: ['bp_s1_l2_free'] });
-    const user = { isPro: true };
+    const user = { isPro: true, badges: [], purchases: [] };
 
     const result = inferClaimedTracks(bp, user);
 
@@ -50,7 +46,7 @@ describe('inferClaimedTracks — user.isPro regression', () => {
 
   test('Free-only claim while non-Pro does NOT mark Pro as claimed', () => {
     const bp   = makeBp({ claimedRewards: [2], completedMissions: ['bp_s1_l2_free'] });
-    const user = { isPro: false };
+    const user = { isPro: false, badges: [], purchases: [] };
 
     const result = inferClaimedTracks(bp, user);
 
@@ -58,12 +54,13 @@ describe('inferClaimedTracks — user.isPro regression', () => {
     expect(result.claimedProRewards).not.toContain(2);
   });
 
-  test('Pro mission completed → Pro IS inferred as claimed (correct positive)', () => {
+  test('Pro mission completed + badge in user.badges → Pro IS inferred as claimed', () => {
+    // Physical evidence: badge exists in user.badges → reward was delivered
     const bp = makeBp({
       claimedRewards:    [2],
       completedMissions: ['bp_s1_l2_free', 'bp_s1_l2_pro'],
     });
-    const user = { isPro: true };
+    const user = { isPro: true, badges: ['bp_s1_early_trader'], purchases: [] };
 
     const result = inferClaimedTracks(bp, user);
 
@@ -71,13 +68,27 @@ describe('inferClaimedTracks — user.isPro regression', () => {
     expect(result.claimedProRewards).toContain(2);
   });
 
-  test('Pro mission completed even if user is no longer Pro → Pro IS inferred as claimed', () => {
+  test('Pro mission completed but badge NOT in user.badges → Pro NOT inferred as claimed (regression)', () => {
+    // This is the exact bug: badge was never delivered, so Pro should NOT be inferred
+    const bp = makeBp({
+      claimedRewards:    [2],
+      completedMissions: ['bp_s1_l2_free', 'bp_s1_l2_pro'],
+    });
+    const user = { isPro: true, badges: [], purchases: [] };
+
+    const result = inferClaimedTracks(bp, user);
+
+    expect(result.claimedFreeRewards).toContain(2);
+    expect(result.claimedProRewards).not.toContain(2); // badge absent → not inferred
+  });
+
+  test('former-Pro user with badge in user.badges → Pro IS inferred as claimed', () => {
     // Covers former-Pro users who completed mission, claimed, then downgraded
     const bp = makeBp({
       claimedRewards:    [2],
       completedMissions: ['bp_s1_l2_free', 'bp_s1_l2_pro'],
     });
-    const user = { isPro: false };
+    const user = { isPro: false, badges: ['bp_s1_early_trader'], purchases: [] };
 
     const result = inferClaimedTracks(bp, user);
 
@@ -91,9 +102,10 @@ describe('inferClaimedTracks — user.isPro regression', () => {
 describe('inferClaimedTracks — level structure and edge cases', () => {
 
   test('Pro-only level (level 1) in legacy → always inferred as Pro-claimed', () => {
-    // Level 1: no freeReward, only proReward → !hasFree && hasPro branch
+    // Level 1: no freeReward, only proReward (xp(500)) → !hasFree && hasPro branch
+    // xp is unverifiable → always inferred as claimed when in legacy claimedRewards
     const bp   = makeBp({ claimedRewards: [1], completedMissions: ['bp_s1_l1_pro'] });
-    const user = { isPro: false };
+    const user = { isPro: false, badges: [], purchases: [] };
 
     const result = inferClaimedTracks(bp, user);
 
@@ -108,7 +120,7 @@ describe('inferClaimedTracks — level structure and edge cases', () => {
       claimedProRewards: [2],
       completedMissions: ['bp_s1_l2_free', 'bp_s1_l2_pro'],
     });
-    const user = { isPro: true };
+    const user = { isPro: true, badges: ['bp_s1_early_trader'], purchases: [] };
 
     const result = inferClaimedTracks(bp, user);
 
@@ -121,7 +133,7 @@ describe('inferClaimedTracks — level structure and edge cases', () => {
       claimedFreeRewards:[2],
       completedMissions: ['bp_s1_l2_free'],
     });
-    const user = { isPro: false };
+    const user = { isPro: false, badges: [], purchases: [] };
 
     const result = inferClaimedTracks(bp, user);
 
@@ -137,7 +149,7 @@ describe('inferClaimedTracks — level structure and edge cases', () => {
 
   test('empty claimedRewards returns empty arrays', () => {
     const bp   = makeBp({ claimedRewards: [] });
-    const user = { isPro: true };
+    const user = { isPro: true, badges: [], purchases: [] };
 
     const result = inferClaimedTracks(bp, user);
 
@@ -145,21 +157,22 @@ describe('inferClaimedTracks — level structure and edge cases', () => {
     expect(result.claimedProRewards).toEqual([]);
   });
 
-  test('multiple levels — each inferred independently', () => {
-    // Level 1 (pro-only, claimed), level 2 (both, free claimed only), level 4 (both, both completed)
+  test('multiple levels — level 4 proReward is xp → NOT inferred from legacy even with completedMissions', () => {
+    // Level 1 (pro-only xp, claimed), level 2 (both, free claimed only — badge absent),
+    // level 4 (both, both completed — but proReward is xp → unverifiable → not inferred)
     const bp = makeBp({
       claimedRewards:    [1, 2, 4],
       completedMissions: ['bp_s1_l1_pro', 'bp_s1_l2_free', 'bp_s1_l4_free', 'bp_s1_l4_pro'],
     });
-    const user = { isPro: true };
+    const user = { isPro: true, badges: [], purchases: [] };
 
     const result = inferClaimedTracks(bp, user);
 
-    expect(result.claimedProRewards).toContain(1);   // pro-only level
+    expect(result.claimedProRewards).toContain(1);   // pro-only level (xp, unverifiable → inferred as claimed for pro-only levels)
     expect(result.claimedFreeRewards).toContain(2);
-    expect(result.claimedProRewards).not.toContain(2); // free claimed only
+    expect(result.claimedProRewards).not.toContain(2); // badge absent → not inferred
     expect(result.claimedFreeRewards).toContain(4);
-    expect(result.claimedProRewards).toContain(4);   // pro mission completed
+    expect(result.claimedProRewards).not.toContain(4); // xp not verifiable → not inferred
   });
 
 });
