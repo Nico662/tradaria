@@ -449,6 +449,47 @@
   animation: countUp 0.3s ease both;
 }
 
+/* ── Trading Onboarding animations ── */
+
+@keyframes tut-seg-fill {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+.tut-seg-fill {
+  transform-origin: left center;
+  animation: tut-seg-fill 0.75s ease forwards;
+}
+
+@keyframes tut-tp-osc {
+  0%   { transform: translateY(0); }
+  50%  { transform: translateY(-11px); }
+  100% { transform: translateY(0); }
+}
+.tut-tp-line {
+  animation: tut-tp-osc 3s ease-in-out infinite;
+}
+
+@keyframes tut-sl-osc {
+  0%   { transform: translateY(0); }
+  50%  { transform: translateY(11px); }
+  100% { transform: translateY(0); }
+}
+.tut-sl-line {
+  animation: tut-sl-osc 3s ease-in-out infinite;
+  animation-delay: -1.5s;
+}
+
+@keyframes tut-gauge {
+  0%   { left: 6%;  }
+  20%  { left: 18%; }
+  50%  { left: 56%; }
+  75%  { left: 82%; }
+  100% { left: 6%;  }
+}
+.tut-gauge-marker {
+  animation: tut-gauge 5s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
