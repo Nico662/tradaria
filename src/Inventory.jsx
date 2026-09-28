@@ -41,6 +41,15 @@ const AVATAR_META = {
 
 const MINI_HEIGHTS = [0.4, 0.7, 0.3, 0.6, 0.9, 0.5, 0.65, 0.35];
 
+// ── BP Badge metadata ─────────────────────────────────────────────
+const BP_BADGE_META = [
+  { id: 'bp_s1_early_trader',  name: 'Early Trader',  emoji: '📊' },
+  { id: 'bp_s1_elite',         name: 'Elite',         emoji: '⭐' },
+  { id: 'bp_s1_season1_pro',   name: 'Season 1 Pro',  emoji: '🌟' },
+  { id: 'bp_s1_season1',       name: 'Season 1',      emoji: '🏆' },
+  { id: 'bp_s1_champion',      name: 'Champion',      emoji: '🥇' },
+];
+
 // ── Próximamente (Trader Pass teaser) ─────────────────────────────
 const COMING_SOON = [
   { type: 'avatar', id: 'avatar_fox',          name: 'Fox',          hasPreview: true },
@@ -51,9 +60,11 @@ const COMING_SOON = [
   { type: 'color',  id: 'color_red',            name: 'Rojo',         hex: '#e05555' },
   { type: 'color',  id: 'color_purple',         name: 'Morado',       hex: '#a855f7' },
   { type: 'frame',  id: 'frame_season1',        name: 'Season 1',     lucideIcon: Trophy, iconColor: 'var(--color-neutral)', hasPreview: false },
-  { type: 'badge',  id: 'bp_s1_early_trader',   name: 'Early Trader', lucideIcon: Star,   iconColor: 'var(--color-neutral)' },
-  { type: 'badge',  id: 'bp_s1_elite',          name: 'Elite',        lucideIcon: Crown,  iconColor: 'var(--color-neutral)' },
-  { type: 'badge',  id: 'bp_s1_season1',        name: 'Season 1',     lucideIcon: Medal,  iconColor: 'var(--color-neutral)' },
+  { type: 'badge',  id: 'bp_s1_early_trader',   name: 'Early Trader',  lucideIcon: Star,   iconColor: 'var(--color-neutral)' },
+  { type: 'badge',  id: 'bp_s1_elite',          name: 'Elite',         lucideIcon: Crown,  iconColor: 'var(--color-neutral)' },
+  { type: 'badge',  id: 'bp_s1_season1_pro',    name: 'Season 1 Pro',  lucideIcon: Star,   iconColor: 'var(--color-neutral)' },
+  { type: 'badge',  id: 'bp_s1_season1',        name: 'Season 1',      lucideIcon: Medal,  iconColor: 'var(--color-neutral)' },
+  { type: 'badge',  id: 'bp_s1_champion',       name: 'Champion',      lucideIcon: Trophy, iconColor: 'var(--color-neutral)' },
 ];
 
 export default function Inventory({ onBack }) {
@@ -78,6 +89,7 @@ export default function Inventory({ onBack }) {
     'title_bull_runner','title_bear_hunter','title_survivor','title_veteran',
   ]);
   const ownedTitles = purchases.filter(id => id && TITLE_IDS.has(id));
+  const ownedBpBadges = BP_BADGE_META.filter(b => (user?.badges || []).includes(b.id));
 
   const useTicket = useCallback(async () => {
     if (busyTicket || unusedTickets === 0) return;
@@ -359,6 +371,21 @@ export default function Inventory({ onBack }) {
               </div>
             )}
           </Section>
+        )}
+
+        {/* BP Badges earned */}
+        {ownedBpBadges.length > 0 && (
+          <div style={{ margin: '0 16px 16px' }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '10px' }}>Badges</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              {ownedBpBadges.map(badge => (
+                <div key={badge.id} style={{ background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', padding: '12px', textAlign: 'center', minWidth: '72px' }}>
+                  <div style={{ fontSize: '22px', marginBottom: '4px' }}>{badge.emoji}</div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>{badge.name}</div>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
 
         {/* PRÓXIMAMENTE — Trader Pass teaser */}
