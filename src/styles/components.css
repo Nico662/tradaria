@@ -449,6 +449,23 @@
   animation: countUp 0.3s ease both;
 }
 
+/* ── Upscale affiliate banner ── */
+
+.upscale-banner {
+  transition: border-color 0.15s, opacity 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.upscale-banner:hover {
+  border-color: rgba(255, 255, 255, 0.14) !important;
+}
+.upscale-banner:active {
+  opacity: 0.75;
+}
+.upscale-banner:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 3px;
+}
+
 /* ── Trading Onboarding animations ── */
 
 @keyframes tut-seg-fill {

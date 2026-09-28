@@ -692,9 +692,8 @@ export const LANGS = {
       leagueRankLabel: 'Rank', leagueOf: 'of', leaguePromotes: 'promotes top',
       // Upscale affiliate banner
       upscaleTitle: 'Real Funded Trading',
-      upscaleTagline: 'Tradiko is a simulator with no real money. Ready for the real thing? Upscale is an independent prop firm offering real funded trader accounts — this is a paid service, not free.',
-      upscaleCta: 'Explore Upscale →',
-      upscaleDisclaimer: 'External service · Real money · Affiliate link',
+      upscaleDisclaimer: 'Upscale · Affiliate · Real Money',
+      // orphaned (banner redesign): upscaleTagline, upscaleCta
     },
   },
 
@@ -1391,9 +1390,8 @@ export const LANGS = {
       leagueRankLabel: 'Puesto', leagueOf: 'de', leaguePromotes: 'asciende top',
       // Banner de afiliado Upscale
       upscaleTitle: 'Trading con Cuenta Fondeada Real',
-      upscaleTagline: 'Tradiko es un simulador sin dinero real. ¿Listo para el salto? Upscale es una prop firm independiente con cuentas de fondeo reales — es un servicio de pago, no gratuito.',
-      upscaleCta: 'Ver Upscale →',
-      upscaleDisclaimer: 'Servicio externo · Dinero real · Enlace de afiliado',
+      upscaleDisclaimer: 'Upscale · Afiliado · Dinero real',
+      // huérfanas (rediseño del banner): upscaleTagline, upscaleCta
     },
   },
 
@@ -2090,9 +2088,8 @@ export const LANGS = {
       leagueRankLabel: 'Rang', leagueOf: 'von', leaguePromotes: 'aufsteigt Top',
       // Upscale Affiliate-Banner
       upscaleTitle: 'Echtes Funded-Trading-Konto',
-      upscaleTagline: 'Tradiko ist ein Simulator ohne echtes Geld. Bereit für den echten Markt? Upscale ist eine unabhängige Prop-Firm mit echten finanzierten Trader-Konten — ein kostenpflichtiger Dienst.',
-      upscaleCta: 'Upscale entdecken →',
-      upscaleDisclaimer: 'Externer Dienst · Echtes Geld · Affiliate-Link',
+      upscaleDisclaimer: 'Upscale · Affiliate · Echtes Geld',
+      // verwaist (Banner-Redesign): upscaleTagline, upscaleCta
     },
   },
 };
