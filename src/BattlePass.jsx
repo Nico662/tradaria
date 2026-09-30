@@ -46,11 +46,9 @@ function getCardState(reward, mission, levelNum, track, userLevel, claimedReward
   if (claimedRewards.includes(levelNum)) return 'claimed';
   if (track === 'pro' && !isPro) return 'pro_locked';
   if (userLevel < levelNum) return 'locked';
-  // Mission must be complete to be claimable. Disabled missions (enabled===false)
-  // are treated as pending — they block the claim until TM activates.
+  // Mission must be complete (unless disabled) to be claimable.
   // null missionProgress means no progress data yet — treat as pending, not done.
-  if (mission) {
-    if (mission.enabled === false) return 'mission_pending';
+  if (mission && mission.enabled !== false) {
     if (!missionProgress || missionProgress.current < missionProgress.target) {
       return 'mission_pending';
     }

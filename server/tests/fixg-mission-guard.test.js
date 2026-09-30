@@ -42,11 +42,11 @@ function fixGCheck(completedMissions, levelNum, isPro) {
   const grantFree = !!lvlCfg.freeReward;
   const grantPro  = !!lvlCfg.proReward && isPro;
 
-  if (grantFree && lvlCfg.freeMission) {
+  if (grantFree && lvlCfg.freeMission?.enabled !== false) {
     if (!done.has(lvlCfg.freeMission.id))
       return `MISSION_NOT_COMPLETED:${lvlCfg.freeMission.id}`;
   }
-  if (grantPro && lvlCfg.proMission) {
+  if (grantPro && lvlCfg.proMission?.enabled !== false) {
     if (!done.has(lvlCfg.proMission.id))
       return `MISSION_NOT_COMPLETED:${lvlCfg.proMission.id}`;
   }
@@ -186,15 +186,16 @@ describe('Fix G — Pro track mission guard (level 2 pro)', () => {
   });
 });
 
-// ── 4. Trading Mode missions block the claim like any other incomplete mission ─
-describe('Fix G — disabled Trading Mode missions block claim (not exempt)', () => {
+// ── 4. Trading Mode missions are exempt from the guard ───────────────────────
+describe('Fix G — disabled Trading Mode missions are exempt (can still claim)', () => {
 
-  test('Pro user at level 5 cannot claim level 5 pro — TM mission enabled:false counts as incomplete', () => {
-    // Level 5 pro mission = bp_s1_l5_pro, enabled:false → no one can complete it yet.
-    // Fix G now treats it like any other incomplete mission → MISSION_NOT_COMPLETED.
+  test('Pro user can claim level 5 without completing l5_pro (Trading Mode, enabled=false)', () => {
+    // Level 5 pro mission = bp_s1_l5_pro, enabled:false → Fix G skips the check.
+    // Through level 4 done for Pro. No need to complete the Trading Mode mission.
     const missions = [L1_PRO, L2_FREE, L2_PRO, 'bp_s1_l3_pro', L4_FREE, L4_PRO];
     expect(computeUserLevel(missions, true)).toBe(5);
     const result = fixGCheck(missions, 5, true);
-    expect(result).toBe('MISSION_NOT_COMPLETED:bp_s1_l5_pro');
+    // Level 5 has no freeReward and its proMission is disabled → no mission check → allowed
+    expect(result).toBeNull();
   });
 });
