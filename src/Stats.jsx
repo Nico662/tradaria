@@ -8,6 +8,7 @@ import { User, Backpack } from 'lucide-react';
 import { getUsernameColor } from './cosmeticColors';
 import TitleBadge from './components/TitleBadge';
 import VerifiedBadge from './VerifiedBadge';
+import SpecialBadge, { getSpecialUserByUsername } from './SpecialBadge.jsx';
 import BadgeIcon, { RARITY_COLORS } from './BadgeIcon.jsx';
 
 function AccuracyGraph({ trend }) {
@@ -69,14 +70,26 @@ export default function Stats({ onBack, onSelect }) {
     <div id="gtm-root" style={{ position: 'relative', minHeight: '100vh', background: 'var(--bg-base)', padding: '0 0 24px', fontFamily: 'var(--font-body)', overflowX: 'hidden' }}>
 
       {/* Header */}
-      <div style={{ padding: '16px 16px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div>
+      <div style={{ padding: '16px 16px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+        <div style={{ flex: '1 1 0', minWidth: 0 }}>
           <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '22px', color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>{t.stats.title2}</div>
           <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', marginTop: '2px' }}>{t.stats.subtitle}</div>
         </div>
 
-        <div style={{ position: 'relative', flexShrink: 0 }}>
-          <div style={{ width: '56px', height: '56px', borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--pink)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-elevated)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+          {user?.username && (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', minWidth: 0, maxWidth: '120px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', minWidth: 0, flexWrap: 'wrap', justifyContent: 'flex-end', width: '100%' }}>
+                <span style={{ flex: '1 1 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: getUsernameColor(activeCosmetics) || 'var(--text-muted)', letterSpacing: '0.04em' }}>
+                  @{user.username}
+                </span>
+                <SpecialBadge specialUser={getSpecialUserByUsername(user.username)} size={11} />
+                {user?.battlePassMechanics?.includes('mechanic_verified_badge') && <VerifiedBadge size={11} />}
+              </div>
+              <TitleBadge title={activeCosmetics?.title} />
+            </div>
+          )}
+          <div style={{ width: '56px', height: '56px', borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--pink)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-elevated)', flexShrink: 0 }}>
             {user?.customAvatar || user?.avatar ? (
               <img
                 src={user.customAvatar || user.avatar}
@@ -87,18 +100,10 @@ export default function Stats({ onBack, onSelect }) {
               <User size={24} strokeWidth={1.5} aria-hidden style={{ stroke: 'var(--text-muted)' }} />
             )}
           </div>
-          {user?.username && (
-            <div style={{ position: 'absolute', bottom: '-28px', left: '50%', transform: 'translateX(-50%)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: getUsernameColor(activeCosmetics) || 'var(--text-muted)', letterSpacing: '0.04em', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-              <span style={{ display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}>
-                @{user.username}{user?.battlePassMechanics?.includes('mechanic_verified_badge') && <VerifiedBadge size={11} />}
-              </span>
-              <TitleBadge title={activeCosmetics?.title} />
-            </div>
-          )}
         </div>
       </div>
 
-      <div style={{ height: '20px' }} />
+      <div style={{ height: '4px' }} />
 
       {/* Inventory shortcut */}
       <div style={{ padding: '0 16px 16px' }}>
