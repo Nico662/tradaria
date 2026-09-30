@@ -46,9 +46,12 @@ function getCardState(reward, mission, levelNum, track, userLevel, claimedReward
   if (claimedRewards.includes(levelNum)) return 'claimed';
   if (track === 'pro' && !isPro) return 'pro_locked';
   if (userLevel < levelNum) return 'locked';
-  // Mirror server Fix G: mission must be complete (unless disabled) to be claimable
-  if (mission && mission.enabled !== false && missionProgress && missionProgress.current < missionProgress.target) {
-    return 'mission_pending';
+  // Mission must be complete (unless disabled) to be claimable.
+  // null missionProgress means no progress data yet — treat as pending, not done.
+  if (mission && mission.enabled !== false) {
+    if (!missionProgress || missionProgress.current < missionProgress.target) {
+      return 'mission_pending';
+    }
   }
   return 'claimable';
 }

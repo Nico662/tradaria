@@ -334,24 +334,31 @@ router.get('/current-season', requireAuth, async (req, res) => {
     })();
 
     // Progress for all 30 levels — used by the UI to show progress bars on every card.
-    const allMissionProgress = bp ? season1.LEVELS.reduce((acc, lvlCfg) => {
+    // Use real bp when available; fall back to a synthetic empty bp for users who have
+    // not yet played any game (bp === null). Without this, allMissionProgress and
+    // cardStates would be null, forcing the client into its getCardState fallback where
+    // a null missionProgress silently skips the mission_pending guard and returns
+    // 'claimable' — showing a false CLAIM ribbon that always 403s (Fix G blocks it).
+    const bpForCalc = bp ?? { completedMissions: [] };
+
+    const allMissionProgress = season1.LEVELS.reduce((acc, lvlCfg) => {
       acc[lvlCfg.level] = {
-        free: lvlCfg.freeMission ? progressFor(lvlCfg.freeMission, bp, user) : null,
-        pro:  lvlCfg.proMission  ? progressFor(lvlCfg.proMission,  bp, user) : null,
+        free: lvlCfg.freeMission ? progressFor(lvlCfg.freeMission, bpForCalc, user) : null,
+        pro:  lvlCfg.proMission  ? progressFor(lvlCfg.proMission,  bpForCalc, user) : null,
       };
       return acc;
-    }, {}) : null;
+    }, {});
 
     const inferred = inferClaimedTracks(bp, user);
 
-    // Server-computed card states — mirrors client getCardState for guaranteed consistency
-    const cardStates = bp ? season1.LEVELS.reduce((acc, lvlCfg) => {
+    // Server-computed card states — always populated, never null
+    const cardStates = season1.LEVELS.reduce((acc, lvlCfg) => {
       acc[lvlCfg.level] = {
         free: computeCardState(lvlCfg, 'free', level, inferred.claimedFreeRewards, user.isPro, allMissionProgress),
         pro:  computeCardState(lvlCfg, 'pro',  level, inferred.claimedProRewards,  user.isPro, allMissionProgress),
       };
       return acc;
-    }, {}) : null;
+    }, {});
 
     res.json({
       season: {
