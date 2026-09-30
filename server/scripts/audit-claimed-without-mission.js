@@ -24,6 +24,28 @@
  *
  * NO data is modified — read-only diagnostic.
  *
+ * NOTE — phantom completedMissions (separate issue, not covered here):
+ *   This script audits claimed rewards without completed missions.
+ *   There is a related but distinct issue: missions marked as completed in
+ *   completedMissions BEFORE the user's sequential level reached them.
+ *   Root cause: processDailyBpProgress was awarding daily_streak / streak_days /
+ *   complete_daily missions based on global counters (dailyStreak, dailiesCompleted)
+ *   without checking whether the user had sequentially reached the mission's level.
+ *
+ *   Production state as of 2025-10-01 (read-only audit run):
+ *     nico_founder   (tradara.nvidalc@gmail.com)   — level 5, phantom missions at
+ *       levels 10 (daily_streak ×2), 15, 18, 23, 24, 28 (streak_days/daily_streak)
+ *     nicolassss     (enchantedprints99@gmail.com) — level 6, phantom missions at
+ *       levels 10 (daily_streak ×2), 15, 18, 23, 24, 28 (streak_days/daily_streak)
+ *
+ *   Current user-facing impact: NONE. The level guard in computeCardState
+ *   (userLevel < levelNum → 'locked') prevents any phantom mission from generating
+ *   a false 'claimable' state. The award-loop fix was deployed to prevent new
+ *   phantom completions going forward (see processDailyBpProgress in battlepass.js).
+ *   Existing phantom entries in completedMissions do not need correction:
+ *   tryAwardAtomic will not re-award them, and when the user eventually reaches
+ *   those levels (after TM missions enable), the rewards will be instantly claimable.
+ *
  * Usage:
  *   MONGODB_URI=<uri> node server/scripts/audit-claimed-without-mission.js
  *

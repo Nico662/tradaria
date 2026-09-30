@@ -18,6 +18,11 @@ const BASELINE_TYPES = new Set([
   'historical_event', 'historical_all_events',
 ]);
 
+// Mission types whose progress counters are global (no baseline / no reset).
+// The award loop must gate on userLevel >= missionLevel to prevent marking
+// future-level missions as complete before the user reaches them.
+const ACCUMULATOR_TYPES = new Set(['complete_daily', 'daily_streak', 'streak_days']);
+
 function mapGet(m, key) {
   if (!m) return undefined;
   if (typeof m.get === 'function') return m.get(key);
@@ -586,6 +591,15 @@ function buildMissionsByType() {
   return map;
 }
 
+// Map from mission id → the season level it belongs to (1–30).
+// Used by award loops to gate accumulator-type missions on userLevel.
+const MISSION_LEVEL_MAP = new Map(
+  season1.LEVELS.flatMap(l => [
+    l.freeMission ? [l.freeMission.id, l.level] : null,
+    l.proMission  ? [l.proMission.id,  l.level] : null,
+  ].filter(Boolean))
+);
+
 // Enabled mission IDs for each track, excluding level 30 (the completion missions themselves).
 // enabled:false missions (Trading Mode, not yet live) are excluded so level 30 is reachable.
 const ENABLED_FREE_MISSION_IDS = season1.LEVELS.slice(0, 29)
@@ -656,6 +670,23 @@ async function snapshotNewlyUnlockedMissions(userId) {
 
   if (Object.keys(setOps).length > 0) {
     await User.findOneAndUpdate({ _id: userId }, { $set: setOps });
+  }
+
+  // Catch-up: when a user advances to a new level, award any ACCUMULATOR_TYPES
+  // missions at that level whose counters are already satisfied.  Without this,
+  // the level guard in processDailyBpProgress would prevent the award until the
+  // next daily completion — leaving the reward unreachable for users who had the
+  // streak/count before reaching the level.
+  for (let i = 0; i < userLevel && i < season1.LEVELS.length; i++) {
+    const lvlCfg = season1.LEVELS[i];
+    for (const m of [lvlCfg.freeMission, lvlCfg.proMission].filter(Boolean)) {
+      if (!ACCUMULATOR_TYPES.has(m.type))      continue;
+      if (bp.completedMissions.includes(m.id)) continue;
+      const counter = m.type === 'complete_daily'
+        ? (bp.dailiesCompleted || 0)
+        : (user.dailyStreak   || 0);
+      if (counter >= m.target) await tryAwardAtomic(userId, m.id, []);
+    }
   }
 }
 
@@ -824,16 +855,22 @@ async function processDailyBpProgress(userId, { newStreak }) {
   }
 
   // complete_daily — cumulative dailies completed (3, 5, 20, 40, 50)
+  // Level guard: this counter has no baseline and can exceed future-level targets
+  // long before the user reaches those levels sequentially.
   for (const m of missionsByType['complete_daily'] || []) {
-    if (bp.dailiesCompleted >= m.target) await tryAwardAtomic(userId, m.id, awardedMissions);
+    if (bp.dailiesCompleted >= m.target && oldLevel >= (MISSION_LEVEL_MAP.get(m.id) ?? 0))
+      await tryAwardAtomic(userId, m.id, awardedMissions);
   }
 
   // daily_streak + streak_days — both measure consecutive daily streak
+  // Level guard: same reason — global counter, no baseline/reset.
   for (const m of missionsByType['daily_streak'] || []) {
-    if (newStreak >= m.target) await tryAwardAtomic(userId, m.id, awardedMissions);
+    if (newStreak >= m.target && oldLevel >= (MISSION_LEVEL_MAP.get(m.id) ?? 0))
+      await tryAwardAtomic(userId, m.id, awardedMissions);
   }
   for (const m of missionsByType['streak_days'] || []) {
-    if (newStreak >= m.target) await tryAwardAtomic(userId, m.id, awardedMissions);
+    if (newStreak >= m.target && oldLevel >= (MISSION_LEVEL_MAP.get(m.id) ?? 0))
+      await tryAwardAtomic(userId, m.id, awardedMissions);
   }
 
   await checkLevel30Atomic(userId, awardedMissions);
