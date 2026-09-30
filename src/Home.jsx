@@ -1,5 +1,6 @@
 import { useLang } from './LangContext';
 import { useState, useEffect, useRef } from 'react';
+import { useBattlePass } from './BattlePassContext.jsx';
 import { ShoppingBag, Users, Settings, Trophy, Briefcase, Zap, User, Camera, Ticket, CandlestickChart } from 'lucide-react';
 import { ModeIcon, StreakIcon, ProIcon, LevelIcon } from './components/AppIcons';
 import MissionsCard from './MissionsCard.jsx';
@@ -28,6 +29,7 @@ const TOP_BUTTONS = [
 
 export default function Home({ onSelect }) {
   const { lang, t } = useLang();
+  const { hasClaimableRewards } = useBattlePass();
   const [dailyStreak] = useState(() => parseInt(localStorage.getItem('tradaria_daily_streak') || '0'));
   const unlockedCount = getUnlocked().length;
   const xp    = getXP();
@@ -405,7 +407,12 @@ export default function Home({ onSelect }) {
             onTouchStart={e => e.currentTarget.style.transform = 'scale(0.98)'}
             onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
           >
-            <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-md)', background: 'rgba(0,192,135,0.08)', border: '1px solid rgba(0,192,135,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Ticket size={22} strokeWidth={2} aria-hidden style={{ stroke: '#00c087' }} /></div>
+            <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-md)', background: 'rgba(0,192,135,0.08)', border: '1px solid rgba(0,192,135,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, position: 'relative' }}>
+              <Ticket size={22} strokeWidth={2} aria-hidden style={{ stroke: '#00c087' }} />
+              {hasClaimableRewards && (
+                <div style={{ position: 'absolute', top: -3, right: -3, width: 9, height: 9, borderRadius: '50%', background: '#e05585', border: '2px solid var(--bg-surface)', pointerEvents: 'none' }} />
+              )}
+            </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '15px', color: '#ffffff', marginBottom: '3px' }}>{t.home.traderPass}</div>
               <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: '#00c087' }}>{t.home.traderPassSub}</div>

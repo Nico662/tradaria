@@ -360,6 +360,12 @@ router.get('/current-season', requireAuth, async (req, res) => {
       return acc;
     }, {});
 
+    // True when at least one card on any track is ready to claim — drives the
+    // notification dot on the Trader Pass button in Home without extra computation.
+    const hasClaimableRewards = Object.values(cardStates).some(
+      lvl => lvl.free === 'claimable' || lvl.pro === 'claimable',
+    );
+
     res.json({
       season: {
         seasonId:  season.seasonId,
@@ -375,6 +381,7 @@ router.get('/current-season', requireAuth, async (req, res) => {
         completedMissions: bp ? bp.completedMissions : [],
         allMissionProgress,
         cardStates,
+        hasClaimableRewards,
       },
     });
   } catch (err) {

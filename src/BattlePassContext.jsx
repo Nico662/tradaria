@@ -16,6 +16,7 @@ export function BattlePassProvider({ children }) {
   const [completedMissions,    setCompletedMissions]    = useState([]);
   const [allMissionProgress,   setAllMissionProgress]   = useState(null);
   const [cardStates,           setCardStates]           = useState(null);
+  const [hasClaimableRewards,  setHasClaimableRewards]  = useState(false);
   const [isLoading,            setIsLoading]            = useState(false);
 
   const lastFetchRef = useRef(0);
@@ -51,6 +52,7 @@ export function BattlePassProvider({ children }) {
       setCompletedMissions(data.user.completedMissions);
       setAllMissionProgress(data.user.allMissionProgress ?? null);
       setCardStates(data.user.cardStates ?? null);
+      setHasClaimableRewards(data.user.hasClaimableRewards ?? false);
     } catch {}
     finally {
       setIsLoading(false);
@@ -72,6 +74,7 @@ export function BattlePassProvider({ children }) {
       setCompletedMissions([]);
       setAllMissionProgress(null);
       setCardStates(null);
+      setHasClaimableRewards(false);
     }
   }, [user, fetchBattlePass]);
 
@@ -154,6 +157,7 @@ export function BattlePassProvider({ children }) {
       completedMissions,
       allMissionProgress,
       cardStates,
+      hasClaimableRewards,
       isLoading,
       claimReward,
       refreshBattlePass: fetchBattlePass,
