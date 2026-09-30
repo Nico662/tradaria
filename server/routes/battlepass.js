@@ -475,6 +475,7 @@ router.post('/claim/:level', requireAuth, async (req, res) => {
       avatar:         'avatar',
       theme:          'theme',
       username_color: 'username_color',
+      badge:          'badge',
     };
     const setOps = {};
 
@@ -486,6 +487,9 @@ router.post('/claim/:level', requireAuth, async (req, res) => {
         case 'badge':
           if (!addToSetMap.badges) addToSetMap.badges = { $each: [] };
           addToSetMap.badges.$each.push(reward.itemId);
+          if (COSMETIC_EQUIP_KEY[reward.type]) {
+            setOps[`activeCosmetics.${COSMETIC_EQUIP_KEY[reward.type]}`] = reward.itemId;
+          }
           break;
         case 'title':
         case 'frame':

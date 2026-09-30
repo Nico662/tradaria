@@ -7,6 +7,7 @@ import { SERVER } from './config.js';
 import { getUsernameColor } from './cosmeticColors';
 import TitleBadge from './components/TitleBadge';
 import VerifiedBadge from './VerifiedBadge';
+import EquippedBadge from './components/EquippedBadge';
 
 function formatCash(n) {
   return '$' + Math.abs(n).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -148,6 +149,7 @@ export default function League({ leagueId, onBack }) {
                 <span style={{ flex: '1 1 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{name}</span>
                 <SpecialBadge specialUser={getSpecialUserByUsername(entry.username)} size={10} />
                 {entry.hasVerifiedBadge && <VerifiedBadge size={10} />}
+                <EquippedBadge id={entry.activeCosmetics?.badge} size={10} />
                 {isMe && <span style={{ fontSize: '12px', color: 'var(--pink)', flexShrink: 0 }}>{t.league.you}</span>}
                 <TitleBadge title={entry.activeCosmetics?.title} />
               </div>
@@ -186,6 +188,7 @@ export default function League({ leagueId, onBack }) {
                 <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--pink)', display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0, flexWrap: 'wrap' }}>
                   <span style={{ flex: '1 1 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{name}</span>
                   {up.hasVerifiedBadge && <VerifiedBadge size={10} />}
+                  <EquippedBadge id={up.activeCosmetics?.badge} size={10} />
                   <span style={{ fontSize: '12px', color: 'var(--pink)', flexShrink: 0 }}>{t.league.you}</span>
                   <TitleBadge title={up.activeCosmetics?.title} />
                 </div>

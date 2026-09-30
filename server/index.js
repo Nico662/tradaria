@@ -1056,10 +1056,11 @@ app.post('/auth/cosmetics', async (req, res) => {
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const { activeCosmetics } = req.body;
-    const user = await User.findById(decoded.id).select('purchases');
+    const user = await User.findById(decoded.id).select('purchases badges');
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const VALID_TYPES = new Set(['theme', 'frame', 'avatar', 'effect', 'username_color', 'title']);
+    const VALID_TYPES = new Set(['theme', 'frame', 'avatar', 'effect', 'username_color', 'title', 'badge']);
+    const BP_BADGE_IDS = new Set(['bp_s1_early_trader', 'bp_s1_elite', 'bp_s1_season1_pro', 'bp_s1_season1', 'bp_s1_champion']);
     const owned = new Set(user.purchases);
     const safe = {};
     if (activeCosmetics && typeof activeCosmetics === 'object' && !Array.isArray(activeCosmetics)) {
@@ -1068,6 +1069,8 @@ app.post('/auth/cosmetics', async (req, res) => {
         if (typeof itemId !== 'string') continue;
         if (type === 'title') {
           if (!BP_TITLES.has(itemId) || !owned.has(itemId)) continue;
+        } else if (type === 'badge') {
+          if (!BP_BADGE_IDS.has(itemId) || !(user.badges || []).includes(itemId)) continue;
         } else {
           if (!SHOP_ITEMS[itemId] && !BP_COSMETICS[itemId]) continue;
           if (!owned.has(itemId)) continue;

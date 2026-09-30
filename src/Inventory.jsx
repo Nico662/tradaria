@@ -6,6 +6,7 @@ import { SERVER } from './config';
 import UserAvatar from './UserAvatar';
 import { AvatarSVG } from './components/AvatarSVGs';
 import { USERNAME_COLORS, TITLE_LABELS } from './cosmeticColors';
+import BadgeIcon, { RARITY_COLORS } from './BadgeIcon.jsx';
 
 const FRAME_META = {
   frame_gold:    { name: 'Gold Frame'    },
@@ -43,11 +44,11 @@ const MINI_HEIGHTS = [0.4, 0.7, 0.3, 0.6, 0.9, 0.5, 0.65, 0.35];
 
 // ── BP Badge metadata ─────────────────────────────────────────────
 const BP_BADGE_META = [
-  { id: 'bp_s1_early_trader',  name: 'Early Trader',  emoji: '📊' },
-  { id: 'bp_s1_elite',         name: 'Elite',         emoji: '⭐' },
-  { id: 'bp_s1_season1_pro',   name: 'Season 1 Pro',  emoji: '🌟' },
-  { id: 'bp_s1_season1',       name: 'Season 1',      emoji: '🏆' },
-  { id: 'bp_s1_champion',      name: 'Champion',      emoji: '🥇' },
+  { id: 'bp_s1_early_trader',  name: 'Early Trader',  rarity: 'rare'   },
+  { id: 'bp_s1_elite',         name: 'Elite',         rarity: 'epic'   },
+  { id: 'bp_s1_season1_pro',   name: 'Season 1 Pro',  rarity: 'epic'   },
+  { id: 'bp_s1_season1',       name: 'Season 1',      rarity: 'legend' },
+  { id: 'bp_s1_champion',      name: 'Champion',      rarity: 'legend' },
 ];
 
 // ── Próximamente (Trader Pass teaser) ─────────────────────────────
@@ -122,7 +123,7 @@ export default function Inventory({ onBack }) {
     ownedFrames.length === 0 && ownedThemes.length === 0 &&
     ownedAvatars.length === 0 && ownedEffects.length === 0 &&
     ownedColors.length === 0 && ownedTitles.length === 0 &&
-    unusedTickets === 0;
+    ownedBpBadges.length === 0 && unusedTickets === 0;
 
   const chips = [
     { id: 'all',    label: ti.all },
@@ -132,6 +133,7 @@ export default function Inventory({ onBack }) {
     ownedEffects.length  > 0 && { id: 'effects', label: ti.effects, n: ownedEffects.length },
     ownedColors.length   > 0 && { id: 'colors',  label: ti.colors,  n: ownedColors.length },
     ownedTitles.length   > 0 && { id: 'titles',  label: 'Titles',   n: ownedTitles.length },
+    ownedBpBadges.length > 0 && { id: 'badges',  label: 'Badges',   n: ownedBpBadges.length },
     unusedTickets        > 0 && { id: 'tickets', label: ti.tickets, n: unusedTickets },
   ].filter(Boolean);
 
@@ -374,18 +376,21 @@ export default function Inventory({ onBack }) {
         )}
 
         {/* BP Badges earned */}
-        {ownedBpBadges.length > 0 && (
-          <div style={{ margin: '0 16px 16px' }}>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '10px' }}>Badges</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-              {ownedBpBadges.map(badge => (
-                <div key={badge.id} style={{ background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', padding: '12px', textAlign: 'center', minWidth: '72px' }}>
-                  <div style={{ fontSize: '22px', marginBottom: '4px' }}>{badge.emoji}</div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>{badge.name}</div>
-                </div>
-              ))}
-            </div>
-          </div>
+        {show('badges') && ownedBpBadges.length > 0 && (
+          <Section title="Badges">
+            {ownedBpBadges.map(badge => {
+              const equipped = activeCosmetics.badge === badge.id;
+              const color = RARITY_COLORS[badge.rarity] ?? RARITY_COLORS.common;
+              return (
+                <ItemCard key={badge.id} equipped={equipped} onClick={() => toggle('badge', badge.id)}>
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '12px 0 6px', color }}>
+                    <BadgeIcon id={badge.id} size={36} />
+                  </div>
+                  <ItemLabel name={badge.name} equipped={equipped} ti={ti} />
+                </ItemCard>
+              );
+            })}
+          </Section>
         )}
 
         {/* PRÓXIMAMENTE — Trader Pass teaser */}

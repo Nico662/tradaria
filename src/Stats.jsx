@@ -8,6 +8,7 @@ import { User, Backpack } from 'lucide-react';
 import { getUsernameColor } from './cosmeticColors';
 import TitleBadge from './components/TitleBadge';
 import VerifiedBadge from './VerifiedBadge';
+import EquippedBadge from './components/EquippedBadge';
 import SpecialBadge, { getSpecialUserByUsername } from './SpecialBadge.jsx';
 import BadgeIcon, { RARITY_COLORS } from './BadgeIcon.jsx';
 
@@ -85,6 +86,7 @@ export default function Stats({ onBack, onSelect }) {
                 </span>
                 <SpecialBadge specialUser={getSpecialUserByUsername(user.username)} size={11} />
                 {user?.battlePassMechanics?.includes('mechanic_verified_badge') && <VerifiedBadge size={11} />}
+                <EquippedBadge id={activeCosmetics?.badge} size={11} />
               </div>
               <TitleBadge title={activeCosmetics?.title} />
             </div>

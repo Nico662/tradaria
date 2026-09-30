@@ -12,6 +12,7 @@ import { Handshake, Link, Swords, Clock } from 'lucide-react';
 import { getUsernameColor } from './cosmeticColors';
 import TitleBadge from './components/TitleBadge';
 import VerifiedBadge from './VerifiedBadge';
+import EquippedBadge from './components/EquippedBadge';
 
 function authHeaders() {
   return {
@@ -42,6 +43,7 @@ function FriendCard({ f, onChallenge, isChallenging, challengeStatus, onViewProf
           <span style={{ flex: '1 1 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{f.username ? `@${f.username}` : f.name}</span>
           <SpecialBadge specialUser={getSpecialUserByUsername(f.username)} size={11} />
           {f.hasVerifiedBadge && <VerifiedBadge size={11} />}
+          <EquippedBadge id={f.activeCosmetics?.badge} size={11} />
           <TitleBadge title={f.activeCosmetics?.title} />
         </div>
         <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)', marginTop: '2px' }}>
@@ -81,6 +83,7 @@ function PendingCard({ req, onAccept, onReject }) {
           <span style={{ flex: '1 1 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{req.username ? `@${req.username}` : req.name}</span>
           <SpecialBadge specialUser={getSpecialUserByUsername(req.username)} size={11} />
           {req.hasVerifiedBadge && <VerifiedBadge size={11} />}
+          <EquippedBadge id={req.activeCosmetics?.badge} size={11} />
           <TitleBadge title={req.activeCosmetics?.title} />
         </div>
         <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)', marginTop: '2px' }}>
@@ -124,6 +127,7 @@ function SearchResultCard({ profile, onSendRequest }) {
             <span style={{ flex: '1 1 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>@{profile.username}</span>
             <SpecialBadge specialUser={getSpecialUserByUsername(profile.username)} size={12} />
             {profile.hasVerifiedBadge && <VerifiedBadge size={12} />}
+            <EquippedBadge id={profile.activeCosmetics?.badge} size={12} />
             <TitleBadge title={profile.activeCosmetics?.title} />
           </div>
           <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)', marginTop: '2px' }}>
