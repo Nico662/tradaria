@@ -410,7 +410,7 @@ export default function Home({ onSelect }) {
             <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-md)', background: 'rgba(0,192,135,0.08)', border: '1px solid rgba(0,192,135,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, position: 'relative' }}>
               <Ticket size={22} strokeWidth={2} aria-hidden style={{ stroke: '#00c087' }} />
               {hasClaimableRewards && (
-                <div style={{ position: 'absolute', top: -3, right: -3, width: 9, height: 9, borderRadius: '50%', background: '#e05585', border: '2px solid var(--bg-surface)', pointerEvents: 'none' }} />
+                <div style={{ position: 'absolute', top: -3, right: -3, width: 10, height: 10, borderRadius: '50%', background: '#e05585', boxShadow: '0 0 0 2px var(--bg-surface), 0 0 0 3.5px #e05585', pointerEvents: 'none' }} />
               )}
             </div>
             <div style={{ flex: 1 }}>
