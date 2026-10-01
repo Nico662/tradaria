@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import TradikoCandleLogo from './components/TradikoCandleLogo';
+import TradingOnboarding from './TradingOnboarding';
+import upscaleLogo from './assets/upscale-logo.png';
 import { createChart, CandlestickSeries } from 'lightweight-charts';
 import { useLang } from './LangContext';
 import { useAuth, isIOSApp } from './AuthContext';
@@ -1049,70 +1051,53 @@ export default function TradingMode({ onBack }) {
           {/* ── Upscale affiliate banner ──────────────────────────────────── */}
           {/* SHOW_UPSCALE_ON_IOS = true — set to false to hide on iOS only */}
           {(true || !isIOSApp()) && (
-            <div style={{
-              margin: '16px 14px 4px',
-              border: '1px solid rgba(34,211,165,0.25)',
-              borderRadius: 8,
-              background: 'linear-gradient(135deg, rgba(34,211,165,0.06) 0%, rgba(34,211,165,0.02) 100%)',
-              overflow: 'hidden',
-            }}>
-              {/* Header row */}
-              <div style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '10px 13px 8px',
-                borderBottom: '1px solid rgba(34,211,165,0.12)',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{
-                    fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 15,
-                    color: 'var(--green)', letterSpacing: '0.04em',
-                  }}>
-                    UPSCALE
-                  </div>
-                  <div style={{
-                    fontFamily: 'var(--font-mono)', fontSize: 8, fontWeight: 700,
-                    color: 'var(--text-hint)', background: 'rgba(255,255,255,0.06)',
-                    border: '0.5px solid var(--border-default)',
-                    borderRadius: 3, padding: '2px 5px', letterSpacing: '0.1em',
-                    textTransform: 'uppercase',
-                  }}>
-                    {tr.upscaleDisclaimer ?? 'External · Real money · Affiliate'}
-                  </div>
-                </div>
-              </div>
-
-              {/* Body */}
-              <div style={{ padding: '9px 13px 11px' }}>
+            <a
+              href="https://app.upscale.trade?ref=5JYVF"
+              target="_blank"
+              rel="noopener noreferrer sponsored"
+              aria-label={`${tr.upscaleTitle ?? 'Real Funded Trading'} — Upscale (opens in new tab)`}
+              className="upscale-banner"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                margin: '16px 14px 4px',
+                padding: '12px 14px',
+                border: '1px solid var(--border-default)',
+                borderRadius: 12,
+                background: 'var(--bg-surface)',
+                textDecoration: 'none',
+              }}
+            >
+              <img
+                src={upscaleLogo}
+                alt="Upscale"
+                width={40}
+                height={40}
+                style={{ borderRadius: 9, flexShrink: 0 }}
+              />
+              <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
-                  fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 12,
-                  color: 'var(--text-primary)', letterSpacing: '0.03em', marginBottom: 5,
+                  fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 13,
+                  color: 'var(--text-primary)', lineHeight: 1.2,
+                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                 }}>
                   {tr.upscaleTitle ?? 'Real Funded Trading'}
                 </div>
                 <div style={{
-                  fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 500,
-                  color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: 11,
+                  fontFamily: 'var(--font-mono)', fontSize: 9.5, fontWeight: 700,
+                  color: 'var(--text-hint)', letterSpacing: '0.08em',
+                  textTransform: 'uppercase', marginTop: 3,
+                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                 }}>
-                  {tr.upscaleTagline ?? 'Tradiko is a simulator with no real money. Ready for the real thing? Upscale is an independent prop firm offering real funded trader accounts — this is a paid service, not free.'}
+                  {tr.upscaleDisclaimer ?? 'Upscale · Affiliate · Real Money'}
                 </div>
-                <a
-                  href="https://app.upscale.trade?ref=5JYVF"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 5,
-                    fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 11,
-                    color: 'var(--green)', letterSpacing: '0.06em',
-                    background: 'rgba(34,211,165,0.10)',
-                    border: '1px solid rgba(34,211,165,0.30)',
-                    borderRadius: 5, padding: '6px 12px',
-                    textDecoration: 'none',
-                  }}
-                >
-                  {tr.upscaleCta ?? 'Explore Upscale →'}
-                </a>
               </div>
-            </div>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"
+                aria-hidden="true" style={{ flexShrink: 0 }}>
+                <path d="M3 11L11 3M11 3H6M11 3V8"
+                  stroke="var(--text-hint)" strokeWidth="1.5"
+                  strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </a>
           )}
 
           <div style={{ height: 20 }} />
@@ -1948,7 +1933,7 @@ export default function TradingMode({ onBack }) {
       </div>
 
       {/* ── Tutorial ────────────────────────────────────────────────────── */}
-      {showTutorial && <TradingTutorial t={t} onClose={closeTutorial} />}
+      {showTutorial && <TradingOnboarding t={t} onClose={closeTutorial} />}
     </div>
   );
 }

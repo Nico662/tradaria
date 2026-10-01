@@ -531,3 +531,19 @@ html, body {
   height: 100% !important;
 }
 
+
+/* ─── Upscale affiliate banner ──────────────────── */
+.upscale-banner {
+  transition: border-color 0.18s, background 0.18s;
+}
+.upscale-banner:hover {
+  border-color: rgba(34, 211, 165, 0.35) !important;
+  background: rgba(34, 211, 165, 0.04) !important;
+}
+.upscale-banner:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+.upscale-banner:active {
+  background: rgba(34, 211, 165, 0.08) !important;
+}
