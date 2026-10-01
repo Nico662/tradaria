@@ -4257,12 +4257,36 @@ app.get('/api/portfolio/compare', async (req, res) => {
 
 app.get('/', (req, res) => res.json({ status: 'ok' }));
 
-// ── Trading Mode — price adapter + routes (Fase 1-2) ─────────────
-const { priceRouter }         = require('./trading/priceProvider');
-const { StubPriceProvider }   = require('./trading/stubProvider');
+// ── Trading Mode — price adapter + routes ────────────────────────
+const { priceRouter }       = require('./trading/priceProvider');
+const { StubPriceProvider } = require('./trading/stubProvider');
 const tradingStub = new StubPriceProvider(redis);
 priceRouter.register('stub', tradingStub);
 console.log('[trading] StubPriceProvider registered');
+
+// Feature flag: USE_UPSCALE_PRICES=true activa precios reales de Upscale.
+// Por defecto es false — sin cambio de comportamiento, todo en StubPriceProvider.
+// No activar hasta tener UPSCALE_API_KEY y permiso escrito de Upscale.
+if (process.env.USE_UPSCALE_PRICES === 'true') {
+  const apiKey = process.env.UPSCALE_API_KEY;
+  if (!apiKey) {
+    console.error('[trading] USE_UPSCALE_PRICES=true pero falta UPSCALE_API_KEY — usando stub');
+  } else {
+    const { UpscalePriceProvider } = require('./trading/upscaleProvider');
+    const upscale = new UpscalePriceProvider({ apiKey, fallback: tradingStub });
+    upscale.start()
+      .then(() => {
+        priceRouter.register('upscale', upscale);
+        priceRouter.setDefault('upscale');
+        console.log('[trading] UpscalePriceProvider activo — precios reales');
+      })
+      .catch(err => {
+        console.error('[trading] UpscalePriceProvider falló al iniciar, usando stub:', err.message);
+      });
+  }
+} else {
+  console.log('[trading] StubPriceProvider activo (USE_UPSCALE_PRICES no activado)');
+}
 
 app.use('/api/trading', require('./routes/trading'));
 
