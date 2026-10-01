@@ -292,9 +292,12 @@ function computeCardState(lvlCfg, track, userLevel, claimedForTrack, isPro, allM
   if (claimedForTrack.includes(levelNum)) return 'claimed';
   if (track === 'pro' && !isPro) return 'pro_locked';
   if (userLevel < levelNum) return 'locked';
-  if (mission && mission.enabled !== false && allMissionProgress) {
-    const prog = allMissionProgress[levelNum]?.[track];
-    if (prog && prog.current < prog.target) return 'mission_pending';
+  if (mission) {
+    if (mission.enabled === false) return 'mission_pending';
+    if (allMissionProgress) {
+      const prog = allMissionProgress[levelNum]?.[track];
+      if (prog && prog.current < prog.target) return 'mission_pending';
+    }
   }
   return 'claimable';
 }
@@ -463,13 +466,13 @@ router.post('/claim/:level', requireAuth, async (req, res) => {
     }
 
     // Fix G: mission-specific completion check per track.
-    // Disabled missions (Trading Mode, enabled===false) are exempt — they can't be
-    // completed yet, so BP-level gating remains as the only guard for those levels.
-    if (grantFree && levelCfg.freeMission?.enabled !== false) {
+    // Disabled missions (Trading Mode, enabled===false) block the claim just like any
+    // other incomplete mission — they cannot be completed until TM activates.
+    if (grantFree && levelCfg.freeMission) {
       if (!user.battlePass.completedMissions.includes(levelCfg.freeMission.id))
         return res.status(403).json({ error: 'MISSION_NOT_COMPLETED', missionId: levelCfg.freeMission.id });
     }
-    if (grantPro && levelCfg.proMission?.enabled !== false) {
+    if (grantPro && levelCfg.proMission) {
       if (!user.battlePass.completedMissions.includes(levelCfg.proMission.id))
         return res.status(403).json({ error: 'MISSION_NOT_COMPLETED', missionId: levelCfg.proMission.id });
     }
