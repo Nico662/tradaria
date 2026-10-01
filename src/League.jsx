@@ -19,7 +19,7 @@ const MEDAL_COLORS = {
   2: { color: '#cd7f32' },
 };
 
-export default function League({ leagueId, onBack }) {
+export default function League({ leagueId, onBack, onViewProfile }) {
   const { user } = useAuth();
   const { t } = useLang();
   const tl = t.leagues;
@@ -133,13 +133,16 @@ export default function League({ leagueId, onBack }) {
         const isMe = entry.isYou;
         const name = entry.username ? `@${entry.username}` : entry.name;
         return (
-          <div key={String(entry.userId)} className={`animate-fade-in-up stagger-${Math.min(i + 1, 7)}`} style={{
-            display: 'flex', alignItems: 'center', gap: '10px',
-            background: isMe ? 'rgba(255,126,179,0.06)' : 'var(--bg-surface)',
-            border: `0.5px solid ${isMe ? 'var(--border-pink)' : 'var(--border-default)'}`,
-            borderRadius: 'var(--radius-md)',
-            padding: '10px 12px', marginBottom: '6px',
-          }}>
+          <div key={String(entry.userId)} className={`animate-fade-in-up stagger-${Math.min(i + 1, 7)}`}
+            onClick={() => !isMe && entry.username && onViewProfile && onViewProfile(entry.username)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '10px',
+              background: isMe ? 'rgba(255,126,179,0.06)' : 'var(--bg-surface)',
+              border: `0.5px solid ${isMe ? 'var(--border-pink)' : 'var(--border-default)'}`,
+              borderRadius: 'var(--radius-md)',
+              padding: '10px 12px', marginBottom: '6px',
+              cursor: !isMe && entry.username && onViewProfile ? 'pointer' : 'default',
+            }}>
             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '13px', color: isMe ? 'var(--pink)' : 'var(--text-muted)', width: '20px', textAlign: 'center', flexShrink: 0 }}>
               {i < 3 ? <span style={{ color: MEDAL_COLORS[i].color }}>{i + 1}</span> : i + 1}
             </div>
