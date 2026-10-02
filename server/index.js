@@ -463,36 +463,17 @@ async function sendPushToUser(userId, payload) {
   }
 }
 
-// ── Push notification strings (en / es) ──────────────────────────
-const NOTIF_STRINGS = {
-  en: {
-    dailyChallenge: { title: '⚡ Daily Challenge', body: "Can you call today's chart? One chart, one shot." },
-    marketOpen:     { title: '📈 Markets are open', body: 'NYSE & NASDAQ just opened. Check your portfolio.' },
-    marketClose:    { title: '🔔 Markets closed',   body: 'How did your portfolio do today?' },
-    streakAtRisk:       (n) => ({ title: '🔥 Your streak is at risk!', body: `${n}-day streak on the line. Play before midnight.` }),
-    weeklyTournament:   { title: '🏆 New weekly tournament!', body: "This week's tournament is live — jump in and climb the ranking." },
-    orderExecuted: ({ type, name, qty, price }) => ({ title: '✅ Order executed', body: `Your ${type} order for ${qty} units of ${name} was executed at $${price}.` }),
-    orderCancelled: ({ name, reason }) => ({ title: '❌ Order cancelled', body: `Your order for ${name} was cancelled: ${reason}` }),
-    orderPartialExecution: ({ type, name, qty, executedQty, price }) => ({ title: '⚠️ Order partially executed', body: `Your ${type} order for ${qty} units of ${name} was partially filled: ${executedQty} units at $${price}.` }),
-  },
-  es: {
-    dailyChallenge:     { title: '⚡ Reto Diario', body: '¿Puedes predecir el gráfico de hoy? Un gráfico, una oportunidad.' },
-    marketOpen:         { title: '📈 Mercados abiertos', body: 'NYSE y NASDAQ acaban de abrir. Revisa tu portfolio.' },
-    marketClose:        { title: '🔔 Mercados cerrados', body: '¿Cómo ha ido tu portfolio hoy?' },
-    streakAtRisk:       (n) => ({ title: '🔥 ¡Tu racha está en peligro!', body: `Llevas ${n} días seguidos. Juega antes de medianoche.` }),
-    weeklyTournament:   { title: '🏆 ¡Nuevo torneo semanal!', body: 'El torneo de esta semana ya está activo — entra y sube en el ranking.' },
-    orderExecuted: ({ type, name, qty, price }) => ({ title: '✅ Orden ejecutada', body: `Tu orden de ${type === 'buy' ? 'compra' : 'venta'} de ${qty} unidades de ${name} se ejecutó a $${price}.` }),
-    orderCancelled: ({ name, reason }) => ({ title: '❌ Orden cancelada', body: `Tu orden de ${name} fue cancelada: ${reason}` }),
-    orderPartialExecution: ({ type, name, qty, executedQty, price }) => ({ title: '⚠️ Orden ejecutada parcialmente', body: `Tu orden de ${type === 'buy' ? 'compra' : 'venta'} de ${qty} unidades de ${name} se ejecutó parcialmente: ${executedQty} unidades a $${price}.` }),
-  },
+// Español fijo — NO reintroducir i18n/NOTIF_STRINGS/getUserLang aquí sin avisar. Se hizo y se deshizo sin querer en 88d853b / 971ff0c.
+const NOTIF_ES = {
+  dailyChallenge:        { title: '⚡ Reto Diario', body: '¿Puedes predecir el gráfico de hoy? Un gráfico, una oportunidad.' },
+  marketOpen:            { title: '📈 Mercados abiertos', body: 'NYSE y NASDAQ acaban de abrir. Revisa tu portfolio.' },
+  marketClose:           { title: '🔔 Mercados cerrados', body: '¿Cómo ha ido tu portfolio hoy?' },
+  weeklyTournament:      { title: '🏆 ¡Nuevo torneo semanal!', body: 'El torneo de esta semana ya está activo — entra y sube en el ranking.' },
+  streakAtRisk:          (n) => ({ title: '🔥 ¡Tu racha está en peligro!', body: `Llevas ${n} días seguidos. Juega antes de medianoche.` }),
+  orderExecuted:         ({ type, name, qty, price }) => ({ title: '✅ Orden ejecutada', body: `Tu orden de ${type === 'buy' ? 'compra' : 'venta'} de ${qty} unidades de ${name} se ejecutó a $${price}.` }),
+  orderCancelled:        ({ name, reason }) => ({ title: '❌ Orden cancelada', body: `Tu orden de ${name} fue cancelada: ${reason}` }),
+  orderPartialExecution: ({ type, name, qty, executedQty, price }) => ({ title: '⚠️ Orden ejecutada parcialmente', body: `Tu orden de ${type === 'buy' ? 'compra' : 'venta'} de ${qty} unidades de ${name} se ejecutó parcialmente: ${executedQty} unidades a $${price}.` }),
 };
-
-async function getUserLang(userId) {
-  try {
-    const l = await redis.get(`push_user_lang:${userId}`);
-    return (l && NOTIF_STRINGS[l]) ? l : 'en';
-  } catch { return 'en'; }
-}
 
 // ── Cache ─────────────────────────────────────────────────────────
 async function cachedFetch(key, ttlSeconds, fetchFn) {
@@ -2226,7 +2207,6 @@ app.post('/push/subscribe', async (req, res) => {
     await saveSubscriptions(pushSubscriptions);
   }
   await redis.set(`push_user_sub:${decoded.id}`, JSON.stringify(sub));
-  if (lang && NOTIF_STRINGS[lang]) await redis.set(`push_user_lang:${decoded.id}`, lang);
   res.json({ ok: true });
 });
 
@@ -2270,7 +2250,6 @@ app.post('/push/apns-register', async (req, res) => {
   const { deviceToken, lang } = req.body;
   if (!deviceToken) return res.status(400).json({ error: 'No token' });
   await redis.set(`apns_token:${decoded.id}`, deviceToken);
-  if (lang && NOTIF_STRINGS[lang]) await redis.set(`push_user_lang:${decoded.id}`, lang);
   res.json({ ok: true });
 });
 
@@ -2710,6 +2689,11 @@ cron.schedule('*/15 * * * *', async () => {
 
 // ── Cron ──────────────────────────────────────────────────────────
 cron.schedule('0 8 * * *', async () => {
+  const lockDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid' }).format(new Date());
+  const lockKey  = `cron_lock:dailyChallenge:${lockDate}`;
+  const acquired = await redis.set(lockKey, '1', { nx: true, ex: 86400 });
+  if (!acquired) { console.log(`[daily-challenge-cron] ${lockKey} ya enviado, saltando`); return; }
+
   const userSubKeys = await redis.keys('push_user_sub:*');
   for (const key of userSubKeys) {
     const userId = key.replace('push_user_sub:', '');
@@ -2717,10 +2701,8 @@ cron.schedule('0 8 * * *', async () => {
     const subRaw = await redis.get(key);
     if (!subRaw) continue;
     try {
-      const sub  = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
-      const lang = await getUserLang(userId);
-      const s    = NOTIF_STRINGS[lang].dailyChallenge;
-      await webpush.sendNotification(sub, JSON.stringify({ ...s, url: 'https://tradiko.dev' })).catch(async err => {
+      const sub = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
+      await webpush.sendNotification(sub, JSON.stringify({ ...NOTIF_ES.dailyChallenge, url: 'https://tradiko.dev' })).catch(async err => {
         if (err.statusCode === 410) await redis.del(key);
       });
     } catch {}
@@ -2731,16 +2713,20 @@ cron.schedule('0 8 * * *', async () => {
     const deviceToken = await redis.get(key);
     if (!deviceToken) continue;
     try {
-      const lang = await getUserLang(userId);
-      const s    = NOTIF_STRINGS[lang].dailyChallenge;
+      const s = NOTIF_ES.dailyChallenge;
       await apnsClient.send(new Notification(deviceToken, { alert: { title: s.title, body: s.body }, sound: 'default', badge: 1 })).catch(() => {});
     } catch {}
   }
   console.log('[daily-challenge-cron] done');
-});
+}, { timezone: 'Europe/Madrid' });
 
 // Market open — 9:30 AM New York (timezone handles DST automatically)
 cron.schedule('30 9 * * 1-5', async () => {
+  const lockDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
+  const lockKey  = `cron_lock:marketOpen:${lockDate}`;
+  const acquired = await redis.set(lockKey, '1', { nx: true, ex: 86400 });
+  if (!acquired) { console.log(`[market-open-cron] ${lockKey} ya enviado, saltando`); return; }
+
   const userSubKeys = await redis.keys('push_user_sub:*');
   for (const key of userSubKeys) {
     const userId = key.replace('push_user_sub:', '');
@@ -2748,10 +2734,8 @@ cron.schedule('30 9 * * 1-5', async () => {
     const subRaw = await redis.get(key);
     if (!subRaw) continue;
     try {
-      const sub  = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
-      const lang = await getUserLang(userId);
-      const s    = NOTIF_STRINGS[lang].marketOpen;
-      await webpush.sendNotification(sub, JSON.stringify({ ...s, url: 'https://tradiko.dev' })).catch(async err => {
+      const sub = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
+      await webpush.sendNotification(sub, JSON.stringify({ ...NOTIF_ES.marketOpen, url: 'https://tradiko.dev' })).catch(async err => {
         if (err.statusCode === 410) await redis.del(key);
       });
     } catch {}
@@ -2762,8 +2746,7 @@ cron.schedule('30 9 * * 1-5', async () => {
     const deviceToken = await redis.get(key);
     if (!deviceToken) continue;
     try {
-      const lang = await getUserLang(userId);
-      const s    = NOTIF_STRINGS[lang].marketOpen;
+      const s = NOTIF_ES.marketOpen;
       await apnsClient.send(new Notification(deviceToken, { alert: { title: s.title, body: s.body }, sound: 'default', badge: 1 })).catch(() => {});
     } catch {}
   }
@@ -2772,6 +2755,11 @@ cron.schedule('30 9 * * 1-5', async () => {
 
 // Market close — 4:00 PM New York (timezone handles DST automatically)
 cron.schedule('0 16 * * 1-5', async () => {
+  const lockDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
+  const lockKey  = `cron_lock:marketClose:${lockDate}`;
+  const acquired = await redis.set(lockKey, '1', { nx: true, ex: 86400 });
+  if (!acquired) { console.log(`[market-close-cron] ${lockKey} ya enviado, saltando`); return; }
+
   const userSubKeys = await redis.keys('push_user_sub:*');
   for (const key of userSubKeys) {
     const userId = key.replace('push_user_sub:', '');
@@ -2779,10 +2767,8 @@ cron.schedule('0 16 * * 1-5', async () => {
     const subRaw = await redis.get(key);
     if (!subRaw) continue;
     try {
-      const sub  = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
-      const lang = await getUserLang(userId);
-      const s    = NOTIF_STRINGS[lang].marketClose;
-      await webpush.sendNotification(sub, JSON.stringify({ ...s, url: 'https://tradiko.dev' })).catch(async err => {
+      const sub = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
+      await webpush.sendNotification(sub, JSON.stringify({ ...NOTIF_ES.marketClose, url: 'https://tradiko.dev' })).catch(async err => {
         if (err.statusCode === 410) await redis.del(key);
       });
     } catch {}
@@ -2793,8 +2779,7 @@ cron.schedule('0 16 * * 1-5', async () => {
     const deviceToken = await redis.get(key);
     if (!deviceToken) continue;
     try {
-      const lang = await getUserLang(userId);
-      const s    = NOTIF_STRINGS[lang].marketClose;
+      const s = NOTIF_ES.marketClose;
       await apnsClient.send(new Notification(deviceToken, { alert: { title: s.title, body: s.body }, sound: 'default', badge: 1 })).catch(() => {});
     } catch {}
   }
@@ -2803,6 +2788,11 @@ cron.schedule('0 16 * * 1-5', async () => {
 
 // Weekly tournament creation — Monday 00:05 Madrid time
 cron.schedule('5 0 * * 1', async () => {
+  const lockDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid' }).format(new Date());
+  const lockKey  = `cron_lock:weeklyTournament:${lockDate}`;
+  const acquired = await redis.set(lockKey, '1', { nx: true, ex: 172800 });
+  if (!acquired) { console.log(`[tournament-cron] ${lockKey} ya enviado, saltando`); return; }
+
   try {
     const { created } = await ensureWeeklyTournament();
     if (!created) {
@@ -2817,10 +2807,8 @@ cron.schedule('5 0 * * 1', async () => {
       const subRaw = await redis.get(key);
       if (!subRaw) continue;
       try {
-        const sub  = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
-        const lang = await getUserLang(userId);
-        const s    = NOTIF_STRINGS[lang].weeklyTournament;
-        await webpush.sendNotification(sub, JSON.stringify({ ...s, url: 'https://tradiko.dev' })).catch(async err => {
+        const sub = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
+        await webpush.sendNotification(sub, JSON.stringify({ ...NOTIF_ES.weeklyTournament, url: 'https://tradiko.dev' })).catch(async err => {
           if (err.statusCode === 410) await redis.del(key);
         });
       } catch {}
@@ -2831,8 +2819,7 @@ cron.schedule('5 0 * * 1', async () => {
       const deviceToken = await redis.get(key);
       if (!deviceToken) continue;
       try {
-        const lang = await getUserLang(userId);
-        const s    = NOTIF_STRINGS[lang].weeklyTournament;
+        const s = NOTIF_ES.weeklyTournament;
         await apnsClient.send(new Notification(deviceToken, { alert: { title: s.title, body: s.body }, sound: 'default', badge: 1 })).catch(() => {});
       } catch {}
     }
@@ -2843,6 +2830,11 @@ cron.schedule('5 0 * * 1', async () => {
 }, { timezone: 'Europe/Madrid' });
 
 cron.schedule('0 7 * * 0', async () => {
+  const lockDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid' }).format(new Date());
+  const lockKey  = `cron_lock:portfolioRecap:${lockDate}`;
+  const acquired = await redis.set(lockKey, '1', { nx: true, ex: 86400 });
+  if (!acquired) { console.log(`[portfolio-recap-cron] ${lockKey} ya enviado, saltando`); return; }
+
   const now        = new Date();
   const dayOfWeek  = now.getDay(); // 0=domingo, 6=sábado
   const isWeekend  = dayOfWeek === 0 || dayOfWeek === 6;
@@ -2862,13 +2854,13 @@ cron.schedule('0 7 * * 0', async () => {
         const mondayDate = new Date(Date.now() - mondayOffset * 86400000).toISOString().split('T')[0];
         histEnd = await PortfolioHistory.findOne({ userId: portfolio.userId._id, date: fridayDate });
         histRef = await PortfolioHistory.findOne({ userId: portfolio.userId._id, date: mondayDate });
-        title   = '📊 Weekly recap';
+        title   = '📊 Resumen semanal';
       } else {
         const today     = new Date().toISOString().split('T')[0];
         const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
         histEnd = await PortfolioHistory.findOne({ userId: portfolio.userId._id, date: today });
         histRef = await PortfolioHistory.findOne({ userId: portfolio.userId._id, date: yesterday });
-        title   = '📊 Portfolio update';
+        title   = '📊 Actualización de portfolio';
       }
 
       if (!histEnd || !histRef) continue;
@@ -2877,7 +2869,7 @@ cron.schedule('0 7 * * 0', async () => {
       const sign      = change >= 0 ? '+' : '';
       await sendPushToUser(portfolio.userId._id, {
         title,
-        body:  `${sign}${changePct}% (${sign}${change.toFixed(0)}) · Total value: ${histEnd.totalValue.toFixed(0)}`,
+        body:  `${sign}${changePct}% (${sign}${change.toFixed(0)}) · Valor total: ${histEnd.totalValue.toFixed(0)}`,
         url:   'https://tradiko.dev',
       });
     } catch (e) {
@@ -2887,6 +2879,11 @@ cron.schedule('0 7 * * 0', async () => {
 }, { timezone: 'Europe/Madrid' });
 
 cron.schedule('0 21 * * *', async () => {
+  const lockDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid' }).format(new Date());
+  const lockKey  = `cron_lock:streakRisk:${lockDate}`;
+  const acquired = await redis.set(lockKey, '1', { nx: true, ex: 86400 });
+  if (!acquired) { console.log(`[streak-cron] ${lockKey} ya enviado, saltando`); return; }
+
   const now = new Date();
   const todayMadrid = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Madrid' })).toISOString().split('T')[0];
   console.log(`[streak-cron] Fired at ${now.toISOString()} — today (Madrid): ${todayMadrid}`);
@@ -2908,9 +2905,7 @@ cron.schedule('0 21 * * *', async () => {
       const apnsRaw = await redis.get(`apns_token:${user._id}`);
       console.log(`[streak-cron] user=${user._id} streak=${user.dailyStreak} lastPlayed=${user.lastPlayed} hasSub=${!!subRaw} hasApns=${!!apnsRaw}`);
       if (!subRaw && !apnsRaw) continue;
-      const lang = await getUserLang(user._id);
-      const streakStrings = NOTIF_STRINGS[lang].streakAtRisk(user.dailyStreak);
-      await sendPushToUser(user._id, { ...streakStrings, url: 'https://tradiko.dev' });
+      await sendPushToUser(user._id, { ...NOTIF_ES.streakAtRisk(user.dailyStreak), url: 'https://tradiko.dev' });
       sent++;
     } catch (e) {
       console.error(`[streak-cron] Error for user ${user._id}:`, e.message);
@@ -2955,9 +2950,7 @@ cron.schedule('* * * * 1-5', async () => {
       order.status = 'cancelled';
       order.cancelReason = reason;
       await order.save();
-      const lang = await getUserLang(order.userId);
-      const s = NOTIF_STRINGS[lang] || NOTIF_STRINGS.en;
-      await sendPushToUser(order.userId, { ...s.orderCancelled({ name: order.name, reason }), url: 'https://tradiko.dev' });
+      await sendPushToUser(order.userId, { ...NOTIF_ES.orderCancelled({ name: order.name, reason }), url: 'https://tradiko.dev' });
     }
 
     for (const order of pendingOrders) {
@@ -2999,13 +2992,11 @@ cron.schedule('* * * * 1-5', async () => {
           order.executedPrice = execPrice;
           order.executedQty = execQty;
           await order.save();
-          const lang = await getUserLang(order.userId);
-          const s = NOTIF_STRINGS[lang] || NOTIF_STRINGS.en;
           const isPartial = execQty < order.qty;
           await sendPushToUser(order.userId, {
             ...(isPartial
-              ? s.orderPartialExecution({ type: order.type, name: order.name, qty: parseFloat(order.qty.toFixed(4)), executedQty: parseFloat(execQty.toFixed(4)), price: execPrice.toFixed(2) })
-              : s.orderExecuted({ type: order.type, name: order.name, qty: order.qty, price: execPrice.toFixed(2) })),
+              ? NOTIF_ES.orderPartialExecution({ type: order.type, name: order.name, qty: parseFloat(order.qty.toFixed(4)), executedQty: parseFloat(execQty.toFixed(4)), price: execPrice.toFixed(2) })
+              : NOTIF_ES.orderExecuted({ type: order.type, name: order.name, qty: order.qty, price: execPrice.toFixed(2) })),
             url: 'https://tradiko.dev',
           });
           console.log(`[portfolio-orders-cron] Executed buy ${execQty}/${order.qty}x${order.symbol} @ $${execPrice} for userId=${order.userId}`);
@@ -3025,10 +3016,8 @@ cron.schedule('* * * * 1-5', async () => {
           order.executedPrice = execPrice;
           order.executedQty = order.qty;
           await order.save();
-          const lang = await getUserLang(order.userId);
-          const s = NOTIF_STRINGS[lang] || NOTIF_STRINGS.en;
           await sendPushToUser(order.userId, {
-            ...s.orderExecuted({ type: order.type, name: order.name, qty: order.qty, price: execPrice.toFixed(2) }),
+            ...NOTIF_ES.orderExecuted({ type: order.type, name: order.name, qty: order.qty, price: execPrice.toFixed(2) }),
             url: 'https://tradiko.dev',
           });
           console.log(`[portfolio-orders-cron] Executed sell ${order.qty}x${order.symbol} @ $${execPrice} for userId=${order.userId}`);
