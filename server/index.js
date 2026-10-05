@@ -2223,25 +2223,9 @@ app.post('/push/unsubscribe', async (req, res) => {
   res.json({ ok: true });
 });
 
-app.post('/push/send', async (req, res) => {
-  const key = req.headers['x-admin-secret'];
-  if (!ADMIN_SECRET || key !== ADMIN_SECRET) return res.status(403).json({ error: 'Forbidden' });
-  pushSubscriptions = await loadSubscriptions();
-  const payload = JSON.stringify({
-    title: '⚡ Daily Challenge',
-    body:  "Can you call today's chart? One chart, one shot.",
-    url:   'https://tradiko.dev',
-  });
-  const promises = pushSubscriptions.map(sub =>
-    webpush.sendNotification(sub, payload).catch(async err => {
-      if (err.statusCode === 410) {
-        pushSubscriptions = pushSubscriptions.filter(s => s.endpoint !== sub.endpoint);
-        await saveSubscriptions(pushSubscriptions);
-      }
-    })
-  );
-  await Promise.all(promises);
-  res.json({ ok: true, sent: pushSubscriptions.length });
+app.post('/push/send', (req, res) => {
+  // Deprecated 2026-10-05: bypasaba sendPushToUser, los cron_lock y el idioma. Usar el cron de daily challenge.
+  res.status(410).json({ error: 'Gone — endpoint desactivado, usar cron' });
 });
 
 app.post('/push/apns-register', async (req, res) => {
@@ -2688,10 +2672,11 @@ cron.schedule('*/15 * * * *', async () => {
 });
 
 // ── Cron ──────────────────────────────────────────────────────────
-cron.schedule('0 8 * * *', async () => {
+cron.schedule('0 9 * * *', async () => {
+  console.log(`[daily-challenge-cron] START ${new Date().toISOString()} pid=${process.pid} replica=${process.env.RAILWAY_REPLICA_ID || 'none'} deploy=${process.env.RAILWAY_DEPLOYMENT_ID || 'none'}`);
   const lockDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid' }).format(new Date());
   const lockKey  = `cron_lock:dailyChallenge:${lockDate}`;
-  const acquired = await redis.set(lockKey, '1', { nx: true, ex: 86400 });
+  const acquired = await redis.set(lockKey, '1', { nx: true, ex: 93600 });
   if (!acquired) { console.log(`[daily-challenge-cron] ${lockKey} ya enviado, saltando`); return; }
 
   const userSubKeys = await redis.keys('push_user_sub:*');
@@ -2722,9 +2707,10 @@ cron.schedule('0 8 * * *', async () => {
 
 // Market open — 9:30 AM New York (timezone handles DST automatically)
 cron.schedule('30 9 * * 1-5', async () => {
+  console.log(`[market-open-cron] START ${new Date().toISOString()} pid=${process.pid} replica=${process.env.RAILWAY_REPLICA_ID || 'none'} deploy=${process.env.RAILWAY_DEPLOYMENT_ID || 'none'}`);
   const lockDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
   const lockKey  = `cron_lock:marketOpen:${lockDate}`;
-  const acquired = await redis.set(lockKey, '1', { nx: true, ex: 86400 });
+  const acquired = await redis.set(lockKey, '1', { nx: true, ex: 93600 });
   if (!acquired) { console.log(`[market-open-cron] ${lockKey} ya enviado, saltando`); return; }
 
   const userSubKeys = await redis.keys('push_user_sub:*');
@@ -2755,9 +2741,10 @@ cron.schedule('30 9 * * 1-5', async () => {
 
 // Market close — 4:00 PM New York (timezone handles DST automatically)
 cron.schedule('0 16 * * 1-5', async () => {
+  console.log(`[market-close-cron] START ${new Date().toISOString()} pid=${process.pid} replica=${process.env.RAILWAY_REPLICA_ID || 'none'} deploy=${process.env.RAILWAY_DEPLOYMENT_ID || 'none'}`);
   const lockDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
   const lockKey  = `cron_lock:marketClose:${lockDate}`;
-  const acquired = await redis.set(lockKey, '1', { nx: true, ex: 86400 });
+  const acquired = await redis.set(lockKey, '1', { nx: true, ex: 93600 });
   if (!acquired) { console.log(`[market-close-cron] ${lockKey} ya enviado, saltando`); return; }
 
   const userSubKeys = await redis.keys('push_user_sub:*');
@@ -2788,6 +2775,7 @@ cron.schedule('0 16 * * 1-5', async () => {
 
 // Weekly tournament creation — Monday 00:05 Madrid time
 cron.schedule('5 0 * * 1', async () => {
+  console.log(`[tournament-cron] START ${new Date().toISOString()} pid=${process.pid} replica=${process.env.RAILWAY_REPLICA_ID || 'none'} deploy=${process.env.RAILWAY_DEPLOYMENT_ID || 'none'}`);
   const lockDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid' }).format(new Date());
   const lockKey  = `cron_lock:weeklyTournament:${lockDate}`;
   const acquired = await redis.set(lockKey, '1', { nx: true, ex: 172800 });
@@ -2830,9 +2818,10 @@ cron.schedule('5 0 * * 1', async () => {
 }, { timezone: 'Europe/Madrid' });
 
 cron.schedule('0 7 * * 0', async () => {
+  console.log(`[portfolio-recap-cron] START ${new Date().toISOString()} pid=${process.pid} replica=${process.env.RAILWAY_REPLICA_ID || 'none'} deploy=${process.env.RAILWAY_DEPLOYMENT_ID || 'none'}`);
   const lockDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid' }).format(new Date());
   const lockKey  = `cron_lock:portfolioRecap:${lockDate}`;
-  const acquired = await redis.set(lockKey, '1', { nx: true, ex: 86400 });
+  const acquired = await redis.set(lockKey, '1', { nx: true, ex: 93600 });
   if (!acquired) { console.log(`[portfolio-recap-cron] ${lockKey} ya enviado, saltando`); return; }
 
   const now        = new Date();
@@ -2879,9 +2868,10 @@ cron.schedule('0 7 * * 0', async () => {
 }, { timezone: 'Europe/Madrid' });
 
 cron.schedule('0 21 * * *', async () => {
+  console.log(`[streak-cron] START ${new Date().toISOString()} pid=${process.pid} replica=${process.env.RAILWAY_REPLICA_ID || 'none'} deploy=${process.env.RAILWAY_DEPLOYMENT_ID || 'none'}`);
   const lockDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid' }).format(new Date());
   const lockKey  = `cron_lock:streakRisk:${lockDate}`;
-  const acquired = await redis.set(lockKey, '1', { nx: true, ex: 86400 });
+  const acquired = await redis.set(lockKey, '1', { nx: true, ex: 93600 });
   if (!acquired) { console.log(`[streak-cron] ${lockKey} ya enviado, saltando`); return; }
 
   const now = new Date();
