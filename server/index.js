@@ -2919,22 +2919,64 @@ cron.schedule('0 0 * * *', async () => {
   }
 });
 
+// ── Weekly portfolio snapshot cron (Monday 00:05 UTC) ───────────────────────
+// Creates/updates the Monday baseline snapshot for every active portfolio
+// BEFORE the market opens and BEFORE any orders can be reserved. This ensures
+// the weekly-leaderboard baseline always reflects true equity at week start.
+cron.schedule('5 0 * * 1', async () => {
+  const lockDate  = new Date().toISOString().split('T')[0];
+  const lockKey   = `cron_lock:weeklySnapshot:${lockDate}`;
+  const acquired  = await redis.set(lockKey, '1', { nx: true, ex: 86400 });
+  if (!acquired) return;
+
+  console.log(`[weekly-snapshot-cron] START ${new Date().toISOString()} pid=${process.pid}`);
+  try {
+    const portfolios = await Portfolio.find({}).lean();
+    let saved = 0, skipped = 0;
+    for (const p of portfolios) {
+      try {
+        const totalValue = await getPortfolioValue(p.userId, p.slot ?? 0);
+        if (totalValue < MIN_PORTFOLIO_SNAPSHOT_VALUE) {
+          console.warn(`[weekly-snapshot-cron] Skipped userId=${p.userId} slot=${p.slot ?? 0} value=$${totalValue.toFixed(4)}`);
+          skipped++;
+          continue;
+        }
+        const filter = (p.slot ?? 0) === 1
+          ? { userId: p.userId, date: lockDate, slot: 1 }
+          : { userId: p.userId, date: lockDate, slot: { $in: [0, null] } };
+        await PortfolioHistory.findOneAndUpdate(filter, { $set: { totalValue, slot: p.slot ?? 0 } }, { upsert: true });
+        saved++;
+      } catch (err) {
+        console.error(`[weekly-snapshot-cron] Error userId=${p.userId}:`, err.message);
+      }
+    }
+    console.log(`[weekly-snapshot-cron] Done — saved=${saved} skipped=${skipped}`);
+  } catch (err) {
+    console.error('[weekly-snapshot-cron] Fatal:', err.message);
+  }
+});
+
 // ── Portfolio pending orders execution (fires every minute, executes once at market open) ─
-let lastOrderExecutionDate = null;
+// Uses a Redis distributed lock so only one replica runs this per day, plus
+// atomic per-order claiming (pending → processing) to prevent double execution
+// on concurrent invocations.
 cron.schedule('* * * * 1-5', async () => {
   if (!isPortfolioMarketOpen('stock')) return;
-  const todayNY = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
-  if (lastOrderExecutionDate === todayNY) return;
-  lastOrderExecutionDate = todayNY;
 
+  const todayNY  = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
+  const lockKey  = `cron_lock:portfolioOrders:${todayNY}`;
+  const acquired = await redis.set(lockKey, '1', { nx: true, ex: 7200 });
+  if (!acquired) return; // another replica already running / already ran today
+
+  console.log(`[portfolio-orders-cron] START ${new Date().toISOString()} pid=${process.pid} replica=${process.env.RAILWAY_REPLICA_ID || 'none'}`);
   const PortfolioOrder = mongoose.model('PortfolioOrder');
   try {
-    const pendingOrders = await PortfolioOrder.find({ status: 'pending' });
-    if (!pendingOrders.length) {
+    const pendingIds = await PortfolioOrder.distinct('_id', { status: 'pending' });
+    if (!pendingIds.length) {
       console.log('[portfolio-orders-cron] No pending orders at market open');
       return;
     }
-    console.log(`[portfolio-orders-cron] Executing ${pendingOrders.length} pending order(s)`);
+    console.log(`[portfolio-orders-cron] Executing ${pendingIds.length} pending order(s)`);
 
     async function cancelOrder(order, reason) {
       order.status = 'cancelled';
@@ -2943,13 +2985,21 @@ cron.schedule('* * * * 1-5', async () => {
       await sendPushToUser(order.userId, { ...NOTIF_ES.orderCancelled({ name: order.name, reason }), url: 'https://tradiko.dev' });
     }
 
-    for (const order of pendingOrders) {
+    for (const orderId of pendingIds) {
+      // Atomically claim: only one replica/process can change pending → processing
+      const order = await PortfolioOrder.findOneAndUpdate(
+        { _id: orderId, status: 'pending' },
+        { $set: { status: 'processing' } },
+        { new: true }
+      );
+      if (!order) continue; // already claimed by another invocation
+
       try {
         const asset = PORTFOLIO_ASSETS.find(a => a.symbol === order.symbol);
         if (!asset) { await cancelOrder(order, 'asset_not_found'); continue; }
         const priceData = await getPrice(asset);
         const execPrice = priceData.price;
-        const portfolio = await Portfolio.findOne({ userId: order.userId });
+        const portfolio = await Portfolio.findOne(portfolioFilter(order.userId, 0));
         if (!portfolio) { await cancelOrder(order, 'portfolio_not_found'); continue; }
 
         if (order.type === 'buy') {
@@ -3013,6 +3063,8 @@ cron.schedule('* * * * 1-5', async () => {
           console.log(`[portfolio-orders-cron] Executed sell ${order.qty}x${order.symbol} @ $${execPrice} for userId=${order.userId}`);
         }
       } catch (err) {
+        // Revert to pending so a manual retry or future run can recover it
+        await PortfolioOrder.updateOne({ _id: order._id }, { $set: { status: 'pending' } }).catch(() => {});
         console.error(`[portfolio-orders-cron] Error on order ${order._id}:`, err.message);
       }
     }
@@ -3280,6 +3332,35 @@ app.post('/academias/tutorial-seen', async (req, res) => {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
     await User.findByIdAndUpdate(decoded.id, { academiasTutorialSeen: true });
     res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/admin/reset-portfolio/:username', async (req, res) => {
+  const key = req.headers['x-admin-secret'];
+  if (!ADMIN_SECRET || key !== ADMIN_SECRET) return res.status(403).json({ error: 'Forbidden' });
+  try {
+    const user = await User.findOne({ username: req.params.username.toLowerCase() });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    const PortfolioOrder = mongoose.model('PortfolioOrder');
+    // Cancel any pending/processing orders (return reserved cash is irrelevant after reset)
+    await PortfolioOrder.updateMany(
+      { userId: user._id, status: { $in: ['pending', 'processing'] } },
+      { $set: { status: 'cancelled', cancelReason: 'admin_portfolio_reset' } }
+    );
+    // Reset portfolio to initial state
+    await Portfolio.findOneAndUpdate(
+      { userId: user._id, slot: { $in: [0, null] } },
+      { $set: { cash: 50000, positions: [], transactions: [] } },
+      { upsert: true }
+    );
+    // Remove all history snapshots so no stale baseline survives
+    await PortfolioHistory.deleteMany({ userId: user._id, slot: { $in: [0, null] } });
+    redis.del(`portfolio:${user._id}`).catch(() => {});
+    redis.del(`portfolio:${user._id}:0`).catch(() => {});
+    console.log(`[admin] Portfolio reset to $50k for username=${req.params.username} userId=${user._id}`);
+    res.json({ ok: true, username: req.params.username, cash: 50000 });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -3766,6 +3847,8 @@ app.get('/portfolio/candles/:symbol', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+const MIN_PORTFOLIO_SNAPSHOT_VALUE = 100; // below $100 is always a bug; initial capital is $50k
+
 app.post('/portfolio/snapshot', async (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'No token' });
@@ -3773,6 +3856,10 @@ app.post('/portfolio/snapshot', async (req, res) => {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
     const slot = Number(req.body?.slot ?? req.query?.slot) === 1 ? 1 : 0;
     const totalValue = await getPortfolioValue(decoded.id, slot);
+    if (totalValue < MIN_PORTFOLIO_SNAPSHOT_VALUE) {
+      console.warn(`[snapshot] Skipped suspiciously low equity $${totalValue.toFixed(4)} for userId=${decoded.id} slot=${slot}`);
+      return res.json({ ok: true, skipped: true });
+    }
     const date = new Date().toISOString().split('T')[0];
     const histFilter = slot === 1
       ? { userId: decoded.id, date, slot: 1 }
@@ -3849,12 +3936,23 @@ app.get('/portfolio/weekly/leaderboard', async (req, res) => {
     const priceMap   = {};
     prices.filter(Boolean).forEach(p => { priceMap[p.symbol] = p.price; });
 
+    const MIN_VALID_BASELINE = 100; // below $100 is always a corrupt snapshot
+    const MAX_RETURN_PCT = 10000; // 100x in a week is the absolute cap we display
+
     const allLeaderboard = portfolios.map(p => {
       const slotNum    = p.slot ?? 0;
       const invested   = p.positions.reduce((s, pos) => s + (priceMap[pos.symbol] || pos.avgPrice) * pos.qty, 0);
       const totalValue = p.cash + invested;
-      const baseline   = baselineMap[`${p.userId?._id}:${slotNum}`] ?? 50000;
-      const returnPct  = ((totalValue - baseline) / baseline) * 100;
+      const rawBaseline = baselineMap[`${p.userId?._id}:${slotNum}`];
+      if (rawBaseline != null && rawBaseline < MIN_VALID_BASELINE) {
+        console.warn(`[leaderboard] Corrupt baseline $${rawBaseline} for userId=${p.userId?._id} slot=${slotNum} — using 50000`);
+      }
+      const baseline   = (rawBaseline != null && rawBaseline >= MIN_VALID_BASELINE) ? rawBaseline : 50000;
+      const rawPct     = ((totalValue - baseline) / baseline) * 100;
+      if (Math.abs(rawPct) > MAX_RETURN_PCT) {
+        console.warn(`[leaderboard] Clamping absurd returnPct ${rawPct.toFixed(2)}% → ${rawPct > 0 ? MAX_RETURN_PCT : -MAX_RETURN_PCT}% for userId=${p.userId?._id}`);
+      }
+      const returnPct  = Math.max(-100, Math.min(MAX_RETURN_PCT, rawPct));
       return {
         userId:           String(p.userId?._id || ''),
         name:             p.userId?.username || p.userId?.name || 'Anonymous',
@@ -3947,8 +4045,13 @@ async function getPortfolioValue(userId, slot = 0) {
         if (c) { const p = typeof c === 'string' ? JSON.parse(c) : c; priceMap[p.symbol] = p.price; }
       } catch {}
     }));
+    // Include cash reserved for pending buy orders — without this, an all-in
+    // user with no positions yet shows near-zero equity and corrupts the snapshot baseline.
+    const PortfolioOrder = mongoose.model('PortfolioOrder');
+    const pendingBuys = await PortfolioOrder.find({ userId, type: 'buy', status: { $in: ['pending', 'processing'] } });
+    const reservedCash = pendingBuys.reduce((s, o) => s + (o.reservedCash || 0), 0);
     const invested = portfolio.positions.reduce((s, pos) => s + (priceMap[pos.symbol] || pos.avgPrice) * pos.qty, 0);
-    return portfolio.cash + invested;
+    return portfolio.cash + reservedCash + invested;
   } catch { return 50000; }
 }
 
