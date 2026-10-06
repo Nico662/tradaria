@@ -87,12 +87,7 @@ export default function Survival({ onBack }) {
     const candles   = chartRef.current.getCandles();
     const lastClose = candles[candles.length - 1].close;
     const future    = chartRef.current.getRealReveal?.() ?? null;
-    if (!future || !future.length) {
-      setAsset(randomAsset());
-      setResult(null);
-      setSelected(null);
-      return;
-    }
+    if (!future || !future.length) return;
 
     playClick();
     setSelected(choice);
