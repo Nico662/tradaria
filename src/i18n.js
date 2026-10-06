@@ -38,6 +38,7 @@ export const LANGS = {
       back: '← menu', mode: 'Classic Mode', points: 'Points', accuracy: 'Accuracy', newHighscore: '★ new highscore!', best: 'Best',
       guessTheMarket: 'GUESS THE MARKET', trend: 'trend', last5: 'last 5', change: 'change', volatility: 'volatility', low: 'low', medium: 'medium', high: 'high', price: 'price',
       xpToNext: 'in {n} XP',
+      chartError: 'Failed to load chart data', retry: 'Retry',
     },
     gameover: {
       title: 'game over — 25 rounds', finalScore: 'final score',
@@ -737,6 +738,7 @@ export const LANGS = {
       back: '← menú', mode: 'Classic Mode', points: 'Puntos', accuracy: 'Precisión', newHighscore: '★ ¡nuevo récord!', best: 'Mejor',
       guessTheMarket: 'ADIVINA EL MERCADO', trend: 'tendencia', last5: 'últimas 5', change: 'cambio', volatility: 'volatilidad', low: 'baja', medium: 'media', high: 'alta', price: 'precio',
       xpToNext: 'en {n} XP',
+      chartError: 'Error al cargar datos del gráfico', retry: 'Reintentar',
     },
     gameover: {
       title: 'fin — 25 rondas', finalScore: 'puntuación final',
@@ -1441,6 +1443,7 @@ export const LANGS = {
       back: '← Menü', mode: 'Classic Mode', points: 'Punkte', accuracy: 'Genauigkeit', newHighscore: '★ neuer Rekord!', best: 'Beste',
       guessTheMarket: 'MARKT RATEN', trend: 'Trend', last5: 'letzte 5', change: 'Änderung', volatility: 'Volatilität', low: 'niedrig', medium: 'mittel', high: 'hoch', price: 'Preis',
       xpToNext: 'in {n} XP',
+      chartError: 'Fehler beim Laden der Chart-Daten', retry: 'Erneut versuchen',
     },
     gameover: {
       title: 'spiel vorbei — 25 runden', finalScore: 'endpunktzahl',

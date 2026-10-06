@@ -1,9 +1,12 @@
 import { createChart, CandlestickSeries } from "lightweight-charts";
-import { useEffect, useRef, useImperativeHandle, forwardRef } from "react";
-import { SERVER, ALPHA_VANTAGE_KEY } from './config.js';
+import { useState, useEffect, useRef, useImperativeHandle, forwardRef } from "react";
+import { SERVER } from './config.js';
+import { useLang } from './LangContext.jsx';
 
 const FOREX = ['EUR/USD','GBP/USD','AUD/USD','USD/JPY','USD/CHF','USD/CAD'];
 
+// generateCandles is kept for potential demo/tutorial use (TradingMode has its own copy).
+// Not used in any scored game mode.
 function generateCandles(n, startPrice, vol, trend = 0) {
   const out = [];
   let price = startPrice;
@@ -19,43 +22,12 @@ function generateCandles(n, startPrice, vol, trend = 0) {
   return out;
 }
 
-async function fetchBinanceCandles(symbol, interval, limit) {
-  const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`;
+async function fetchBackendCandles(symbol, interval) {
+  const url = `${SERVER}/candles?symbol=${encodeURIComponent(symbol)}&interval=${interval}&limit=700`;
   const res  = await fetch(url);
   const data = await res.json();
-  return data.map(k => ({
-    time:  Math.floor(k[0] / 1000),
-    open:  parseFloat(k[1]),
-    high:  parseFloat(k[2]),
-    low:   parseFloat(k[3]),
-    close: parseFloat(k[4]),
-  }));
-}
-
-async function fetchYahooCandles(symbol, interval) {
-  const res  = await fetch(`${SERVER}/candles?symbol=${encodeURIComponent(symbol)}&interval=${interval}`);
-  const data = await res.json();
-  if (data.error) throw new Error(data.error);
+  if (!res.ok || data.error) throw new Error(data.error || 'Server error');
   return data;
-}
-
-async function fetchAlphaVantageCandles(symbol, interval) {
-  const apiKey = ALPHA_VANTAGE_KEY;
-  const url = `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${symbol}&interval=${interval}&outputsize=full&apikey=${apiKey}`;
-  const res  = await fetch(url);
-  const data = await res.json();
-  const key    = `Time Series (${interval})`;
-  const series = data[key];
-  if (!series) throw new Error('No data from Alpha Vantage');
-  return Object.entries(series)
-    .map(([time, v]) => ({
-      time:  Math.floor(new Date(time).getTime() / 1000),
-      open:  parseFloat(v['1. open']),
-      high:  parseFloat(v['2. high']),
-      low:   parseFloat(v['3. low']),
-      close: parseFloat(v['4. close']),
-    }))
-    .reverse();
 }
 
 function toChartData(candles, startIndex = 0) {
@@ -112,6 +84,7 @@ function getChartHeight() {
 }
 
 const Chart = forwardRef(function Chart({ asset, externalCandles, onReady }, ref) {
+  const { t }         = useLang();
   const containerRef  = useRef(null);
   const chartRef      = useRef(null);
   const seriesRef     = useRef(null);
@@ -120,6 +93,9 @@ const Chart = forwardRef(function Chart({ asset, externalCandles, onReady }, ref
   const isForexRef    = useRef(false);
   const isUnixRef     = useRef(false);
   const allCandlesRef = useRef([]);
+
+  const [fetchError, setFetchError] = useState(false);
+  const [retryKey,   setRetryKey]   = useState(0);
 
   useImperativeHandle(ref, () => ({
     getCandles: () => candlesRef.current,
@@ -199,69 +175,13 @@ const Chart = forwardRef(function Chart({ asset, externalCandles, onReady }, ref
 
     let chart;
     let ro;
+    let cancelled = false;
 
     const timer = setTimeout(() => {
-      if (!containerRef.current) return;
+      if (!containerRef.current || cancelled) return;
 
       const forex = FOREX.includes(asset.name);
       isForexRef.current = forex;
-
-      chart = createChart(containerRef.current, {
-        width:  containerRef.current.clientWidth,
-        height: getChartHeight(),
-        layout: { background: { type: 'solid', color: '#111111' }, textColor: '#555555' },
-        grid: {
-          vertLines: { color: 'rgba(255,255,255,0.04)' },
-          horzLines: { color: 'rgba(255,255,255,0.04)' },
-        },
-        rightPriceScale: { borderColor: 'transparent' },
-        timeScale: {
-          borderColor:  'transparent',
-          barSpacing:   6,
-          rightOffset:  3,
-          timeVisible:  false,
-          visible:      false,
-          fixLeftEdge:  true,
-          fixRightEdge: false,
-        },
-        localization: {
-          priceFormatter: (price) => {
-            if (isForexRef.current) return price.toFixed(4);
-            return price.toFixed(2);
-          },
-        },
-        crosshair: {
-          mode: 0,
-          vertLine: { color: 'rgba(224,85,133,0.4)', labelBackgroundColor: '#e05585' },
-          horzLine: { color: 'rgba(0,192,135,0.4)',   labelBackgroundColor: '#00c087' },
-        },
-        handleScroll: true,
-        handleScale:  true,
-      });
-
-      const series = chart.addSeries(CandlestickSeries, {
-        upColor:         '#00c087',
-        downColor:       '#e05585',
-        borderUpColor:   '#00c087',
-        borderDownColor: '#e05585',
-        wickUpColor:     '#00c087',
-        wickDownColor:   '#e05585',
-        priceFormat: forex
-          ? { type: 'price', precision: 4, minMove: 0.0001 }
-          : { type: 'price', precision: 2, minMove: 0.01 },
-      });
-
-      series.applyOptions({
-        upColor:         '#00c087',
-        downColor:       '#e05585',
-        borderUpColor:   '#00c087',
-        borderDownColor: '#e05585',
-        wickUpColor:     '#00c087',
-        wickDownColor:   '#e05585',
-      });
-
-      chartRef.current  = chart;
-      seriesRef.current = series;
 
       // ── External candles (Portfolio Mode) ────────────────────────
       if (externalCandles && externalCandles.length > 0) {
@@ -278,6 +198,32 @@ const Chart = forwardRef(function Chart({ asset, externalCandles, onReady }, ref
         const dates            = cleaned.map(c => new Date(c.time * 1000).toDateString());
         const hasDuplicateDates = dates.length !== new Set(dates).size;
         isUnixRef.current      = isForexAsset || hasDuplicateDates;
+
+        chart = createChart(containerRef.current, {
+          width:  containerRef.current.clientWidth,
+          height: getChartHeight(),
+          layout: { background: { type: 'solid', color: '#111111' }, textColor: '#555555' },
+          grid: {
+            vertLines: { color: 'rgba(255,255,255,0.04)' },
+            horzLines: { color: 'rgba(255,255,255,0.04)' },
+          },
+          rightPriceScale: { borderColor: 'transparent' },
+          timeScale: { borderColor: 'transparent', barSpacing: 6, rightOffset: 3, timeVisible: false, visible: false, fixLeftEdge: true, fixRightEdge: false },
+          localization: { priceFormatter: (price) => isForexRef.current ? price.toFixed(4) : price.toFixed(2) },
+          crosshair: { mode: 0, vertLine: { color: 'rgba(224,85,133,0.4)', labelBackgroundColor: '#e05585' }, horzLine: { color: 'rgba(0,192,135,0.4)', labelBackgroundColor: '#00c087' } },
+          handleScroll: true,
+          handleScale:  true,
+        });
+        chartRef.current = chart;
+
+        const series = chart.addSeries(CandlestickSeries, {
+          upColor: '#00c087', downColor: '#e05585',
+          borderUpColor: '#00c087', borderDownColor: '#e05585',
+          wickUpColor: '#00c087', wickDownColor: '#e05585',
+          priceFormat: isForexAsset ? { type: 'price', precision: 4, minMove: 0.0001 } : { type: 'price', precision: 2, minMove: 0.01 },
+        });
+        seriesRef.current = series;
+
         const mapped           = (isForexAsset || hasDuplicateDates) ? toChartDataForex(cleaned, 0) : toChartData(cleaned, 0);
         allCandlesRef.current  = cleaned;
         candlesRef.current     = cleaned;
@@ -285,6 +231,7 @@ const Chart = forwardRef(function Chart({ asset, externalCandles, onReady }, ref
         series.setData(mapped);
         chart.timeScale().fitContent();
         if (onReady) onReady();
+
         ro = new ResizeObserver(() => {
           if (containerRef.current) chart.applyOptions({ width: containerRef.current.clientWidth });
         });
@@ -292,28 +239,79 @@ const Chart = forwardRef(function Chart({ asset, externalCandles, onReady }, ref
         return;
       }
 
-      // ── Normal candles ────────────────────────────────────────────
+      // ── Normal candles — fetch from backend, then build chart ─────
       const interval = forex ? '1h'
         : asset.tf === '1m'  ? '1m'
         : asset.tf === '5m'  ? '5m'
         : asset.tf === '15m' ? '15m'
         : '1d';
 
-      const isOnline = navigator.onLine;
-
-      const loadCandles = !isOnline
-        ? Promise.resolve(generateCandles(700, asset.base(), asset.vol))
-        : asset._dailyVisible
+      const loadPromise = asset._dailyVisible
         ? Promise.resolve([...asset._dailyVisible, ...asset._dailyFuture])
-        : asset.binance
-        ? fetchBinanceCandles(asset.binance, interval, 700)
-        : asset.alphavantage
-        ? fetchAlphaVantageCandles(asset.alphavantage, asset.tf === '1m' ? '1min' : asset.tf === '5m' ? '5min' : '15min')
-        : asset.yahoo
-        ? fetchYahooCandles(asset.yahoo, interval)
-        : Promise.resolve(generateCandles(700, asset.base(), asset.vol));
+        : asset.candle
+        ? fetchBackendCandles(asset.candle, interval)
+        : Promise.reject(new Error('No candle symbol for ' + asset.name));
 
-      loadCandles.then(candles => {
+      loadPromise.then(candles => {
+        if (cancelled || !containerRef.current) return;
+
+        chart = createChart(containerRef.current, {
+          width:  containerRef.current.clientWidth,
+          height: getChartHeight(),
+          layout: { background: { type: 'solid', color: '#111111' }, textColor: '#555555' },
+          grid: {
+            vertLines: { color: 'rgba(255,255,255,0.04)' },
+            horzLines: { color: 'rgba(255,255,255,0.04)' },
+          },
+          rightPriceScale: { borderColor: 'transparent' },
+          timeScale: {
+            borderColor:  'transparent',
+            barSpacing:   6,
+            rightOffset:  3,
+            timeVisible:  false,
+            visible:      false,
+            fixLeftEdge:  true,
+            fixRightEdge: false,
+          },
+          localization: {
+            priceFormatter: (price) => {
+              if (isForexRef.current) return price.toFixed(4);
+              return price.toFixed(2);
+            },
+          },
+          crosshair: {
+            mode: 0,
+            vertLine: { color: 'rgba(224,85,133,0.4)', labelBackgroundColor: '#e05585' },
+            horzLine: { color: 'rgba(0,192,135,0.4)',   labelBackgroundColor: '#00c087' },
+          },
+          handleScroll: true,
+          handleScale:  true,
+        });
+
+        const series = chart.addSeries(CandlestickSeries, {
+          upColor:         '#00c087',
+          downColor:       '#e05585',
+          borderUpColor:   '#00c087',
+          borderDownColor: '#e05585',
+          wickUpColor:     '#00c087',
+          wickDownColor:   '#e05585',
+          priceFormat: forex
+            ? { type: 'price', precision: 4, minMove: 0.0001 }
+            : { type: 'price', precision: 2, minMove: 0.01 },
+        });
+
+        series.applyOptions({
+          upColor:         '#00c087',
+          downColor:       '#e05585',
+          borderUpColor:   '#00c087',
+          borderDownColor: '#e05585',
+          wickUpColor:     '#00c087',
+          wickDownColor:   '#e05585',
+        });
+
+        chartRef.current  = chart;
+        seriesRef.current = series;
+
         allCandlesRef.current = candles;
         if (candles.length > 1 && typeof candles[0].time === 'number') {
           const dates = candles.slice(0, 10).map(c => new Date(c.time * 1000).toDateString());
@@ -332,29 +330,56 @@ const Chart = forwardRef(function Chart({ asset, externalCandles, onReady }, ref
         series.setData(fnFinal(candlesRef.current, 0));
         chart.timeScale().fitContent();
         if (onReady) onReady();
-      }).catch(() => {
-        const candles = generateCandles(500, asset.base(), asset.vol);
-        allCandlesRef.current = candles;
-        candlesRef.current    = candles.slice(0, 80);
-        revealPoolRef.current = candles.slice(80, 100);
-        const fnFallback = (isForexRef.current || isUnixRef.current) ? toChartDataForex : toChartData;
-        series.setData(fnFallback(candlesRef.current, 0));
-        chart.timeScale().fitContent();
-        if (onReady) onReady();
-      });
 
-      ro = new ResizeObserver(() => {
-        if (containerRef.current) chart.applyOptions({ width: containerRef.current.clientWidth });
+        ro = new ResizeObserver(() => {
+          if (containerRef.current) chart.applyOptions({ width: containerRef.current.clientWidth });
+        });
+        ro.observe(containerRef.current);
+      }).catch(err => {
+        if (!cancelled) {
+          console.error('[Chart] fetch failed:', err.message);
+          setFetchError(true);
+        }
       });
-      ro.observe(containerRef.current);
     }, 10);
 
     return () => {
+      cancelled = true;
       clearTimeout(timer);
       if (ro) ro.disconnect();
       if (chart) chart.remove();
     };
-  }, [asset, externalCandles]);
+  }, [asset, externalCandles, retryKey]);
+
+  if (fetchError) {
+    return (
+      <div style={{
+        width: '100%', height: `${getChartHeight()}px`,
+        background: '#111111',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        gap: 12,
+      }}>
+        <span style={{ color: '#555', fontSize: 13 }}>
+          {t.game ? t.game.chartError : 'Failed to load chart data'}
+        </span>
+        <button
+          onClick={() => { setFetchError(false); setRetryKey(k => k + 1); }}
+          style={{
+            padding: '6px 18px',
+            background: 'transparent',
+            border: '1px solid #444',
+            color: '#888',
+            borderRadius: 4,
+            fontSize: 12,
+            cursor: 'pointer',
+            letterSpacing: '0.05em',
+          }}
+        >
+          {t.game ? t.game.retry : 'Retry'}
+        </button>
+      </div>
+    );
+  }
 
   return <div ref={containerRef} style={{ width: '100%', height: `${getChartHeight()}px` }} />;
 });

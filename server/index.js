@@ -20,6 +20,8 @@ const { ApnsClient, Notification } = require('apns2');
 const Season      = require('./models/Season');
 const season1Cfg  = require('./config/season1');
 const VALID_HISTORICAL_EVENT_IDS = require('./config/historicalEvents');
+const { fetchKrakenCandles } = require('./providers/kraken');
+const { fetchYahooCandles }  = require('./providers/yahoo');
 
 const apnsClient = new ApnsClient({
   team: 'KA99F6SRW4',
@@ -55,6 +57,41 @@ const SESSION_REQUIRED_MODES = new Set(['guess', 'survival', 'historical']);
 // all survival missions in a single API call (real sessions can't exceed these).
 const MODE_ROUND_CAPS = { survival: 300, guess: 200, historical: 1, arena: 30, portfolio: 50, tournament: 50, daily: 50 };
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+
+// ── /candles allowlist & helpers ──────────────────────────────────
+const CANDLES_SYMBOL_MAP = new Map([
+  // Crypto → Kraken
+  ['BTCUSD',   'kraken'], ['ETHUSD',   'kraken'], ['SOLUSD',  'kraken'],
+  ['XRPUSD',   'kraken'], ['BNBUSD',   'kraken'], ['DOGEUSD', 'kraken'],
+  ['LINKUSD',  'kraken'], ['AVAXUSD',  'kraken'], ['ADAUSD',  'kraken'],
+  ['DOTUSD',   'kraken'],
+  // Forex → Yahoo
+  ['EURUSD=X', 'yahoo'], ['GBPUSD=X', 'yahoo'], ['JPY=X',   'yahoo'],
+  ['CHF=X',    'yahoo'], ['AUDUSD=X', 'yahoo'], ['CAD=X',   'yahoo'],
+  // Indices → Yahoo
+  ['^GSPC', 'yahoo'], ['^IXIC', 'yahoo'], ['^DJI',   'yahoo'],
+  ['^GDAXI', 'yahoo'], ['^FTSE', 'yahoo'], ['^N225',  'yahoo'],
+  // Commodities → Yahoo
+  ['GC=F', 'yahoo'], ['SI=F', 'yahoo'], ['CL=F', 'yahoo'],
+  ['NG=F', 'yahoo'], ['HG=F', 'yahoo'],
+  // Stocks → Yahoo
+  ['AAPL', 'yahoo'], ['TSLA', 'yahoo'], ['MSFT',  'yahoo'], ['AMZN', 'yahoo'],
+  ['GOOGL', 'yahoo'], ['META', 'yahoo'], ['NVDA',  'yahoo'],
+  // Historical-only symbols → Yahoo
+  ['BTC-USD', 'yahoo'], ['ETH-USD', 'yahoo'], ['GME', 'yahoo'], ['NFLX', 'yahoo'],
+]);
+
+const VALID_CANDLE_INTERVALS = new Set(['1m', '5m', '15m', '1h', '1d']);
+const CANDLES_TTL   = { '1m': 60, '5m': 120, '15m': 300, '1h': 600, '1d': 3600 };
+const INTERVAL_SECS = { '1m': 60, '5m': 300, '15m': 900, '1h': 3600, '1d': 86400 };
+
+function dropUnclosedCandle(candles, interval) {
+  if (!candles.length) return candles;
+  const last = candles[candles.length - 1];
+  const secs = INTERVAL_SECS[interval] || 3600;
+  if (last.time + secs > Math.floor(Date.now() / 1000)) return candles.slice(0, -1);
+  return candles;
+}
 const GOOGLE_CLIENT_ID     = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const MONGODB_URI          = process.env.MONGODB_URI;
@@ -1685,31 +1722,38 @@ app.get('/stats/personal', async (req, res) => {
 
 // ── Candles route ─────────────────────────────────────────────────
 app.get('/candles', async (req, res) => {
-  const { symbol, interval, from, to } = req.query;
-  if (!symbol || !/^[A-Z0-9\-\.=^/]{1,20}$/i.test(symbol)) return res.status(400).json({ error: 'Invalid symbol' });
+  const { symbol, interval = '1h', from, to } = req.query;
+  const limit = Math.min(Math.max(parseInt(req.query.limit) || 700, 1), 1000);
+
+  if (!symbol) return res.status(400).json({ error: 'symbol is required' });
+  const provider = CANDLES_SYMBOL_MAP.get(symbol);
+  if (!provider) return res.status(400).json({ error: 'Unknown symbol: ' + symbol });
+  if (!VALID_CANDLE_INTERVALS.has(interval)) return res.status(400).json({ error: 'Invalid interval: ' + interval });
   if (from && !DATE_REGEX.test(from)) return res.status(400).json({ error: 'Invalid from date' });
   if (to   && !DATE_REGEX.test(to))   return res.status(400).json({ error: 'Invalid to date' });
+
+  const isHistorical = !!(from && to);
+  const cacheKey = isHistorical
+    ? 'cv2:' + symbol + ':' + interval + ':' + from + ':' + to
+    : 'cv2:' + symbol + ':' + interval;
+  const ttl = isHistorical ? 86400 : (CANDLES_TTL[interval] || 600);
+
   try {
-    let period1, period2;
-    if (from && to) {
-      period1 = from; period2 = to;
-    } else if (interval === '1h') {
-      const d = new Date(); d.setDate(d.getDate() - 29);
-      period1 = d.toISOString().split('T')[0];
-    } else {
-      const d = new Date(); d.setFullYear(d.getFullYear() - 2);
-      period1 = d.toISOString().split('T')[0];
+    let candles = await cachedFetch(cacheKey, ttl, async () => {
+      if (provider === 'kraken') return fetchKrakenCandles(symbol, interval);
+      return fetchYahooCandles(symbol, interval, { from: from, to: to });
+    });
+
+    if (!isHistorical) candles = dropUnclosedCandle(candles, interval);
+
+    if (!isHistorical && candles.length < 100) {
+      return res.status(502).json({ error: 'Provider returned insufficient candles: ' + candles.length });
     }
-    const result  = await yf.chart(symbol, { interval: interval === '1h' ? '1h' : '1d', period1, ...(period2 ? { period2 } : {}) });
-    const quotes  = result.quotes.filter(q => q.open && q.high && q.low && q.close);
-    const candles = quotes.slice(-500).map(q => ({
-      time:  Math.floor(new Date(q.date).getTime() / 1000),
-      open:  q.open, high: q.high, low: q.low, close: q.close,
-    }));
-    res.json(candles);
+
+    res.json(candles.slice(-limit));
   } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ error: err.message });
+    console.error('[/candles] ' + symbol + ' ' + interval + ':', err.message);
+    res.status(502).json({ error: 'Data provider error' });
   }
 });
 

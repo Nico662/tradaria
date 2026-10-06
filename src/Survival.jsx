@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { copyToClipboard } from './utils/share.js';
 import EffectOverlay from './EffectOverlay.jsx';
 import { ASSETS } from './assets.js';
-import Chart, { generateCandles } from "./Chart";
+import Chart from "./Chart";
 import { useLang } from './LangContext.jsx';
 import { playWin, playLose, playClick, playStreak } from './sounds.js';
 import { BADGES, unlockBadge } from './badges.js';
@@ -83,16 +83,17 @@ export default function Survival({ onBack }) {
 
   const makeChoice = useCallback((choice) => {
     if (phase !== 'choose') return;
+
+    const candles   = chartRef.current.getCandles();
+    const lastClose = candles[candles.length - 1].close;
+    const future    = chartRef.current.getRealReveal?.() ?? null;
+    if (!future || !future.length) return;
+
     playClick();
     setSelected(choice);
     setPhase('reveal');
     setRevealing(true);
 
-    const candles    = chartRef.current.getCandles();
-    const lastClose  = candles[candles.length - 1].close;
-    const trend      = (Math.random() - 0.5) * 0.5;
-    const future     = chartRef.current.getRealReveal?.()
-      ?? generateCandles(20, lastClose, asset.vol, trend * 2);
     const lastReveal = future[future.length - 1].close;
     const pctMove    = (lastReveal - lastClose) / lastClose * 100;
     const direction  = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
