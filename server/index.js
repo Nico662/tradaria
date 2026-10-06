@@ -1740,8 +1740,15 @@ app.get('/candles', async (req, res) => {
 
   try {
     let candles = await cachedFetch(cacheKey, ttl, async () => {
-      if (provider === 'kraken') return fetchKrakenCandles(symbol, interval);
-      return fetchYahooCandles(symbol, interval, { from: from, to: to });
+      const fetchOnce = provider === 'kraken'
+        ? () => fetchKrakenCandles(symbol, interval)
+        : () => fetchYahooCandles(symbol, interval, { from: from, to: to });
+      try {
+        return await fetchOnce();
+      } catch (firstErr) {
+        await new Promise(r => setTimeout(r, 300));
+        return await fetchOnce();
+      }
     });
 
     if (!isHistorical) candles = dropUnclosedCandle(candles, interval);

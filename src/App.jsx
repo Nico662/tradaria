@@ -283,7 +283,13 @@ export default function App() {
     const candles   = chartRef.current.getCandles();
     const lastClose = candles[candles.length - 1].close;
     const future    = chartRef.current.getRealReveal?.() ?? null;
-    if (!future || !future.length) return;
+    if (!future || !future.length) {
+      setChartReady(false);
+      setAsset(randomAsset(category));
+      setResult(null);
+      setSelected(null);
+      return;
+    }
 
     updateDailyStreak();
     playClick();
