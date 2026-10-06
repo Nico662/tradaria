@@ -92,6 +92,37 @@ function dropUnclosedCandle(candles, interval) {
   if (last.time + secs > Math.floor(Date.now() / 1000)) return candles.slice(0, -1);
   return candles;
 }
+
+// Clip wicks that exceed 6x the batch median range AND >0.8% of mid-price.
+// Trims proportionally so the body is always preserved intact.
+// Never applied to historical data (oil negative candles, etc.).
+function clipAnomalousWicks(candles) {
+  if (candles.length < 10) return candles;
+  const ranges = candles.map(c => c.high - c.low).sort((a, b) => a - b);
+  const medianRange = ranges[Math.floor(ranges.length / 2)];
+  const maxRange = medianRange * 6;
+  return candles.map(c => {
+    const body  = Math.abs(c.close - c.open);
+    const range = c.high - c.low;
+    const mid   = (c.high + c.low) / 2;
+    if (mid <= 0 || range <= maxRange || range <= mid * 0.008) return c;
+    const allowedRange = Math.max(maxRange, body * 1.1);
+    const upper = c.high - Math.max(c.open, c.close);
+    const lower = Math.min(c.open, c.close) - c.low;
+    const totalWicks = upper + lower;
+    if (totalWicks <= 0) return c;
+    const wickBudget = Math.max(0, allowedRange - body);
+    const scale = wickBudget / totalWicks;
+    return {
+      time:  c.time,
+      open:  c.open,
+      high:  Math.max(c.open, c.close) + upper * scale,
+      low:   Math.min(c.open, c.close) - lower * scale,
+      close: c.close,
+    };
+  });
+}
+
 const GOOGLE_CLIENT_ID     = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const MONGODB_URI          = process.env.MONGODB_URI;
@@ -1740,8 +1771,10 @@ app.get('/candles', async (req, res) => {
 
   try {
     let candles = await cachedFetch(cacheKey, ttl, async () => {
-      if (provider === 'kraken') return fetchKrakenCandles(symbol, interval);
-      return fetchYahooCandles(symbol, interval, { from: from, to: to });
+      const raw = provider === 'kraken'
+        ? await fetchKrakenCandles(symbol, interval)
+        : await fetchYahooCandles(symbol, interval, { from: from, to: to });
+      return isHistorical ? raw : clipAnomalousWicks(raw);
     });
 
     if (!isHistorical) candles = dropUnclosedCandle(candles, interval);

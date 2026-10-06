@@ -26,7 +26,7 @@ async function fetchYahooCandles(symbol, interval, opts) {
   const from = opts && opts.from;
   const to   = opts && opts.to;
   const period1 = from || getPeriod1(interval);
-  const chartOpts = { interval: interval, period1: period1 };
+  const chartOpts = { interval: interval, period1: period1, includePrePost: false };
   if (to) chartOpts.period2 = to;
 
   const result = await yf.chart(symbol, chartOpts);
@@ -35,7 +35,8 @@ async function fetchYahooCandles(symbol, interval, opts) {
   }
 
   let candles = result.quotes
-    .filter(q => q.open != null && q.high != null && q.low != null && q.close != null)
+    .filter(q => q.open != null && q.high != null && q.low != null && q.close != null
+              && q.open > 0 && q.high > 0 && q.low > 0 && q.close > 0)
     .map(q => ({
       time:  Math.floor(new Date(q.date).getTime() / 1000),
       open:  q.open,
