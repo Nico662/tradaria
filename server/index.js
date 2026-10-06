@@ -33,6 +33,7 @@ const apnsClient = new ApnsClient({
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) { console.error('FATAL: JWT_SECRET env var is not set'); process.exit(1); }
 const ADMIN_SECRET = process.env.ADMIN_SECRET; // protects /push/send against spam
+const PUSH_ENABLED = !!process.env.RAILWAY_ENVIRONMENT_NAME || process.env.PUSH_ENABLED === 'true';
 
 const VALID_BADGE_IDS = new Set([
   'first_trade','sniper','on_fire','diamond_hands','consistent','dedicated','legend',
@@ -424,6 +425,7 @@ loadSubscriptions().then(subs => {
 });
 
 async function sendPushToUser(userId, payload) {
+  if (!PUSH_ENABLED) { console.log(`[push] PUSH_ENABLED=false — skipping sendPushToUser for userId=${userId}`); return; }
   const title = payload.title || '⚡ Tradiko';
   const body = payload.body || '';
   const url = payload.url || 'https://tradiko.dev';
@@ -2247,6 +2249,7 @@ app.get('/push/apns-token', async (req, res) => {
 app.post('/push/send-apns', async (req, res) => {
   const key = req.headers['x-admin-secret'];
   if (!ADMIN_SECRET || key !== ADMIN_SECRET) return res.status(403).json({ error: 'Forbidden' });
+  if (!PUSH_ENABLED) { console.log('[push] PUSH_ENABLED=false — skipping /push/send-apns'); return res.status(503).json({ error: 'Push disabled in this environment' }); }
 
   const { title, body, userId } = req.body;
 
@@ -2639,6 +2642,7 @@ async function warmPriceCache() {
 warmPriceCache();
 cron.schedule('*/5 * * * *', warmPriceCache);
 
+if (PUSH_ENABLED) {
 // ── Price alerts cron (every 15 min) ──────────────────────────────
 cron.schedule('*/15 * * * *', async () => {
   try {
@@ -2904,6 +2908,7 @@ cron.schedule('0 21 * * *', async () => {
 
   console.log(`[streak-cron] Done — sent ${sent}/${usersAtRisk.length}`);
 }, { timezone: 'Europe/Madrid' });
+} // end if (PUSH_ENABLED)
 
 cron.schedule('0 0 * * *', async () => {
   const today = new Date().toISOString().split('T')[0];
@@ -4696,6 +4701,7 @@ cron.schedule('5 0 * * *', async () => {
 // ── Start ─────────────────────────────────────────────────────────
 httpServer.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`PUSH_ENABLED=${PUSH_ENABLED}, RAILWAY_ENVIRONMENT_NAME=${process.env.RAILWAY_ENVIRONMENT_NAME || '(unset)'}, pid=${process.pid}`);
   // Remove scores that exceed the maximum possible tournament score
   const maxScore = TOTAL_ROUNDS * 100;
   Score.deleteMany({ weekId: getWeekId(), score: { $gt: maxScore } })
