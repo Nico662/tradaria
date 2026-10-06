@@ -1998,7 +1998,7 @@ app.get('/tournament/session', async (req, res) => {
 
     res.json({
       weekId:       session.weekId,
-      rounds:       session.rounds,
+      rounds:       session.rounds.map(r => ({ asset: r.asset, interval: r.interval, visible: r.visible })),
       currentRound: session.currentRound,
       score:        session.score,
       history:      session.history,
@@ -2048,7 +2048,7 @@ app.post('/tournament/progress/round', async (req, res) => {
       { currentRound: roundIndex + 1, score: newScore, history: newHistory },
     );
 
-    res.json({ ok: true, win, pts, pctMove, direction });
+    res.json({ ok: true, win, pts, pctMove, direction, future: roundData.future });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

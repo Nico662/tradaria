@@ -103,7 +103,9 @@ export default function App() {
   const gameStartRef     = useRef(Date.now());
   const wonCatsRef       = useRef(new Set());
   const sessionTokenRef  = useRef(null);
+  const failCountRef     = useRef(0);
   const [chartReady, setChartReady] = useState(false);
+  const [chartLoadError, setChartLoadError] = useState(false);
   const [pricingFromTournament, setPricingFromTournament] = useState(false);
   const [shareStatus, setShareStatus] = useState('idle');
 
@@ -283,7 +285,13 @@ export default function App() {
     const candles   = chartRef.current.getCandles();
     const lastClose = candles[candles.length - 1].close;
     const future    = chartRef.current.getRealReveal?.() ?? null;
-    if (!future || !future.length) return;
+    if (!future || !future.length) {
+      failCountRef.current += 1;
+      if (failCountRef.current >= 2) { setChartLoadError(true); }
+      else { setChartReady(false); setAsset(randomAsset(category)); }
+      return;
+    }
+    failCountRef.current = 0;
 
     updateDailyStreak();
     playClick();
@@ -420,6 +428,8 @@ export default function App() {
   }, [gameOver]);
 
   const changeCategory = (cat) => {
+    failCountRef.current = 0;
+    setChartLoadError(false);
     setChartReady(false);
     setCategory(cat);
     setAsset(randomAsset(cat));
@@ -429,6 +439,8 @@ export default function App() {
   };
 
   const nextRound = () => {
+    failCountRef.current = 0;
+    setChartLoadError(false);
     setChartReady(false);
     const mr = incrementMission('play_5_guess');
     if (mr.completed) pushMission({ xpEarned: mr.xpEarned, title: mr.mission.title });
@@ -453,6 +465,8 @@ export default function App() {
   };
 
   const goHome = () => {
+    failCountRef.current = 0;
+    setChartLoadError(false);
     sessionTokenRef.current = null;
     fetchSessionToken('guess');
     setGameOver(false);
@@ -470,6 +484,8 @@ export default function App() {
   };
 
   const playAgain = () => {
+    failCountRef.current = 0;
+    setChartLoadError(false);
     sessionTokenRef.current = null;
     fetchSessionToken('guess');
     const wins     = history.filter(h => h === 'win').length;
@@ -859,7 +875,15 @@ export default function App() {
         );
       })()}
       {/* Action zone */}
-      {phase === 'choose' && (
+      {phase === 'choose' && chartLoadError && (
+        <div style={{ padding: '16px', textAlign: 'center' }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px' }}>{t.game.chartError}</div>
+          <button className="btn-neutral" onClick={() => { failCountRef.current = 0; setChartLoadError(false); setChartReady(false); setAsset(randomAsset(category)); }} style={{ maxWidth: '160px', margin: '0 auto' }}>
+            {t.game.retry}
+          </button>
+        </div>
+      )}
+      {phase === 'choose' && !chartLoadError && (
         <div style={{ padding: '10px 16px 0' }}>
           <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', textAlign: 'center', marginBottom: '8px' }}>{t.game.whatNext}</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>

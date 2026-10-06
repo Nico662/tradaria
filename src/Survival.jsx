@@ -48,6 +48,8 @@ export default function Survival({ onBack }) {
   const highscoreRef   = useRef(parseInt(localStorage.getItem('tradaria_survival_highscore') || '0'));
   const effectTimerRef = useRef(null);
   const sessionTokenRef = useRef(null);
+  const failCountRef   = useRef(0);
+  const [chartLoadError, setChartLoadError] = useState(false);
   const [activeEffect,setActiveEffect] = useState(false);
   const chartRef = useRef(null);
 
@@ -87,7 +89,13 @@ export default function Survival({ onBack }) {
     const candles   = chartRef.current.getCandles();
     const lastClose = candles[candles.length - 1].close;
     const future    = chartRef.current.getRealReveal?.() ?? null;
-    if (!future || !future.length) return;
+    if (!future || !future.length) {
+      failCountRef.current += 1;
+      if (failCountRef.current >= 2) { setChartLoadError(true); }
+      else { setAsset(randomAsset()); }
+      return;
+    }
+    failCountRef.current = 0;
 
     playClick();
     setSelected(choice);
@@ -168,6 +176,8 @@ export default function Survival({ onBack }) {
   }, [phase, asset, streak, lives]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const nextRound = () => {
+    failCountRef.current = 0;
+    setChartLoadError(false);
     setAsset(randomAsset());
     setPhase('choose');
     setResult(null);
@@ -185,6 +195,8 @@ export default function Survival({ onBack }) {
   };
 
   const playAgain = () => {
+    failCountRef.current = 0;
+    setChartLoadError(false);
     const tok = localStorage.getItem('tradaria_token');
     if (tok) {
       fetch(`${SERVER}/game/start`, {
@@ -429,7 +441,15 @@ export default function Survival({ onBack }) {
           <span style={{ fontSize: '12px', color: 'var(--green)', fontWeight: 700 }}>{highscore}</span>
         </div>
       </div>
-      {phase === 'choose' && (
+      {phase === 'choose' && chartLoadError && (
+        <div className="action-zone" style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px' }}>{t.game.chartError}</div>
+          <button className="btn-neutral" onClick={() => { failCountRef.current = 0; setChartLoadError(false); setAsset(randomAsset()); }} style={{ maxWidth: '160px', margin: '0 auto' }}>
+            {t.game.retry}
+          </button>
+        </div>
+      )}
+      {phase === 'choose' && !chartLoadError && (
         <div className="action-zone">
           <div className="prompt-text">{t.game.whatNext}</div>
           <div className="buttons-row">

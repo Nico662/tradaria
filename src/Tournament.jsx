@@ -150,6 +150,10 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
   async function makeChoice(choice) {
     if (result || revealing) return;
 
+    const cur    = rounds[round];
+    let future   = cur.future ?? null;
+    let win, pts, pctMove, direction;
+
     const token = localStorage.getItem('tradaria_token');
     if (!academyTournamentId && token) {
       try {
@@ -160,19 +164,27 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
         });
         const data = await res.json();
         if (data.alreadyPlayed) return;
+        future    = data.future ?? future;
+        win       = data.win;
+        pts       = data.pts;
+        pctMove   = data.pctMove;
+        direction = data.direction;
       } catch {}
     }
 
-    const cur        = rounds[round];
-    const future     = cur.future;
-    const lastClose  = cur.visible[cur.visible.length - 1].close;
-    const lastFuture = future[future.length - 1].close;
-    const pctMove    = (lastFuture - lastClose) / lastClose * 100;
-    const direction  = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
-    const win = (choice === 'long'  && direction === 'up')
-             || (choice === 'short' && direction === 'down')
-             || (choice === 'skip'  && direction === 'flat');
-    const pts = win && choice !== 'skip' ? 100 : win && choice === 'skip' ? 50 : 0;
+    if (win === undefined) {
+      if (!future || !future.length) return;
+      const lastClose  = cur.visible[cur.visible.length - 1].close;
+      const lastFuture = future[future.length - 1].close;
+      pctMove   = (lastFuture - lastClose) / lastClose * 100;
+      direction = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
+      win = (choice === 'long'  && direction === 'up')
+         || (choice === 'short' && direction === 'down')
+         || (choice === 'skip'  && direction === 'flat');
+      pts = win && choice !== 'skip' ? 100 : win && choice === 'skip' ? 50 : 0;
+    }
+
+    if (!future || !future.length) return;
     if (win) triggerEffect();
     setScore(s => s + pts);
     setHistory(h => [...h, { choice, win, pts }]);
