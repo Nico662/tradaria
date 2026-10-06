@@ -8,6 +8,7 @@ import { getUsernameColor } from './cosmeticColors';
 import TitleBadge from './components/TitleBadge';
 import VerifiedBadge from './VerifiedBadge';
 import EquippedBadge from './components/EquippedBadge';
+import { Trophy } from 'lucide-react';
 
 function formatCash(n) {
   return '$' + Math.abs(n).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -19,18 +20,28 @@ const MEDAL_COLORS = {
   2: { color: '#cd7f32' },
 };
 
-export default function League({ leagueId, onBack, onViewProfile }) {
+export default function League({ leagueId, onBack, onViewProfile, onJoined }) {
   const { user } = useAuth();
   const { t } = useLang();
   const tl = t.leagues;
   const [data, setData]       = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!leagueId);
   const [copied, setCopied]   = useState(false);
   const [busy, setBusy]       = useState(false);
+
+  // empty-state form
+  const [emptyView, setEmptyView]   = useState('');
+  const [name, setName]             = useState('');
+  const [endDate, setEndDate]       = useState('');
+  const [joinCode, setJoinCode]     = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [msg, setMsg]               = useState(null);
 
   const tok = localStorage.getItem('tradaria_token');
 
   useEffect(() => {
+    if (!leagueId) return;
+    setLoading(true);
     fetch(`${SERVER}/leagues/${leagueId}/ranking`, {
       headers: { Authorization: `Bearer ${tok}` },
     })
@@ -84,9 +95,114 @@ export default function League({ leagueId, onBack, onViewProfile }) {
     setBusy(false);
   }
 
+  async function createLeague() {
+    if (!name.trim()) return setMsg({ text: tl.nameRequired, ok: false });
+    setSubmitting(true);
+    setMsg(null);
+    try {
+      const r = await fetch(`${SERVER}/leagues/create`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name.trim(), endDate: endDate || undefined }),
+      });
+      const d = await r.json();
+      if (!r.ok) { setMsg({ text: d.error || tl.errorCreate, ok: false }); setSubmitting(false); return; }
+      setMsg({ text: tl.created.replace('{code}', d.code), ok: true });
+      setTimeout(() => onJoined && onJoined(d.leagueId), 1500);
+    } catch { setMsg({ text: tl.errorCreate, ok: false }); }
+    setSubmitting(false);
+  }
+
+  async function joinLeague() {
+    if (joinCode.trim().length < 6) return setMsg({ text: tl.codeRequired, ok: false });
+    setSubmitting(true);
+    setMsg(null);
+    try {
+      const r = await fetch(`${SERVER}/leagues/join`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: joinCode.trim().toUpperCase() }),
+      });
+      const d = await r.json();
+      if (!r.ok) { setMsg({ text: d.error || tl.errorJoin, ok: false }); setSubmitting(false); return; }
+      setMsg({ text: tl.joined.replace('{name}', d.name), ok: true });
+      setTimeout(() => onJoined && onJoined(d.leagueId), 1500);
+    } catch { setMsg({ text: tl.errorJoin, ok: false }); }
+    setSubmitting(false);
+  }
+
   const daysLeft = data?.endDate
     ? Math.max(0, Math.ceil((new Date(data.endDate) - new Date()) / 86400000))
     : null;
+
+  if (!leagueId) return (
+    <div style={{ padding: '16px 16px 24px', fontFamily: 'var(--font-body)', background: 'var(--bg-base)', minHeight: '100vh' }}>
+      <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, padding: '0 0 12px 0' }}>{t.league.back}</button>
+
+      {emptyView === '' && (
+        <div className="animate-fade-in-up" style={{ textAlign: 'center', padding: '48px 0 32px' }}>
+          <div style={{ marginBottom: '16px' }}>
+            <Trophy size={40} strokeWidth={1.5} aria-hidden style={{ stroke: 'var(--text-muted)', display: 'inline-block' }} />
+          </div>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: 'var(--text-primary)', marginBottom: '6px' }}>{tl.noLeague}</div>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', marginBottom: '28px' }}>{tl.noLeagueSub}</div>
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+            <button onClick={() => { setEmptyView('create'); setMsg(null); }}
+              style={{ padding: '11px 22px', background: 'rgba(0,229,160,0.08)', border: '1.5px solid var(--green)', borderRadius: 'var(--radius-full)', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, letterSpacing: '0.06em', cursor: 'pointer' }}>
+              {tl.create}
+            </button>
+            <button onClick={() => { setEmptyView('join'); setMsg(null); }}
+              style={{ padding: '11px 22px', background: 'var(--bg-elevated)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-full)', color: 'var(--text-primary)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer' }}>
+              {tl.joinTab}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {emptyView === 'create' && (
+        <div className="animate-slide-in-up" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <button onClick={() => { setEmptyView(''); setMsg(null); }}
+            style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, padding: '0 0 4px 0', textAlign: 'left' }}>
+            ← {tl.back}
+          </button>
+          <div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: '6px', textTransform: 'uppercase' }}>{tl.nameLabel}</div>
+            <input value={name} onChange={e => setName(e.target.value)} maxLength={30} placeholder={tl.namePlaceholder}
+              style={{ width: '100%', padding: '12px', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', color: 'var(--text-primary)', fontFamily: 'var(--font-body)', fontSize: '12px', boxSizing: 'border-box', outline: 'none' }} />
+          </div>
+          <div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: '6px', textTransform: 'uppercase' }}>{tl.endDateLabel}</div>
+            <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
+              style={{ width: '100%', padding: '12px', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', color: 'var(--text-primary)', fontFamily: 'var(--font-body)', fontSize: '12px', boxSizing: 'border-box', outline: 'none', colorScheme: 'dark' }} />
+          </div>
+          {msg && <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: msg.ok ? 'var(--green)' : 'var(--pink)' }}>{msg.text}</div>}
+          <button onClick={createLeague} disabled={submitting}
+            style={{ width: '100%', padding: '13px', background: 'rgba(0,229,160,0.08)', border: '1.5px solid var(--green)', borderRadius: 'var(--radius-full)', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: submitting ? 'default' : 'pointer', opacity: submitting ? 0.6 : 1 }}>
+            {submitting ? '...' : tl.createBtn}
+          </button>
+        </div>
+      )}
+
+      {emptyView === 'join' && (
+        <div className="animate-slide-in-up" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <button onClick={() => { setEmptyView(''); setMsg(null); }}
+            style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, padding: '0 0 4px 0', textAlign: 'left' }}>
+            ← {tl.back}
+          </button>
+          <div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: '6px', textTransform: 'uppercase' }}>{tl.codeLabel}</div>
+            <input value={joinCode} onChange={e => setJoinCode(e.target.value.toUpperCase())} maxLength={6} placeholder="XXXXXX"
+              style={{ width: '100%', padding: '14px', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '22px', fontWeight: 700, letterSpacing: '0.22em', textAlign: 'center', boxSizing: 'border-box', outline: 'none' }} />
+          </div>
+          {msg && <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: msg.ok ? 'var(--green)' : 'var(--pink)' }}>{msg.text}</div>}
+          <button onClick={joinLeague} disabled={submitting}
+            style={{ width: '100%', padding: '13px', background: 'rgba(0,229,160,0.08)', border: '1.5px solid var(--green)', borderRadius: 'var(--radius-full)', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: submitting ? 'default' : 'pointer', opacity: submitting ? 0.6 : 1 }}>
+            {submitting ? '...' : tl.joinBtn}
+          </button>
+        </div>
+      )}
+    </div>
+  );
 
   if (loading) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>

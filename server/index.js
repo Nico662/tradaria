@@ -3486,6 +3486,8 @@ app.get('/leagues/mine', async (req, res) => {
 app.get('/leagues/:leagueId/ranking', async (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'No token' });
+  if (!mongoose.isValidObjectId(req.params.leagueId))
+    return res.status(404).json({ error: 'Liga no encontrada' });
   try {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
     const league  = await League.findById(req.params.leagueId);
@@ -3542,6 +3544,8 @@ app.get('/leagues/:leagueId/ranking', async (req, res) => {
 app.post('/leagues/:leagueId/leave', async (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'No token' });
+  if (!mongoose.isValidObjectId(req.params.leagueId))
+    return res.status(404).json({ error: 'Liga no encontrada' });
   try {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
     const league  = await League.findById(req.params.leagueId);
@@ -3557,6 +3561,8 @@ app.post('/leagues/:leagueId/leave', async (req, res) => {
 app.delete('/leagues/:leagueId', async (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'No token' });
+  if (!mongoose.isValidObjectId(req.params.leagueId))
+    return res.status(404).json({ error: 'Liga no encontrada' });
   try {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
     const league  = await League.findById(req.params.leagueId);
