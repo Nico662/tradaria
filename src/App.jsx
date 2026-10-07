@@ -104,6 +104,8 @@ export default function App() {
   const wonCatsRef       = useRef(new Set());
   const sessionTokenRef  = useRef(null);
   const failCountRef     = useRef(0);
+  const [serverRound,   setServerRound]   = useState(null); // {visible,assetName,interval,roundNum} from /game/round/start
+  const serverRoundRef  = useRef(null);                     // mirror for makeChoice (avoids stale closure)
   const [chartReady, setChartReady] = useState(false);
   const [chartLoadError, setChartLoadError] = useState(false);
   const [pricingFromTournament, setPricingFromTournament] = useState(false);
@@ -114,7 +116,7 @@ export default function App() {
   const { lang, setLang, t } = useLang();
   const chartRef = useRef(null);
 
-  const fetchSessionToken = useCallback(async (mode) => {
+  const fetchSessionToken = useCallback(async (mode, category = 'all') => {
     const tok = localStorage.getItem('tradaria_token');
     if (!tok) return;
     try {
@@ -124,8 +126,22 @@ export default function App() {
         body: JSON.stringify({ mode }),
       });
       const d = await r.json();
-      if (d.sessionToken) sessionTokenRef.current = d.sessionToken;
-    } catch {}
+      if (d.sessionToken) {
+        sessionTokenRef.current = d.sessionToken;
+        if (mode === 'guess') {
+          const rr = await fetch(`${SERVER}/game/round/start`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionToken: d.sessionToken, category }),
+          });
+          const rd = await rr.json();
+          if (!rd.error && rd.visible) {
+            serverRoundRef.current = rd;
+            setServerRound(rd);
+          }
+        }
+      }
+    } catch (_) {}
   }, []);
 
   // ── Challenge socket (global, lives while user is logged in) ──────
@@ -161,6 +177,23 @@ export default function App() {
       .then(data => { if (Array.isArray(data) && data.length > 0) setLeagueId(data[0]._id); })
       .catch(() => {});
   }, [user]);
+
+  // When the server provides a new round, update the asset so Chart renders only visible candles.
+  useEffect(() => {
+    if (!serverRound) return;
+    setChartLoadError(false);
+    failCountRef.current = 0;
+    setChartReady(false);
+    const matchedCat = ASSETS.find(a => a.name === serverRound.assetName)?.cat || 'crypto';
+    setAsset({
+      name: serverRound.assetName,
+      tf:   serverRound.interval,
+      vol:  0.02, cat: matchedCat, candle: null, binance: null, yahoo: null, alphavantage: null,
+      base: () => 0,
+      _dailyVisible: serverRound.visible,
+      _dailyFuture:  [],
+    });
+  }, [serverRound]);
 
   useEffect(() => {
     if (screen === 'game') fetchSessionToken('guess');
@@ -279,9 +312,103 @@ export default function App() {
     if (newStreak >= 100) tryUnlockBadge('streak_100');
   }
 
+  // Shared post-round logic (badges, missions, sounds, XP) — called from both server and client paths.
+  const applyRoundOutcome = useCallback((choice, win, neutral, pts, pctMove, direction, svrStreak, svrScore) => {
+    if (win && !neutral) {
+      if (svrScore > highscore) { setHighscore(svrScore); localStorage.setItem('tradaria_highscore', String(svrScore)); }
+      if (svrStreak >= 3) playStreak(); else playWin();
+      triggerEffect();
+      earnXP(10);
+      localStorage.setItem('tradaria_lose_streak', '0');
+    } else if (win && neutral) {
+      if (svrScore > highscore) { setHighscore(svrScore); localStorage.setItem('tradaria_highscore', String(svrScore)); }
+      playWin();
+      triggerEffect();
+      earnXP(5);
+      localStorage.setItem('tradaria_lose_streak', '0');
+    } else if (!win && !neutral) {
+      playLose();
+      const loseStreak = parseInt(localStorage.getItem('tradaria_lose_streak') || '0') + 1;
+      localStorage.setItem('tradaria_lose_streak', String(loseStreak));
+      if (loseStreak >= 10) tryUnlockBadge('rekt');
+    }
+    if (win && svrStreak >= 5)  tryUnlockBadge('sniper');
+    if (win && svrStreak >= 10) tryUnlockBadge('on_fire');
+    if (choice === 'skip' && win) {
+      const ss = parseInt(localStorage.getItem('tradaria_skip_streak') || '0') + 1;
+      localStorage.setItem('tradaria_skip_streak', String(ss));
+      if (ss >= 3) tryUnlockBadge('diamond_hands');
+    } else {
+      localStorage.setItem('tradaria_skip_streak', '0');
+    }
+    if (asset.name === 'BTC/USD' && win) {
+      const bw = parseInt(localStorage.getItem('tradaria_btc_wins') || '0') + 1;
+      localStorage.setItem('tradaria_btc_wins', String(bw));
+      if (bw >= 10) tryUnlockBadge('bitcoin_maxi');
+    }
+    if (asset.cat === 'forex' && win) {
+      const fs = parseInt(localStorage.getItem('tradaria_forex_streak') || '0') + 1;
+      localStorage.setItem('tradaria_forex_streak', String(fs));
+      if (fs >= 5) tryUnlockBadge('forex_king');
+    } else if (asset.cat === 'forex' && !win) {
+      localStorage.setItem('tradaria_forex_streak', '0');
+    }
+    if (win && asset.base && asset.base() >= 10000) {
+      const ww = parseInt(localStorage.getItem('tradaria_whale_wins') || '0') + 1;
+      localStorage.setItem('tradaria_whale_wins', String(ww));
+      if (ww >= 3) tryUnlockBadge('whale');
+    } else if (!win) {
+      localStorage.setItem('tradaria_whale_wins', '0');
+    }
+    if (win) wonCatsRef.current.add(asset.cat);
+    if (win) {
+      const r1 = incrementMission('correct_10');
+      if (r1.completed) pushMission({ xpEarned: r1.xpEarned, title: r1.mission.title });
+      const wr1 = incrementWeeklyMission('weekly_correct_50');
+      if (wr1.completed) pushMission({ xpEarned: wr1.xpEarned, title: wr1.mission.title });
+      if (svrStreak === 3) { const r2 = incrementMission('play_3_guess', 3); if (r2.completed) pushMission({ xpEarned: r2.xpEarned, title: r2.mission.title }); }
+      if (svrStreak === 5) { const r3 = incrementMission('streak_5', 5);    if (r3.completed) pushMission({ xpEarned: r3.xpEarned, title: r3.mission.title }); }
+      if (choice === 'skip') { const r4 = incrementMission('no_trade_3'); if (r4.completed) pushMission({ xpEarned: r4.xpEarned, title: r4.mission.title }); }
+    }
+  }, [asset, highscore]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const makeChoice = useCallback((choice) => {
     if (phase !== 'choose') return;
 
+    const tok = localStorage.getItem('tradaria_token');
+
+    // ── Server-side path (logged-in users) ────────────────────────
+    if (tok && sessionTokenRef.current && serverRoundRef.current) {
+      updateDailyStreak();
+      playClick();
+      setSelected(choice);
+      setPhase('reveal');
+      setRevealing(true);
+
+      fetch(`${SERVER}/game/round/submit`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionToken: sessionTokenRef.current, choice }),
+      }).then(r => r.json()).then(data => {
+        if (data.error) { setPhase('choose'); setRevealing(false); return; }
+        const { future, win, direction, pctMove, pts, score: svrScore, streak: svrStreak, completed } = data;
+        const neutral = choice === 'skip';
+        setScore(svrScore);
+        setStreak(svrStreak);
+        chartRef.current?.revealFuture(future, () => setRevealing(false));
+        applyRoundOutcome(choice, win, neutral, pts, pctMove, direction, svrStreak, svrScore);
+        const outcome = win && !neutral ? 'win' : !win && !neutral ? 'lose' : 'skip';
+        setHistory(h => [...h, outcome]);
+        setResult({ win, neutral, pts, pctMove, direction, choice });
+        if (completed) {
+          if ((Date.now() - gameStartRef.current) / 1000 < 180) tryUnlockBadge('secret_speedrun');
+          setTimeout(() => setGameOver(true), 2000);
+        }
+      }).catch(() => { setPhase('choose'); setRevealing(false); });
+      return;
+    }
+
+    // ── Client-side fallback (anonymous / no session) ─────────────
     const candles   = chartRef.current.getCandles();
     const lastClose = candles[candles.length - 1].close;
     const future    = chartRef.current.getRealReveal?.() ?? null;
@@ -315,96 +442,25 @@ export default function App() {
       pts = 100 + streak * 10;
       const newScore = score + pts;
       setScore(newScore);
-      if (newScore > highscore) {
-        setHighscore(newScore);
-        localStorage.setItem('tradaria_highscore', String(newScore));
-      }
       setStreak(s => s + 1);
-      if (streak >= 2) playStreak(); else playWin();
-      triggerEffect();
-      earnXP(10);
-      localStorage.setItem('tradaria_lose_streak', '0');
+      applyRoundOutcome(choice, win, neutral, pts, pctMove, direction, streak + 1, newScore);
     } else if (win && neutral) {
       pts = 50;
       const newScore = score + pts;
       setScore(newScore);
-      if (newScore > highscore) {
-        setHighscore(newScore);
-        localStorage.setItem('tradaria_highscore', String(newScore));
-      }
       setStreak(s => s + 1);
-      playWin();
-      triggerEffect();
-      earnXP(5);
-      localStorage.setItem('tradaria_lose_streak', '0');
+      applyRoundOutcome(choice, win, neutral, pts, pctMove, direction, streak + 1, newScore);
     } else if (!win && !neutral) {
       pts = -50;
       setScore(s => Math.max(0, s + pts));
       setStreak(0);
-      playLose();
-      const loseStreak = parseInt(localStorage.getItem('tradaria_lose_streak') || '0') + 1;
-      localStorage.setItem('tradaria_lose_streak', String(loseStreak));
-      if (loseStreak >= 10) tryUnlockBadge('rekt');
-    }
-
-    if (win && streak + 1 >= 5)  tryUnlockBadge('sniper');
-    if (win && streak + 1 >= 10) tryUnlockBadge('on_fire');
-
-    if (choice === 'skip' && win) {
-      const skipStreak = parseInt(localStorage.getItem('tradaria_skip_streak') || '0') + 1;
-      localStorage.setItem('tradaria_skip_streak', String(skipStreak));
-      if (skipStreak >= 3) tryUnlockBadge('diamond_hands');
-    } else {
-      localStorage.setItem('tradaria_skip_streak', '0');
-    }
-
-    if (asset.name === 'BTC/USD' && win) {
-      const btcWins = parseInt(localStorage.getItem('tradaria_btc_wins') || '0') + 1;
-      localStorage.setItem('tradaria_btc_wins', String(btcWins));
-      if (btcWins >= 10) tryUnlockBadge('bitcoin_maxi');
-    }
-
-    if (asset.cat === 'forex' && win) {
-      const forexStreak = parseInt(localStorage.getItem('tradaria_forex_streak') || '0') + 1;
-      localStorage.setItem('tradaria_forex_streak', String(forexStreak));
-      if (forexStreak >= 5) tryUnlockBadge('forex_king');
-    } else if (asset.cat === 'forex' && !win) {
-      localStorage.setItem('tradaria_forex_streak', '0');
-    }
-
-    if (win && asset.base() >= 10000) {
-      const whaleWins = parseInt(localStorage.getItem('tradaria_whale_wins') || '0') + 1;
-      localStorage.setItem('tradaria_whale_wins', String(whaleWins));
-      if (whaleWins >= 3) tryUnlockBadge('whale');
-    } else if (!win) {
-      localStorage.setItem('tradaria_whale_wins', '0');
-    }
-
-    if (win) wonCatsRef.current.add(asset.cat);
-
-    if (win) {
-      const r1 = incrementMission('correct_10');
-      if (r1.completed) pushMission({ xpEarned: r1.xpEarned, title: r1.mission.title });
-      const wr1 = incrementWeeklyMission('weekly_correct_50');
-      if (wr1.completed) pushMission({ xpEarned: wr1.xpEarned, title: wr1.mission.title });
-      if (streak + 1 === 3) {
-        const r2 = incrementMission('play_3_guess', 3);
-        if (r2.completed) pushMission({ xpEarned: r2.xpEarned, title: r2.mission.title });
-      }
-      if (streak + 1 === 5) {
-        const r3 = incrementMission('streak_5', 5);
-        if (r3.completed) pushMission({ xpEarned: r3.xpEarned, title: r3.mission.title });
-      }
-      if (choice === 'skip') {
-        const r4 = incrementMission('no_trade_3');
-        if (r4.completed) pushMission({ xpEarned: r4.xpEarned, title: r4.mission.title });
-      }
+      applyRoundOutcome(choice, win, neutral, pts, pctMove, direction, 0, Math.max(0, score + pts));
     }
 
     const outcome = win && !neutral ? 'win' : !win && !neutral ? 'lose' : 'skip';
     setHistory(h => [...h, outcome]);
     setResult({ win, neutral, pts, pctMove, direction, choice });
-  }, [phase, asset, streak, score, highscore]);
+  }, [phase, asset, streak, score, highscore, applyRoundOutcome]);
 
   useEffect(() => {
     if (!gameOver) return;
@@ -427,18 +483,33 @@ export default function App() {
       .then(r => r.json()).then(setPersonalStats).catch(() => {});
   }, [gameOver]);
 
-  const changeCategory = (cat) => {
+  const changeCategory = async (cat) => {
     failCountRef.current = 0;
     setChartLoadError(false);
     setChartReady(false);
     setCategory(cat);
-    setAsset(randomAsset(cat));
     setPhase('choose');
     setResult(null);
     setSelected(null);
+
+    const tok = localStorage.getItem('tradaria_token');
+    if (tok && sessionTokenRef.current) {
+      try {
+        const rr = await fetch(`${SERVER}/game/round/start`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionToken: sessionTokenRef.current, category: cat }),
+        });
+        const rd = await rr.json();
+        if (!rd.error && rd.visible) { serverRoundRef.current = rd; setServerRound(rd); return; }
+      } catch (_) {}
+    }
+    serverRoundRef.current = null;
+    setServerRound(null);
+    setAsset(randomAsset(cat));
   };
 
-  const nextRound = () => {
+  const nextRound = async () => {
     failCountRef.current = 0;
     setChartLoadError(false);
     setChartReady(false);
@@ -447,28 +518,41 @@ export default function App() {
     const modeR = recordModePlayed('guess');
     if (modeR.completed) pushMission({ xpEarned: modeR.xpEarned, title: modeR.mission.title });
     recordWeeklyModePlayed('guess');
-    if (round >= 25) {
-      if ((Date.now() - gameStartRef.current) / 1000 < 180) tryUnlockBadge('secret_speedrun');
-      setGameOver(true);
-      return;
-    }
-    const next = randomAsset(category);
-    setAsset(next);
-    if (next.name === asset.name) {
-      setTimeout(() => chartRef.current?.reshuffleWindow?.(), 50);
-    }
+    setRound(r => r + 1);
     setPhase('choose');
     setResult(null);
     setSelected(null);
-    setRound(r => r + 1);
-    
+
+    const tok = localStorage.getItem('tradaria_token');
+    if (tok && sessionTokenRef.current) {
+      try {
+        const rr = await fetch(`${SERVER}/game/round/start`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionToken: sessionTokenRef.current, category }),
+        });
+        const rd = await rr.json();
+        if (!rd.error && rd.visible) {
+          serverRoundRef.current = rd;
+          setServerRound(rd);
+          return;
+        }
+      } catch (_) {}
+    }
+    // Fallback: client-side random asset (anonymous or server unavailable)
+    const next = randomAsset(category);
+    serverRoundRef.current = null;
+    setServerRound(null);
+    setAsset(next);
   };
 
   const goHome = () => {
     failCountRef.current = 0;
     setChartLoadError(false);
     sessionTokenRef.current = null;
-    fetchSessionToken('guess');
+    serverRoundRef.current  = null;
+    setServerRound(null);
+    fetchSessionToken('guess', 'all');
     setGameOver(false);
     setScreen('home');
     setAsset(randomAsset('all'));
@@ -486,8 +570,6 @@ export default function App() {
   const playAgain = () => {
     failCountRef.current = 0;
     setChartLoadError(false);
-    sessionTokenRef.current = null;
-    fetchSessionToken('guess');
     const wins     = history.filter(h => h === 'win').length;
     const nonSkips = history.filter(h => h !== 'skip').length;
     const acc      = nonSkips > 0 ? Math.round(wins / nonSkips * 100) : 0;
@@ -497,6 +579,10 @@ export default function App() {
     if (wonCatsRef.current.size >= 4) tryUnlockBadge('all_rounder');
     gameStartRef.current = Date.now();
     wonCatsRef.current = new Set();
+    sessionTokenRef.current = null;
+    serverRoundRef.current  = null;
+    setServerRound(null);
+    fetchSessionToken('guess', category);
     setGameOver(false);
     setRound(1);
     setScore(0);

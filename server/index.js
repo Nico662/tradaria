@@ -1643,14 +1643,145 @@ app.post('/game/start', async (req, res) => {
     if (calls > 10) return res.status(429).json({ error: 'RATE_LIMIT_EXCEEDED' });
 
     const sessionToken = require('crypto').randomUUID();
-    await redis.set(
-      `game_session:${sessionToken}`,
-      JSON.stringify({ userId: String(decoded.id), mode }),
-      { ex: 1800 }
-    );
+    const sessionData = {
+      userId: String(decoded.id), mode,
+      score: 0, correct: 0, wrong: 0, streak: 0, maxStreak: 0, roundsPlayed: 0, completed: false,
+    };
+    if (mode === 'survival') {
+      const u = await User.findById(decoded.id).select('isPro').lean();
+      const maxLives = u?.isPro ? 5 : 3;
+      sessionData.lives    = maxLives;
+      sessionData.maxLives = maxLives;
+    }
+    await redis.set(`game_session:${sessionToken}`, JSON.stringify(sessionData), { ex: 1800 });
     res.json({ sessionToken });
   } catch (err) {
     res.status(500).json({ error: 'Failed to create session' });
+  }
+});
+
+// ── Server-side rounds for Classic (guess) and Survival ───────────────────────
+// Returns only visible candles; stores future in Redis so the client never sees it.
+app.post('/game/round/start', async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'No token' });
+  const { sessionToken, category } = req.body;
+  if (!sessionToken || typeof sessionToken !== 'string') return res.status(400).json({ error: 'SESSION_REQUIRED' });
+
+  try {
+    const sessionKey = `game_session:${sessionToken}`;
+    const sessionRaw = await redis.get(sessionKey);
+    if (!sessionRaw) return res.status(400).json({ error: 'INVALID_SESSION' });
+    const session = typeof sessionRaw === 'string' ? JSON.parse(sessionRaw) : sessionRaw;
+    if (session.userId !== String(decoded.id)) return res.status(403).json({ error: 'SESSION_USER_MISMATCH' });
+    if (!['guess', 'survival'].includes(session.mode)) return res.status(400).json({ error: 'INVALID_MODE' });
+    if (session.completed) return res.status(409).json({ error: 'GAME_COMPLETED' });
+    if (session.mode === 'guess'    && session.roundsPlayed >= 25) return res.status(409).json({ error: 'MAX_ROUNDS_REACHED' });
+    if (session.mode === 'survival' && (session.lives ?? 1) <= 0)  return res.status(409).json({ error: 'NO_LIVES' });
+
+    // Return the pending unanswered round if one exists (client retry / page reload).
+    const roundKey   = `game_round:${sessionToken}`;
+    const pendingRaw = await redis.get(roundKey);
+    if (pendingRaw) {
+      const p = typeof pendingRaw === 'string' ? JSON.parse(pendingRaw) : pendingRaw;
+      return res.json({ visible: p.visible, assetName: p.assetName, interval: p.interval, roundNum: p.roundNum });
+    }
+
+    // Pick a random asset from the requested category.
+    const catFilter = (category && category !== 'all') ? category : null;
+    const pool      = catFilter ? CLASSIC_ASSETS.filter(a => a.cat === catFilter) : CLASSIC_ASSETS;
+    const shuffled  = [...pool].sort(() => Math.random() - 0.5);
+
+    for (const asset of shuffled) {
+      try {
+        const candles = await fetchCandlesForRound(asset);
+        if (!candles || candles.length < 100) continue;
+        const clean = candles.filter(c => c && c.open > 0 && c.high > 0 && c.low > 0 && c.close > 0);
+        if (clean.length < 100) continue;
+        const win      = randomWindow(clean);
+        const roundNum = (session.roundsPlayed || 0) + 1;
+        await redis.set(roundKey, JSON.stringify({
+          visible:   win.visible,
+          future:    win.future,
+          assetName: asset.name,
+          interval:  asset.interval,
+          roundNum,
+        }), { ex: 600 });
+        return res.json({ visible: win.visible, assetName: asset.name, interval: asset.interval, roundNum });
+      } catch (e) { console.log('[round/start] error', asset.name, e.message); }
+    }
+    res.status(503).json({ error: 'CANDLES_UNAVAILABLE' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Client sends its choice; server validates against stored future and updates session stats.
+app.post('/game/round/submit', async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'No token' });
+  const { sessionToken, choice } = req.body;
+  if (!sessionToken || typeof sessionToken !== 'string') return res.status(400).json({ error: 'SESSION_REQUIRED' });
+  if (!['long', 'short', 'skip'].includes(choice)) return res.status(400).json({ error: 'INVALID_CHOICE' });
+
+  try {
+    const sessionKey = `game_session:${sessionToken}`;
+    const sessionRaw = await redis.get(sessionKey);
+    if (!sessionRaw) return res.status(400).json({ error: 'INVALID_SESSION' });
+    const session = typeof sessionRaw === 'string' ? JSON.parse(sessionRaw) : sessionRaw;
+    if (session.userId !== String(decoded.id)) return res.status(403).json({ error: 'SESSION_USER_MISMATCH' });
+
+    const roundKey   = `game_round:${sessionToken}`;
+    const pendingRaw = await redis.get(roundKey);
+    if (!pendingRaw) return res.status(404).json({ error: 'NO_PENDING_ROUND' });
+    const pending = typeof pendingRaw === 'string' ? JSON.parse(pendingRaw) : pendingRaw;
+
+    const { visible, future, assetName, interval, roundNum } = pending;
+    const lastClose  = visible[visible.length - 1].close;
+    const lastFuture = future[future.length - 1].close;
+    const pctMove    = (lastFuture - lastClose) / lastClose * 100;
+    const direction  = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
+    const neutral    = choice === 'skip';
+    const win = (choice === 'long'  && direction === 'up')
+             || (choice === 'short' && direction === 'down')
+             || (choice === 'skip'  && direction === 'flat');
+
+    // Point calculation mirrors the client: Classic has -50 penalty, Survival does not.
+    const curStreak = session.streak || 0;
+    let pts;
+    if (win && !neutral)       pts = 100 + curStreak * 10;
+    else if (win && neutral)   pts = 50;
+    else if (!neutral)         pts = session.mode === 'guess' ? -50 : 0; // Classic penalty
+    else                       pts = 0; // wrong skip
+
+    const newScore     = Math.max(0, (session.score || 0) + pts);
+    const newStreak    = win ? curStreak + 1 : 0;
+    const newMaxStreak = Math.max(session.maxStreak || 0, newStreak);
+    const newCorrect   = (session.correct || 0) + (win && !neutral ? 1 : 0);
+    const newWrong     = (session.wrong   || 0) + (!win && !neutral ? 1 : 0);
+    const newRounds    = (session.roundsPlayed || 0) + 1;
+
+    let newLives = session.lives ?? null;
+    if (session.mode === 'survival') {
+      if (!win && !neutral)                                        newLives = (newLives || 1) - 1;
+      else if (win && !neutral && newLives < (session.maxLives || 3)) newLives = Math.min(newLives + 1, session.maxLives || 3);
+    }
+
+    const completed = (session.mode === 'guess' && newRounds >= 25)
+                   || (session.mode === 'survival' && (newLives ?? 1) <= 0);
+
+    const updatedSession = {
+      ...session,
+      score: newScore, correct: newCorrect, wrong: newWrong,
+      streak: newStreak, maxStreak: newMaxStreak,
+      roundsPlayed: newRounds, lives: newLives, completed,
+    };
+    await redis.set(sessionKey, JSON.stringify(updatedSession), { ex: 1800 });
+    await redis.del(roundKey);
+
+    res.json({ future, win, direction, pctMove, pts, score: newScore, streak: newStreak, lives: newLives, completed, assetName, interval, roundNum });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -1684,6 +1815,7 @@ app.post('/stats/game', async (req, res) => {
     if (!VALID_GAME_MODES.has(mode)) return res.status(400).json({ error: 'Invalid mode' });
 
     // Session token validation (required for BP-critical modes)
+    let sessionStatsOverride = null; // populated for guess/survival from server-authoritative session
     if (SESSION_REQUIRED_MODES.has(mode)) {
       if (!sessionToken || typeof sessionToken !== 'string') {
         return res.status(400).json({ error: 'SESSION_REQUIRED' });
@@ -1696,19 +1828,45 @@ app.post('/stats/game', async (req, res) => {
       if (session.mode !== mode) return res.status(400).json({ error: 'SESSION_MODE_MISMATCH' });
       const deleted = await redis.del(sessionKey);
       if (deleted === 0) return res.status(409).json({ error: 'SESSION_ALREADY_USED' });
+
+      // For guess and survival, ignore client-provided stats — use the server-tracked values.
+      if ((mode === 'guess' || mode === 'survival') && session.roundsPlayed > 0) {
+        const sRounds  = session.roundsPlayed || 0;
+        const sCorrect = session.correct      || 0;
+        const sWrong   = session.wrong        || 0;
+        const nonSkips = sCorrect + sWrong;
+        sessionStatsOverride = {
+          score:    session.score    || 0,
+          correct:  sCorrect,
+          wrong:    sWrong,
+          accuracy: nonSkips > 0 ? Math.round(sCorrect / nonSkips * 100) : 0,
+          streak:   session.maxStreak || 0,
+          rounds:   sRounds,
+        };
+      }
     }
 
-    const roundCap   = MODE_ROUND_CAPS[mode] ?? 100;  // Fix B: per-mode cap
-    const safeScore    = Math.max(0, Math.min(Number(score)    || 0, 100000));
-    const safeCorrect  = Math.max(0, Math.min(Number(correct)  || 0, roundCap));
-    const safeWrong    = Math.max(0, Math.min(Number(wrong)    || 0, roundCap));
-    const safeAccuracy = Math.max(0, Math.min(Number(accuracy) || 0, 100));
-    const safeStreak   = Math.max(0, Math.min(Number(streak)   || 0, roundCap));
-    const safeRounds   = Math.max(0, Math.min(Number(rounds)   || 0, roundCap));
-    const safeEventId  = (typeof eventId === 'string' && VALID_HISTORICAL_EVENT_IDS.has(eventId))  // Fix I: validate against known IDs
+    const roundCap = MODE_ROUND_CAPS[mode] ?? 100;
+    let safeScore, safeCorrect, safeWrong, safeAccuracy, safeStreak, safeRounds;
+    if (sessionStatsOverride) {
+      // Server-authoritative values — still clamp to prevent DB corruption from bugs.
+      safeScore    = Math.max(0, Math.min(sessionStatsOverride.score,    200000));
+      safeCorrect  = Math.max(0, Math.min(sessionStatsOverride.correct,  roundCap));
+      safeWrong    = Math.max(0, Math.min(sessionStatsOverride.wrong,    roundCap));
+      safeAccuracy = Math.max(0, Math.min(sessionStatsOverride.accuracy, 100));
+      safeStreak   = Math.max(0, Math.min(sessionStatsOverride.streak,   roundCap));
+      safeRounds   = Math.max(0, Math.min(sessionStatsOverride.rounds,   roundCap));
+    } else {
+      safeScore    = Math.max(0, Math.min(Number(score)    || 0, 100000));
+      safeCorrect  = Math.max(0, Math.min(Number(correct)  || 0, roundCap));
+      safeWrong    = Math.max(0, Math.min(Number(wrong)    || 0, roundCap));
+      safeAccuracy = Math.max(0, Math.min(Number(accuracy) || 0, 100));
+      safeStreak   = Math.max(0, Math.min(Number(streak)   || 0, roundCap));
+      safeRounds   = Math.max(0, Math.min(Number(rounds)   || 0, roundCap));
+    }
+    const safeEventId = (typeof eventId === 'string' && VALID_HISTORICAL_EVENT_IDS.has(eventId))
       ? eventId : null;
 
-    // Streak cannot exceed rounds in a single game (logical constraint)
     const finalStreak = (mode === 'guess' && safeRounds > 0) ? Math.min(safeStreak, safeRounds) : safeStreak;
 
     await GameHistory.create({ userId: decoded.id, mode, score: safeScore, correct: safeCorrect, wrong: safeWrong, accuracy: safeAccuracy, streak: finalStreak, rounds: safeRounds, gameId: sessionToken || null });
@@ -1857,6 +2015,67 @@ const ASSETS = [
   { name: 'USD/JPY',  source: 'yahoo',  symbol: 'JPY=X',    interval: '1h'  },
   { name: 'AUD/USD',  source: 'yahoo',  symbol: 'AUDUSD=X', interval: '1h'  },
 ];
+
+// ── Classic / Survival server-side rounds ─────────────────────────────────────
+// Mirrors client assets.js but uses server-side symbols (same as CANDLES_SYMBOL_MAP).
+// Source 'kraken' → fetchKrakenCandles; source 'yahoo' → fetchYahooCandles.
+// Shares the cv2: Redis cache with the /candles endpoint to avoid redundant fetches.
+const CLASSIC_ASSETS = [
+  // Crypto
+  { name: 'BTC/USD',  source: 'kraken', symbol: 'BTCUSD',   interval: '15m', cat: 'crypto'      },
+  { name: 'ETH/USD',  source: 'kraken', symbol: 'ETHUSD',   interval: '15m', cat: 'crypto'      },
+  { name: 'SOL/USD',  source: 'kraken', symbol: 'SOLUSD',   interval: '15m', cat: 'crypto'      },
+  { name: 'XRP/USD',  source: 'kraken', symbol: 'XRPUSD',   interval: '15m', cat: 'crypto'      },
+  { name: 'DOGE/USD', source: 'kraken', symbol: 'DOGEUSD',  interval: '15m', cat: 'crypto'      },
+  { name: 'LINK/USD', source: 'kraken', symbol: 'LINKUSD',  interval: '15m', cat: 'crypto'      },
+  { name: 'AVAX/USD', source: 'kraken', symbol: 'AVAXUSD',  interval: '15m', cat: 'crypto'      },
+  { name: 'ADA/USD',  source: 'kraken', symbol: 'ADAUSD',   interval: '15m', cat: 'crypto'      },
+  { name: 'DOT/USD',  source: 'kraken', symbol: 'DOTUSD',   interval: '15m', cat: 'crypto'      },
+  // Forex
+  { name: 'EUR/USD',  source: 'yahoo',  symbol: 'EURUSD=X', interval: '1h',  cat: 'forex'       },
+  { name: 'GBP/USD',  source: 'yahoo',  symbol: 'GBPUSD=X', interval: '1h',  cat: 'forex'       },
+  { name: 'USD/JPY',  source: 'yahoo',  symbol: 'JPY=X',    interval: '1h',  cat: 'forex'       },
+  { name: 'USD/CHF',  source: 'yahoo',  symbol: 'CHF=X',    interval: '1h',  cat: 'forex'       },
+  { name: 'AUD/USD',  source: 'yahoo',  symbol: 'AUDUSD=X', interval: '1h',  cat: 'forex'       },
+  { name: 'USD/CAD',  source: 'yahoo',  symbol: 'CAD=X',    interval: '1h',  cat: 'forex'       },
+  // Indices
+  { name: 'S&P 500',  source: 'yahoo',  symbol: '^GSPC',    interval: '1h',  cat: 'indices'     },
+  { name: 'NASDAQ',   source: 'yahoo',  symbol: '^IXIC',    interval: '1h',  cat: 'indices'     },
+  { name: 'DOW',      source: 'yahoo',  symbol: '^DJI',     interval: '1h',  cat: 'indices'     },
+  { name: 'GER40',    source: 'yahoo',  symbol: '^GDAXI',   interval: '1h',  cat: 'indices'     },
+  { name: 'UK100',    source: 'yahoo',  symbol: '^FTSE',    interval: '1h',  cat: 'indices'     },
+  { name: 'JPN225',   source: 'yahoo',  symbol: '^N225',    interval: '1h',  cat: 'indices'     },
+  // Commodities
+  { name: 'GOLD',     source: 'yahoo',  symbol: 'GC=F',     interval: '1h',  cat: 'commodities' },
+  { name: 'SILVER',   source: 'yahoo',  symbol: 'SI=F',     interval: '1h',  cat: 'commodities' },
+  { name: 'OIL/USD',  source: 'yahoo',  symbol: 'CL=F',     interval: '1h',  cat: 'commodities' },
+  { name: 'NGAS',     source: 'yahoo',  symbol: 'NG=F',     interval: '1h',  cat: 'commodities' },
+  { name: 'COPPER',   source: 'yahoo',  symbol: 'HG=F',     interval: '1h',  cat: 'commodities' },
+  // Stocks
+  { name: 'AAPL',     source: 'yahoo',  symbol: 'AAPL',     interval: '1d',  cat: 'stocks'      },
+  { name: 'TSLA',     source: 'yahoo',  symbol: 'TSLA',     interval: '1d',  cat: 'stocks'      },
+  { name: 'MSFT',     source: 'yahoo',  symbol: 'MSFT',     interval: '1d',  cat: 'stocks'      },
+  { name: 'AMZN',     source: 'yahoo',  symbol: 'AMZN',     interval: '1d',  cat: 'stocks'      },
+  { name: 'GOOGL',    source: 'yahoo',  symbol: 'GOOGL',    interval: '1d',  cat: 'stocks'      },
+  { name: 'META',     source: 'yahoo',  symbol: 'META',     interval: '1d',  cat: 'stocks'      },
+  { name: 'NVDA',     source: 'yahoo',  symbol: 'NVDA',     interval: '1d',  cat: 'stocks'      },
+];
+
+// Fetches candles for a Classic/Survival round, sharing the cv2: cache with /candles.
+async function fetchCandlesForRound(asset) {
+  const interval = asset.interval || '1h';
+  const cacheKey = `cv2:${asset.symbol}:${interval}`;
+  const ttl      = CANDLES_TTL[interval] || 600;
+  return cachedFetch(cacheKey, ttl, async () => {
+    if (asset.source === 'kraken') {
+      const raw = await fetchKrakenCandles(asset.symbol, interval);
+      return clipAnomalousWicks(raw);
+    } else {
+      const raw = await fetchYahooCandles(asset.symbol, interval);
+      return clipAnomalousWicks(raw);
+    }
+  });
+}
 
 function getWeekId() {
   const now    = new Date();

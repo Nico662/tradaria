@@ -49,9 +49,26 @@ export default function Survival({ onBack }) {
   const effectTimerRef = useRef(null);
   const sessionTokenRef = useRef(null);
   const failCountRef   = useRef(0);
+  const [serverRound,  setServerRound]  = useState(null);
+  const serverRoundRef = useRef(null);
   const [chartLoadError, setChartLoadError] = useState(false);
   const [activeEffect,setActiveEffect] = useState(false);
   const chartRef = useRef(null);
+
+  // When the server provides a new round, update asset so Chart renders only visible candles.
+  useEffect(() => {
+    if (!serverRound) return;
+    setChartLoadError(false);
+    failCountRef.current = 0;
+    setAsset({
+      name: serverRound.assetName,
+      tf:   serverRound.interval,
+      vol:  0.02, cat: 'crypto', candle: null, binance: null, yahoo: null, alphavantage: null,
+      base: () => 0,
+      _dailyVisible: serverRound.visible,
+      _dailyFuture:  [],
+    });
+  }, [serverRound]);
 
   function tryUnlockBadge(id) {
     const unlocked = unlockBadge(id);
@@ -86,6 +103,58 @@ export default function Survival({ onBack }) {
   const makeChoice = useCallback((choice) => {
     if (phase !== 'choose') return;
 
+    const tok = localStorage.getItem('tradaria_token');
+
+    // ── Server-side path (logged-in users) ────────────────────────
+    if (tok && sessionTokenRef.current && serverRoundRef.current) {
+      playClick();
+      setSelected(choice);
+      setPhase('reveal');
+      setRevealing(true);
+
+      fetch(`${SERVER}/game/round/submit`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionToken: sessionTokenRef.current, choice }),
+      }).then(r => r.json()).then(data => {
+        if (data.error) { setPhase('choose'); setRevealing(false); return; }
+        const { future, win, direction, pctMove, pts, score: svrScore, streak: svrStreak, lives: svrLives, completed } = data;
+        const neutral  = choice === 'skip';
+        const newLives = svrLives ?? lives;
+
+        setStreak(svrStreak);
+        setScore(() => {
+          if (svrScore > highscoreRef.current) {
+            highscoreRef.current = svrScore;
+            setHighscore(svrScore);
+            localStorage.setItem('tradaria_survival_highscore', String(svrScore));
+          }
+          return svrScore;
+        });
+        setLives(newLives);
+
+        chartRef.current?.revealFuture(future, () => setRevealing(false));
+
+        if (win && !neutral) { if (svrStreak >= 3) playStreak(); else playWin(); triggerEffect(); earnXP(10); }
+        else if (win && neutral) { playWin(); triggerEffect(); earnXP(5); }
+        else if (!win && !neutral) { playLose(); setLiveLost(true); setTimeout(() => setLiveLost(false), 600); }
+
+        if (win && svrStreak >= 5)  tryUnlockBadge('sniper');
+        if (win && svrStreak >= 10) tryUnlockBadge('on_fire');
+        if (round >= 20)            tryUnlockBadge('survivor');
+        if (round >= 50 && newLives === MAX_LIVES) tryUnlockBadge('immortal');
+        if (newLives === 0 && !win && !neutral)    tryUnlockBadge('last_stand');
+
+        const outcome = win && !neutral ? 'win' : !win && !neutral ? 'lose' : 'skip';
+        setHistory(h => [...h, outcome]);
+        setResult({ win, neutral, pts, pctMove, direction, choice, livesLeft: newLives });
+
+        if (completed) setTimeout(() => setGameOver(true), 2000);
+      }).catch(() => { setPhase('choose'); setRevealing(false); });
+      return;
+    }
+
+    // ── Client-side fallback (anonymous / no session) ─────────────
     const candles   = chartRef.current.getCandles();
     const lastClose = candles[candles.length - 1].close;
     const future    = chartRef.current.getRealReveal?.() ?? null;
@@ -155,7 +224,6 @@ export default function Survival({ onBack }) {
       setTimeout(() => setLiveLost(false), 600);
     }
 
-    // Pro: regenerate 1 life after a correct round if lives < MAX_LIVES
     if (isPro && win && !neutral && newLives < MAX_LIVES) {
       setLives(l => Math.min(l + 1, MAX_LIVES));
     }
@@ -175,10 +243,9 @@ export default function Survival({ onBack }) {
     }
   }, [phase, asset, streak, lives]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const nextRound = () => {
+  const nextRound = async () => {
     failCountRef.current = 0;
     setChartLoadError(false);
-    setAsset(randomAsset());
     setPhase('choose');
     setResult(null);
     setSelected(null);
@@ -192,20 +259,52 @@ export default function Survival({ onBack }) {
     const modeR = recordModePlayed('survival');
     if (modeR.completed) pushMission({ xpEarned: modeR.xpEarned, title: modeR.mission.title });
     recordWeeklyModePlayed('survival');
+
+    const tok = localStorage.getItem('tradaria_token');
+    if (tok && sessionTokenRef.current) {
+      try {
+        const rr = await fetch(`${SERVER}/game/round/start`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionToken: sessionTokenRef.current }),
+        });
+        const rd = await rr.json();
+        if (!rd.error && rd.visible) { serverRoundRef.current = rd; setServerRound(rd); return; }
+      } catch (_) {}
+    }
+    serverRoundRef.current = null;
+    setServerRound(null);
+    setAsset(randomAsset());
   };
 
   const playAgain = () => {
     failCountRef.current = 0;
     setChartLoadError(false);
+    sessionTokenRef.current = null;
+    serverRoundRef.current  = null;
+    setServerRound(null);
     const tok = localStorage.getItem('tradaria_token');
     if (tok) {
-      fetch(`${SERVER}/game/start`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode: 'survival' }),
-      }).then(r => r.json()).then(d => {
-        if (d.sessionToken) sessionTokenRef.current = d.sessionToken;
-      }).catch(() => {});
+      (async () => {
+        try {
+          const r = await fetch(`${SERVER}/game/start`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mode: 'survival' }),
+          });
+          const d = await r.json();
+          if (d.sessionToken) {
+            sessionTokenRef.current = d.sessionToken;
+            const rr = await fetch(`${SERVER}/game/round/start`, {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ sessionToken: d.sessionToken }),
+            });
+            const rd = await rr.json();
+            if (!rd.error && rd.visible) { serverRoundRef.current = rd; setServerRound(rd); }
+          }
+        } catch (_) {}
+      })();
     }
     setGameOver(false);
     setPhase('choose');
@@ -232,13 +331,26 @@ export default function Survival({ onBack }) {
   useEffect(() => {
     const tok = localStorage.getItem('tradaria_token');
     if (!tok) return;
-    fetch(`${SERVER}/game/start`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode: 'survival' }),
-    }).then(r => r.json()).then(d => {
-      if (d.sessionToken) sessionTokenRef.current = d.sessionToken;
-    }).catch(() => {});
+    (async () => {
+      try {
+        const r = await fetch(`${SERVER}/game/start`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mode: 'survival' }),
+        });
+        const d = await r.json();
+        if (d.sessionToken) {
+          sessionTokenRef.current = d.sessionToken;
+          const rr = await fetch(`${SERVER}/game/round/start`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionToken: d.sessionToken }),
+          });
+          const rd = await rr.json();
+          if (!rd.error && rd.visible) { serverRoundRef.current = rd; setServerRound(rd); }
+        }
+      } catch (_) {}
+    })();
   }, []);
 
   useEffect(() => {
