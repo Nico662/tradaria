@@ -203,7 +203,10 @@ export default function App() {
   useEffect(() => { screenRef.current = screen; }, [screen]);
 
   useEffect(() => {
-    window.history.replaceState({ screen: screenRef.current }, '', window.location.pathname);
+    // Don't strip query params if this is an OAuth callback (code= present)
+    if (!new URLSearchParams(window.location.search).has('code')) {
+      window.history.replaceState({ screen: screenRef.current }, '', window.location.pathname);
+    }
     const onPopState = (e) => {
       const s = e.state?.screen || 'home';
       setPrevScreen(screenRef.current);
