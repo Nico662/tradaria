@@ -162,7 +162,7 @@ export default function RewardCard({
                 fontFamily: 'var(--font-body)', fontWeight: 800,
                 fontSize: '11px', color: 'var(--text-primary)', lineHeight: 1.2,
               }}>
-                {reward.name}
+                {t.season1?.rewardName?.[reward.name] ?? reward.name}
               </div>
             ) : null}
 
@@ -173,7 +173,7 @@ export default function RewardCard({
                 fontFamily: 'var(--font-body)', fontSize: '9px',
                 color: 'var(--text-muted)', fontWeight: 500, lineHeight: 1.35,
               }}>
-                {mission.desc}
+                {t.season1?.missionDesc?.[mission.desc] ?? mission.desc}
               </p>
             )}
 

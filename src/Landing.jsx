@@ -406,6 +406,15 @@ export default function Landing({ onEnter }) {
           <StatCard val={L.stat2Val} label={L.stat2Label} inView={statsInView} />
           <StatCard val={L.stat3Val} label={L.stat3Label} inView={statsInView} />
         </div>
+
+        {/* Attribution */}
+        <div style={{ textAlign: 'center', marginTop: '16px', paddingBottom: '80px', fontSize: '11px', color: '#2a3345', letterSpacing: '0.06em' }}>
+          Charts by{' '}
+          <a href="https://www.tradingview.com" target="_blank" rel="noopener noreferrer"
+            style={{ color: '#3a5060', textDecoration: 'underline' }}>
+            TradingView
+          </a>
+        </div>
       </div>
 
       {/* ── Sticky CTA ── */}

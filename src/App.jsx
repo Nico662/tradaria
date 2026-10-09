@@ -415,7 +415,8 @@ export default function App() {
         applyRoundOutcome(choice, win, neutral, pts, pctMove, direction, svrStreak, svrScore);
         const outcome = win && !neutral ? 'win' : !win && !neutral ? 'lose' : 'skip';
         setHistory(h => [...h, outcome]);
-        setResult({ win, neutral, pts, pctMove, direction, choice });
+        const displayPts = pts < 0 ? svrScore - score : pts;
+        setResult({ win, neutral, pts: displayPts, pctMove, direction, choice });
         if (completed) {
           if ((Date.now() - gameStartRef.current) / 1000 < 180) tryUnlockBadge('secret_speedrun');
           setTimeout(() => setGameOver(true), 2000);
@@ -475,7 +476,8 @@ export default function App() {
 
     const outcome = win && !neutral ? 'win' : !win && !neutral ? 'lose' : 'skip';
     setHistory(h => [...h, outcome]);
-    setResult({ win, neutral, pts, pctMove, direction, choice });
+    const effectivePts = pts < 0 ? Math.max(0, score + pts) - score : pts;
+    setResult({ win, neutral, pts: effectivePts, pctMove, direction, choice });
   }, [phase, asset, streak, score, highscore, applyRoundOutcome]);
 
   useEffect(() => {
