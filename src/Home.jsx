@@ -21,6 +21,7 @@ const TOURNAMENT_SUB = {
   de: 'Wöchentlich · Globales Ranking · 10 Runden',
 };
 
+const TOP_BUTTON_LABELS = { shop: { en: 'Shop', es: 'Tienda', de: 'Shop' }, friends: { en: 'Friends', es: 'Amigos', de: 'Freunde' }, settings: { en: 'Settings', es: 'Ajustes', de: 'Einstellungen' } };
 const TOP_BUTTONS = [
   { id: 'shop',     Icon: ShoppingBag, hover: 'var(--color-neutral)'  },
   { id: 'friends',  Icon: Users,       hover: 'var(--green)'          },
@@ -141,6 +142,7 @@ export default function Home({ onSelect }) {
               <div key={id} style={{ position: 'relative', flexShrink: 0 }}>
                 <button
                   onClick={() => { if (id === 'friends') setHasPendingFriends(false); onSelect(id); }}
+                  aria-label={TOP_BUTTON_LABELS[id]?.[lang] ?? id}
                   style={{ background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'border-color 0.15s' }}
                   onMouseEnter={e => e.currentTarget.style.borderColor = hover}
                   onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-default)'}
@@ -156,6 +158,7 @@ export default function Home({ onSelect }) {
               href="https://discord.gg/NSwHdPKrt8"
               target="_blank"
               rel="noopener noreferrer"
+              aria-label="Discord"
               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', borderRadius: '50%', border: '0.5px solid var(--border-default)', background: 'transparent', color: '#5865F2', textDecoration: 'none', flexShrink: 0, transition: 'border-color 0.15s' }}
               onMouseEnter={e => e.currentTarget.style.borderColor = '#5865F2'}
               onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-default)'}
@@ -358,7 +361,7 @@ export default function Home({ onSelect }) {
             {dailyStreak > 0 && (
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'var(--pink-dim)', border: '0.5px solid var(--border-pink)', borderRadius: 'var(--radius-full)', padding: '4px 10px' }}>
                 <StreakIcon size={12} style={{ stroke: 'var(--pink)' }} />
-                <span style={{ fontSize: '12px', color: 'var(--pink)', fontFamily: 'var(--font-body)', fontWeight: 800, letterSpacing: '0.06em' }}>{dailyStreak} {t.common.days}</span>
+                <span style={{ fontSize: '12px', color: 'var(--pink)', fontFamily: 'var(--font-body)', fontWeight: 800, letterSpacing: '0.06em' }}>{dailyStreak} {dailyStreak === 1 ? (t.common.day ?? t.common.days) : t.common.days}</span>
               </div>
             )}
             <button

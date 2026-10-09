@@ -202,7 +202,7 @@ const Chart = forwardRef(function Chart({ asset, externalCandles, onReady }, ref
         chart = createChart(containerRef.current, {
           width:  containerRef.current.clientWidth,
           height: getChartHeight(),
-          layout: { background: { type: 'solid', color: '#111111' }, textColor: '#555555' },
+          layout: { background: { type: 'solid', color: '#111111' }, textColor: '#555555', attributionLogo: false },
           grid: {
             vertLines: { color: 'rgba(255,255,255,0.04)' },
             horzLines: { color: 'rgba(255,255,255,0.04)' },
@@ -258,7 +258,7 @@ const Chart = forwardRef(function Chart({ asset, externalCandles, onReady }, ref
         chart = createChart(containerRef.current, {
           width:  containerRef.current.clientWidth,
           height: getChartHeight(),
-          layout: { background: { type: 'solid', color: '#111111' }, textColor: '#555555' },
+          layout: { background: { type: 'solid', color: '#111111' }, textColor: '#555555', attributionLogo: false },
           grid: {
             vertLines: { color: 'rgba(255,255,255,0.04)' },
             horzLines: { color: 'rgba(255,255,255,0.04)' },

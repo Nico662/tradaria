@@ -219,7 +219,6 @@ export default function Settings({ onBack }) {
       });
       setNotifEnabled(false);
     } catch (err) {
-      console.log('Unsubscribe error:', err);
     }
   }
 
@@ -434,7 +433,13 @@ export default function Settings({ onBack }) {
         <SectionLabel text={s.about} />
         <Card>
           <Row label={s.builtBy}>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)' }}>© 2025</span>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)' }}>© {new Date().getFullYear()}</span>
+          </Row>
+          <Row label="Charts by TradingView">
+            <a href="https://www.tradingview.com" target="_blank" rel="noopener noreferrer"
+              style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--green)', textDecoration: 'none' }}>
+              ↗
+            </a>
           </Row>
           <Row label="tradiko.dev" last>
             <a href="https://tradiko.dev" target="_blank" rel="noopener noreferrer"

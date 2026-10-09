@@ -367,10 +367,13 @@ export default function BattlePass({ onBack, onGoPricing }) {
                   color: 'var(--text-muted)', marginTop: 5,
                 }}>
                   {userLevel >= 30
-                  ? 'MAX'
+                  ? (tp.max ?? 'MAX')
                   : missionsForNextLevel.total === 0
                     ? `${tp.levelOf.replace('{n}', userLevel + 1)}`
-                    : `${missionsForNextLevel.current}/${missionsForNextLevel.total} misiones → nv. ${userLevel + 1}`
+                    : (tp.missionsToNext ?? '{done}/{total} → lv. {n}')
+                        .replace('{done}',  String(missionsForNextLevel.current))
+                        .replace('{total}', String(missionsForNextLevel.total))
+                        .replace('{n}',     String(userLevel + 1))
                 }
                 </div>
               </div>

@@ -576,7 +576,7 @@ export default function Shop({ onBack }) {
         await purchaseWithStoreKit(productID);
         await handlePurchaseSuccess(itemId);
       } catch (err) {
-        console.log('IAP error:', err.message);
+        console.error('IAP error:', err.message);
       } finally {
         setLoading(null);
       }

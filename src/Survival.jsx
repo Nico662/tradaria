@@ -516,9 +516,9 @@ export default function Survival({ onBack }) {
         </div>
       </div>
 
-      <div className="streak-bar">
-        {Array.from({ length: 12 }, (_, i) => (
-          <div key={i} className={`streak-dot${recent[i] ? ' ' + recent[i] : ''}`} />
+      <div className="streak-bar" style={{ flexWrap: 'wrap', gap: '4px' }}>
+        {history.map((h, i) => (
+          <div key={i} className={`streak-dot ${h}`} />
         ))}
         {streak > 1 && <span className="streak-label">{streak}x {t.survival.streakLabel}</span>}
       </div>

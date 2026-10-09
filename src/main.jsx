@@ -26,7 +26,6 @@ if ('serviceWorker' in navigator) {
       }
 
       await navigator.serviceWorker.register('/sw.js');
-      console.log('SW registered');
 
       // Forzar re-suscripción push para usuarios con suscripciones antiguas
       const reg = await navigator.serviceWorker.ready;
@@ -58,9 +57,7 @@ if ('serviceWorker' in navigator) {
         body:    JSON.stringify({ ...sub.toJSON(), lang }),
       });
 
-      console.log('Push subscribed');
-    } catch (err) {
-      console.log('SW error:', err);
+    } catch (_) {
     }
   });
 }

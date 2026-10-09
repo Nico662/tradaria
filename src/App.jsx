@@ -199,9 +199,25 @@ export default function App() {
     if (screen === 'game') fetchSessionToken('guess');
   }, [screen]);
 
+  const screenRef = useRef(screen);
+  useEffect(() => { screenRef.current = screen; }, [screen]);
+
+  useEffect(() => {
+    window.history.replaceState({ screen: screenRef.current }, '', window.location.pathname);
+    const onPopState = (e) => {
+      const s = e.state?.screen || 'home';
+      setPrevScreen(screenRef.current);
+      setScreen(s);
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleSelect = (newScreen) => {
     setPrevScreen(screen);
     setScreen(newScreen);
+    window.scrollTo(0, 0);
+    window.history.pushState({ screen: newScreen }, '', window.location.pathname);
   };
 
   function handleAcceptChallenge() {
@@ -750,7 +766,7 @@ export default function App() {
   // ── Modes ─────────────────────────────────────────────────────────
   if (screen === 'modes') return (
     <AppLayout currentScreen={screen} onSelect={handleSelect}>
-      <ModesPage onSelect={setScreen} />
+      <ModesPage onSelect={handleSelect} />
     </AppLayout>
   );
 
@@ -791,7 +807,7 @@ export default function App() {
     );
   }
 
-  if (screen === 'battle_pass') return <BattlePass onBack={() => setScreen('home')} onGoPricing={() => setScreen('pricing')} />;
+  if (screen === 'battle_pass') return <BattlePass onBack={() => { window.scrollTo(0,0); setScreen(prevScreen || 'home'); }} onGoPricing={() => setScreen('pricing')} />;
   if (screen === 'trading')    return <TradingMode onBack={() => setScreen('home')} />;
 
   if (screen === 'arena') return (
@@ -924,33 +940,33 @@ export default function App() {
         </div>
       </div>
 
-      {/* Streak bar */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 16px' }}>
-        {Array.from({ length: 12 }, (_, i) => {
-          const h = recent[i];
+      {/* Streak bar — 25 dots for full Classic game */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 16px', flexWrap: 'wrap' }}>
+        {Array.from({ length: 25 }, (_, i) => {
+          const h = history[i];
           const bg = !h ? 'var(--border-default)' : h === 'win' ? 'var(--green)' : h === 'lose' ? 'var(--pink)' : 'var(--color-neutral)';
           return <div key={i} style={{ width: '8px', height: '8px', borderRadius: '50%', background: bg, flexShrink: 0 }} />;
         })}
         {streak > 1 && <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--pink)', marginLeft: '6px' }}>{streak}× {t.common.streak}</span>}
       </div>
-      {/* Analysis cards */}
-      {phase === 'choose' && chartReady && (() => {
-        const candles  = chartRef.current?.getCandles?.();
-        const analysis = analyzeCandles(candles);
-        if (!analysis) return null;
-        const trendColor = analysis.trend === 'bullish' ? 'var(--green)' : analysis.trend === 'bearish' ? 'var(--pink)' : 'var(--color-neutral)';
-        const trendLabel = analysis.trend === 'bullish' ? t.game.bullish : analysis.trend === 'bearish' ? t.game.bearish : t.game.ranging;
-        const volColor   = analysis.vol === 'low' ? 'var(--green)' : analysis.vol === 'medium' ? 'var(--color-neutral)' : 'var(--pink)';
-        const volLabel   = analysis.vol === 'low' ? t.game.low : analysis.vol === 'medium' ? t.game.medium : t.game.high;
+      {/* Analysis cards — space always reserved to avoid layout shift */}
+      {phase === 'choose' && (() => {
+        const candles  = chartReady ? chartRef.current?.getCandles?.() : null;
+        const analysis = candles ? analyzeCandles(candles) : null;
+        const trendColor = analysis ? (analysis.trend === 'bullish' ? 'var(--green)' : analysis.trend === 'bearish' ? 'var(--pink)' : 'var(--color-neutral)') : 'var(--text-muted)';
+        const trendLabel = analysis ? (analysis.trend === 'bullish' ? t.game.bullish : analysis.trend === 'bearish' ? t.game.bearish : t.game.ranging) : '—';
+        const volColor   = analysis ? (analysis.vol === 'low' ? 'var(--green)' : analysis.vol === 'medium' ? 'var(--color-neutral)' : 'var(--pink)') : 'var(--text-muted)';
+        const volLabel   = analysis ? (analysis.vol === 'low' ? t.game.low : analysis.vol === 'medium' ? t.game.medium : t.game.high) : '—';
+        const rows = [
+          { label: t.game.trend,      value: trendLabel,                                                                      color: trendColor },
+          { label: t.game.last5,      value: analysis ? `${analysis.green}▲ ${analysis.red}▼` : '—',                         color: analysis ? (analysis.green > analysis.red ? 'var(--green)' : 'var(--pink)') : 'var(--text-muted)' },
+          { label: t.game.change,     value: analysis ? `${analysis.change >= 0 ? '+' : ''}${analysis.change.toFixed(1)}%` : '—', color: analysis ? (analysis.change >= 0 ? 'var(--green)' : 'var(--pink)') : 'var(--text-muted)' },
+          { label: t.game.volatility, value: volLabel,                                                                         color: volColor },
+        ];
         return (
-          <div style={{ padding: '6px 16px 0' }}>
+          <div style={{ padding: '6px 16px 0', visibility: analysis ? 'visible' : 'hidden' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-              {[
-                { label: t.game.trend,      value: trendLabel,                                                          color: trendColor },
-                { label: t.game.last5,      value: `${analysis.green}▲ ${analysis.red}▼`,                              color: analysis.green > analysis.red ? 'var(--green)' : 'var(--pink)' },
-                { label: t.game.change,     value: `${analysis.change >= 0 ? '+' : ''}${analysis.change.toFixed(1)}%`, color: analysis.change >= 0 ? 'var(--green)' : 'var(--pink)' },
-                { label: t.game.volatility, value: volLabel,                                                            color: volColor },
-              ].map(s => (
+              {rows.map(s => (
                 <div key={s.label} style={{ background: 'var(--bg-elevated)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', padding: '7px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.10em' }}>{s.label}</span>
                   <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 900, color: s.color }}>{s.value}</span>

@@ -176,6 +176,8 @@ export default function Historical({ onBack }) {
 
   const resultColor = result?.win ? 'var(--green)' : 'var(--color-down)';
 
+  const completedEvents = JSON.parse(localStorage.getItem('tradaria_historical_completed') || '[]');
+
   // ── Select ───────────────────────────────────────────────────────
   if (phase === 'select') return (
     <div id="gtm-root" style={{ position: 'relative' }}>
@@ -208,22 +210,28 @@ export default function Historical({ onBack }) {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {HISTORICAL_EVENTS.map(ev => (
-            <button key={ev.id} onClick={() => loadEvent(ev)}
-              style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '12px 16px', textAlign: 'left', cursor: 'pointer', transition: 'border-color 0.15s' }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--green)'}
-              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--bd)'}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <EventIcon event={ev} size={32} />
-                <div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '12px', color: 'var(--t1)' }}>{ev.title}</div>
-                  <div style={{ fontSize: '12px', color: 'var(--t5)', marginTop: '2px' }}>{ev.name} · {ev.from}</div>
+          {HISTORICAL_EVENTS.map(ev => {
+            const done = completedEvents.includes(ev.id);
+            return (
+              <button key={ev.id} onClick={() => loadEvent(ev)}
+                style={{ background: 'var(--bg-card)', border: `1px solid ${done ? 'rgba(0,192,135,0.3)' : 'var(--bd)'}`, borderRadius: '8px', padding: '12px 16px', textAlign: 'left', cursor: 'pointer', transition: 'border-color 0.15s', opacity: done ? 0.65 : 1 }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--green)'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = done ? 'rgba(0,192,135,0.3)' : 'var(--bd)'}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <EventIcon event={ev} size={32} />
+                  <div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '12px', color: 'var(--t1)' }}>{ev.title}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--t5)', marginTop: '2px' }}>{ev.name} · {ev.from}</div>
+                  </div>
+                  {done
+                    ? <span style={{ marginLeft: 'auto', color: 'var(--green)', fontSize: '14px', fontWeight: 800 }}>✓</span>
+                    : <span style={{ marginLeft: 'auto', color: 'var(--green)', fontSize: '14px' }}>→</span>
+                  }
                 </div>
-                <span style={{ marginLeft: 'auto', color: 'var(--green)', fontSize: '14px' }}>→</span>
-              </div>
-            </button>
-          ))}
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>

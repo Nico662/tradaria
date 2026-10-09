@@ -616,7 +616,7 @@ export const LANGS = {
       ctaBtn: 'Start Playing →',
       ctaSub: 'No sign-up · Free forever',
     },
-    common: { back: '← back', menu: '← menu', you: 'YOU', streak: 'streak', days: 'days', logout: 'logout', signIn: 'Sign in', signInApple: 'Sign in with Apple', signInGoogle: 'Sign in with Google', privacy: 'Privacy', support: 'Support', legal: 'Legal', error: 'Connection error', close: 'Close', levelUp: '✦ level up ✦', skip: 'Skip →', shareCopied: 'COPIED!', shareError: 'ERROR', shareBtn: 'SHARE' },
+    common: { back: '← back', menu: '← menu', you: 'YOU', streak: 'streak', day: 'day', days: 'days', logout: 'Log out', signIn: 'Sign in', signInApple: 'Sign in with Apple', signInGoogle: 'Sign in with Google', privacy: 'Privacy', support: 'Support', legal: 'Legal', error: 'Connection error', close: 'Close', levelUp: '✦ level up ✦', skip: 'Skip →', shareCopied: 'COPIED!', shareError: 'ERROR', shareBtn: 'SHARE' },
     levels: { title: 'Levels', current: 'CURRENT', startingLevel: 'Starting level', maxLevel: 'Max level' },
     league: {
       back: '← back', daysLeft: 'days left', finished: 'Finished', players: 'players',
@@ -627,7 +627,7 @@ export const LANGS = {
       items: {
         game:       { title: 'Classic Mode',     description: 'Guess if the price goes up or down. Long, Short or No Trade.' },
         daily:      { title: 'Daily Challenge',  description: 'A new challenge every day. Compete with all players.' },
-        survival:   { title: 'Survival',         description: 'Survive as many rounds as possible without making a mistake.' },
+        survival:   { title: 'Survival',         description: 'Survive as many rounds as possible. You have 3 lives (5 with Pro).' },
         historical: { title: 'Historical',       description: 'Practice with real historical data from any asset.' },
         arena:      { title: 'Arena',            description: 'Compete in real-time matches against other players.' },
         tournament: { title: 'Tournament',       description: 'Weekly tournaments with prizes and their own ranking.' },
@@ -645,6 +645,8 @@ export const LANGS = {
       comingSoon: 'Coming soon',
       goPro: 'Go Pro',
       noSeason: 'No active season right now',
+      max: 'MAX',
+      missionsToNext: '{done}/{total} missions → lv. {n}',
     },
     inventory: {
       title: 'My Inventory',
@@ -1316,7 +1318,7 @@ export const LANGS = {
       ctaBtn: 'Empezar a Jugar →',
       ctaSub: 'Sin registro · Gratis para siempre',
     },
-    common: { back: '← volver', menu: '← menú', you: 'TÚ', streak: 'racha', days: 'días', logout: 'logout', signIn: 'Iniciar sesión', signInApple: 'Iniciar sesión con Apple', signInGoogle: 'Iniciar sesión con Google', privacy: 'Privacidad', support: 'Soporte', legal: 'Legal', error: 'Error de conexión', close: 'Cerrar', levelUp: '✦ level up ✦', skip: 'Omitir →', shareCopied: '¡COPIADO!', shareError: 'ERROR', shareBtn: 'COMPARTIR' },
+    common: { back: '← volver', menu: '← menú', you: 'TÚ', streak: 'racha', day: 'día', days: 'días', logout: 'Cerrar sesión', signIn: 'Iniciar sesión', signInApple: 'Iniciar sesión con Apple', signInGoogle: 'Iniciar sesión con Google', privacy: 'Privacidad', support: 'Soporte', legal: 'Legal', error: 'Error de conexión', close: 'Cerrar', levelUp: '✦ level up ✦', skip: 'Omitir →', shareCopied: '¡COPIADO!', shareError: 'ERROR', shareBtn: 'COMPARTIR' },
     levels: { title: 'Niveles', current: 'ACTUAL', startingLevel: 'Nivel inicial', maxLevel: 'Nivel máximo' },
     league: {
       back: '← Volver', daysLeft: 'días restantes', finished: 'Finalizada', players: 'jugadores',
@@ -1327,7 +1329,7 @@ export const LANGS = {
       items: {
         game:       { title: 'Modo Clásico',      description: 'Adivina si el precio sube o baja. Long, Short o Sin Trade.' },
         daily:      { title: 'Desafío Diario',    description: 'Un nuevo reto cada día. Compite con todos los jugadores.' },
-        survival:   { title: 'Survival',          description: 'Sobrevive el mayor número de rondas sin cometer un error.' },
+        survival:   { title: 'Survival',          description: 'Sobrevive el mayor número de rondas posibles. Tienes 3 vidas (5 con Pro).' },
         historical: { title: 'Histórico',         description: 'Practica con datos históricos reales de cualquier activo.' },
         arena:      { title: 'Arena',             description: 'Compite en partidas en tiempo real contra otros jugadores.' },
         tournament: { title: 'Torneos',           description: 'Torneos semanales con premios y clasificación propia.' },
@@ -1345,6 +1347,8 @@ export const LANGS = {
       comingSoon: 'Próximamente',
       goPro: 'Hazte Pro',
       noSeason: 'No hay temporada activa',
+      max: 'MÁX',
+      missionsToNext: '{done}/{total} misiones → nv. {n}',
     },
     inventory: {
       title: 'Mi Inventario',
@@ -2021,7 +2025,7 @@ export const LANGS = {
       ctaBtn: 'Jetzt spielen →',
       ctaSub: 'Kein Konto · Kostenlos für immer',
     },
-    common: { back: '← zurück', menu: '← Menü', you: 'DU', streak: 'Serie', days: 'Tage', logout: 'Abmelden', signIn: 'Anmelden', signInApple: 'Mit Apple anmelden', signInGoogle: 'Mit Google anmelden', privacy: 'Datenschutz', support: 'Support', legal: 'Impressum', error: 'Verbindungsfehler', close: 'Schließen', levelUp: '✦ level up ✦', skip: 'Überspringen →', shareCopied: 'KOPIERT!', shareError: 'FEHLER', shareBtn: 'TEILEN' },
+    common: { back: '← zurück', menu: '← Menü', you: 'DU', streak: 'Serie', day: 'Tag', days: 'Tage', logout: 'Abmelden', signIn: 'Anmelden', signInApple: 'Mit Apple anmelden', signInGoogle: 'Mit Google anmelden', privacy: 'Datenschutz', support: 'Support', legal: 'Impressum', error: 'Verbindungsfehler', close: 'Schließen', levelUp: '✦ level up ✦', skip: 'Überspringen →', shareCopied: 'KOPIERT!', shareError: 'FEHLER', shareBtn: 'TEILEN' },
     levels: { title: 'Level', current: 'AKTUELL', startingLevel: 'Anfangslevel', maxLevel: 'Maximallevel' },
     league: {
       back: '← zurück', daysLeft: 'Tage übrig', finished: 'Beendet', players: 'Spieler',
@@ -2032,7 +2036,7 @@ export const LANGS = {
       items: {
         game:       { title: 'Classic Mode',         description: 'Rate ob der Kurs steigt oder fällt. Long, Short oder kein Trade.' },
         daily:      { title: 'Tägliche Challenge',   description: 'Jeden Tag eine neue Herausforderung. Tritt gegen alle Spieler an.' },
-        survival:   { title: 'Survival',             description: 'Überlebe so viele Runden wie möglich ohne einen Fehler zu machen.' },
+        survival:   { title: 'Survival',             description: 'Überlebe so viele Runden wie möglich. Du hast 3 Leben (5 mit Pro).' },
         historical: { title: 'Historisch',           description: 'Übe mit echten historischen Daten eines beliebigen Assets.' },
         arena:      { title: 'Arena',                description: 'Tritt in Echtzeit-Matches gegen andere Spieler an.' },
         tournament: { title: 'Turniere',             description: 'Wöchentliche Turniere mit Preisen und eigener Rangliste.' },
@@ -2050,6 +2054,8 @@ export const LANGS = {
       comingSoon: 'Demnächst',
       goPro: 'Pro werden',
       noSeason: 'Keine aktive Saison',
+      max: 'MAX',
+      missionsToNext: '{done}/{total} Aufgaben → Lv. {n}',
     },
     inventory: {
       title: 'Mein Inventar',
