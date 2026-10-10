@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { useLang } from './LangContext.jsx';
 import UserAvatar from './UserAvatar.jsx';
+import CodeErrorBlock from './components/CodeErrorBlock.jsx';
 import SpecialBadge, { getSpecialUserByUsername } from './SpecialBadge.jsx';
 import { SERVER } from './config.js';
 import { getUsernameColor } from './cosmeticColors';
@@ -36,6 +37,7 @@ export default function League({ leagueId, onBack, onViewProfile, onJoined }) {
   const [joinCode, setJoinCode]     = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg]               = useState(null);
+  const [joinErr, setJoinErr]       = useState(null); // 'code_not_found' | 'rate_limit' | null
 
   const tok = localStorage.getItem('tradaria_token');
 
@@ -120,6 +122,7 @@ export default function League({ leagueId, onBack, onViewProfile, onJoined }) {
     if (joinCode.trim().length < 6) return setMsg({ text: tl.codeRequired, ok: false });
     setSubmitting(true);
     setMsg(null);
+    setJoinErr(null);
     try {
       const r = await fetch(`${SERVER}/leagues/join`, {
         method: 'POST',
@@ -127,7 +130,13 @@ export default function League({ leagueId, onBack, onViewProfile, onJoined }) {
         body: JSON.stringify({ code: joinCode.trim().toUpperCase() }),
       });
       const d = await r.json();
-      if (!r.ok) { setMsg({ text: tl.errorJoin, ok: false }); setSubmitting(false); return; }
+      if (!r.ok) {
+        if (r.status === 404) setJoinErr('code_not_found');
+        else if (r.status === 429) setJoinErr('rate_limit');
+        else setMsg({ text: tl.errorJoin, ok: false });
+        setSubmitting(false);
+        return;
+      }
       setMsg({ text: tl.joined.replace('{name}', d.name), ok: true });
       setTimeout(() => onJoined && onJoined(d.leagueId), 1500);
     } catch { setMsg({ text: tl.errorJoin, ok: false }); }
@@ -194,10 +203,12 @@ export default function League({ leagueId, onBack, onViewProfile, onJoined }) {
           </button>
           <div>
             <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: '6px', textTransform: 'uppercase' }}>{tl.codeLabel}</div>
-            <input value={joinCode} onChange={e => setJoinCode(e.target.value.toUpperCase())} maxLength={6} placeholder="XXXXXX"
-              style={{ width: '100%', padding: '14px', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '22px', fontWeight: 700, letterSpacing: '0.22em', textAlign: 'center', boxSizing: 'border-box', outline: 'none' }} />
+            <input value={joinCode} onChange={e => { setJoinCode(e.target.value.toUpperCase()); setJoinErr(null); }} maxLength={6} placeholder="XXXXXX"
+              style={{ width: '100%', padding: '14px', background: 'var(--bg-surface)', border: `0.5px solid ${joinErr ? 'var(--pink)' : 'var(--border-default)'}`, borderRadius: 'var(--radius-md)', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '22px', fontWeight: 700, letterSpacing: '0.22em', textAlign: 'center', boxSizing: 'border-box', outline: 'none', transition: 'border-color 0.15s' }} />
           </div>
-          {msg && <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: msg.ok ? 'var(--green)' : 'var(--pink)' }}>{msg.text}</div>}
+          {joinErr === 'code_not_found' && <CodeErrorBlock title={tl.codeNotFoundTitle} hint={tl.codeNotFoundHint} />}
+          {joinErr === 'rate_limit' && <CodeErrorBlock title={tl.codeTooMany} />}
+          {msg && !joinErr && <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: msg.ok ? 'var(--green)' : 'var(--pink)' }}>{msg.text}</div>}
           <button onClick={joinLeague} disabled={submitting}
             style={{ width: '100%', padding: '13px', background: 'rgba(0,229,160,0.08)', border: '1.5px solid var(--green)', borderRadius: 'var(--radius-full)', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: submitting ? 'default' : 'pointer', opacity: submitting ? 0.6 : 1 }}>
             {submitting ? '...' : tl.joinBtn}

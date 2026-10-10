@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from './AuthContext';
 import { SERVER } from './config.js';
 import { useLang } from './LangContext.jsx';
+import CodeErrorBlock from './components/CodeErrorBlock.jsx';
 
 const CODE_LENGTH = 9; // "ABCD-1234"
 
@@ -23,11 +24,17 @@ export default function JoinAcademy({ onBack }) {
     setPreviewErr(null);
     setPreview(null);
     try {
-      const res  = await fetch(`${SERVER}/academy/preview?code=${encodeURIComponent(val)}`);
+      const res = await fetch(`${SERVER}/academy/preview?code=${encodeURIComponent(val)}`);
+      if (!res.ok) {
+        setPreviewErr(res.status === 404 ? 'code_not_found' : res.status === 429 ? 'rate_limit' : 'generic');
+        setPreviewLoading(false);
+        return;
+      }
       const data = await res.json();
-      if (!res.ok) { setPreviewErr(data.error || t.academy.codeInvalid); return; }
       setPreview(data);
-    } catch { setPreviewErr(t.academy.networkError); }
+    } catch {
+      setPreviewErr('offline');
+    }
     setPreviewLoading(false);
   }
 
@@ -84,7 +91,7 @@ export default function JoinAcademy({ onBack }) {
             spellCheck={false}
             style={{
               width: '100%', padding: '16px',
-              background: 'var(--bg-card)', border: `1px solid ${previewErr ? 'var(--color-down)' : preview ? 'var(--green)' : 'var(--bd)'}`,
+              background: 'var(--bg-card)', border: `1px solid ${previewErr ? 'var(--pink)' : preview ? 'var(--green)' : 'var(--bd)'}`,
               borderRadius: '8px', color: 'var(--green)',
               fontFamily: 'var(--font-body)', fontSize: '22px', fontWeight: 700,
               letterSpacing: '0.22em', textAlign: 'center',
@@ -103,9 +110,16 @@ export default function JoinAcademy({ onBack }) {
 
         {/* Error */}
         {previewErr && !previewLoading && (
-          <div style={{ marginTop: '14px', fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-down)', textAlign: 'center' }}>
-            {previewErr}
-          </div>
+          <CodeErrorBlock
+            title={
+              previewErr === 'code_not_found' ? t.academy.codeNotFoundTitle :
+              previewErr === 'rate_limit'     ? t.academy.codeTooMany :
+              t.common.error
+            }
+            hint={previewErr === 'code_not_found' ? t.academy.codeNotFoundHint : undefined}
+            onRetry={previewErr === 'offline' ? () => fetchPreview(code) : undefined}
+            retryLabel={t.common.retry}
+          />
         )}
 
         {/* Preview */}
