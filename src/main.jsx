@@ -8,9 +8,15 @@ import { AuthProvider } from './AuthContext.jsx';
 import { BattlePassProvider } from './BattlePassContext.jsx';
 import MaintenanceBanner from './MaintenanceBanner.jsx';
 import UpdateBanner from './UpdateBanner.jsx';
+import ErrorBoundary from './components/ErrorBoundary.jsx';
 import { SERVER } from './config.js';
 import { inject } from '@vercel/analytics';
 inject();
+
+window.addEventListener('unhandledrejection', (e) => {
+  e.preventDefault();
+  console.error('[unhandledrejection suppressed]', e.reason);
+});
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('controllerchange', () => {
@@ -63,13 +69,15 @@ if ('serviceWorker' in navigator) {
 }
 
 createRoot(document.getElementById('root')).render(
-  <AuthProvider>
-    <LangProvider>
-      <BattlePassProvider>
-        <UpdateBanner />
-        <MaintenanceBanner />
-        <App />
-      </BattlePassProvider>
-    </LangProvider>
-  </AuthProvider>
+  <ErrorBoundary>
+    <AuthProvider>
+      <LangProvider>
+        <BattlePassProvider>
+          <UpdateBanner />
+          <MaintenanceBanner />
+          <App />
+        </BattlePassProvider>
+      </LangProvider>
+    </AuthProvider>
+  </ErrorBoundary>
 )

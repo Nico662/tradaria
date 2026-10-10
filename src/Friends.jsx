@@ -273,7 +273,7 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
           : prev
         );
       } else {
-        flash('err', data.error || 'Error');
+        flash('err', t.friends.networkError);
       }
     } catch { flash('err', t.friends.networkError); }
   }
@@ -283,7 +283,7 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
       const res  = await fetch(`${SERVER}/friends/accept`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ friendshipId }) });
       const data = await res.json();
       if (data.ok) { flash('ok', t.friends.nowFriends); fetchAll(); }
-      else flash('err', data.error || 'Error');
+      else flash('err', t.friends.networkError);
     } catch { flash('err', t.friends.networkError); }
   }
 
@@ -292,7 +292,7 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
       const res  = await fetch(`${SERVER}/friends/reject`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ friendshipId }) });
       const data = await res.json();
       if (data.ok) setPending(p => p.filter(r => String(r.friendshipId) !== String(friendshipId)));
-      else flash('err', data.error || 'Error');
+      else flash('err', t.friends.networkError);
     } catch { flash('err', t.friends.networkError); }
   }
 

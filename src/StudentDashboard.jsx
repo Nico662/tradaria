@@ -70,7 +70,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
         const d = await res.json();
         setLeaving(false);
         setConfirmLeave(false);
-        setError(d.error || 'Error');
+        setError(t.common.error);
         return;
       }
       localStorage.removeItem('academy_name');
@@ -96,7 +96,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
             updateUser({ academyId: null, isAcademyPro: false });
             return Promise.reject('__ACADEMY_GONE__');
           }
-          return Promise.reject(d.error || 'Error');
+          return Promise.reject(new Error('http:' + r.status));
         });
       }),
 
@@ -126,7 +126,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
       })
       .catch(e => {
         if (e === '__ACADEMY_GONE__') { onBack(); return; }
-        setError(String(e));
+        setError(t.common.error);
       })
       .finally(() => setLoading(false));
   }, [String(academyId)]);

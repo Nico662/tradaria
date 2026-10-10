@@ -204,7 +204,7 @@ export default function BattlePass({ onBack, onGoPricing }) {
     const result = await claimReward(levelNum, track);
     setClaimingCard(null);
     if (!result.ok) {
-      const msg = CLAIM_ERROR_MESSAGES[result.error] ?? result.error ?? 'ERROR';
+      const msg = CLAIM_ERROR_MESSAGES[result.error] ?? t.common.error;
       setClaimError(msg);
       setTimeout(() => setClaimError(null), 3000);
     } else {

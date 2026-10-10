@@ -109,7 +109,7 @@ export default function League({ leagueId, onBack, onViewProfile, onJoined }) {
         body: JSON.stringify({ name: name.trim(), endDate: endDate || undefined }),
       });
       const d = await r.json();
-      if (!r.ok) { setMsg({ text: d.error || tl.errorCreate, ok: false }); setSubmitting(false); return; }
+      if (!r.ok) { setMsg({ text: tl.errorCreate, ok: false }); setSubmitting(false); return; }
       setMsg({ text: tl.created.replace('{code}', d.code), ok: true });
       setTimeout(() => onJoined && onJoined(d.leagueId), 1500);
     } catch { setMsg({ text: tl.errorCreate, ok: false }); }
@@ -127,7 +127,7 @@ export default function League({ leagueId, onBack, onViewProfile, onJoined }) {
         body: JSON.stringify({ code: joinCode.trim().toUpperCase() }),
       });
       const d = await r.json();
-      if (!r.ok) { setMsg({ text: d.error || tl.errorJoin, ok: false }); setSubmitting(false); return; }
+      if (!r.ok) { setMsg({ text: tl.errorJoin, ok: false }); setSubmitting(false); return; }
       setMsg({ text: tl.joined.replace('{name}', d.name), ok: true });
       setTimeout(() => onJoined && onJoined(d.leagueId), 1500);
     } catch { setMsg({ text: tl.errorJoin, ok: false }); }

@@ -147,7 +147,7 @@ function CreateAcademyScreen({ onBack, onCreated }) {
         body:    JSON.stringify({ name: name.trim() }),
       });
       const data = await res.json();
-      if (!res.ok) { setErr(data.error || t.academy.createError); setSubmitting(false); return; }
+      if (!res.ok) { setErr(t.academy.createError); setSubmitting(false); return; }
       onCreated(data);
     } catch { setErr(t.academy.networkError); }
     setSubmitting(false);
@@ -266,13 +266,13 @@ function AcademyDashboard({ academyId, onBack }) {
             updateUser({ academyId: null, isAcademyPro: false });
             return Promise.reject('__ACADEMY_GONE__');
           }
-          return Promise.reject(d.error || 'Error');
+          return Promise.reject(new Error('http:' + r.status));
         });
       })
       .then(data => setAcademy(data))
       .catch(e => {
         if (e === '__ACADEMY_GONE__') { onBack(); return; }
-        setError(String(e));
+        setError(t.common.error);
       })
       .finally(() => setLoading(false));
   }, [academyId]);
@@ -340,7 +340,7 @@ function AcademyDashboard({ academyId, onBack }) {
       });
       const data = await res.json();
       if (data.url) { window.location.href = data.url; return; }
-      setFormErr(data.error || t.academy.activateError);
+      setFormErr(t.academy.activateError);
     } catch { setFormErr(t.academy.networkError); }
     setActivating(null);
   }
@@ -400,7 +400,7 @@ function AcademyDashboard({ academyId, onBack }) {
         body:    JSON.stringify({ name: form.name.trim(), startsAt: form.startsAt, endsAt: form.endsAt }),
       });
       const data = await res.json();
-      if (!res.ok) { setFormErr(data.error || t.academy.createError); setSubmitting(false); return; }
+      if (!res.ok) { setFormErr(t.academy.createError); setSubmitting(false); return; }
       setAcademy(prev => ({ ...prev, tournaments: [data, ...(prev.tournaments || [])] }));
       setModal(false);
       setForm({ name: '', startsAt: '', endsAt: '' });
@@ -433,7 +433,7 @@ function AcademyDashboard({ academyId, onBack }) {
         body:    JSON.stringify(body),
       });
       const data = await res.json();
-      if (!res.ok) { setAsgErr(data.error || t.academy.createError); setAsgSubmitting(false); return; }
+      if (!res.ok) { setAsgErr(t.academy.createError); setAsgSubmitting(false); return; }
       setAssignments(prev => [data, ...prev]);
       setAsgModal(false);
       setAsgForm({ title: '', description: '', mode: 'guess', targetGames: 5, minAccuracy: '', startsAt: '', endsAt: '' });
@@ -452,7 +452,7 @@ function AcademyDashboard({ academyId, onBack }) {
         body:    JSON.stringify({ toId: feedbackModal.studentId, message: feedbackMsg.trim() }),
       });
       const data = await res.json();
-      if (!res.ok) { setFeedbackErr(data.error || t.academy.createError); setFeedbackSending(false); return; }
+      if (!res.ok) { setFeedbackErr(t.academy.createError); setFeedbackSending(false); return; }
       setFeedbackHist(prev => [data, ...prev]);
       setFeedbackMsg('');
     } catch { setFeedbackErr(t.academy.networkError); }
@@ -471,7 +471,7 @@ function AcademyDashboard({ academyId, onBack }) {
         headers: { Authorization: `Bearer ${tok}` },
       });
       const data = await res.json();
-      if (!res.ok) { setDetailErr(data.error || t.academy.createError); setDetailLoading(false); return; }
+      if (!res.ok) { setDetailErr(t.academy.createError); setDetailLoading(false); return; }
       setStudentDetail(data);
     } catch { setDetailErr(t.academy.networkError); }
     setDetailLoading(false);
@@ -497,7 +497,7 @@ function AcademyDashboard({ academyId, onBack }) {
         body:    JSON.stringify({ toId: selectedStudent.id, message: detailFeedbackMsg.trim() }),
       });
       const data = await res.json();
-      if (!res.ok) { setDetailFeedbackErr(data.error || t.academy.createError); setDetailFeedbackSending(false); return; }
+      if (!res.ok) { setDetailFeedbackErr(t.academy.createError); setDetailFeedbackSending(false); return; }
       setStudentDetail(prev => ({ ...prev, feedback: [data, ...(prev.feedback || [])] }));
       setDetailFeedbackMsg('');
     } catch { setDetailFeedbackErr(t.academy.networkError); }

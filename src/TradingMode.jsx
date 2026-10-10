@@ -325,13 +325,13 @@ function TradingChart({ symbol, timeframe, position, chartRef, onPositionSaved }
       });
       const data = await res.json();
       if (!res.ok) {
-        setSaveErr({ type, msg: data.error ?? 'Error' });
+        setSaveErr({ type, msg: t.common.error });
         setTimeout(() => setSaveErr(null), 2500);
       } else {
         onPositionSaved(pos.id, type === 'sl' ? { stopLoss: price } : { takeProfit: price });
       }
     } catch {
-      setSaveErr({ type, msg: 'Error de red' });
+      setSaveErr({ type, msg: t.common.error });
       setTimeout(() => setSaveErr(null), 2500);
     }
     setTimeout(() => setSaving(null), 800);
@@ -799,13 +799,13 @@ export default function TradingMode({ onBack }) {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setOrderError(data.error ?? 'Error al cerrar posición');
+        setOrderError(t.common.error);
         return;
       }
       setPositionsKey(k => k + 1);
       refreshAccountOnce();
     } catch (_) {
-      setOrderError('Error de conexión');
+      setOrderError(t.common.error);
     } finally {
       setOrderPending(false);
     }
@@ -821,11 +821,11 @@ export default function TradingMode({ onBack }) {
         body: JSON.stringify({ username: challengeInput.trim() }),
       });
       const data = await res.json();
-      if (!res.ok) { setSocialError(data.error ?? 'Error al retar'); return; }
+      if (!res.ok) { setSocialError(t.common.error); return; }
       setChallengeInput('');
       const actRes = await fetch(`${SERVER}/api/trading/duel/active`, { headers: { Authorization: `Bearer ${token}` } });
       if (actRes.ok) setActiveDuel(await actRes.json());
-    } catch (_) { setSocialError('Error de conexión'); }
+    } catch (_) { setSocialError(t.common.error); }
     finally { setSocialPending(false); }
   }
 
@@ -835,14 +835,14 @@ export default function TradingMode({ onBack }) {
       const res = await fetch(`${SERVER}/api/trading/duel/accept/${duelId}`, {
         method: 'POST', headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) { const d = await res.json().catch(() => ({})); setSocialError(d.error ?? 'Error'); return; }
+      if (!res.ok) { setSocialError(t.common.error); return; }
       const [actRes, pendRes] = await Promise.all([
         fetch(`${SERVER}/api/trading/duel/active`,  { headers: { Authorization: `Bearer ${token}` } }),
         fetch(`${SERVER}/api/trading/duel/pending`, { headers: { Authorization: `Bearer ${token}` } }),
       ]);
       if (actRes.ok)  setActiveDuel(await actRes.json());
       if (pendRes.ok) setPendingDuels(await pendRes.json());
-    } catch (_) { setSocialError('Error de conexión'); }
+    } catch (_) { setSocialError(t.common.error); }
     finally { setSocialPending(false); }
   }
 
@@ -872,12 +872,12 @@ export default function TradingMode({ onBack }) {
         body: JSON.stringify({ name: leagueNameInput.trim() }),
       });
       const data = await res.json();
-      if (!res.ok) { setSocialError(data.error ?? 'Error al crear liga'); return; }
+      if (!res.ok) { setSocialError(t.common.error); return; }
       setLeagueNameInput('');
       const mineRes = await fetch(`${SERVER}/api/trading/leagues/mine`, { headers: { Authorization: `Bearer ${token}` } });
       if (mineRes.ok) setMyLeagues(await mineRes.json());
       handleViewLeague(data.leagueId);
-    } catch (_) { setSocialError('Error de conexión'); }
+    } catch (_) { setSocialError(t.common.error); }
     finally { setSocialPending(false); }
   }
 
@@ -891,12 +891,12 @@ export default function TradingMode({ onBack }) {
         body: JSON.stringify({ code: leagueCodeInput.trim().toUpperCase() }),
       });
       const data = await res.json();
-      if (!res.ok) { setSocialError(data.error ?? 'Error al unirse'); return; }
+      if (!res.ok) { setSocialError(t.common.error); return; }
       setLeagueCodeInput('');
       const mineRes = await fetch(`${SERVER}/api/trading/leagues/mine`, { headers: { Authorization: `Bearer ${token}` } });
       if (mineRes.ok) setMyLeagues(await mineRes.json());
       handleViewLeague(data.leagueId);
-    } catch (_) { setSocialError('Error de conexión'); }
+    } catch (_) { setSocialError(t.common.error); }
     finally { setSocialPending(false); }
   }
 
@@ -1165,14 +1165,14 @@ export default function TradingMode({ onBack }) {
         });
         const data = await res.json();
         if (!res.ok) {
-          setOrderError(data.error ?? 'Error al abrir posición');
+          setOrderError(t.common.error);
           return;
         }
         setPositionsKey(k => k + 1);
         refreshAccountOnce();
         setTab('positions');
       } catch (_) {
-        setOrderError('Error de conexión');
+        setOrderError(t.common.error);
       } finally {
         setOrderPending(false);
       }
