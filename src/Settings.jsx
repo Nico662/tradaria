@@ -21,6 +21,7 @@ const STRINGS = {
     deleteAccount: 'Delete account', deleteConfirmMsg: 'Are you sure? This will permanently delete your account and all your data.',
     cancel: 'Cancel', yesDelete: 'Yes, delete', deleting: 'Deleting...',
     cancelError: 'Error cancelling. Contact tradikonicolasvidal@gmail.com', connectionError: 'Connection error. Please try again.',
+    howToPlay: 'How to play',
   },
   es: {
     title: 'Configuración', back: '← volver',
@@ -37,6 +38,7 @@ const STRINGS = {
     deleteAccount: 'Eliminar cuenta', deleteConfirmMsg: '¿Seguro? Esta acción eliminará tu cuenta y todos tus datos permanentemente.',
     cancel: 'Cancelar', yesDelete: 'Sí, eliminar', deleting: 'Eliminando...',
     cancelError: 'Error al cancelar. Contacta con tradikonicolasvidal@gmail.com', connectionError: 'Error de conexión. Inténtalo de nuevo.',
+    howToPlay: 'Cómo se juega',
   },
   de: {
     title: 'Einstellungen', back: '← zurück',
@@ -53,6 +55,7 @@ const STRINGS = {
     deleteAccount: 'Konto löschen', deleteConfirmMsg: 'Bist du sicher? Diese Aktion löscht dein Konto und alle deine Daten dauerhaft.',
     cancel: 'Abbrechen', yesDelete: 'Ja, löschen', deleting: 'Wird gelöscht...',
     cancelError: 'Fehler beim Kündigen. Kontaktiere tradikonicolasvidal@gmail.com', connectionError: 'Verbindungsfehler. Bitte versuche es erneut.',
+    howToPlay: 'So wird gespielt',
   },
 };
 
@@ -102,7 +105,7 @@ function Row({ label, children, last }) {
   );
 }
 
-export default function Settings({ onBack }) {
+export default function Settings({ onBack, onShowTutorial }) {
   const { user, logout, updateUser, isPro } = useAuth();
   const { lang, setLang } = useLang();
   const s = STRINGS[lang] || STRINGS.en;
@@ -428,6 +431,21 @@ export default function Settings({ onBack }) {
             </Card>
           </>
         )}
+
+        {/* How to play */}
+        <Card>
+          <div style={{ padding: '12px 16px' }}>
+            <button onClick={onShowTutorial} style={{
+              width: '100%', padding: '11px',
+              background: 'rgba(0,192,135,0.08)', border: '1px solid var(--green)',
+              borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)',
+              fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em',
+              textTransform: 'uppercase', cursor: 'pointer',
+            }}>
+              {s.howToPlay}
+            </button>
+          </div>
+        </Card>
 
         {/* About */}
         <SectionLabel text={s.about} />

@@ -808,7 +808,13 @@ export default function App() {
           else if (mode === 'trading')           setScreen('trading');
           else {
             setScreen('game');
-            if (!localStorage.getItem('tradaria_tutorial_done')) setShowTutorial(true);
+            const userId = user?.id || user?._id;
+            const tKey = userId ? `tradiko_tutorial_seen_${userId}` : 'tradiko_tutorial_seen';
+            if (localStorage.getItem('tradaria_tutorial_done') || parseInt(localStorage.getItem('tradaria_highscore') || '0') > 0) {
+              if (!localStorage.getItem(tKey)) localStorage.setItem(tKey, '1');
+            } else if (!localStorage.getItem(tKey)) {
+              setShowTutorial(true);
+            }
           }
         }} />
         <NotificationBanner />
@@ -838,7 +844,7 @@ export default function App() {
   if (screen === 'tournament') return <><GameThemeBg screen={screen} /><Tournament onBack={() => { setAcademyTournamentCtx(null); setScreen(academyTournamentCtx ? 'student_dashboard' : 'home'); }} onViewProfile={(uname) => { setPublicProfileUsername(uname); setScreen('public_profile'); window.history.pushState({}, '', `/u/${uname}`); }} onGoPricing={() => { setPricingFromTournament(true); setScreen('pricing'); }} academyTournamentId={academyTournamentCtx?.tournamentId ?? null} academyId={academyTournamentCtx?.academyId ?? null} />{challengeOverlay}</>;
   if (screen === 'survival')   return <><GameThemeBg screen={screen} /><Survival   onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'shop')       return <><Shop       onBack={() => setScreen('home')} />{challengeOverlay}</>;
-  if (screen === 'settings')   return <><Settings   onBack={() => setScreen('home')} />{challengeOverlay}</>;
+  if (screen === 'settings')   return <><Settings   onBack={() => setScreen('home')} onShowTutorial={() => setShowTutorial(true)} />{challengeOverlay}</>;
   if (screen === 'inventory')  return <AppLayout currentScreen={screen} onSelect={handleSelect}><Inventory onBack={() => setScreen('stats')} /></AppLayout>;
   if (screen === 'portfolio')  return <AppLayout currentScreen={screen} onSelect={handleSelect}><Portfolio  onBack={() => setScreen('home')} onViewProfile={(uname) => { setPublicProfileUsername(uname); setScreen('public_profile'); window.history.pushState({}, '', `/u/${uname}`); }} onOpenLeague={(id) => { setLeagueId(id); setPrevScreen('portfolio'); setScreen('league'); }} onGoPricing={() => setScreen('pricing')} />{challengeOverlay}</AppLayout>;
   if (screen === 'league')          return <AppLayout currentScreen={screen} onSelect={handleSelect}><League leagueId={leagueId} onBack={() => setScreen(prevScreen === 'portfolio' ? 'portfolio' : 'home')} onViewProfile={(uname) => { setPublicProfileUsername(uname); setScreen('public_profile'); window.history.pushState({}, '', `/u/${uname}`); }} onJoined={(id) => setLeagueId(id)} />{challengeOverlay}</AppLayout>;
