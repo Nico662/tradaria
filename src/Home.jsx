@@ -169,9 +169,9 @@ export default function Home({ onSelect }) {
             </a>
             {user?.role === 'teacher' && (
               <button onClick={() => onSelect('teacher_dashboard')}
-                style={{ background: 'rgba(0,229,160,0.07)', border: '1px solid rgba(0,229,160,0.35)', borderRadius: '6px', padding: '4px 9px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,229,160,0.14)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,229,160,0.07)'}
+                style={{ background: 'transparent', border: 'none', padding: '4px 6px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 600, cursor: 'pointer', letterSpacing: '0.04em', textTransform: 'uppercase', flexShrink: 0 }}
+                onMouseEnter={e => e.currentTarget.style.color = 'var(--text-secondary)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
               >
                 {t.home.academy}
               </button>
@@ -179,17 +179,17 @@ export default function Home({ onSelect }) {
             {user && user.role !== 'teacher' && (
               user.academyId ? (
                 <button onClick={() => onSelect('student_dashboard')}
-                  style={{ background: 'rgba(0,229,160,0.07)', border: '1px solid rgba(0,229,160,0.35)', borderRadius: '6px', padding: '4px 9px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,229,160,0.14)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,229,160,0.07)'}
+                  style={{ background: 'transparent', border: 'none', padding: '4px 6px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 600, cursor: 'pointer', letterSpacing: '0.04em', textTransform: 'uppercase', flexShrink: 0 }}
+                  onMouseEnter={e => e.currentTarget.style.color = 'var(--text-secondary)'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
                 >
                   {t.home.myAcademy}
                 </button>
               ) : (
                 <button onClick={() => onSelect('join_academy')}
-                  style={{ background: 'rgba(0,229,160,0.07)', border: '1px solid rgba(0,229,160,0.35)', borderRadius: '6px', padding: '4px 9px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,229,160,0.14)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,229,160,0.07)'}
+                  style={{ background: 'transparent', border: 'none', padding: '4px 6px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 600, cursor: 'pointer', letterSpacing: '0.04em', textTransform: 'uppercase', flexShrink: 0 }}
+                  onMouseEnter={e => e.currentTarget.style.color = 'var(--text-secondary)'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
                 >
                   {t.home.joinAcademy}
                 </button>

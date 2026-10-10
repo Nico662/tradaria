@@ -3,9 +3,9 @@ import { useAuth, isIOSApp } from './AuthContext';
 import { SERVER } from './config.js';
 import { useLang } from './LangContext.jsx';
 import { purchaseWithStoreKit } from './iap.js';
-import { Star, Heart, Ban, Medal, Bell, FileText, TrendingUp } from 'lucide-react';
+import { Star, Heart, Medal, Bell, FileText, TrendingUp, Ticket } from 'lucide-react';
 
-const PRO_ICONS = [Star, Heart, Ban, Medal, Bell, FileText, TrendingUp];
+const PRO_ICONS = [Star, Heart, Medal, Bell, FileText, TrendingUp, Ticket];
 
 export default function Pricing({ onBack, fromTournament }) {
   const { user, isPro, updateUser } = useAuth();
@@ -120,18 +120,9 @@ export default function Pricing({ onBack, fromTournament }) {
             pointerEvents: 'none',
           }} />
 
-          {/* Plan name + badge */}
+          {/* Plan name */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', position: 'relative' }}>
             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t1)' }}>Pro</div>
-            <span style={{
-              fontSize: '10px', color: '#fff',
-              background: '#e05585',
-              padding: '2px 8px', borderRadius: '4px',
-              letterSpacing: '0.10em', fontFamily: 'var(--font-body)', fontWeight: 700,
-              boxShadow: '0 2px 10px rgba(224,85,133,0.40)',
-            }}>
-              {t.pricing.popularBadge}
-            </span>
           </div>
 
           {/* Price */}

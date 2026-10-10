@@ -46,7 +46,7 @@ export const LANGS = {
       accuracy: 'Accuracy', bestStreak: 'Best streak', rounds: 'Rounds',
       playAgain: 'Play Again', menu: 'Menu', share: 'Share result',
     },
-    cats: { all: 'All', crypto: 'Crypto', forex: 'Forex', indices: 'Indices', commodities: 'Commodities' },
+    cats: { all: 'All', crypto: 'Crypto', forex: 'Forex', indices: 'Indices', commodities: 'Commodities', stocks: 'Stocks' },
     arena: {
       title: 'Arena 1vs1', sub: 'same chart · simultaneous decision · best wins',
       yourName: 'your name', findMatch: 'Find match →', howTitle: 'how it works',
@@ -578,8 +578,8 @@ export const LANGS = {
       freeFeat1: 'Guess The Market', freeFeat2: 'Daily Challenge', freeFeat3: 'Arena 1vs1',
       freeFeat4: 'Survival — 3 lives', freeFeat5: 'Free tournaments', freeFeat6: 'Virtual Portfolio',
       proFeat1: 'Everything in Free', proFeat2: 'Survival — 5 lives (Free: 3)',
-      proFeat3: 'No ads', proFeat4: 'Pro badge on profile',
-      proFeat5: 'Price alerts on your positions', proFeat6: 'Notes on your portfolio positions', proFeat7: 'Compare your portfolio vs #1 on the ranking',
+      proFeat3: 'Pro badge on profile', proFeat4: 'Price alerts on your positions',
+      proFeat5: 'Notes on your portfolio positions', proFeat6: 'Compare your portfolio vs #1 on the ranking', proFeat7: 'Trader Pass Pro — exclusive season rewards',
       perMonth: '/mo', legalAgree: 'By subscribing, you agree to our', termsOfUse: 'Terms of Use', legalAnd: 'and', privacyPolicy: 'Privacy Policy',
     },
     maintenance: {
@@ -806,7 +806,7 @@ export const LANGS = {
       accuracy: 'Precisión', bestStreak: 'Mejor racha', rounds: 'Rondas',
       playAgain: 'Jugar de nuevo', menu: 'Menú', share: 'Compartir',
     },
-    cats: { all: 'Todo', crypto: 'Cripto', forex: 'Forex', indices: 'Índices', commodities: 'Materias primas' },
+    cats: { all: 'Todo', crypto: 'Cripto', forex: 'Forex', indices: 'Índices', commodities: 'Materias primas', stocks: 'Acciones' },
     arena: {
       title: 'Arena 1vs1', sub: 'mismo gráfico · decisión simultánea · gana el mejor',
       yourName: 'tu nombre', findMatch: 'Buscar partida →', howTitle: 'cómo funciona',
@@ -1338,8 +1338,8 @@ export const LANGS = {
       freeFeat1: 'Adivina el Mercado', freeFeat2: 'Desafío Diario', freeFeat3: 'Arena 1vs1',
       freeFeat4: 'Survival — 3 vidas', freeFeat5: 'Torneos gratuitos', freeFeat6: 'Portfolio virtual',
       proFeat1: 'Todo lo de Free', proFeat2: 'Survival — 5 vidas (Free: 3)',
-      proFeat3: 'Sin anuncios', proFeat4: 'Badge Pro en el perfil',
-      proFeat5: 'Alertas de precio en tus posiciones', proFeat6: 'Notas en tus posiciones del portfolio', proFeat7: 'Comparar tu portfolio vs el #1 del ranking',
+      proFeat3: 'Badge Pro en el perfil', proFeat4: 'Alertas de precio en tus posiciones',
+      proFeat5: 'Notas en tus posiciones del portfolio', proFeat6: 'Comparar tu portfolio vs el #1 del ranking', proFeat7: 'Trader Pass Pro — recompensas de temporada exclusivas',
       perMonth: '/mes', legalAgree: 'Al suscribirte, aceptas nuestros', termsOfUse: 'Términos de uso', legalAnd: 'y la', privacyPolicy: 'Política de privacidad',
     },
     maintenance: {
@@ -1513,7 +1513,7 @@ export const LANGS = {
       accuracy: 'Genauigkeit', bestStreak: 'Beste Serie', rounds: 'Runden',
       playAgain: 'Nochmal spielen', menu: 'Menü', share: 'Teilen',
     },
-    cats: { all: 'Alle', crypto: 'Krypto', forex: 'Forex', indices: 'Indizes', commodities: 'Rohstoffe' },
+    cats: { all: 'Alle', crypto: 'Krypto', forex: 'Forex', indices: 'Indizes', commodities: 'Rohstoffe', stocks: 'Aktien' },
     arena: {
       title: 'Arena 1vs1', sub: 'gleicher Chart · gleichzeitige Entscheidung · bester gewinnt',
       yourName: 'dein Name', findMatch: 'Spiel suchen →', howTitle: 'so funktioniert es',
@@ -2045,8 +2045,8 @@ export const LANGS = {
       freeFeat1: 'Markt raten', freeFeat2: 'Tägliche Challenge', freeFeat3: 'Arena 1vs1',
       freeFeat4: 'Survival — 3 Leben', freeFeat5: 'Kostenlose Turniere', freeFeat6: 'Virtuelles Portfolio',
       proFeat1: 'Alles aus Free', proFeat2: 'Survival — 5 Leben (Free: 3)',
-      proFeat3: 'Keine Werbung', proFeat4: 'Pro-Badge im Profil',
-      proFeat5: 'Preisalarme auf deine Positionen', proFeat6: 'Notizen zu deinen Portfolio-Positionen', proFeat7: 'Portfolio vs #1 im Ranking vergleichen',
+      proFeat3: 'Pro-Badge im Profil', proFeat4: 'Preisalarme auf deine Positionen',
+      proFeat5: 'Notizen zu deinen Portfolio-Positionen', proFeat6: 'Portfolio vs #1 im Ranking vergleichen', proFeat7: 'Trader Pass Pro — exklusive Saison-Belohnungen',
       perMonth: '/Monat', legalAgree: 'Durch das Abonnieren stimmst du unseren', termsOfUse: 'Nutzungsbedingungen', legalAnd: 'und der', privacyPolicy: 'Datenschutzerklärung',
     },
     maintenance: {

@@ -55,6 +55,7 @@ const CATEGORIES = [
   { id: 'forex',       labelKey: 'forex'       },
   { id: 'indices',     labelKey: 'indices'     },
   { id: 'commodities', labelKey: 'commodities' },
+  { id: 'stocks',      labelKey: 'stocks'      },
 ];
 
 function randomAsset(cat = 'all') {
