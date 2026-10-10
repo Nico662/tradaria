@@ -169,13 +169,17 @@ export default function App() {
   }, [user?.username]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) { setLeagueId(null); return; }
+    // Re-sync XP to server's authoritative value to prevent stale XP from a previous account
+    const correctXp = Math.max(user.xp ?? 0, parseInt(localStorage.getItem('tradaria_xp') || '0'));
+    localStorage.setItem('tradaria_xp', String(correctXp));
+    setXp(correctXp);
     const tok = localStorage.getItem('tradaria_token');
-    if (!tok) return;
+    if (!tok) { setLeagueId(null); return; }
     fetch(`${SERVER}/leagues/mine`, { headers: { Authorization: `Bearer ${tok}` } })
       .then(r => r.ok ? r.json() : null)
-      .then(data => { if (Array.isArray(data) && data.length > 0) setLeagueId(data[0]._id); })
-      .catch(() => {});
+      .then(data => { setLeagueId(Array.isArray(data) && data.length > 0 ? data[0]._id : null); })
+      .catch(() => { setLeagueId(null); });
   }, [user]);
 
   // When the server provides a new round, update the asset so Chart renders only visible candles.

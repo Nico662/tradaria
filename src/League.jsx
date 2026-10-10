@@ -45,11 +45,14 @@ export default function League({ leagueId, onBack, onViewProfile, onJoined }) {
     fetch(`${SERVER}/leagues/${leagueId}/ranking`, {
       headers: { Authorization: `Bearer ${tok}` },
     })
-      .then(r => r.json())
-      .then(setData)
+      .then(r => {
+        if (r.status === 403 || r.status === 404) { onJoined?.(null); return null; }
+        return r.json();
+      })
+      .then(d => { if (d !== null) setData(d); })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [leagueId]);
+  }, [leagueId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function copyCode() {
     if (!data) return;

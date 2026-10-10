@@ -298,6 +298,13 @@ export function AuthProvider({ children }) {
     }
     localStorage.removeItem('tradaria_token');
     localStorage.removeItem('tradaria_cosmetics');
+    // Clear user-specific cached data so the next login starts with a clean slate
+    localStorage.removeItem('tradaria_xp');
+    localStorage.removeItem('tradaria_badges');
+    localStorage.removeItem('tradaria_daily_streak');
+    localStorage.removeItem('tradaria_daily_last');
+    localStorage.removeItem('tradaria_last_played');
+    localStorage.removeItem('tradaria_daily_played');
     setUser(null);
     setPurchases([]);
     setActiveCosmetics({});
