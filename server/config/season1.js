@@ -1,6 +1,6 @@
 // ── Battle Pass Season 1 configuration ───────────────────────────────────────
 // startDate is controlled by SEASON_1_START_DATE env var (ISO string).
-// Duration is fixed at 150 days (~5 months).
+// Duration is fixed at 300 days (~10 months).
 //
 // Progression:
 //   Complete a BP mission  → +300 bp points  (= 1 full level)
@@ -27,7 +27,7 @@ const startDate = process.env.SEASON_1_START_DATE
   ? new Date(process.env.SEASON_1_START_DATE)
   : new Date('2025-10-01T00:00:00Z'); // set SEASON_1_START_DATE env var before launch
 
-const endDate = new Date(startDate.getTime() + 150 * 24 * 60 * 60 * 1000);
+const endDate = new Date(startDate.getTime() + 300 * 24 * 60 * 60 * 1000);
 
 // ── Reward factory helpers ────────────────────────────────────────────────────
 const xp       = (amount)             => ({ type: 'xp',            amount });
