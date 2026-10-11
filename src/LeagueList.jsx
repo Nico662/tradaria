@@ -3,6 +3,7 @@ import { useAuth } from './AuthContext';
 import { useLang } from './LangContext.jsx';
 import { SERVER } from './config.js';
 import CodeErrorBlock from './components/CodeErrorBlock.jsx';
+import BottomSheet from './components/BottomSheet.jsx';
 import { Trophy, Plus, ChevronRight, X } from 'lucide-react';
 
 function formatCash(n) {
@@ -206,11 +207,10 @@ export default function LeagueList({ onOpenLeague, onBack }) {
         </button>
       </div>
 
-      {/* Bottom sheet */}
+      {/* Bottom sheet — rendered above BottomNav via BottomSheet component */}
       {sheet && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-          <div onClick={() => setSheet(null)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)' }} />
-          <div style={{ position: 'relative', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-lg) var(--radius-lg) 0 0', padding: '20px 20px 40px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <BottomSheet onClose={() => setSheet(null)}>
+          <div style={{ padding: '20px 20px 20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '16px', color: 'var(--text-primary)' }}>
                 {sheet === 'create' ? tl.createLeague : tl.joinWithCode}
@@ -253,7 +253,7 @@ export default function LeagueList({ onOpenLeague, onBack }) {
               </button>
             </>)}
           </div>
-        </div>
+        </BottomSheet>
       )}
     </div>
   );
