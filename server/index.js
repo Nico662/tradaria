@@ -511,6 +511,7 @@ async function sendPushToUser(userId, payload) {
         data: { url }
       });
       await apnsClient.send(notification).catch(err => {
+        if (err.reason === 'BadDeviceToken' || err.reason === 'Unregistered') redis.del(`apns_token:${userId}`).catch(() => {});
         console.log('APNs error:', err.message);
       });
     } catch (err) {
@@ -873,6 +874,8 @@ app.post('/auth/logout', async (req, res) => {
     const decoded = jwt.verify(token, JWT_SECRET);
     const ttl = decoded.exp - Math.floor(Date.now() / 1000);
     if (ttl > 0) await redis.set(`blacklist:${token}`, '1', { ex: ttl });
+    await redis.del(`apns_token:${decoded.id}`);
+    await redis.del(`push_user_sub:${decoded.id}`);
   } catch {}
   res.json({ ok: true });
 });
@@ -2532,6 +2535,14 @@ app.post('/push/apns-register', async (req, res) => {
   if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
   const { deviceToken, lang } = req.body;
   if (!deviceToken) return res.status(400).json({ error: 'No token' });
+  // Remove the token from any other userId that already holds it — one token, one user.
+  const allApnsKeys = await redis.keys('apns_token:*');
+  for (const k of allApnsKeys) {
+    const otherId = k.replace('apns_token:', '');
+    if (otherId === decoded.id) continue;
+    const existing = await redis.get(k);
+    if (existing === deviceToken) await redis.del(k);
+  }
   await redis.set(`apns_token:${decoded.id}`, deviceToken);
   res.json({ ok: true });
 });
@@ -2994,13 +3005,16 @@ cron.schedule('0 9 * * *', async () => {
     } catch {}
   }
   const apnsKeys = await redis.keys('apns_token:*');
+  const sentTokens = new Set();
   for (const key of apnsKeys) {
-    const userId = key.replace('apns_token:', '');
     const deviceToken = await redis.get(key);
-    if (!deviceToken) continue;
+    if (!deviceToken || sentTokens.has(deviceToken)) continue;
+    sentTokens.add(deviceToken);
     try {
       const s = NOTIF_ES.dailyChallenge;
-      await apnsClient.send(new Notification(deviceToken, { alert: { title: s.title, body: s.body }, sound: 'default', badge: 1 })).catch(() => {});
+      await apnsClient.send(new Notification(deviceToken, { alert: { title: s.title, body: s.body }, sound: 'default', badge: 1 })).catch(err => {
+        if (err.reason === 'BadDeviceToken' || err.reason === 'Unregistered') redis.del(key).catch(() => {});
+      });
     } catch {}
   }
   console.log('[daily-challenge-cron] done');
@@ -3028,13 +3042,16 @@ cron.schedule('30 9 * * 1-5', async () => {
     } catch {}
   }
   const apnsKeys = await redis.keys('apns_token:*');
+  const sentTokens = new Set();
   for (const key of apnsKeys) {
-    const userId = key.replace('apns_token:', '');
     const deviceToken = await redis.get(key);
-    if (!deviceToken) continue;
+    if (!deviceToken || sentTokens.has(deviceToken)) continue;
+    sentTokens.add(deviceToken);
     try {
       const s = NOTIF_ES.marketOpen;
-      await apnsClient.send(new Notification(deviceToken, { alert: { title: s.title, body: s.body }, sound: 'default', badge: 1 })).catch(() => {});
+      await apnsClient.send(new Notification(deviceToken, { alert: { title: s.title, body: s.body }, sound: 'default', badge: 1 })).catch(err => {
+        if (err.reason === 'BadDeviceToken' || err.reason === 'Unregistered') redis.del(key).catch(() => {});
+      });
     } catch {}
   }
   console.log('[market-open-cron] done');
@@ -3062,13 +3079,16 @@ cron.schedule('0 16 * * 1-5', async () => {
     } catch {}
   }
   const apnsKeys = await redis.keys('apns_token:*');
+  const sentTokens = new Set();
   for (const key of apnsKeys) {
-    const userId = key.replace('apns_token:', '');
     const deviceToken = await redis.get(key);
-    if (!deviceToken) continue;
+    if (!deviceToken || sentTokens.has(deviceToken)) continue;
+    sentTokens.add(deviceToken);
     try {
       const s = NOTIF_ES.marketClose;
-      await apnsClient.send(new Notification(deviceToken, { alert: { title: s.title, body: s.body }, sound: 'default', badge: 1 })).catch(() => {});
+      await apnsClient.send(new Notification(deviceToken, { alert: { title: s.title, body: s.body }, sound: 'default', badge: 1 })).catch(err => {
+        if (err.reason === 'BadDeviceToken' || err.reason === 'Unregistered') redis.del(key).catch(() => {});
+      });
     } catch {}
   }
   console.log('[market-close-cron] done');
@@ -3103,13 +3123,16 @@ cron.schedule('5 0 * * 1', async () => {
       } catch {}
     }
     const apnsKeys = await redis.keys('apns_token:*');
+    const sentTokens = new Set();
     for (const key of apnsKeys) {
-      const userId = key.replace('apns_token:', '');
       const deviceToken = await redis.get(key);
-      if (!deviceToken) continue;
+      if (!deviceToken || sentTokens.has(deviceToken)) continue;
+      sentTokens.add(deviceToken);
       try {
         const s = NOTIF_ES.weeklyTournament;
-        await apnsClient.send(new Notification(deviceToken, { alert: { title: s.title, body: s.body }, sound: 'default', badge: 1 })).catch(() => {});
+        await apnsClient.send(new Notification(deviceToken, { alert: { title: s.title, body: s.body }, sound: 'default', badge: 1 })).catch(err => {
+          if (err.reason === 'BadDeviceToken' || err.reason === 'Unregistered') redis.del(key).catch(() => {});
+        });
       } catch {}
     }
     console.log('[tournament-cron] Notifications sent.');
