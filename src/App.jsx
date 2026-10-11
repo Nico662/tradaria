@@ -25,6 +25,7 @@ import Survival from './Survival.jsx';
 import Shop from './Shop.jsx';
 import Portfolio from './Portfolio.jsx';
 import League from './League.jsx';
+import LeagueList from './LeagueList.jsx';
 import Friends from './Friends.jsx';
 import EffectOverlay from './EffectOverlay.jsx';
 import ChallengeNotification from './ChallengeNotification.jsx';
@@ -175,13 +176,17 @@ export default function App() {
     const correctXp = Math.max(user.xp ?? 0, parseInt(localStorage.getItem('tradaria_xp') || '0'));
     localStorage.setItem('tradaria_xp', String(correctXp));
     setXp(correctXp);
-    const tok = localStorage.getItem('tradaria_token');
-    if (!tok) { setLeagueId(null); return; }
-    fetch(`${SERVER}/leagues/mine`, { headers: { Authorization: `Bearer ${tok}` } })
-      .then(r => r.ok ? r.json() : null)
-      .then(data => { setLeagueId(Array.isArray(data) && data.length > 0 ? data[0]._id : null); })
-      .catch(() => { setLeagueId(null); });
+    setLeagueId(null);
   }, [user]);
+
+  // Android back button: detail → list within league screen
+  useEffect(() => {
+    const handlePop = () => {
+      if (screen === 'league' && leagueId) setLeagueId(null);
+    };
+    window.addEventListener('popstate', handlePop);
+    return () => window.removeEventListener('popstate', handlePop);
+  }, [screen, leagueId]);
 
   // When the server provides a new round, update the asset so Chart renders only visible candles.
   useEffect(() => {
@@ -222,6 +227,7 @@ export default function App() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSelect = (newScreen) => {
+    if (newScreen === 'league') setLeagueId(null);
     setPrevScreen(screen);
     setScreen(newScreen);
     window.scrollTo(0, 0);
@@ -851,7 +857,24 @@ export default function App() {
   if (screen === 'settings')   return <><Settings   onBack={() => setScreen('home')} onShowTutorial={() => setShowTutorial(true)} />{showTutorial && <Tutorial onDone={() => setShowTutorial(false)} />}{challengeOverlay}</>;
   if (screen === 'inventory')  return <AppLayout currentScreen={screen} onSelect={handleSelect}><Inventory onBack={() => setScreen('stats')} /></AppLayout>;
   if (screen === 'portfolio')  return <AppLayout currentScreen={screen} onSelect={handleSelect}><Portfolio  onBack={() => setScreen('home')} onViewProfile={(uname) => { setPublicProfileUsername(uname); setScreen('public_profile'); window.history.pushState({}, '', `/u/${uname}`); }} onOpenLeague={(id) => { setLeagueId(id); setPrevScreen('portfolio'); setScreen('league'); }} onGoPricing={() => setScreen('pricing')} />{challengeOverlay}</AppLayout>;
-  if (screen === 'league')          return <AppLayout currentScreen={screen} onSelect={handleSelect}><League leagueId={leagueId} onBack={() => setScreen(prevScreen === 'portfolio' ? 'portfolio' : 'home')} onViewProfile={(uname) => { setPublicProfileUsername(uname); setScreen('public_profile'); window.history.pushState({}, '', `/u/${uname}`); }} onJoined={(id) => setLeagueId(id)} />{challengeOverlay}</AppLayout>;
+  if (screen === 'league') return (
+    <AppLayout currentScreen={screen} onSelect={handleSelect}>
+      {leagueId
+        ? <League
+            leagueId={leagueId}
+            onBack={() => { setLeagueId(null); window.history.pushState({ screen: 'league' }, '', window.location.pathname); }}
+            onSwitchLeague={(id) => setLeagueId(id)}
+            onViewProfile={(uname) => { setPublicProfileUsername(uname); setScreen('public_profile'); window.history.pushState({}, '', `/u/${uname}`); }}
+            onLeagueClosed={() => setLeagueId(null)}
+          />
+        : <LeagueList
+            onOpenLeague={(id) => { setLeagueId(id); window.history.pushState({ screen: 'league', leagueId: id }, '', window.location.pathname); }}
+            onBack={() => setScreen(prevScreen || 'home')}
+          />
+      }
+      {challengeOverlay}
+    </AppLayout>
+  );
   if (screen === 'join_academy')     return <JoinAcademy onBack={() => setScreen('home')} />;
   if (screen === 'student_dashboard') return <StudentDashboard onBack={() => setScreen('home')} onPlayTournament={(aId, tId) => { setAcademyTournamentCtx({ academyId: aId, tournamentId: tId }); setScreen('tournament'); }} />;
   if (screen === 'teacher_dashboard') return user?.role === 'teacher'

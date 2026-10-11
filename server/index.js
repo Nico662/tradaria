@@ -3794,12 +3794,41 @@ app.get('/leagues/mine', async (req, res) => {
   if (!auth) return res.status(401).json({ error: 'No token' });
   try {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const leagues  = await League.find({ 'members.userId': decoded.id });
-    res.json(leagues.map(l => ({
-      _id: l._id, name: l.name, code: l.code, owner: l.owner,
-      memberCount: l.members.length, startDate: l.startDate, endDate: l.endDate,
-      isOwner: l.owner.toString() === decoded.id,
-    })));
+    const myLeagues = await League.find({ 'members.userId': decoded.id });
+    if (myLeagues.length === 0) return res.json([]);
+    const priceMap = {};
+    await Promise.all(PORTFOLIO_ASSETS.map(async a => {
+      try {
+        const c = await redis.get(`price_v2:${a.symbol}`);
+        if (c) { const p = typeof c === 'string' ? JSON.parse(c) : c; priceMap[p.symbol] = p.price; }
+      } catch {}
+    }));
+    const allIds = [...new Set(myLeagues.flatMap(l => l.members.map(m => m.userId.toString())))];
+    const portfolios = await Portfolio.find({ userId: { $in: allIds } });
+    const pMap = {};
+    portfolios.forEach(p => { pMap[p.userId.toString()] = p; });
+    res.json(myLeagues.map(l => {
+      const ranked = l.members.map(m => {
+        const uid = m.userId.toString();
+        const port = pMap[uid];
+        let totalValue = m.startValue;
+        if (port) {
+          const invested = port.positions.reduce((s, pos) => s + (priceMap[pos.symbol] || pos.avgPrice) * pos.qty, 0);
+          totalValue = port.cash + invested;
+        }
+        return { uid, totalValue, returnPct: ((totalValue - m.startValue) / m.startValue) * 100 };
+      }).sort((a, b) => b.returnPct - a.returnPct);
+      const myIdx = ranked.findIndex(r => r.uid === decoded.id);
+      const me = ranked[myIdx] || { totalValue: 0, returnPct: 0 };
+      return {
+        _id: l._id, name: l.name, code: l.code, owner: l.owner,
+        memberCount: l.members.length, startDate: l.startDate, endDate: l.endDate,
+        isOwner: l.owner.toString() === decoded.id,
+        myRank: myIdx + 1,
+        myReturnPct: me.returnPct,
+        myTotalValue: me.totalValue,
+      };
+    }));
   } catch (err) { res.status(500).json({ error: 'internal_error' }); }
 });
 
@@ -3856,7 +3885,8 @@ app.get('/leagues/:leagueId/ranking', async (req, res) => {
     res.json({
       _id: league._id, name: league.name, code: league.code,
       owner: league.owner, startDate: league.startDate, endDate: league.endDate,
-      isOwner: league.owner.toString() === decoded.id, ranking: top10, userPosition,
+      isOwner: league.owner.toString() === decoded.id,
+      memberCount: league.members.length, ranking: top10, userPosition,
     });
   } catch (err) { res.status(500).json({ error: 'internal_error' }); }
 });
