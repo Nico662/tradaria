@@ -77,6 +77,7 @@ export default function App() {
     return p.startsWith('/u/') ? p.split('/u/')[1] || null : null;
   });
   const [leagueId, setLeagueId] = useState(null);
+  const [leaguesState, setLeaguesState] = useState({ status: 'idle', list: [] });
   const [prevScreen, setPrevScreen] = useState('home');
   const [academyTournamentCtx, setAcademyTournamentCtx] = useState(null); // { academyId, tournamentId }
   const [showLanding,  setShowLanding]  = useState(() => !localStorage.getItem('tradaria_landing_seen'));
@@ -170,14 +171,40 @@ export default function App() {
     return () => { socket.disconnect(); challengeSocketRef.current = null; setChallengeSocket(null); };
   }, [user?.username]);
 
+  async function loadLeagues(silent = false) {
+    const tok = localStorage.getItem('tradaria_token');
+    if (!tok) return;
+    if (!silent) setLeaguesState(s => ({ ...s, status: 'loading' }));
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 15000);
+    try {
+      const r = await fetch(`${SERVER}/leagues/mine`, {
+        headers: { Authorization: `Bearer ${tok}` },
+        signal: controller.signal,
+      });
+      clearTimeout(timer);
+      if (!r.ok) throw new Error('not ok');
+      const data = await r.json();
+      setLeaguesState({ status: 'done', list: Array.isArray(data) ? data : [] });
+    } catch {
+      clearTimeout(timer);
+      setLeaguesState(s => ({ status: s.status === 'done' ? 'done' : 'error', list: s.list }));
+    }
+  }
+
   useEffect(() => {
-    if (!user) { setLeagueId(null); return; }
+    if (!user) {
+      setLeagueId(null);
+      setLeaguesState({ status: 'idle', list: [] });
+      return;
+    }
     // Re-sync XP to server's authoritative value to prevent stale XP from a previous account
     const correctXp = Math.max(user.xp ?? 0, parseInt(localStorage.getItem('tradaria_xp') || '0'));
     localStorage.setItem('tradaria_xp', String(correctXp));
     setXp(correctXp);
     setLeagueId(null);
-  }, [user]);
+    loadLeagues();
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Android back button: detail → list within league screen
   useEffect(() => {
@@ -227,7 +254,14 @@ export default function App() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSelect = (newScreen) => {
-    if (newScreen === 'league') setLeagueId(null);
+    if (newScreen === 'league') {
+      setLeagueId(null);
+      if (leaguesState.status === 'done') {
+        loadLeagues(true); // silent background refresh
+      } else if (leaguesState.status !== 'loading') {
+        loadLeagues(false); // show spinner first time or after error
+      }
+    }
     setPrevScreen(screen);
     setScreen(newScreen);
     window.scrollTo(0, 0);
@@ -868,6 +902,8 @@ export default function App() {
             onLeagueClosed={() => setLeagueId(null)}
           />
         : <LeagueList
+            leaguesState={leaguesState}
+            onRefreshLeagues={() => loadLeagues(false)}
             onOpenLeague={(id) => { setLeagueId(id); window.history.pushState({ screen: 'league', leagueId: id }, '', window.location.pathname); }}
             onBack={() => setScreen(prevScreen || 'home')}
           />

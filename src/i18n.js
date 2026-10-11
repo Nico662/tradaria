@@ -439,6 +439,9 @@ export const LANGS = {
       backToLeagues: '← Leagues',
       createLeague: 'Create league',
       joinWithCode: 'Join with code',
+      loading: 'Loading your leagues…',
+      loadError: 'Could not load your leagues. Check your connection.',
+      retry: 'Try again',
     },
     shop: {
       back: '← back',
@@ -1224,6 +1227,9 @@ export const LANGS = {
       backToLeagues: '← Ligas',
       createLeague: 'Crear liga',
       joinWithCode: 'Unirse con código',
+      loading: 'Cargando tus ligas…',
+      loadError: 'No se pudieron cargar tus ligas. Comprueba tu conexión.',
+      retry: 'Reintentar',
     },
     shop: {
       back: '← volver',
@@ -1956,6 +1962,9 @@ export const LANGS = {
       backToLeagues: '← Ligen',
       createLeague: 'Liga erstellen',
       joinWithCode: 'Mit Code beitreten',
+      loading: 'Ligen werden geladen…',
+      loadError: 'Ligen konnten nicht geladen werden. Verbindung prüfen.',
+      retry: 'Erneut versuchen',
     },
     shop: {
       back: '← zurück',

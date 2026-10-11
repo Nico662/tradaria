@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from './AuthContext';
 import { useLang } from './LangContext.jsx';
 import { SERVER } from './config.js';
@@ -36,12 +36,31 @@ function AvatarStack({ seed, count }) {
   );
 }
 
-export default function LeagueList({ onOpenLeague, onBack }) {
+function SkeletonLeagueCard() {
+  return (
+    <div style={{ padding: '14px', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <div style={{ width: 44, height: 26, borderRadius: '13px', background: 'var(--bd)', animation: 'skeletonPulse 1.4s ease-in-out infinite', flexShrink: 0 }} />
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ height: 11, width: '55%', background: 'var(--bd)', borderRadius: 4, animation: 'skeletonPulse 1.4s ease-in-out infinite' }} />
+        <div style={{ height: 9, width: '30%', background: 'var(--bd)', borderRadius: 4, animation: 'skeletonPulse 1.4s ease-in-out infinite', animationDelay: '0.15s' }} />
+        <div style={{ display: 'flex', gap: '14px' }}>
+          {[0, 1, 2].map(i => (
+            <div key={i} style={{ height: 22, width: 44, background: 'var(--bd)', borderRadius: 4, animation: 'skeletonPulse 1.4s ease-in-out infinite', animationDelay: `${i * 0.1}s` }} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function LeagueList({ onOpenLeague, onBack, leaguesState, onRefreshLeagues }) {
   const { user } = useAuth();
   const { t } = useLang();
   const tl = t.leagues;
-  const [leagues, setLeagues]     = useState([]);
-  const [loading, setLoading]     = useState(true);
+
+  const leagues  = leaguesState?.list   ?? [];
+  const status   = leaguesState?.status ?? 'loading';
+
   const [sheet, setSheet]         = useState(null); // null | 'create' | 'join'
   const [name, setName]           = useState('');
   const [endDate, setEndDate]     = useState('');
@@ -51,18 +70,6 @@ export default function LeagueList({ onOpenLeague, onBack }) {
   const [joinErr, setJoinErr]     = useState(null);
 
   const tok = localStorage.getItem('tradaria_token');
-
-  async function loadLeagues() {
-    if (!tok) return;
-    const r = await fetch(`${SERVER}/leagues/mine`, { headers: { Authorization: `Bearer ${tok}` } }).catch(() => null);
-    if (!r?.ok) return;
-    const data = await r.json();
-    if (Array.isArray(data)) setLeagues(data);
-  }
-
-  useEffect(() => {
-    loadLeagues().finally(() => setLoading(false));
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function openSheet(view) {
     setSheet(view);
@@ -86,7 +93,7 @@ export default function LeagueList({ onOpenLeague, onBack }) {
       const data = await r.json();
       if (!r.ok) { setMsg({ text: data.error || tl.errorCreate, ok: false }); setSubmitting(false); return; }
       setMsg({ text: tl.created.replace('{code}', data.code), ok: true });
-      await loadLeagues();
+      onRefreshLeagues?.();
       setTimeout(() => { setSheet(null); onOpenLeague(data.leagueId); }, 1500);
     } catch { setMsg({ text: tl.errorCreate, ok: false }); }
     setSubmitting(false);
@@ -112,7 +119,7 @@ export default function LeagueList({ onOpenLeague, onBack }) {
         return;
       }
       setMsg({ text: tl.joined.replace('{name}', data.name), ok: true });
-      await loadLeagues();
+      onRefreshLeagues?.();
       setTimeout(() => { setSheet(null); onOpenLeague(data.leagueId); }, 1500);
     } catch { setMsg({ text: tl.errorJoin, ok: false }); }
     setSubmitting(false);
@@ -125,9 +132,9 @@ export default function LeagueList({ onOpenLeague, onBack }) {
     </div>
   );
 
-  const subtitle = leagues.length === 1
-    ? tl.subtitle
-    : tl.subtitlePlural.replace('{n}', leagues.length);
+  const subtitle = status === 'done'
+    ? (leagues.length === 1 ? tl.subtitle : tl.subtitlePlural.replace('{n}', leagues.length))
+    : null;
 
   return (
     <div style={{ padding: '16px 16px 100px', fontFamily: 'var(--font-body)', background: 'var(--bg-base)', minHeight: '100vh' }}>
@@ -140,12 +147,34 @@ export default function LeagueList({ onOpenLeague, onBack }) {
           <Plus size={16} strokeWidth={2.5} />
         </button>
       </div>
-      <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', marginBottom: '20px' }}>{subtitle}</div>
+      <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', marginBottom: '20px', minHeight: '16px' }}>{subtitle}</div>
 
-      {/* List */}
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)', fontSize: '12px' }}>...</div>
-      ) : leagues.length === 0 ? (
+      {/* Loading state */}
+      {status === 'loading' && (
+        <div role="status" aria-live="polite" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', paddingTop: '32px' }}>
+          <div className="league-spinner" />
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.04em' }}>{tl.loading}</div>
+          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <SkeletonLeagueCard />
+            <SkeletonLeagueCard />
+            <SkeletonLeagueCard />
+          </div>
+        </div>
+      )}
+
+      {/* Error state */}
+      {status === 'error' && (
+        <div style={{ textAlign: 'center', padding: '48px 0 32px' }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>{tl.loadError}</div>
+          <button onClick={() => onRefreshLeagues?.()}
+            style={{ padding: '10px 24px', background: 'rgba(0,229,160,0.08)', border: '1.5px solid var(--border-green)', borderRadius: 'var(--radius-full)', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, letterSpacing: '0.06em', cursor: 'pointer' }}>
+            {tl.retry}
+          </button>
+        </div>
+      )}
+
+      {/* List / empty state */}
+      {status === 'done' && leagues.length === 0 ? (
         <div className="animate-fade-in-up" style={{ textAlign: 'center', padding: '48px 0 32px' }}>
           <Trophy size={40} strokeWidth={1.5} style={{ stroke: 'var(--text-muted)', display: 'block', margin: '0 auto 16px' }} />
           <div style={{ fontWeight: 800, fontSize: '14px', color: 'var(--text-primary)', marginBottom: '6px' }}>{tl.noLeague}</div>
