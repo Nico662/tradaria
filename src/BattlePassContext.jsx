@@ -4,6 +4,8 @@ import { useAuth } from './AuthContext.jsx';
 
 const BattlePassContext = createContext(null);
 
+const STALE_MS = 60_000;
+
 export function BattlePassProvider({ children }) {
   const { user, isPro, mergeUser } = useAuth();
 
@@ -19,30 +21,39 @@ export function BattlePassProvider({ children }) {
   const [hasClaimableRewards,  setHasClaimableRewards]  = useState(false);
   const [isLoading,            setIsLoading]            = useState(false);
 
-  const lastFetchRef = useRef(0);
-  const inFlightRef  = useRef(false);
+  const inFlightRef = useRef(false);
+  // In-memory cache cleared on logout / account-switch. Never written to localStorage.
+  const cachedRef   = useRef(null); // { data, fetchedAt } | null
 
   const fetchBattlePass = useCallback(async ({ force = false } = {}) => {
     const token = localStorage.getItem('tradaria_token');
     if (!token) return;
 
-    const now = Date.now();
-    if (!force && inFlightRef.current) return;
-    if (!force && now - lastFetchRef.current < 1500) return;
+    const now   = Date.now();
+    const cache = cachedRef.current;
+
+    // One in-flight request at a time — deduplicate even when force=true.
+    if (inFlightRef.current) return;
+
+    // If we have fresh data and this is a background poll, skip entirely.
+    if (!force && cache && now - cache.fetchedAt < STALE_MS) return;
+
+    // Show the skeleton only on the very first load (no cached data yet).
+    const hasCached = !!cache;
 
     inFlightRef.current = true;
-    lastFetchRef.current = now;
-    setIsLoading(true);
+    if (!hasCached) setIsLoading(true);
+
     try {
       const res = await fetch(`${SERVER}/battle-pass/current-season`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) return;
       const data = await res.json();
-      if (!data.season) {
-        setSeason(null);
-        return;
-      }
+
+      cachedRef.current = { data, fetchedAt: Date.now() };
+
+      if (!data.season) { setSeason(null); return; }
       setSeason(data.season);
       setUserLevel(data.user.level);
       setBpPoints(data.user.bpPoints);
@@ -58,13 +69,15 @@ export function BattlePassProvider({ children }) {
       setIsLoading(false);
       inFlightRef.current = false;
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Fetch once when the user session is established; clear state on logout.
+  // Preload on login; wipe cache and state on logout / account-switch so no
+  // data from a previous account leaks into the next session.
   useEffect(() => {
     if (user) {
       fetchBattlePass({ force: true });
     } else {
+      cachedRef.current = null;
       setSeason(null);
       setUserLevel(0);
       setBpPoints(0);
@@ -78,9 +91,9 @@ export function BattlePassProvider({ children }) {
     }
   }, [user, fetchBattlePass]);
 
-  // Refresh on tab focus / visibility change
+  // Revalidate on tab focus / visibility change (stale check inside fetchBattlePass).
   useEffect(() => {
-    function onFocus() { fetchBattlePass(); }
+    function onFocus()   { fetchBattlePass(); }
     function onVisible() { if (document.visibilityState === 'visible') fetchBattlePass(); }
     window.addEventListener('focus', onFocus);
     document.addEventListener('visibilitychange', onVisible);
@@ -99,7 +112,7 @@ export function BattlePassProvider({ children }) {
     const snapshotFree = [...claimedFreeRewards];
     const snapshotPro  = [...claimedProRewards];
 
-    // Optimistic update
+    // Optimistic update — server is still source of truth (reverted on error).
     if (track !== 'pro')  setClaimedFreeRewards(prev => [...prev, levelNum]);
     if (track !== 'free' && isPro) setClaimedProRewards(prev => [...prev, levelNum]);
 
@@ -119,23 +132,24 @@ export function BattlePassProvider({ children }) {
         return { ok: false, error: data.error };
       }
 
-      // Merge full user state returned by server into AuthContext
       if (data.user) {
         mergeUser?.({
-          badges:          data.user.badges,
-          purchases:       data.user.purchases,
-          activeCosmetics: data.user.activeCosmetics,
-          battlePassItems: data.user.battlePassItems,
+          badges:              data.user.badges,
+          purchases:           data.user.purchases,
+          activeCosmetics:     data.user.activeCosmetics,
+          battlePassItems:     data.user.battlePassItems,
           battlePassMechanics: data.user.battlePassMechanics,
         });
-        // Sync BP state from server response
         if (data.user.battlePass) {
           setClaimedFreeRewards(data.user.battlePass.claimedFreeRewards ?? snapshotFree);
           setClaimedProRewards(data.user.battlePass.claimedProRewards   ?? snapshotPro);
         }
       }
 
-      // Force-refresh to get updated cardStates and mission progress
+      // Invalidate cache so the next fetchBattlePass always re-fetches,
+      // then silently refresh cardStates + mission progress in the background.
+      // hasCached will be true, so no loading indicator is shown.
+      if (cachedRef.current) cachedRef.current = { ...cachedRef.current, fetchedAt: 0 };
       fetchBattlePass({ force: true });
 
       return { ok: true, rewards: data.rewards };

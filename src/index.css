@@ -489,6 +489,7 @@ html, body {
 }
 @media (prefers-reduced-motion: reduce) {
   .league-spinner { animation: none; opacity: 0.5; }
+  .skeleton-bar    { animation: none; opacity: 0.5; }
 }
 
 /* Page entrance animation */

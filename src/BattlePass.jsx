@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback, memo } from 'react';
 import { useBattlePass } from './BattlePassContext.jsx';
 import { useAuth } from './AuthContext.jsx';
 import { useLang } from './LangContext.jsx';
@@ -40,6 +40,192 @@ const MOCK_ALL_PROGRESS = {
 
 const CARD_H = 80;
 const ROW_PY = 5;
+
+function BattlePassSkeleton({ t }) {
+  const tp = t.traderPass;
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      style={{ minHeight: '100dvh', background: 'var(--bg-base)', display: 'flex', flexDirection: 'column' }}
+    >
+      <div style={{ padding: '16px 16px 0', flexShrink: 0 }}>
+        <div className="skeleton-bar" style={{ width: 36, height: 14, marginBottom: 20 }} />
+        <div style={{
+          background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
+          borderRadius: 20, padding: 16, marginBottom: 16,
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
+            <div>
+              <div className="skeleton-bar" style={{ width: 80, height: 10, marginBottom: 8 }} />
+              <div className="skeleton-bar" style={{ width: 150, height: 26, marginBottom: 6 }} />
+              <div className="skeleton-bar" style={{ width: 110, height: 12 }} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
+              <div className="skeleton-bar" style={{ width: 54, height: 30, borderRadius: 4 }} />
+              <div className="skeleton-bar" style={{ width: 36, height: 28 }} />
+            </div>
+          </div>
+          <div style={{ borderBottom: '1px dashed rgba(255,255,255,0.09)', marginBottom: 14 }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div className="skeleton-bar" style={{ width: 64, height: 64, borderRadius: '50%', flexShrink: 0 }} />
+            <div>
+              <div className="skeleton-bar" style={{ width: 100, height: 16, marginBottom: 6 }} />
+              <div className="skeleton-bar" style={{ width: 140, height: 12 }} />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style={{ borderBottom: '0.5px solid var(--border-default)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 44px 1fr', padding: '10px 16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            <TrendingUp size={14} color="#00c087" strokeWidth={2.5} />
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#00c087' }}>
+              {tp.freeTrack}
+            </span>
+          </div>
+          <div />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#e05585' }}>
+              {tp.proTrack}
+            </span>
+            <Diamond size={13} color="#e05585" strokeWidth={2.5} />
+          </div>
+        </div>
+      </div>
+      <div style={{ flex: 1 }}>
+        {[1, 2, 3, 4, 5].map(i => (
+          <div
+            key={i}
+            style={{
+              display: 'grid', gridTemplateColumns: '1fr 44px 1fr',
+              alignItems: 'stretch', padding: `${ROW_PY}px 16px`, gap: 6,
+              borderBottom: '0.5px solid rgba(255,255,255,0.03)', position: 'relative',
+            }}
+          >
+            <div style={{
+              position: 'absolute', top: 0, bottom: 0, left: '50%', transform: 'translateX(-50%)',
+              width: 1.5, background: 'rgba(255,255,255,0.08)', pointerEvents: 'none',
+            }} />
+            <div className="skeleton-bar" style={{ borderRadius: 12, height: CARD_H }} />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 1 }}>
+              <div className="skeleton-bar" style={{ width: 26, height: 26, borderRadius: '50%' }} />
+            </div>
+            <div className="skeleton-bar" style={{ borderRadius: 12, height: CARD_H }} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const LevelRow = memo(function LevelRow({
+  lvl, freeState, proState, isFreeClaiming, isProClaiming,
+  isActive, isClaimed, isCompleted,
+  freeMissionProgress, proMissionProgress,
+  animateFree, animatePro,
+  onClaim, t, onGoPricing,
+}) {
+  const spineColor = (isActive || isCompleted) ? 'var(--green)' : 'rgba(255,255,255,0.08)';
+
+  const bubbleBg = isClaimed
+    ? 'var(--green)'
+    : isActive
+      ? 'rgba(224,85,133,0.18)'
+      : 'var(--bg-base)';
+
+  const bubbleBorder = isClaimed
+    ? 'var(--green)'
+    : isActive
+      ? '#e05585'
+      : isCompleted
+        ? 'rgba(0,192,135,0.5)'
+        : 'rgba(255,255,255,0.12)';
+
+  const bubbleTextColor = isClaimed
+    ? '#000'
+    : isActive
+      ? '#e05585'
+      : isCompleted
+        ? 'rgba(0,192,135,0.65)'
+        : 'rgba(255,255,255,0.22)';
+
+  return (
+    <div
+      style={{
+        display: 'grid', gridTemplateColumns: '1fr 44px 1fr',
+        alignItems: 'stretch',
+        padding: `${ROW_PY}px 16px`,
+        gap: 6,
+        borderBottom: '0.5px solid rgba(255,255,255,0.03)',
+        background: isActive ? 'rgba(224,85,133,0.025)' : 'transparent',
+        position: 'relative',
+      }}
+    >
+      <div style={{
+        position: 'absolute', top: 0, bottom: 0,
+        left: '50%', transform: 'translateX(-50%)',
+        width: 1.5, background: spineColor, zIndex: 0,
+        pointerEvents: 'none',
+        transition: 'background 0.3s ease',
+      }} />
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <RewardCard
+          reward={lvl.freeReward}
+          mission={lvl.freeMission}
+          state={freeState}
+          track="free"
+          isActive={isActive}
+          missionProgress={freeMissionProgress}
+          animate={animateFree}
+          isClaiming={isFreeClaiming}
+          onClaim={() => onClaim(lvl.level, 'free')}
+          t={t}
+        />
+      </div>
+      <div style={{
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        position: 'relative', zIndex: 1,
+      }}>
+        <div style={{
+          width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
+          background: bubbleBg,
+          border: `1.5px solid ${bubbleBorder}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          transition: 'border-color 0.3s ease, background 0.3s ease',
+        }}>
+          {isClaimed ? (
+            <span style={{ fontSize: '10px', color: '#000', fontWeight: 900, lineHeight: 1 }}>✓</span>
+          ) : (
+            <span style={{
+              fontFamily: 'var(--font-body)', fontSize: '9px',
+              fontWeight: isActive ? 900 : 600,
+              color: bubbleTextColor,
+            }}>
+              {lvl.level}
+            </span>
+          )}
+        </div>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <RewardCard
+          reward={lvl.proReward}
+          mission={lvl.proMission}
+          state={proState}
+          track="pro"
+          isActive={isActive}
+          missionProgress={proMissionProgress}
+          animate={animatePro}
+          isClaiming={isProClaiming}
+          onClaim={() => onClaim(lvl.level, 'pro')}
+          t={t}
+          onGoPricing={onGoPricing}
+        />
+      </div>
+    </div>
+  );
+});
 
 function getCardState(reward, mission, levelNum, track, userLevel, claimedRewards, isPro, missionProgress) {
   if (!reward && !mission) return 'empty';
@@ -149,8 +335,12 @@ export default function BattlePass({ onBack, onGoPricing }) {
   const scrollRef  = useRef(null);
   const didScroll  = useRef(false);
 
-  // Refresh BP state on mount to pick up any changes since last visit
-  useEffect(() => { refreshBattlePass({ force: true }); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // Scroll to top on entry (window may have restored a previous position).
+  // Silently revalidate stale data in background without showing skeleton.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    refreshBattlePass(); // no force — stale-while-revalidate; skips if data is fresh
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Decide si el mock está activo ───────────────────────────────────────────
   const mockActive = USE_MOCK_BP && import.meta.env.DEV && !ctxSeason;
@@ -187,6 +377,12 @@ export default function BattlePass({ onBack, onGoPricing }) {
     NETWORK_ERROR:         tp.errorNetwork             ?? 'Connection error. Try again.',
   };
 
+  // Stable claim dispatcher — never changes reference, so LevelRow memo stays effective.
+  const handleClaimRef = useRef(null);
+  const stableClaim = useCallback((levelNum, track) => {
+    handleClaimRef.current?.(levelNum, track);
+  }, []);
+
   async function handleClaim(levelNum, track) {
     if (claimingCard !== null) return;
     setClaimingCard({ level: levelNum, track });
@@ -212,6 +408,8 @@ export default function BattlePass({ onBack, onGoPricing }) {
       setTimeout(() => setJustClaimed(null), 650);
     }
   }
+  // Keep ref current every render so stableClaim always calls the latest closure.
+  handleClaimRef.current = handleClaim;
 
   let daysLeft = null;
   if (season?.endDate) {
@@ -229,14 +427,7 @@ export default function BattlePass({ onBack, onGoPricing }) {
   const daysUnit = tp.daysLeft.split('{n}').pop()?.trim() ?? '';
 
   if (isLoading && !mockActive) {
-    return (
-      <div style={{
-        minHeight: '100dvh', display: 'flex', alignItems: 'center',
-        justifyContent: 'center', background: 'var(--bg-base)',
-      }}>
-        <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '13px' }}>...</span>
-      </div>
-    );
+    return <BattlePassSkeleton t={t} />;
   }
 
   return (
@@ -449,11 +640,8 @@ export default function BattlePass({ onBack, onGoPricing }) {
           </div>
         </div>
 
-        {/* Level rows */}
+        {/* Level rows — memoized to avoid re-rendering all 30 when a single state changes */}
         {SEASON1_LEVELS.map((lvl) => {
-          // Server cardStates is primary source of truth once loaded.
-          // Optimistic claim overrides to 'claimed' immediately (claimedFreeRewards is updated
-          // before the server responds); getCardState is the fallback before cardStates arrives.
           const freeState = claimedFreeRewards.includes(lvl.level)
             ? 'claimed'
             : (cardStates?.[lvl.level]?.free
@@ -462,121 +650,30 @@ export default function BattlePass({ onBack, onGoPricing }) {
             ? 'claimed'
             : (cardStates?.[lvl.level]?.pro
               ?? getCardState(lvl.proReward, lvl.proMission, lvl.level, 'pro', userLevel, claimedProRewards, isPro, allMissionProgress?.[lvl.level]?.pro ?? null));
+          const isActive      = lvl.level === userLevel;
+          const isCompleted   = lvl.level < userLevel;
+          const isClaimed     = claimedFreeRewards.includes(lvl.level) || claimedProRewards.includes(lvl.level);
           const isFreeClaiming = claimingCard?.level === lvl.level && claimingCard?.track === 'free';
           const isProClaiming  = claimingCard?.level === lvl.level && claimingCard?.track === 'pro';
-          const isActive   = lvl.level === userLevel;
-          const isClaimed  = claimedFreeRewards.includes(lvl.level) || claimedProRewards.includes(lvl.level);
-
-          const spineColor = lvl.level <= userLevel
-            ? 'var(--green)'
-            : 'rgba(255,255,255,0.08)';
-
-          const isCompleted = lvl.level < userLevel;
-
-          const bubbleBg = isClaimed
-            ? 'var(--green)'
-            : isActive
-              ? 'rgba(224,85,133,0.18)'
-              : 'var(--bg-base)';
-
-          const bubbleBorder = isClaimed
-            ? 'var(--green)'
-            : isActive
-              ? '#e05585'
-              : isCompleted
-                ? 'rgba(0,192,135,0.5)'
-                : 'rgba(255,255,255,0.12)';
-
-          const bubbleTextColor = isClaimed
-            ? '#000'
-            : isActive
-              ? '#e05585'
-              : isCompleted
-                ? 'rgba(0,192,135,0.65)'
-                : 'rgba(255,255,255,0.22)';
-
           return (
-            <div
+            <LevelRow
               key={lvl.level}
-              style={{
-                display: 'grid', gridTemplateColumns: '1fr 44px 1fr',
-                alignItems: 'stretch',
-                padding: `${ROW_PY}px 16px`,
-                gap: 6,
-                borderBottom: '0.5px solid rgba(255,255,255,0.03)',
-                background: isActive ? 'rgba(224,85,133,0.025)' : 'transparent',
-                position: 'relative',
-              }}
-            >
-              {/* Spine — línea verde fina */}
-              <div style={{
-                position: 'absolute', top: 0, bottom: 0,
-                left: '50%', transform: 'translateX(-50%)',
-                width: 1.5, background: spineColor, zIndex: 0,
-                pointerEvents: 'none',
-                transition: 'background 0.3s ease',
-              }} />
-
-              {/* Left — Free reward */}
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <RewardCard
-                  reward={lvl.freeReward}
-                  mission={lvl.freeMission}
-                  state={freeState}
-                  track="free"
-                  isActive={isActive}
-                  missionProgress={allMissionProgress?.[lvl.level]?.free ?? null}
-                  animate={justClaimed?.level === lvl.level && justClaimed?.track === 'free'}
-                  isClaiming={isFreeClaiming}
-                  onClaim={() => handleClaim(lvl.level, 'free')}
-                  t={t}
-                />
-              </div>
-
-              {/* Center — nodo de nivel (círculo hueco) */}
-              <div style={{
-                display: 'flex', flexDirection: 'column',
-                alignItems: 'center', justifyContent: 'center',
-                position: 'relative', zIndex: 1,
-              }}>
-                <div style={{
-                  width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
-                  background: bubbleBg,
-                  border: `1.5px solid ${bubbleBorder}`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  transition: 'border-color 0.3s ease, background 0.3s ease',
-                }}>
-                  {isClaimed ? (
-                    <span style={{ fontSize: '10px', color: '#000', fontWeight: 900, lineHeight: 1 }}>✓</span>
-                  ) : (
-                    <span style={{
-                      fontFamily: 'var(--font-body)', fontSize: '9px',
-                      fontWeight: isActive ? 900 : 600,
-                      color: bubbleTextColor,
-                    }}>
-                      {lvl.level}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Right — Pro reward */}
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <RewardCard
-                  reward={lvl.proReward}
-                  mission={lvl.proMission}
-                  state={proState}
-                  track="pro"
-                  isActive={isActive}
-                  missionProgress={allMissionProgress?.[lvl.level]?.pro ?? null}
-                  animate={justClaimed?.level === lvl.level && justClaimed?.track === 'pro'}
-                  isClaiming={isProClaiming}
-                  onClaim={() => handleClaim(lvl.level, 'pro')}
-                  t={t}
-                  onGoPricing={onGoPricing}
-                />
-              </div>
-            </div>
+              lvl={lvl}
+              freeState={freeState}
+              proState={proState}
+              isActive={isActive}
+              isCompleted={isCompleted}
+              isClaimed={isClaimed}
+              isFreeClaiming={isFreeClaiming}
+              isProClaiming={isProClaiming}
+              freeMissionProgress={allMissionProgress?.[lvl.level]?.free ?? null}
+              proMissionProgress={allMissionProgress?.[lvl.level]?.pro ?? null}
+              animateFree={justClaimed?.level === lvl.level && justClaimed?.track === 'free'}
+              animatePro={justClaimed?.level === lvl.level && justClaimed?.track === 'pro'}
+              onClaim={stableClaim}
+              t={t}
+              onGoPricing={onGoPricing}
+            />
           );
         })}
       </div>
