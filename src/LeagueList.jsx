@@ -229,7 +229,7 @@ export default function LeagueList({ onOpenLeague, onBack }) {
               <div>
                 <div style={{ fontSize: '11px', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px' }}>{tl.endDateLabel}</div>
                 <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
-                  style={{ width: '100%', padding: '12px', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', color: 'var(--text-primary)', fontFamily: 'var(--font-body)', fontSize: '12px', boxSizing: 'border-box', outline: 'none', colorScheme: 'dark' }} />
+                  style={{ display: 'block', width: '100%', maxWidth: '100%', minWidth: 0, padding: '12px', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', color: 'var(--text-primary)', fontFamily: 'var(--font-body)', fontSize: '12px', boxSizing: 'border-box', outline: 'none', colorScheme: 'dark', WebkitAppearance: 'none', appearance: 'none', textAlign: 'left' }} />
               </div>
               {msg && <div style={{ fontSize: '12px', color: msg.ok ? 'var(--green)' : 'var(--pink)' }}>{msg.text}</div>}
               <button onClick={createLeague} disabled={submitting}

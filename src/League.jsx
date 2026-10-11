@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from './AuthContext';
 import { useLang } from './LangContext.jsx';
 import UserAvatar from './UserAvatar.jsx';
@@ -271,9 +272,9 @@ export default function League({ leagueId, onBack, onSwitchLeague, onViewProfile
         </button>
       </div>
 
-      {/* ⋯ Menu overlay */}
-      {menuOpen && (
-        <div onClick={() => setMenuOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 200 }}>
+      {/* ⋯ Menu overlay — portal to escape overflow:auto + isolation:isolate on iOS */}
+      {menuOpen && createPortal(
+        <div onClick={() => setMenuOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 9999 }}>
           <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', top: 48, right: 16, background: 'var(--bg-elevated)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', padding: '4px 0', minWidth: 160, boxShadow: '0 8px 24px rgba(0,0,0,0.5)', overflow: 'hidden' }}>
             <button onClick={() => { setMenuOpen(false); share(); }}
               style={{ display: 'block', width: '100%', padding: '12px 16px', background: 'transparent', border: 'none', color: 'var(--text-primary)', fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 700, textAlign: 'left', cursor: 'pointer' }}>
@@ -292,12 +293,13 @@ export default function League({ leagueId, onBack, onSwitchLeague, onViewProfile
               </button>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {/* Confirmation dialog */}
-      {confirm && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.7)', padding: '20px' }}>
+      {/* Confirmation dialog — portal for same reason */}
+      {confirm && createPortal(
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.7)', padding: '20px' }}>
           <div style={{ background: 'var(--bg-elevated)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-lg)', padding: '24px 20px', maxWidth: '320px', width: '100%' }}>
             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '16px', color: 'var(--text-primary)', marginBottom: '10px' }}>
               {confirm === 'delete'
@@ -320,7 +322,8 @@ export default function League({ leagueId, onBack, onSwitchLeague, onViewProfile
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
