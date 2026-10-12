@@ -4279,21 +4279,31 @@ app.get('/portfolio/weekly/debug', async (req, res) => {
     monday.setUTCHours(0, 0, 0, 0);
     const mondayStr = monday.toISOString().split('T')[0];
 
-    const totalDocs = await PortfolioHistory.countDocuments();
-    const docsThisWeek = await PortfolioHistory.countDocuments({ date: { $gte: mondayStr } });
-    const docsOnMonday = await PortfolioHistory.countDocuments({ date: mondayStr });
-    const docsBeforeMonday = await PortfolioHistory.countDocuments({ date: { $lt: mondayStr } });
-    const docsLteMonday = await PortfolioHistory.countDocuments({ date: { $lte: mondayStr } });
-    const sampleDates = await PortfolioHistory.distinct('date');
-    sampleDates.sort().reverse();
     const activeUserIds = await PortfolioHistory.distinct('userId', { date: { $gte: mondayStr } });
 
-    // Sample up to 3 users
-    const samples = [];
-    for (const uid of activeUserIds.slice(0, 3)) {
-      const entries = await PortfolioHistory.find({ userId: uid }).sort({ date: -1 }).limit(5).lean();
-      samples.push({ userId: String(uid), entries: entries.map(e => ({ date: e.date, slot: e.slot, totalValue: e.totalValue })) });
-    }
+    // Run the exact same baseline aggregate the leaderboard uses
+    const baselineHistory = await PortfolioHistory.aggregate([
+      { $match: { userId: { $in: activeUserIds }, date: { $lte: mondayStr } } },
+      { $sort: { date: -1 } },
+      { $group: { _id: { userId: '$userId', slot: { $ifNull: ['$slot', 0] } }, totalValue: { $first: '$totalValue' }, date: { $first: '$date' } } },
+    ]);
+    const baselineMap = {};
+    baselineHistory.forEach(h => { baselineMap[`${h._id.userId}:${h._id.slot}`] = { v: h.totalValue, d: h.date }; });
+
+    // Look up top 5 from global leaderboard specifically
+    const targetUsers = [
+      { username: 'angelito415', userId: '6a24525efc1548cc7d18f17f' },
+      { username: 'mcvictor8',   userId: '6a25d4ca6013c54fcb9ff8ad' },
+      { username: 'gonzaninja',  userId: '6a2485e4a4bd563c3e38c7bb' },
+    ];
+    const userDiag = await Promise.all(targetUsers.map(async t => {
+      const uid = t.userId;
+      const inActive = activeUserIds.some(id => String(id) === uid);
+      const histEntries = await PortfolioHistory.find({ userId: uid }).sort({ date: -1 }).limit(5).lean();
+      const baseline0 = baselineMap[`${uid}:0`];
+      const baseline1 = baselineMap[`${uid}:1`];
+      return { username: t.username, userId: uid, inActiveUserIds: inActive, baseline0, baseline1, recentHistory: histEntries.map(e => ({ date: e.date, slot: e.slot ?? 0, v: e.totalValue })) };
+    }));
 
     const cacheKey = `weekly_leaderboard:${mondayStr}`;
     const cached = await redis.get(cacheKey).catch(() => null);
@@ -4301,15 +4311,10 @@ app.get('/portfolio/weekly/debug', async (req, res) => {
     res.json({
       serverTime: now.toISOString(),
       mondayStr,
-      totalDocs,
-      docsThisWeek,
-      docsOnMonday,
-      docsBeforeMonday,
-      docsLteMonday,
-      recentDates: sampleDates.slice(0, 10),
       activeUserCount: activeUserIds.length,
-      sampleUsers: samples,
+      baselineCount: baselineHistory.length,
       cacheKeyExists: !!cached,
+      userDiag,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
