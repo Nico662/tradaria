@@ -195,16 +195,22 @@ mongoose.connect(MONGODB_URI, { autoIndex: false })
     // will get a lazy baseline the next time they open Portfolio.
     try {
       const migrateWeekStart = getMondayStr();
-      const histSnaps = await PortfolioHistory.find({
-        date: migrateWeekStart,
-        totalValue: { $gte: 100 },
-      }).lean();
+      // Use last snapshot BEFORE Monday (not the Monday intraday value, which POST /snapshot overwrites).
+      const prevSnapsAgg = await PortfolioHistory.aggregate([
+        { $match: { date: { $lt: migrateWeekStart }, totalValue: { $gte: 100 } } },
+        { $sort:  { date: -1 } },
+        { $group: {
+          _id:   { userId: '$userId', slot: { $ifNull: ['$slot', 0] } },
+          value: { $first: '$totalValue' },
+        }},
+      ]);
       let migInserted = 0, migSkipped = 0;
-      for (const h of histSnaps) {
-        const slotNum = h.slot ?? 0;
+      for (const h of prevSnapsAgg) {
+        const userId  = h._id.userId;
+        const slotNum = h._id.slot;
         const r = await WeeklyBaseline.updateOne(
-          { userId: h.userId, slot: slotNum, weekStart: migrateWeekStart },
-          { $setOnInsert: { userId: h.userId, slot: slotNum, weekStart: migrateWeekStart, value: h.totalValue } },
+          { userId, slot: slotNum, weekStart: migrateWeekStart },
+          { $setOnInsert: { userId, slot: slotNum, weekStart: migrateWeekStart, value: h.value } },
           { upsert: true }
         );
         if (r.upsertedCount > 0) migInserted++;
@@ -4296,11 +4302,17 @@ app.post('/portfolio/snapshot', async (req, res) => {
       : { userId: decoded.id, date, slot: { $in: [0, null] } };
     await PortfolioHistory.findOneAndUpdate(histFilter, { $set: { totalValue, slot } }, { upsert: true });
 
-    // WeeklyBaseline: lazy creation only — $setOnInsert never overwrites an existing baseline
+    // WeeklyBaseline: write-once using last pre-Monday snapshot as baseline.
+    // Never uses the Monday intraday value (which changes every snapshot call).
     const weekStart = getMondayStr();
+    const prevHistFilter = slot === 1
+      ? { userId: decoded.id, slot: 1,              date: { $lt: weekStart }, totalValue: { $gte: 100 } }
+      : { userId: decoded.id, slot: { $in: [0, null] }, date: { $lt: weekStart }, totalValue: { $gte: 100 } };
+    const prevSnap = await PortfolioHistory.findOne(prevHistFilter, { totalValue: 1 }, { sort: { date: -1 } }).lean();
+    const baselineValue = prevSnap ? prevSnap.totalValue : totalValue;
     await WeeklyBaseline.updateOne(
       { userId: decoded.id, slot, weekStart },
-      { $setOnInsert: { userId: decoded.id, slot, weekStart, value: totalValue } },
+      { $setOnInsert: { userId: decoded.id, slot, weekStart, value: baselineValue } },
       { upsert: true }
     );
 
@@ -4379,27 +4391,41 @@ app.get('/portfolio/weekly/leaderboard', async (req, res) => {
     prices.filter(Boolean).forEach(p => { priceMap[p.symbol] = p.price; });
 
     // Lazy baseline: for any portfolio without a WeeklyBaseline (new account or cron missed),
-    // create one now with $setOnInsert using the current live value.
-    const lazyOps = [];
-    for (const p of portfolios) {
-      const slotNum = p.slot ?? 0;
-      const key = `${p.userId?._id}:${slotNum}`;
-      if (baselineMap[key] == null) {
-        const invested   = p.positions.reduce((s, pos) => s + (priceMap[pos.symbol] || pos.avgPrice) * pos.qty, 0);
-        const liveValue  = p.cash + invested;
-        if (liveValue >= MIN_PORTFOLIO_SNAPSHOT_VALUE) {
-          const bv = liveValue;
+    // create one using the last pre-Monday snapshot (not the Monday intraday value).
+    const needsLazy = portfolios.filter(p => baselineMap[`${p.userId?._id}:${p.slot ?? 0}`] == null && p.userId?._id);
+    if (needsLazy.length > 0) {
+      const lazyUserIds = needsLazy.map(p => p.userId._id);
+      const prevSnapsAgg = await PortfolioHistory.aggregate([
+        { $match: { userId: { $in: lazyUserIds }, date: { $lt: mondayStr }, totalValue: { $gte: 100 } } },
+        { $sort:  { date: -1 } },
+        { $group: {
+          _id:   { userId: '$userId', slot: { $ifNull: ['$slot', 0] } },
+          value: { $first: '$totalValue' },
+        }},
+      ]);
+      const prevLazyMap = {};
+      prevSnapsAgg.forEach(s => { prevLazyMap[`${s._id.userId}:${s._id.slot}`] = s.value; });
+
+      const lazyOps = [];
+      for (const p of needsLazy) {
+        const slotNum  = p.slot ?? 0;
+        const key      = `${p.userId._id}:${slotNum}`;
+        const prevVal  = prevLazyMap[key];
+        const invested = p.positions.reduce((s, pos) => s + (priceMap[pos.symbol] || pos.avgPrice) * pos.qty, 0);
+        const liveValue = p.cash + invested;
+        const bv = prevVal ?? liveValue;
+        if (bv >= MIN_PORTFOLIO_SNAPSHOT_VALUE) {
           lazyOps.push(
             WeeklyBaseline.updateOne(
-              { userId: p.userId?._id, slot: slotNum, weekStart: mondayStr },
-              { $setOnInsert: { userId: p.userId?._id, slot: slotNum, weekStart: mondayStr, value: bv } },
+              { userId: p.userId._id, slot: slotNum, weekStart: mondayStr },
+              { $setOnInsert: { userId: p.userId._id, slot: slotNum, weekStart: mondayStr, value: bv } },
               { upsert: true }
             ).then(() => { baselineMap[key] = bv; }).catch(() => {})
           );
         }
       }
+      if (lazyOps.length > 0) await Promise.all(lazyOps);
     }
-    if (lazyOps.length > 0) await Promise.all(lazyOps);
 
     const MAX_RETURN_PCT = 10000;
     const allLeaderboard = portfolios
