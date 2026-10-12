@@ -4277,19 +4277,50 @@ app.get('/portfolio/weekly/leaderboard', async (req, res) => {
     monday.setUTCHours(0, 0, 0, 0);
     const mondayStr = monday.toISOString().split('T')[0];
 
+    // Cache key includes week ID so it auto-invalidates when the week rolls over
+    const cacheKey = `weekly_leaderboard:${mondayStr}`;
+    const { userId } = req.query;
+
+    const cachedAll = await redis.get(cacheKey).catch(() => null);
+    if (cachedAll) {
+      const allLeaderboard = typeof cachedAll === 'string' ? JSON.parse(cachedAll) : cachedAll;
+      const top10 = allLeaderboard.slice(0, 10);
+      let userPosition = null;
+      if (userId) {
+        const allEntries = allLeaderboard.map((e, idx) => ({ ...e, rank: idx + 1 }));
+        const outsideTop10 = allEntries.filter(e => e.userId === String(userId) && e.rank > 10);
+        if (outsideTop10.length > 0) {
+          const best = outsideTop10.reduce((a, b) => a.rank < b.rank ? a : b);
+          userPosition = { rank: best.rank, returnPct: best.returnPct, totalValue: best.totalValue, name: best.name, username: best.username, avatar: best.avatar, customAvatar: best.customAvatar, activeCosmetics: best.activeCosmetics, hasVerifiedBadge: best.hasVerifiedBadge, slot: best.slot };
+        }
+      }
+      return res.json({ leaderboard: top10, userPosition });
+    }
+
     const activeUserIds = await PortfolioHistory.distinct('userId', { date: { $gte: mondayStr } });
     if (activeUserIds.length === 0) {
       return res.json({ leaderboard: [], userPosition: null });
     }
 
-    // Weekly baseline: last snapshot BEFORE Monday for each active user
+    // Weekly baseline: the Monday snapshot ($lte includes it) or the last snapshot before Monday.
+    // Bug fix: was $lt (strictly before Monday) which excluded the Monday cron snapshot itself,
+    // causing baseline to fall back to 50000 and weekly % to equal global %.
     const baselineHistory = await PortfolioHistory.aggregate([
-      { $match: { userId: { $in: activeUserIds }, date: { $lt: mondayStr } } },
+      { $match: { userId: { $in: activeUserIds }, date: { $lte: mondayStr } } },
       { $sort: { date: -1 } },
       { $group: { _id: { userId: '$userId', slot: { $ifNull: ['$slot', 0] } }, totalValue: { $first: '$totalValue' } } },
     ]);
     const baselineMap = {};
     baselineHistory.forEach(h => { baselineMap[`${h._id.userId}:${h._id.slot}`] = h.totalValue; });
+
+    // Secondary fallback: if still no baseline, use the first snapshot this week
+    const firstThisWeekHistory = await PortfolioHistory.aggregate([
+      { $match: { userId: { $in: activeUserIds }, date: { $gte: mondayStr } } },
+      { $sort: { date: 1 } },
+      { $group: { _id: { userId: '$userId', slot: { $ifNull: ['$slot', 0] } }, totalValue: { $first: '$totalValue' } } },
+    ]);
+    const firstThisWeekMap = {};
+    firstThisWeekHistory.forEach(h => { firstThisWeekMap[`${h._id.userId}:${h._id.slot}`] = h.totalValue; });
 
     const portfolios = await Portfolio.find({ userId: { $in: activeUserIds } })
       .populate('userId', 'name avatar customAvatar username activeCosmetics battlePassMechanics');
@@ -4297,21 +4328,22 @@ app.get('/portfolio/weekly/leaderboard', async (req, res) => {
     const priceMap   = {};
     prices.filter(Boolean).forEach(p => { priceMap[p.symbol] = p.price; });
 
-    const MIN_VALID_BASELINE = 100; // below $100 is always a corrupt snapshot
-    const MAX_RETURN_PCT = 10000; // 100x in a week is the absolute cap we display
+    const MIN_VALID_BASELINE = 100;
+    const MAX_RETURN_PCT = 10000;
 
     const allLeaderboard = portfolios.map(p => {
       const slotNum    = p.slot ?? 0;
       const invested   = p.positions.reduce((s, pos) => s + (priceMap[pos.symbol] || pos.avgPrice) * pos.qty, 0);
       const totalValue = p.cash + invested;
-      const rawBaseline = baselineMap[`${p.userId?._id}:${slotNum}`];
+      const key        = `${p.userId?._id}:${slotNum}`;
+      const rawBaseline = baselineMap[key] ?? firstThisWeekMap[key];
       if (rawBaseline != null && rawBaseline < MIN_VALID_BASELINE) {
-        console.warn(`[leaderboard] Corrupt baseline $${rawBaseline} for userId=${p.userId?._id} slot=${slotNum} — using 50000`);
+        console.warn(`[weekly-lb] Corrupt baseline $${rawBaseline} for userId=${p.userId?._id} slot=${slotNum} — using 50000`);
       }
       const baseline   = (rawBaseline != null && rawBaseline >= MIN_VALID_BASELINE) ? rawBaseline : 50000;
       const rawPct     = ((totalValue - baseline) / baseline) * 100;
       if (Math.abs(rawPct) > MAX_RETURN_PCT) {
-        console.warn(`[leaderboard] Clamping absurd returnPct ${rawPct.toFixed(2)}% → ${rawPct > 0 ? MAX_RETURN_PCT : -MAX_RETURN_PCT}% for userId=${p.userId?._id}`);
+        console.warn(`[weekly-lb] Clamping absurd returnPct ${rawPct.toFixed(2)}% for userId=${p.userId?._id}`);
       }
       const returnPct  = Math.max(-100, Math.min(MAX_RETURN_PCT, rawPct));
       return {
@@ -4329,9 +4361,11 @@ app.get('/portfolio/weekly/leaderboard', async (req, res) => {
       };
     }).sort((a, b) => b.returnPct - a.returnPct);
 
+    // Cache the full sorted array for 5 min; userPosition is derived per request from the cache
+    await redis.set(cacheKey, JSON.stringify(allLeaderboard), { ex: 300 }).catch(() => {});
+
     const top10 = allLeaderboard.slice(0, 10);
     let userPosition = null;
-    const { userId } = req.query;
     if (userId) {
       const allEntries = allLeaderboard.map((e, idx) => ({ ...e, rank: idx + 1 }));
       const outsideTop10 = allEntries.filter(e => e.userId === String(userId) && e.rank > 10);
