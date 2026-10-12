@@ -4266,60 +4266,6 @@ app.get('/portfolio/clear-cache', async (req, res) => {
     res.status(500).json({ error: 'internal_error' });
   }
 });
-// TEMP DEBUG — remove after diagnosis
-app.get('/portfolio/weekly/debug', async (req, res) => {
-  const key = req.headers['x-admin-secret'];
-  if (!ADMIN_SECRET || key !== ADMIN_SECRET) return res.status(403).json({ error: 'Forbidden' });
-  try {
-    const now = new Date();
-    const day = now.getUTCDay();
-    const diff = (day === 0) ? -6 : 1 - day;
-    const monday = new Date(now);
-    monday.setUTCDate(now.getUTCDate() + diff);
-    monday.setUTCHours(0, 0, 0, 0);
-    const mondayStr = monday.toISOString().split('T')[0];
-
-    const activeUserIds = await PortfolioHistory.distinct('userId', { date: { $gte: mondayStr } });
-
-    // Run the exact same baseline aggregate the leaderboard uses
-    const baselineHistory = await PortfolioHistory.aggregate([
-      { $match: { userId: { $in: activeUserIds }, date: { $lte: mondayStr } } },
-      { $sort: { date: -1 } },
-      { $group: { _id: { userId: '$userId', slot: { $ifNull: ['$slot', 0] } }, totalValue: { $first: '$totalValue' }, date: { $first: '$date' } } },
-    ]);
-    const baselineMap = {};
-    baselineHistory.forEach(h => { baselineMap[`${h._id.userId}:${h._id.slot}`] = { v: h.totalValue, d: h.date }; });
-
-    // Look up top 5 from global leaderboard specifically
-    const targetUsers = [
-      { username: 'angelito415', userId: '6a24525efc1548cc7d18f17f' },
-      { username: 'mcvictor8',   userId: '6a25d4ca6013c54fcb9ff8ad' },
-      { username: 'gonzaninja',  userId: '6a2485e4a4bd563c3e38c7bb' },
-    ];
-    const userDiag = await Promise.all(targetUsers.map(async t => {
-      const uid = t.userId;
-      const inActive = activeUserIds.some(id => String(id) === uid);
-      const histEntries = await PortfolioHistory.find({ userId: uid }).sort({ date: -1 }).limit(5).lean();
-      const baseline0 = baselineMap[`${uid}:0`];
-      const baseline1 = baselineMap[`${uid}:1`];
-      return { username: t.username, userId: uid, inActiveUserIds: inActive, baseline0, baseline1, recentHistory: histEntries.map(e => ({ date: e.date, slot: e.slot ?? 0, v: e.totalValue })) };
-    }));
-
-    const cacheKey = `weekly_leaderboard:${mondayStr}`;
-    const cached = await redis.get(cacheKey).catch(() => null);
-
-    res.json({
-      serverTime: now.toISOString(),
-      mondayStr,
-      activeUserCount: activeUserIds.length,
-      baselineCount: baselineHistory.length,
-      cacheKeyExists: !!cached,
-      userDiag,
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
 
 app.get('/portfolio/weekly/leaderboard', async (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
@@ -4489,10 +4435,13 @@ async function getPortfolioValue(userId, slot = 0) {
     const portfolio = await Portfolio.findOne(portfolioFilter(userId, slot));
     if (!portfolio) return 50000;
     const priceMap = {};
+    // Use getPrice() so we always get a live price even if Redis is cold (e.g. Monday 00:05 UTC cron).
+    // Reading only from Redis caused the weekly snapshot to save cost-basis ($50k) instead of
+    // market value when the price cache had expired overnight.
     await Promise.all(PORTFOLIO_ASSETS.map(async a => {
       try {
-        const c = await redis.get(`price_v2:${a.symbol}`);
-        if (c) { const p = typeof c === 'string' ? JSON.parse(c) : c; priceMap[p.symbol] = p.price; }
+        const p = await getPrice(a);
+        if (p) priceMap[p.symbol] = p.price;
       } catch {}
     }));
     // Include cash reserved for pending buy orders — without this, an all-in
@@ -4505,6 +4454,48 @@ async function getPortfolioValue(userId, slot = 0) {
   } catch { return 50000; }
 }
 
+// Admin endpoint to re-run the weekly portfolio snapshot for the current week.
+// Use when the Monday cron saved corrupt $50k baselines (cold Redis price cache).
+// Clears the Redis lock and leaderboard cache, then re-saves with live prices.
+app.post('/admin/weekly-snapshot-rerun', async (req, res) => {
+  const key = req.headers['x-admin-secret'];
+  if (!ADMIN_SECRET || key !== ADMIN_SECRET) return res.status(403).json({ error: 'Forbidden' });
+  try {
+    const now = new Date();
+    const day = now.getUTCDay();
+    const diff = (day === 0) ? -6 : 1 - day;
+    const monday = new Date(now);
+    monday.setUTCDate(now.getUTCDate() + diff);
+    monday.setUTCHours(0, 0, 0, 0);
+    const mondayStr = monday.toISOString().split('T')[0];
+
+    // Clear the cron lock so this re-run is allowed
+    await redis.del(`cron_lock:weeklySnapshot:${mondayStr}`).catch(() => {});
+    // Clear stale leaderboard cache
+    await redis.del(`weekly_leaderboard:${mondayStr}`).catch(() => {});
+
+    const portfolios = await Portfolio.find({}).lean();
+    let saved = 0, skipped = 0, errors = 0;
+    for (const p of portfolios) {
+      try {
+        const totalValue = await getPortfolioValue(p.userId, p.slot ?? 0);
+        if (totalValue < MIN_PORTFOLIO_SNAPSHOT_VALUE) { skipped++; continue; }
+        const filter = (p.slot ?? 0) === 1
+          ? { userId: p.userId, date: mondayStr, slot: 1 }
+          : { userId: p.userId, date: mondayStr, slot: { $in: [0, null] } };
+        await PortfolioHistory.findOneAndUpdate(filter, { $set: { totalValue, slot: p.slot ?? 0 } }, { upsert: true });
+        saved++;
+      } catch (err) {
+        console.error(`[weekly-snapshot-rerun] userId=${p.userId}:`, err.message);
+        errors++;
+      }
+    }
+    console.log(`[weekly-snapshot-rerun] Done — saved=${saved} skipped=${skipped} errors=${errors}`);
+    res.json({ ok: true, mondayStr, saved, skipped, errors });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // ── Portfolio duels ───────────────────────────────────────────────
 app.post('/portfolio/duel/challenge', async (req, res) => {
