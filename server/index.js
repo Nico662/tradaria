@@ -188,6 +188,40 @@ mongoose.connect(MONGODB_URI, { autoIndex: false })
       { upsert: true, setDefaultsOnInsert: true }
     );
     console.log('Season 1 seeded (or already present)');
+
+    // ── WeeklyBaseline migration for current week (idempotent, $setOnInsert) ──
+    // Populates WeeklyBaseline from the PortfolioHistory snapshots of this Monday.
+    // Users whose snapshot was overwritten during the day can't be recovered; they
+    // will get a lazy baseline the next time they open Portfolio.
+    try {
+      const migrateWeekStart = getMondayStr();
+      const histSnaps = await PortfolioHistory.find({
+        date: migrateWeekStart,
+        totalValue: { $gte: 100 },
+      }).lean();
+      let migInserted = 0, migSkipped = 0;
+      for (const h of histSnaps) {
+        const slotNum = h.slot ?? 0;
+        const r = await WeeklyBaseline.updateOne(
+          { userId: h.userId, slot: slotNum, weekStart: migrateWeekStart },
+          { $setOnInsert: { userId: h.userId, slot: slotNum, weekStart: migrateWeekStart, value: h.totalValue } },
+          { upsert: true }
+        );
+        if (r.upsertedCount > 0) migInserted++;
+        else migSkipped++;
+      }
+      const totalPortfolios = await Portfolio.countDocuments();
+      const totalBaselines  = await WeeklyBaseline.countDocuments({ weekStart: migrateWeekStart });
+      await redis.del(`weekly_leaderboard:${migrateWeekStart}`).catch(() => {});
+      console.log(
+        `[weekly-baseline-migration] weekStart=${migrateWeekStart} ` +
+        `inserted=${migInserted} already_existed=${migSkipped} ` +
+        `totalBaselines=${totalBaselines} totalPortfolios=${totalPortfolios} ` +
+        `withoutBaseline=${totalPortfolios - totalBaselines}`
+      );
+    } catch (migErr) {
+      console.error('[weekly-baseline-migration] error:', migErr.message);
+    }
   })
   .catch(err => console.error('MongoDB error:', err));
 
@@ -336,6 +370,16 @@ const PortfolioHistorySchema = new mongoose.Schema({
 });
 PortfolioHistorySchema.index({ userId: 1, date: 1, slot: 1 }, { unique: true });
 const PortfolioHistory = mongoose.model('PortfolioHistory', PortfolioHistorySchema);
+
+// Weekly baseline — written ONCE per (userId, slot, weekStart) via $setOnInsert; never overwritten.
+const WeeklyBaselineSchema = new mongoose.Schema({
+  userId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  slot:      { type: Number, default: 0, enum: [0, 1] },
+  weekStart: { type: String, required: true }, // 'YYYY-MM-DD' of Monday UTC
+  value:     { type: Number, required: true },
+});
+WeeklyBaselineSchema.index({ userId: 1, slot: 1, weekStart: 1 }, { unique: true });
+const WeeklyBaseline = mongoose.model('WeeklyBaseline', WeeklyBaselineSchema);
 
 const PriceAlertSchema = new mongoose.Schema({
   userId:      { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -3245,9 +3289,8 @@ cron.schedule('0 0 * * *', async () => {
 });
 
 // ── Weekly portfolio snapshot cron (Monday 00:05 UTC) ───────────────────────
-// Creates/updates the Monday baseline snapshot for every active portfolio
-// BEFORE the market opens and BEFORE any orders can be reserved. This ensures
-// the weekly-leaderboard baseline always reflects true equity at week start.
+// Saves PortfolioHistory (chart) and WeeklyBaseline (leaderboard) for each portfolio.
+// WeeklyBaseline uses $setOnInsert so it is never overwritten by later calls.
 cron.schedule('5 0 * * 1', async () => {
   const lockDate  = new Date().toISOString().split('T')[0];
   const lockKey   = `cron_lock:weeklySnapshot:${lockDate}`;
@@ -3266,15 +3309,24 @@ cron.schedule('5 0 * * 1', async () => {
           skipped++;
           continue;
         }
-        const filter = (p.slot ?? 0) === 1
+        const slotNum = p.slot ?? 0;
+        // PortfolioHistory: overwrite OK (used only for the chart, not for weekly %)
+        const histFilter = slotNum === 1
           ? { userId: p.userId, date: lockDate, slot: 1 }
           : { userId: p.userId, date: lockDate, slot: { $in: [0, null] } };
-        await PortfolioHistory.findOneAndUpdate(filter, { $set: { totalValue, slot: p.slot ?? 0 } }, { upsert: true });
+        await PortfolioHistory.findOneAndUpdate(histFilter, { $set: { totalValue, slot: slotNum } }, { upsert: true });
+        // WeeklyBaseline: $setOnInsert — never overwrite once set
+        await WeeklyBaseline.updateOne(
+          { userId: p.userId, slot: slotNum, weekStart: lockDate },
+          { $setOnInsert: { userId: p.userId, slot: slotNum, weekStart: lockDate, value: totalValue } },
+          { upsert: true }
+        );
         saved++;
       } catch (err) {
         console.error(`[weekly-snapshot-cron] Error userId=${p.userId}:`, err.message);
       }
     }
+    await redis.del(`weekly_leaderboard:${lockDate}`).catch(() => {});
     console.log(`[weekly-snapshot-cron] Done — saved=${saved} skipped=${skipped}`);
   } catch (err) {
     console.error('[weekly-snapshot-cron] Fatal:', err.message);
@@ -3561,6 +3613,15 @@ app.get('/stats/revenue', async (req, res) => {
 });
 
 // ── Portfolio routes ──────────────────────────────────────────────
+
+function getMondayStr(now = new Date()) {
+  const day  = now.getUTCDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  const mon  = new Date(now);
+  mon.setUTCDate(now.getUTCDate() + diff);
+  mon.setUTCHours(0, 0, 0, 0);
+  return mon.toISOString().split('T')[0];
+}
 
 function portfolioFilter(userId, slot) {
   return slot === 1
@@ -4216,20 +4277,33 @@ app.post('/portfolio/snapshot', async (req, res) => {
   try {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
     const slot = Number(req.body?.slot ?? req.query?.slot) === 1 ? 1 : 0;
+
+    // Guard: skip if portfolio hasn't been initialized yet — avoids storing $50k fallback as a real baseline.
+    const portfolioExists = !!(await Portfolio.exists(portfolioFilter(decoded.id, slot)));
+    if (!portfolioExists) return res.json({ ok: true, skipped: true });
+
     const totalValue = await getPortfolioValue(decoded.id, slot);
     if (totalValue < MIN_PORTFOLIO_SNAPSHOT_VALUE) {
       console.warn(`[snapshot] Skipped suspiciously low equity $${totalValue.toFixed(4)} for userId=${decoded.id} slot=${slot}`);
       return res.json({ ok: true, skipped: true });
     }
+
     const date = new Date().toISOString().split('T')[0];
+
+    // PortfolioHistory: always overwrite (used for the chart, not for weekly %)
     const histFilter = slot === 1
       ? { userId: decoded.id, date, slot: 1 }
       : { userId: decoded.id, date, slot: { $in: [0, null] } };
-    await PortfolioHistory.findOneAndUpdate(
-      histFilter,
-      { $set: { totalValue, slot } },
+    await PortfolioHistory.findOneAndUpdate(histFilter, { $set: { totalValue, slot } }, { upsert: true });
+
+    // WeeklyBaseline: lazy creation only — $setOnInsert never overwrites an existing baseline
+    const weekStart = getMondayStr();
+    await WeeklyBaseline.updateOne(
+      { userId: decoded.id, slot, weekStart },
+      { $setOnInsert: { userId: decoded.id, slot, weekStart, value: totalValue } },
       { upsert: true }
     );
+
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: 'internal_error' });
@@ -4270,16 +4344,8 @@ app.get('/portfolio/clear-cache', async (req, res) => {
 app.get('/portfolio/weekly/leaderboard', async (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
   try {
-    const now   = new Date();
-    const day   = now.getUTCDay();
-    const diff  = (day === 0) ? -6 : 1 - day;
-    const monday = new Date(now);
-    monday.setUTCDate(now.getUTCDate() + diff);
-    monday.setUTCHours(0, 0, 0, 0);
-    const mondayStr = monday.toISOString().split('T')[0];
-
-    // Cache key includes week ID so it auto-invalidates when the week rolls over
-    const cacheKey = `weekly_leaderboard:${mondayStr}`;
+    const mondayStr = getMondayStr();
+    const cacheKey  = `weekly_leaderboard:${mondayStr}`;
     const { userId } = req.query;
 
     const cachedAll = await redis.get(cacheKey).catch(() => null);
@@ -4298,71 +4364,71 @@ app.get('/portfolio/weekly/leaderboard', async (req, res) => {
       return res.json({ leaderboard: top10, userPosition });
     }
 
-    const activeUserIds = await PortfolioHistory.distinct('userId', { date: { $gte: mondayStr } });
-    if (activeUserIds.length === 0) {
-      return res.json({ leaderboard: [], userPosition: null });
-    }
+    // Load all baselines for this week; users without a WeeklyBaseline are excluded.
+    const baselines = await WeeklyBaseline.find({ weekStart: mondayStr }).lean();
+    if (baselines.length === 0) return res.json({ leaderboard: [], userPosition: null });
 
-    // Weekly baseline: the Monday snapshot ($lte includes it) or the last snapshot before Monday.
-    // Bug fix: was $lt (strictly before Monday) which excluded the Monday cron snapshot itself,
-    // causing baseline to fall back to 50000 and weekly % to equal global %.
-    const baselineHistory = await PortfolioHistory.aggregate([
-      { $match: { userId: { $in: activeUserIds }, date: { $lte: mondayStr } } },
-      { $sort: { date: -1 } },
-      { $group: { _id: { userId: '$userId', slot: { $ifNull: ['$slot', 0] } }, totalValue: { $first: '$totalValue' } } },
-    ]);
     const baselineMap = {};
-    baselineHistory.forEach(h => { baselineMap[`${h._id.userId}:${h._id.slot}`] = h.totalValue; });
+    baselines.forEach(b => { baselineMap[`${b.userId}:${b.slot ?? 0}`] = b.value; });
 
-    // Secondary fallback: if still no baseline, use the first snapshot this week
-    const firstThisWeekHistory = await PortfolioHistory.aggregate([
-      { $match: { userId: { $in: activeUserIds }, date: { $gte: mondayStr } } },
-      { $sort: { date: 1 } },
-      { $group: { _id: { userId: '$userId', slot: { $ifNull: ['$slot', 0] } }, totalValue: { $first: '$totalValue' } } },
-    ]);
-    const firstThisWeekMap = {};
-    firstThisWeekHistory.forEach(h => { firstThisWeekMap[`${h._id.userId}:${h._id.slot}`] = h.totalValue; });
-
-    const portfolios = await Portfolio.find({ userId: { $in: activeUserIds } })
+    const baselineUserIds = baselines.map(b => b.userId);
+    const portfolios = await Portfolio.find({ userId: { $in: baselineUserIds } })
       .populate('userId', 'name avatar customAvatar username activeCosmetics battlePassMechanics');
-    const prices     = await Promise.all(PORTFOLIO_ASSETS.map(a => getPrice(a).catch(() => null)));
-    const priceMap   = {};
+    const prices = await Promise.all(PORTFOLIO_ASSETS.map(a => getPrice(a).catch(() => null)));
+    const priceMap = {};
     prices.filter(Boolean).forEach(p => { priceMap[p.symbol] = p.price; });
 
-    const MIN_VALID_BASELINE = 100;
+    // Lazy baseline: for any portfolio without a WeeklyBaseline (new account or cron missed),
+    // create one now with $setOnInsert using the current live value.
+    const lazyOps = [];
+    for (const p of portfolios) {
+      const slotNum = p.slot ?? 0;
+      const key = `${p.userId?._id}:${slotNum}`;
+      if (baselineMap[key] == null) {
+        const invested   = p.positions.reduce((s, pos) => s + (priceMap[pos.symbol] || pos.avgPrice) * pos.qty, 0);
+        const liveValue  = p.cash + invested;
+        if (liveValue >= MIN_PORTFOLIO_SNAPSHOT_VALUE) {
+          const bv = liveValue;
+          lazyOps.push(
+            WeeklyBaseline.updateOne(
+              { userId: p.userId?._id, slot: slotNum, weekStart: mondayStr },
+              { $setOnInsert: { userId: p.userId?._id, slot: slotNum, weekStart: mondayStr, value: bv } },
+              { upsert: true }
+            ).then(() => { baselineMap[key] = bv; }).catch(() => {})
+          );
+        }
+      }
+    }
+    if (lazyOps.length > 0) await Promise.all(lazyOps);
+
     const MAX_RETURN_PCT = 10000;
+    const allLeaderboard = portfolios
+      .map(p => {
+        const slotNum    = p.slot ?? 0;
+        const key        = `${p.userId?._id}:${slotNum}`;
+        const baseline   = baselineMap[key];
+        if (baseline == null) return null; // no baseline → exclude from ranking
+        const invested   = p.positions.reduce((s, pos) => s + (priceMap[pos.symbol] || pos.avgPrice) * pos.qty, 0);
+        const totalValue = p.cash + invested;
+        const rawPct     = ((totalValue - baseline) / baseline) * 100;
+        const returnPct  = Math.max(-100, Math.min(MAX_RETURN_PCT, rawPct));
+        return {
+          userId:           String(p.userId?._id || ''),
+          name:             p.userId?.username || p.userId?.name || 'Anonymous',
+          username:         p.userId?.username || null,
+          avatar:           p.userId?.avatar || null,
+          customAvatar:     p.userId?.customAvatar || null,
+          activeCosmetics:  p.userId?.activeCosmetics || {},
+          hasVerifiedBadge: p.userId?.battlePassMechanics?.includes('mechanic_verified_badge') || false,
+          totalValue,
+          returnPct,
+          cash:             p.cash,
+          slot:             slotNum,
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => b.returnPct - a.returnPct);
 
-    const allLeaderboard = portfolios.map(p => {
-      const slotNum    = p.slot ?? 0;
-      const invested   = p.positions.reduce((s, pos) => s + (priceMap[pos.symbol] || pos.avgPrice) * pos.qty, 0);
-      const totalValue = p.cash + invested;
-      const key        = `${p.userId?._id}:${slotNum}`;
-      const rawBaseline = baselineMap[key] ?? firstThisWeekMap[key];
-      if (rawBaseline != null && rawBaseline < MIN_VALID_BASELINE) {
-        console.warn(`[weekly-lb] Corrupt baseline $${rawBaseline} for userId=${p.userId?._id} slot=${slotNum} — using 50000`);
-      }
-      const baseline   = (rawBaseline != null && rawBaseline >= MIN_VALID_BASELINE) ? rawBaseline : 50000;
-      const rawPct     = ((totalValue - baseline) / baseline) * 100;
-      if (Math.abs(rawPct) > MAX_RETURN_PCT) {
-        console.warn(`[weekly-lb] Clamping absurd returnPct ${rawPct.toFixed(2)}% for userId=${p.userId?._id}`);
-      }
-      const returnPct  = Math.max(-100, Math.min(MAX_RETURN_PCT, rawPct));
-      return {
-        userId:           String(p.userId?._id || ''),
-        name:             p.userId?.username || p.userId?.name || 'Anonymous',
-        username:         p.userId?.username || null,
-        avatar:           p.userId?.avatar || null,
-        customAvatar:     p.userId?.customAvatar || null,
-        activeCosmetics:  p.userId?.activeCosmetics || {},
-        hasVerifiedBadge: p.userId?.battlePassMechanics?.includes('mechanic_verified_badge') || false,
-        totalValue,
-        returnPct,
-        cash:             p.cash,
-        slot:             slotNum,
-      };
-    }).sort((a, b) => b.returnPct - a.returnPct);
-
-    // Cache the full sorted array for 5 min; userPosition is derived per request from the cache
     await redis.set(cacheKey, JSON.stringify(allLeaderboard), { ex: 300 }).catch(() => {});
 
     const top10 = allLeaderboard.slice(0, 10);
@@ -4455,23 +4521,16 @@ async function getPortfolioValue(userId, slot = 0) {
 }
 
 // Admin endpoint to re-run the weekly portfolio snapshot for the current week.
-// Use when the Monday cron saved corrupt $50k baselines (cold Redis price cache).
-// Clears the Redis lock and leaderboard cache, then re-saves with live prices.
+// Overwrites PortfolioHistory (for the chart) and resets WeeklyBaseline with the
+// current live price so the leaderboard reflects true equity at the time of the re-run.
+// Use only on Mondays before significant trading, as it replaces existing baselines.
 app.post('/admin/weekly-snapshot-rerun', async (req, res) => {
   const key = req.headers['x-admin-secret'];
   if (!ADMIN_SECRET || key !== ADMIN_SECRET) return res.status(403).json({ error: 'Forbidden' });
   try {
-    const now = new Date();
-    const day = now.getUTCDay();
-    const diff = (day === 0) ? -6 : 1 - day;
-    const monday = new Date(now);
-    monday.setUTCDate(now.getUTCDate() + diff);
-    monday.setUTCHours(0, 0, 0, 0);
-    const mondayStr = monday.toISOString().split('T')[0];
+    const mondayStr = getMondayStr();
 
-    // Clear the cron lock so this re-run is allowed
     await redis.del(`cron_lock:weeklySnapshot:${mondayStr}`).catch(() => {});
-    // Clear stale leaderboard cache
     await redis.del(`weekly_leaderboard:${mondayStr}`).catch(() => {});
 
     const portfolios = await Portfolio.find({}).lean();
@@ -4480,10 +4539,17 @@ app.post('/admin/weekly-snapshot-rerun', async (req, res) => {
       try {
         const totalValue = await getPortfolioValue(p.userId, p.slot ?? 0);
         if (totalValue < MIN_PORTFOLIO_SNAPSHOT_VALUE) { skipped++; continue; }
-        const filter = (p.slot ?? 0) === 1
+        const slotNum = p.slot ?? 0;
+        const histFilter = slotNum === 1
           ? { userId: p.userId, date: mondayStr, slot: 1 }
           : { userId: p.userId, date: mondayStr, slot: { $in: [0, null] } };
-        await PortfolioHistory.findOneAndUpdate(filter, { $set: { totalValue, slot: p.slot ?? 0 } }, { upsert: true });
+        await PortfolioHistory.findOneAndUpdate(histFilter, { $set: { totalValue, slot: slotNum } }, { upsert: true });
+        // Admin rerun intentionally overwrites WeeklyBaseline ($set, not $setOnInsert)
+        await WeeklyBaseline.findOneAndUpdate(
+          { userId: p.userId, slot: slotNum, weekStart: mondayStr },
+          { $set: { value: totalValue }, $setOnInsert: { userId: p.userId, slot: slotNum, weekStart: mondayStr } },
+          { upsert: true }
+        );
         saved++;
       } catch (err) {
         console.error(`[weekly-snapshot-rerun] userId=${p.userId}:`, err.message);
