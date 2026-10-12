@@ -4266,6 +4266,56 @@ app.get('/portfolio/clear-cache', async (req, res) => {
     res.status(500).json({ error: 'internal_error' });
   }
 });
+// TEMP DEBUG — remove after diagnosis
+app.get('/portfolio/weekly/debug', async (req, res) => {
+  const key = req.headers['x-admin-secret'];
+  if (!ADMIN_SECRET || key !== ADMIN_SECRET) return res.status(403).json({ error: 'Forbidden' });
+  try {
+    const now = new Date();
+    const day = now.getUTCDay();
+    const diff = (day === 0) ? -6 : 1 - day;
+    const monday = new Date(now);
+    monday.setUTCDate(now.getUTCDate() + diff);
+    monday.setUTCHours(0, 0, 0, 0);
+    const mondayStr = monday.toISOString().split('T')[0];
+
+    const totalDocs = await PortfolioHistory.countDocuments();
+    const docsThisWeek = await PortfolioHistory.countDocuments({ date: { $gte: mondayStr } });
+    const docsOnMonday = await PortfolioHistory.countDocuments({ date: mondayStr });
+    const docsBeforeMonday = await PortfolioHistory.countDocuments({ date: { $lt: mondayStr } });
+    const docsLteMonday = await PortfolioHistory.countDocuments({ date: { $lte: mondayStr } });
+    const sampleDates = await PortfolioHistory.distinct('date');
+    sampleDates.sort().reverse();
+    const activeUserIds = await PortfolioHistory.distinct('userId', { date: { $gte: mondayStr } });
+
+    // Sample up to 3 users
+    const samples = [];
+    for (const uid of activeUserIds.slice(0, 3)) {
+      const entries = await PortfolioHistory.find({ userId: uid }).sort({ date: -1 }).limit(5).lean();
+      samples.push({ userId: String(uid), entries: entries.map(e => ({ date: e.date, slot: e.slot, totalValue: e.totalValue })) });
+    }
+
+    const cacheKey = `weekly_leaderboard:${mondayStr}`;
+    const cached = await redis.get(cacheKey).catch(() => null);
+
+    res.json({
+      serverTime: now.toISOString(),
+      mondayStr,
+      totalDocs,
+      docsThisWeek,
+      docsOnMonday,
+      docsBeforeMonday,
+      docsLteMonday,
+      recentDates: sampleDates.slice(0, 10),
+      activeUserCount: activeUserIds.length,
+      sampleUsers: samples,
+      cacheKeyExists: !!cached,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/portfolio/weekly/leaderboard', async (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
   try {
