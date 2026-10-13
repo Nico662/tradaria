@@ -1462,7 +1462,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
             {[['global', t.portfolio.global], ['weekly', t.portfolio.weekly]].map(([id, label]) => (
               <button key={id} onClick={() => {
                 setLeaderboardTab(id);
-                if (id === 'weekly' && weeklyLeaderboard.length === 0 && !weeklyLoading) loadWeeklyLeaderboard();
+                if (id === 'weekly' && !weeklyLoading) loadWeeklyLeaderboard();
               }}
                 style={{ flex: 1, background: leaderboardTab === id ? 'var(--green-dim)' : 'var(--bg-elevated)', border: `1.5px solid ${leaderboardTab === id ? 'var(--green)' : 'var(--border-default)'}`, borderRadius: 'var(--radius-full)', padding: '8px', fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '12px', color: leaderboardTab === id ? 'var(--green)' : 'var(--text-muted)', cursor: 'pointer', letterSpacing: '0.06em', transition: 'all 0.15s' }}>
                 {label}
