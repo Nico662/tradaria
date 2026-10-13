@@ -221,10 +221,6 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
   const [activeSlot, setActiveSlot]             = useState(0);
   const [leaderboard, setLeaderboard]           = useState([]);
   const [userPositionGlobal, setUserPositionGlobal] = useState(null);
-  const [leaderboardTab, setLeaderboardTab]     = useState('global');
-  const [weeklyLeaderboard, setWeeklyLeaderboard] = useState([]);
-  const [userPositionWeekly, setUserPositionWeekly] = useState(null);
-  const [weeklyLoading, setWeeklyLoading]       = useState(false);
   const [activeDuel, setActiveDuel]         = useState(null);
   const [pendingDuels, setPendingDuels]     = useState([]);
   const [duelFriends, setDuelFriends]       = useState([]);
@@ -465,22 +461,6 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
       if (Array.isArray(data)) setPendingOrders(data);
     }).catch(() => {});
   }, [activeSlot]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  async function loadWeeklyLeaderboard() {
-    if (weeklyLoading) return;
-    setWeeklyLoading(true);
-    try {
-      const uid = user?._id || user?.id || '';
-      const res  = await fetch(`${SERVER}/portfolio/weekly/leaderboard${uid ? `?userId=${uid}` : ''}`);
-      const data = await res.json();
-      if (data.leaderboard) {
-        setWeeklyLeaderboard(data.leaderboard);
-        setUserPositionWeekly(data.userPosition || null);
-      }
-    } catch {} finally {
-      setWeeklyLoading(false);
-    }
-  }
 
   async function loadDuelFriends() {
     try {
@@ -1457,48 +1437,13 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
       {/* ── Leaderboard ── */}
       {tab === 'leaderboard' && (
         <div style={{ padding: '16px 20px 40px', position: 'relative', zIndex: 2 }}>
-          {/* Global / Semanal subtabs */}
-          <div style={{ display: 'flex', gap: '6px', marginBottom: '12px' }}>
-            {[['global', t.portfolio.global], ['weekly', t.portfolio.weekly]].map(([id, label]) => (
-              <button key={id} onClick={() => {
-                setLeaderboardTab(id);
-                if (id === 'weekly' && !weeklyLoading) loadWeeklyLeaderboard();
-              }}
-                style={{ flex: 1, background: leaderboardTab === id ? 'var(--green-dim)' : 'var(--bg-elevated)', border: `1.5px solid ${leaderboardTab === id ? 'var(--green)' : 'var(--border-default)'}`, borderRadius: 'var(--radius-full)', padding: '8px', fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '12px', color: leaderboardTab === id ? 'var(--green)' : 'var(--text-muted)', cursor: 'pointer', letterSpacing: '0.06em', transition: 'all 0.15s' }}>
-                {label}
-              </button>
-            ))}
-          </div>
-
-          {leaderboardTab === 'global' && (
-            leaderboard.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-                <div style={{ marginBottom: '12px' }}><Trophy size={32} strokeWidth={2} aria-hidden style={{ stroke: 'var(--color-neutral)' }} /></div>
-                <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>{t.portfolio.noLeaderboard}</div>
-              </div>
-            ) : (
-              <LeaderboardList entries={leaderboard} userPosition={userPositionGlobal} user={user} onViewProfile={onViewProfile} t={t} />
-            )
-          )}
-
-          {leaderboardTab === 'weekly' && (
-            weeklyLoading ? (
-              <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-                <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>···</div>
-              </div>
-            ) : weeklyLeaderboard.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-                <div style={{ marginBottom: '12px', color: 'var(--t5)' }}><Calendar size={32} strokeWidth={1.5} aria-hidden /></div>
-                <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>{t.portfolio.noWeeklyData}</div>
-              </div>
-            ) : (
-              <>
-                <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)', letterSpacing: '0.08em', marginBottom: '12px', textAlign: 'center' }}>
-                  — {t.portfolio.thisWeek} —
-                </div>
-                <LeaderboardList entries={weeklyLeaderboard} userPosition={userPositionWeekly} user={user} onViewProfile={onViewProfile} t={t} />
-              </>
-            )
+          {leaderboard.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+              <div style={{ marginBottom: '12px' }}><Trophy size={32} strokeWidth={2} aria-hidden style={{ stroke: 'var(--color-neutral)' }} /></div>
+              <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>{t.portfolio.noLeaderboard}</div>
+            </div>
+          ) : (
+            <LeaderboardList entries={leaderboard} userPosition={userPositionGlobal} user={user} onViewProfile={onViewProfile} t={t} />
           )}
         </div>
       )}
