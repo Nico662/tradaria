@@ -8,7 +8,7 @@ import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
 import SpecialBadge, { getSpecialUserByUsername } from './SpecialBadge.jsx';
 import { LevelIcon } from './components/AppIcons';
-import { Handshake, Link, Swords, Clock } from 'lucide-react';
+import { Handshake, Link, Swords, Clock, MoreVertical } from 'lucide-react';
 import { getUsernameColor } from './cosmeticColors';
 import TitleBadge from './components/TitleBadge';
 import VerifiedBadge from './VerifiedBadge';
@@ -21,9 +21,57 @@ function authHeaders() {
   };
 }
 
-function FriendCard({ f, onChallenge, isChallenging, challengeStatus, onViewProfile }) {
+function RemoveFriendModal({ friend, onConfirm, onCancel, t }) {
+  return (
+    <div
+      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: '0 20px', boxSizing: 'border-box' }}
+      onMouseDown={e => { if (e.target === e.currentTarget) onCancel(); }}
+    >
+      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '12px', padding: '24px 20px', width: '100%', maxWidth: '320px', boxSizing: 'border-box' }}>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--t1)', fontWeight: 700, marginBottom: '10px' }}>
+          {t.friends.removeTitle}
+        </div>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--t4)', marginBottom: '22px', lineHeight: 1.55 }}>
+          {t.friends.removeConfirm.replace('{username}', `@${friend.username || friend.name}`)}
+        </div>
+        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+          <button
+            onClick={onCancel}
+            style={{ padding: '8px 16px', background: 'transparent', border: '1px solid var(--bd)', borderRadius: '6px', color: 'var(--t4)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', letterSpacing: '0.04em' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--bd2)'; e.currentTarget.style.color = 'var(--t2)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--bd)'; e.currentTarget.style.color = 'var(--t4)'; }}
+          >
+            {t.friends.removeCancel}
+          </button>
+          <button
+            onClick={onConfirm}
+            style={{ padding: '8px 16px', background: 'rgba(255,126,179,0.1)', border: '1px solid var(--color-down)', borderRadius: '6px', color: 'var(--color-down)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', fontWeight: 700, letterSpacing: '0.04em' }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,126,179,0.2)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,126,179,0.1)'}
+          >
+            {t.friends.removeConfirmBtn}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FriendCard({ f, onChallenge, isChallenging, challengeStatus, onViewProfile, onRemove }) {
   const { t } = useLang();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
   const level = getLevel(f.xp || 0);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function handleOutside(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
+    }
+    document.addEventListener('mousedown', handleOutside);
+    return () => document.removeEventListener('mousedown', handleOutside);
+  }, [menuOpen]);
+
   const btnLabel = isChallenging
     ? (challengeStatus === 'unavailable'
         ? t.friends.unavailable
@@ -35,6 +83,7 @@ function FriendCard({ f, onChallenge, isChallenging, challengeStatus, onViewProf
   const btnBg = isChallenging
     ? (challengeStatus === 'unavailable' ? 'rgba(255,126,179,0.08)' : 'rgba(232,184,75,0.08)')
     : 'rgba(0,229,160,0.08)';
+
   return (
     <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
       <UserAvatar user={f} size={38} showBadge />
@@ -59,15 +108,40 @@ function FriendCard({ f, onChallenge, isChallenging, challengeStatus, onViewProf
           </button>
         )}
       </div>
-      <button
-        onClick={() => !isChallenging && onChallenge && onChallenge(f.username || f.name)}
-        disabled={isChallenging}
-        style={{ flexShrink: 0, padding: '7px 11px', background: btnBg, border: `1px solid ${btnColor}`, borderRadius: '6px', color: btnColor, fontFamily: 'var(--font-body)', fontSize: '12px', cursor: isChallenging ? 'default' : 'pointer', letterSpacing: '0.04em', whiteSpace: 'nowrap', transition: 'all 0.2s', minWidth: '90px', textAlign: 'center' }}
-        onMouseEnter={e => { if (!isChallenging) e.currentTarget.style.background = 'rgba(0,229,160,0.18)'; }}
-        onMouseLeave={e => { if (!isChallenging) e.currentTarget.style.background = btnBg; }}
-      >
-        {btnLabel}
-      </button>
+      <div style={{ display: 'flex', gap: '6px', flexShrink: 0, alignItems: 'center' }}>
+        <div ref={menuRef} style={{ position: 'relative' }}>
+          <button
+            onClick={() => setMenuOpen(o => !o)}
+            aria-label={t.friends.removeFriend}
+            style={{ background: 'transparent', border: '1px solid transparent', borderRadius: '6px', color: 'var(--t6)', cursor: 'pointer', padding: '5px 6px', lineHeight: 1, display: 'flex', alignItems: 'center' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--bd)'; e.currentTarget.style.color = 'var(--t3)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.color = 'var(--t6)'; }}
+          >
+            <MoreVertical size={14} strokeWidth={2} aria-hidden />
+          </button>
+          {menuOpen && (
+            <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 4px)', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', zIndex: 20, minWidth: '148px', boxShadow: '0 4px 16px rgba(0,0,0,0.4)' }}>
+              <button
+                onClick={() => { setMenuOpen(false); onRemove(f); }}
+                style={{ width: '100%', padding: '10px 14px', background: 'transparent', border: 'none', color: 'var(--color-down)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', textAlign: 'left', letterSpacing: '0.04em', borderRadius: '8px' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,126,179,0.08)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
+                {t.friends.removeFriend}
+              </button>
+            </div>
+          )}
+        </div>
+        <button
+          onClick={() => !isChallenging && onChallenge && onChallenge(f.username || f.name)}
+          disabled={isChallenging}
+          style={{ flexShrink: 0, padding: '7px 11px', background: btnBg, border: `1px solid ${btnColor}`, borderRadius: '6px', color: btnColor, fontFamily: 'var(--font-body)', fontSize: '12px', cursor: isChallenging ? 'default' : 'pointer', letterSpacing: '0.04em', whiteSpace: 'nowrap', transition: 'all 0.2s', minWidth: '90px', textAlign: 'center' }}
+          onMouseEnter={e => { if (!isChallenging) e.currentTarget.style.background = 'rgba(0,229,160,0.18)'; }}
+          onMouseLeave={e => { if (!isChallenging) e.currentTarget.style.background = btnBg; }}
+        >
+          {btnLabel}
+        </button>
+      </div>
     </div>
   );
 }
@@ -175,6 +249,7 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
   const debounceRef                     = useRef(null);
   const [challengingFriend, setChallengingFriend] = useState(null);
   const [challengeStatus, setChallengeStatus]     = useState(null);
+  const [removingFriend, setRemovingFriend]       = useState(null);
 
   function tryUnlockSocialBadge(id) {
     const unlocked = unlockBadge(id);
@@ -240,7 +315,7 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
 
   function flash(type, text) {
     setMsg({ type, text });
-    setTimeout(() => setMsg(null), 3000);
+    if (type === 'ok') setTimeout(() => setMsg(null), 3000);
   }
 
   function handleSearch(e) {
@@ -296,6 +371,23 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
     } catch { flash('err', t.friends.networkError); }
   }
 
+  async function confirmRemove() {
+    const f = removingFriend;
+    setRemovingFriend(null);
+    setFriends(prev => prev.filter(fr => String(fr.id) !== String(f.id)));
+    try {
+      const res  = await fetch(`${SERVER}/friends/${f.id}`, { method: 'DELETE', headers: authHeaders() });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setFriends(prev => [...prev, f]);
+        flash('err', t.friends.removeError);
+      }
+    } catch {
+      setFriends(prev => [...prev, f]);
+      flash('err', t.friends.networkError);
+    }
+  }
+
   const sectionLabel = {
     fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.14em',
     textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '8px',
@@ -328,8 +420,11 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
 
         {/* Flash message */}
         {msg && (
-          <div style={{ marginBottom: '14px', padding: '10px 14px', background: msg.type === 'ok' ? 'rgba(0,229,160,0.1)' : 'rgba(255,126,179,0.1)', border: `1px solid ${msg.type === 'ok' ? 'var(--green)' : 'var(--color-down)'}`, borderRadius: '8px', fontSize: '12px', color: msg.type === 'ok' ? 'var(--green)' : 'var(--color-down)', fontFamily: 'var(--font-body)' }}>
-            {msg.text}
+          <div style={{ marginBottom: '14px', padding: '10px 14px', background: msg.type === 'ok' ? 'rgba(0,229,160,0.1)' : 'rgba(255,126,179,0.1)', border: `1px solid ${msg.type === 'ok' ? 'var(--green)' : 'var(--color-down)'}`, borderRadius: '8px', fontSize: '12px', color: msg.type === 'ok' ? 'var(--green)' : 'var(--color-down)', fontFamily: 'var(--font-body)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+            <span>{msg.text}</span>
+            {msg.type === 'err' && (
+              <button onClick={() => setMsg(null)} style={{ background: 'transparent', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0, fontSize: '14px', lineHeight: 1, flexShrink: 0 }}>✕</button>
+            )}
           </div>
         )}
 
@@ -425,6 +520,7 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
                       isChallenging={challengingFriend === (f.username || f.name)}
                       challengeStatus={challengingFriend === (f.username || f.name) ? challengeStatus : null}
                       onViewProfile={onViewProfile}
+                      onRemove={setRemovingFriend}
                     />
                   ))}
                 </div>
@@ -433,6 +529,15 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
           </>
         )}
       </div>
+
+      {removingFriend && (
+        <RemoveFriendModal
+          friend={removingFriend}
+          t={t}
+          onConfirm={confirmRemove}
+          onCancel={() => setRemovingFriend(null)}
+        />
+      )}
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
     </div>
   );

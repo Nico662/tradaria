@@ -467,6 +467,10 @@ export const LANGS = {
       inviteCopy: 'Copy invite link',
       inviteCopied: '✓ Copied!',
       inviteDaily: 'Did your friends play today? Invite →',
+      removeFriend: 'Remove friend', removeTitle: 'Remove friend',
+      removeConfirm: 'Remove {username} from your friends?',
+      removeCancel: 'Cancel', removeConfirmBtn: 'Remove',
+      removeError: 'Could not remove friend',
     },
     profile: {
       loading: 'loading profile...', notFound: 'User not found',
@@ -1255,6 +1259,10 @@ export const LANGS = {
       inviteCopy: 'Copiar enlace de invitación',
       inviteCopied: '✓ ¡Copiado!',
       inviteDaily: '¿Han jugado tus amigos hoy? Invítalos →',
+      removeFriend: 'Eliminar amigo', removeTitle: 'Eliminar amigo',
+      removeConfirm: '¿Eliminar a {username} de tus amigos?',
+      removeCancel: 'Cancelar', removeConfirmBtn: 'Eliminar',
+      removeError: 'No se pudo eliminar al amigo',
     },
     profile: {
       loading: 'cargando perfil...', notFound: 'Usuario no encontrado',
@@ -1990,6 +1998,10 @@ export const LANGS = {
       inviteCopy: 'Einladungslink kopieren',
       inviteCopied: '✓ Kopiert!',
       inviteDaily: 'Haben deine Freunde heute gespielt? Einladen →',
+      removeFriend: 'Freund entfernen', removeTitle: 'Freund entfernen',
+      removeConfirm: '{username} aus deinen Freunden entfernen?',
+      removeCancel: 'Abbrechen', removeConfirmBtn: 'Entfernen',
+      removeError: 'Freund konnte nicht entfernt werden',
     },
     profile: {
       loading: 'Profil wird geladen...', notFound: 'Benutzer nicht gefunden',

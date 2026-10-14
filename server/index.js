@@ -4517,6 +4517,27 @@ app.get('/friends/pending', async (req, res) => {
   } catch (err) { res.status(500).json({ error: 'internal_error' }); }
 });
 
+app.delete('/friends/:userId', writeLimiter, async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'No token' });
+  try {
+    const { userId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(userId)) return res.status(400).json({ error: 'Invalid user id' });
+    if (decoded.id === userId) return res.status(400).json({ error: 'Cannot remove yourself' });
+    const myId    = new mongoose.Types.ObjectId(decoded.id);
+    const theirId = new mongoose.Types.ObjectId(userId);
+    await Friendship.deleteOne({
+      $or: [{ requester: myId, recipient: theirId }, { requester: theirId, recipient: myId }],
+      status: 'accepted',
+    });
+    await PortfolioDuel.deleteMany({
+      $or: [{ challenger: myId, opponent: theirId }, { challenger: theirId, opponent: myId }],
+      status: 'pending',
+    });
+    res.json({ ok: true });
+  } catch (err) { res.status(500).json({ error: 'internal_error' }); }
+});
+
 app.get('/friends/profile/:username', async (req, res) => {
   const decoded = verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
