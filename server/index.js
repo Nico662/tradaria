@@ -52,7 +52,7 @@ const VALID_BADGE_IDS = new Set([
 ]);
 
 const VALID_GAME_MODES = new Set(['guess', 'survival', 'daily', 'arena', 'tournament', 'historical', 'portfolio']);
-const SESSION_REQUIRED_MODES = new Set(['guess', 'survival']);
+const SESSION_REQUIRED_MODES = new Set(['guess', 'survival', 'historical']);
 // Maximum rounds accepted per mode. Prevents crafted requests from completing
 // all survival missions in a single API call (real sessions can't exceed these).
 const MODE_ROUND_CAPS = { survival: 300, guess: 200, historical: 1, arena: 30, portfolio: 50, tournament: 50, daily: 50 };

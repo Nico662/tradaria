@@ -55,7 +55,21 @@ export default function Historical({ onBack }) {
   const floatingXPKeyRef = useRef(0);
   const effectTimerRef   = useRef(null);
   const chartRef = useRef(null);
+  const sessionTokenRef  = useRef(null);
+
   useEffect(() => () => clearTimeout(effectTimerRef.current), []);
+
+  useEffect(() => {
+    const tok = localStorage.getItem('tradaria_token');
+    if (!tok) return;
+    fetch(`${SERVER}/game/start`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode: 'historical' }),
+    }).then(r => r.json()).then(d => {
+      if (d.sessionToken) sessionTokenRef.current = d.sessionToken;
+    }).catch(() => {});
+  }, []);
 
   function tryUnlockHistoricalBadge(id) {
     const unlocked = unlockBadge(id);
@@ -126,9 +140,20 @@ export default function Historical({ onBack }) {
             mode: 'historical', rounds: 1, eventId: event.id,
             score: win ? 1 : 0, correct: win ? 1 : 0, wrong: win ? 0 : 1,
             accuracy: win ? 100 : 0, streak: 0,
+            sessionToken: sessionTokenRef.current,
           }),
         }).then(r => r.json()).then(data => {
           if (data?.bpProgress) refreshBattlePass({ force: true });
+          return data;
+        }).then(() => {
+          // Pre-fetch session token for the next historical event
+          fetch(`${SERVER}/game/start`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mode: 'historical' }),
+          }).then(r => r.json()).then(d => {
+            if (d.sessionToken) sessionTokenRef.current = d.sessionToken;
+          }).catch(() => {});
         }).catch(() => {});
       }
     }
