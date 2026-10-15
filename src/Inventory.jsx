@@ -1,12 +1,12 @@
 import { useState, useCallback } from 'react';
-import { ChevronLeft, PackageOpen, Lock, Ticket, Sparkles, Trophy, Star, Crown, Medal, PartyPopper, Zap, Flame } from 'lucide-react';
+import { ChevronLeft, PackageOpen, Lock, Ticket, Sparkles, Trophy, Star, Swords, Medal, PartyPopper, Zap, Flame } from 'lucide-react';
 import { useAuth } from './AuthContext';
 import { useLang } from './LangContext';
 import { SERVER } from './config';
 import UserAvatar from './UserAvatar';
 import { AvatarSVG } from './components/AvatarSVGs';
 import { USERNAME_COLORS, TITLE_LABELS } from './cosmeticColors';
-import BadgeIcon, { RARITY_COLORS } from './BadgeIcon.jsx';
+import BadgeIcon, { RARITY_COLORS, BADGE_COLOR_OVERRIDES } from './BadgeIcon.jsx';
 
 const FRAME_META = {
   frame_gold:    { name: 'Gold Frame'    },
@@ -62,7 +62,7 @@ const COMING_SOON = [
   { type: 'color',  id: 'color_purple',         name: 'Morado',       hex: '#a855f7' },
   { type: 'frame',  id: 'frame_season1',        name: 'Season 1',     lucideIcon: Trophy, iconColor: 'var(--color-neutral)', hasPreview: false },
   { type: 'badge',  id: 'bp_s1_early_trader',   name: 'Early Trader',  lucideIcon: Star,   iconColor: 'var(--color-neutral)' },
-  { type: 'badge',  id: 'bp_s1_elite',          name: 'Elite',         lucideIcon: Crown,  iconColor: 'var(--color-neutral)' },
+  { type: 'badge',  id: 'bp_s1_elite',          name: 'Elite',         lucideIcon: Swords, iconColor: 'var(--color-neutral)' },
   { type: 'badge',  id: 'bp_s1_season1_pro',    name: 'Season 1 Pro',  lucideIcon: Star,   iconColor: 'var(--color-neutral)' },
   { type: 'badge',  id: 'bp_s1_season1',        name: 'Season 1',      lucideIcon: Medal,  iconColor: 'var(--color-neutral)' },
   { type: 'badge',  id: 'bp_s1_champion',       name: 'Champion',      lucideIcon: Trophy, iconColor: 'var(--color-neutral)' },
@@ -380,7 +380,7 @@ export default function Inventory({ onBack }) {
           <Section title="Badges">
             {ownedBpBadges.map(badge => {
               const equipped = activeCosmetics.badge === badge.id;
-              const color = RARITY_COLORS[badge.rarity] ?? RARITY_COLORS.common;
+              const color = BADGE_COLOR_OVERRIDES[badge.id] ?? RARITY_COLORS[badge.rarity] ?? RARITY_COLORS.common;
               return (
                 <ItemCard key={badge.id} equipped={equipped} onClick={() => toggle('badge', badge.id)}>
                   <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '12px 0 6px', color }}>
