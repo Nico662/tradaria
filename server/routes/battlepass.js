@@ -756,7 +756,7 @@ async function processGameBpProgress(userId, { mode, streak = 0, rounds = 0, cor
   }
   if (mode === 'historical') {
     incOps['battlePass.historicalEventsCompleted'] = 1;
-    if (eventId) addSetOps['battlePass.completedEventIds'] = eventId;
+    if (eventId && VALID_EVENT_IDS.has(eventId)) addSetOps['battlePass.completedEventIds'] = eventId;
   }
 
   const counterUpdate = {};

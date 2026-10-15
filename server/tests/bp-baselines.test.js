@@ -386,6 +386,35 @@ test('historical_all_events — invented IDs are not counted toward the 50 targe
   expect(updated.battlePass.completedMissions).not.toContain('bp_s1_l12_pro');
 });
 
+// ── Test 15: valid eventId is stored in completedEventIds ────────────────────
+
+test('valid eventId with mode=historical is added to completedEventIds', async () => {
+  const User = getUser();
+  await createSeason();
+
+  const user = await createUser(User, { isPro: false });
+
+  await processGameBpProgress(user._id, { mode: 'historical', eventId: 'btc_covid' });
+
+  const updated = await User.findById(user._id);
+  expect(updated.battlePass.completedEventIds).toContain('btc_covid');
+});
+
+// ── Test 16: invalid eventId is NOT stored in completedEventIds ───────────────
+
+test('invalid eventId with mode=historical is NOT added to completedEventIds', async () => {
+  const User = getUser();
+  await createSeason();
+
+  const user = await createUser(User, { isPro: false });
+
+  await processGameBpProgress(user._id, { mode: 'historical', eventId: 'invented_fake_event' });
+
+  const updated = await User.findById(user._id);
+  expect(updated.battlePass.completedEventIds).not.toContain('invented_fake_event');
+  expect(updated.battlePass.completedEventIds).toHaveLength(0);
+});
+
 // ── Test 11: baseline = 0 is not treated as falsy ────────────────────────────
 
 test('relativeProgress with baseline=0 returns correct value (0 is not treated as absent)', async () => {
