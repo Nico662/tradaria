@@ -19,6 +19,7 @@ const {
   snapshotNewlyUnlockedMissions,
   relativeProgress,
   rawCounterFor,
+  validEventCount,
   mapGet,
 } = require('../routes/battlepass');
 
@@ -295,6 +296,94 @@ test('arena_wins awards at relative target, then is not double-awarded', async (
   // 6th win: already completed — NOT double-awarded
   const r6 = await processArenaWinBpProgress(user._id);
   expect(r6.awardedMissions).not.toContain('bp_s1_l6_pro');
+});
+
+// ── PRE_L12_PRO prerequisites ─────────────────────────────────────────────────
+// Pro user with all levels 1–11 completed → computeUserLevel = 12.
+const PRE_L12_PRO = [
+  'bp_s1_l1_pro', 'bp_s1_l2_free', 'bp_s1_l2_pro',
+  'bp_s1_l3_pro',
+  'bp_s1_l4_free', 'bp_s1_l4_pro',
+  'bp_s1_l5_pro',
+  'bp_s1_l6_free', 'bp_s1_l6_pro',
+  'bp_s1_l7_pro',
+  'bp_s1_l8_free', 'bp_s1_l8_pro',
+  'bp_s1_l9_pro',
+  'bp_s1_l10_free', 'bp_s1_l10_pro',
+  'bp_s1_l11_pro',
+];
+
+// All 50 canonical historical event IDs (must match server/config/historicalEvents.js).
+const ALL_50_VALID_IDS = [
+  'btc_covid',     'btc_ath_2021',  'btc_bull_2017', 'btc_ftx',         'btc_luna',
+  'btc_halving_2020','btc_china_ban','btc_etf_2024',  'eth_merge',       'eth_ath_2021',
+  'btc_bear_2022', 'btc_svb',       'btc_ath_2024',  'eth_defi',        'btc_salvador',
+  'btc_elon',      'btc_genesis',   'eth_shanghai',  'btc_binance_fine','btc_halving_2024',
+  'spy_covid',     'spy_2008',      'spy_flash',     'spy_ath_2022',    'spy_fed',
+  'gme_squeeze',   'aapl_iphone',   'aapl_ath_2023', 'tsla_ath',        'tsla_crash',
+  'amzn_covid',    'nvda_ath',      'spy_bear_2022', 'spy_dotcom',      'spy_911',
+  'spy_recovery',  'meta_crash',    'nflx_crash',    'spy_svb',         'spy_ath_2024',
+  'gold_ath_2020', 'gold_ath_2023', 'oil_negative',  'oil_crash_2014',
+  'eurusd_parity', 'gbpusd_brexit', 'usdjpy_boj',    'gold_covid',
+  'oil_recovery',  'eurusd_covid',
+];
+
+// ── Test 12: historical_all_events — 50 valid events → awarded ────────────────
+
+test('historical_all_events is awarded when all 50 valid events are completed', async () => {
+  const User = getUser();
+  await createSeason();
+
+  const user = await createUser(User, {
+    isPro:             true,
+    completedMissions: PRE_L12_PRO,
+    bp: { completedEventIds: ALL_50_VALID_IDS },
+  });
+
+  // Catch-up fires from any game mode via snapshotNewlyUnlockedMissions
+  await snapshotNewlyUnlockedMissions(user._id);
+
+  const updated = await User.findById(user._id);
+  expect(updated.battlePass.completedMissions).toContain('bp_s1_l12_pro');
+});
+
+// ── Test 13: historical_all_events — 49 valid events → not awarded ────────────
+
+test('historical_all_events is NOT awarded with only 49 valid events', async () => {
+  const User = getUser();
+  await createSeason();
+
+  const user = await createUser(User, {
+    isPro:             true,
+    completedMissions: PRE_L12_PRO,
+    bp: { completedEventIds: ALL_50_VALID_IDS.slice(0, 49) },
+  });
+
+  await snapshotNewlyUnlockedMissions(user._id);
+
+  const updated = await User.findById(user._id);
+  expect(updated.battlePass.completedMissions).not.toContain('bp_s1_l12_pro');
+});
+
+// ── Test 14: historical_all_events — invalid IDs don't count ─────────────────
+
+test('historical_all_events — invented IDs are not counted toward the 50 target', async () => {
+  const User = getUser();
+  await createSeason();
+
+  // 49 valid + 5 invented IDs — validEventCount must return 49
+  const ids = [...ALL_50_VALID_IDS.slice(0, 49), 'fake_event_a', 'fake_event_b', 'invented_xyz'];
+  const user = await createUser(User, {
+    isPro:             true,
+    completedMissions: PRE_L12_PRO,
+    bp: { completedEventIds: ids },
+  });
+
+  expect(validEventCount(user.battlePass)).toBe(49);
+
+  await snapshotNewlyUnlockedMissions(user._id);
+  const updated = await User.findById(user._id);
+  expect(updated.battlePass.completedMissions).not.toContain('bp_s1_l12_pro');
 });
 
 // ── Test 11: baseline = 0 is not treated as falsy ────────────────────────────

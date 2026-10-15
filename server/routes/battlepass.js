@@ -1,8 +1,9 @@
-const express   = require('express');
-const jwt       = require('jsonwebtoken');
-const mongoose  = require('mongoose');
-const Season    = require('../models/Season');
-const season1   = require('../config/season1');
+const express        = require('express');
+const jwt            = require('jsonwebtoken');
+const mongoose       = require('mongoose');
+const Season         = require('../models/Season');
+const season1        = require('../config/season1');
+const VALID_EVENT_IDS = require('../config/historicalEvents');
 
 const router = express.Router();
 
@@ -15,7 +16,9 @@ const router = express.Router();
 
 const BASELINE_TYPES = new Set([
   'classic_wins', 'survival_rounds', 'arena_wins',
-  'historical_event', 'historical_all_events',
+  'historical_event',
+  // historical_all_events intentionally excluded: progress is the absolute count
+  // of valid completedEventIds (no baseline subtraction needed).
 ]);
 
 // Mission types whose progress counters are global (no baseline / no reset).
@@ -35,9 +38,14 @@ function rawCounterFor(type, bp) {
     case 'survival_rounds':       return bp.survivalRoundsTotal         || 0;
     case 'arena_wins':            return bp.arenaWinsTotal              || 0;
     case 'historical_event':      return bp.historicalEventsCompleted   || 0;
-    case 'historical_all_events': return (bp.completedEventIds          || []).length;
+    case 'historical_all_events': return (bp.completedEventIds || []).filter(id => VALID_EVENT_IDS.has(id)).length;
     default:                      return 0;
   }
+}
+
+// Absolute count of valid historical event IDs — no baseline, no subtraction.
+function validEventCount(bp) {
+  return (bp.completedEventIds || []).filter(id => VALID_EVENT_IDS.has(id)).length;
 }
 
 function relativeProgress(missionId, type, bp) {
@@ -270,7 +278,7 @@ function progressFor(m, bp, user) {
     case 'streak_days':           return { current: user.dailyStreak                                 || 0,         target: m.target };
     case 'arena_wins':            return { current: relativeProgress(m.id, 'arena_wins',            bp),          target: m.target };
     case 'historical_event':      return { current: relativeProgress(m.id, 'historical_event',      bp),          target: m.target };
-    case 'historical_all_events': return { current: relativeProgress(m.id, 'historical_all_events', bp),          target: m.target };
+    case 'historical_all_events': return { current: validEventCount(bp),                                           target: m.target };
     default:                      return null;
   }
 }
@@ -679,6 +687,18 @@ async function snapshotNewlyUnlockedMissions(userId) {
       if (counter >= m.target) await tryAwardAtomic(userId, m.id, []);
     }
   }
+
+  // Catch-up for historical_all_events: absolute count, no baseline.
+  // Fires after any game mode so users who already completed all events
+  // receive the award without having to play another historical round.
+  for (let i = 0; i < userLevel && i < season1.LEVELS.length; i++) {
+    const lvlCfg = season1.LEVELS[i];
+    for (const m of [lvlCfg.freeMission, lvlCfg.proMission].filter(Boolean)) {
+      if (m.type !== 'historical_all_events')  continue;
+      if (bp.completedMissions.includes(m.id)) continue;
+      if (validEventCount(bp) >= m.target) await tryAwardAtomic(userId, m.id, []);
+    }
+  }
 }
 
 // ── processGameBpProgress ─────────────────────────────────────────────────────
@@ -787,16 +807,20 @@ async function processGameBpProgress(userId, { mode, streak = 0, rounds = 0, cor
     }
   }
 
-  // historical_event + historical_all_events — relative to baseline at mission unlock
+  // historical_event — relative to baseline at mission unlock
   if (mode === 'historical') {
     for (const m of missionsByType['historical_event'] || []) {
       if (relativeProgress(m.id, 'historical_event', bp) >= m.target)
         await tryAwardAtomic(userId, m.id, awardedMissions);
     }
-    for (const m of missionsByType['historical_all_events'] || []) {
-      if (relativeProgress(m.id, 'historical_all_events', bp) >= m.target)
-        await tryAwardAtomic(userId, m.id, awardedMissions);
-    }
+  }
+
+  // historical_all_events — absolute count of valid events; level-gated like ACCUMULATOR_TYPES.
+  // Checked on any mode so the catch-up path (snapshotNewlyUnlockedMissions) can also fire.
+  for (const m of missionsByType['historical_all_events'] || []) {
+    const mLevel = MISSION_LEVEL_MAP.get(m.id) ?? 0;
+    if (oldLevel >= mLevel && validEventCount(bp) >= m.target)
+      await tryAwardAtomic(userId, m.id, awardedMissions);
   }
 
   // Level-30 completion missions (checked after all other awards)
@@ -1024,6 +1048,7 @@ module.exports = {
   rawCounterFor,                 // exported for migration script + tests
   relativeProgress,              // exported for tests
   snapshotNewlyUnlockedMissions, // exported for tests + migration script
+  validEventCount,               // exported for tests
   addBattlePassProgress,
   processGameBpProgress,
   processDailyBpProgress,
