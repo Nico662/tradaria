@@ -9,21 +9,20 @@
  * Rules:
  *   Free user: freeMission required per level (if null → auto-pass that level).
  *   Pro  user: both freeMission AND proMission required (those that exist).
- *   Trading Mode missions (enabled:false) still block, like any other mission.
  *
  * Level structure (relevant levels):
- *   Level 1:  freeMission=null,          proMission=L1_PRO
- *   Level 2:  freeMission=L2_FREE,       proMission=L2_PRO
- *   Level 3:  freeMission=null,          proMission=L3_PRO
- *   Level 4:  freeMission=L4_FREE,       proMission=L4_PRO
- *   Level 5:  freeMission=null,          proMission=L5_PRO  (enabled:false)
- *   Level 6:  freeMission=L6_FREE (disabled), proMission=L6_PRO
+ *   Level 1:  freeMission=null,    proMission=L1_PRO
+ *   Level 2:  freeMission=L2_FREE, proMission=L2_PRO
+ *   Level 3:  freeMission=null,    proMission=L3_PRO
+ *   Level 4:  freeMission=L4_FREE, proMission=L4_PRO
+ *   Level 5:  freeMission=null,    proMission=L5_PRO  (historical_event target=2)
+ *   Level 6:  freeMission=L6_FREE  (classic_wins target=10), proMission=L6_PRO
  *
  * Free user base level (no missions):
  *   Level 1 auto-passes (no freeMission) → level 2 is the starting frontier.
  *   Level 3 auto-passes similarly → level 4 frontier after completing L2_FREE.
  *   Level 5 auto-passes → level 6 frontier after completing L4_FREE.
- *   Level 6 has a disabled freeMission → blocks there until Trading Mode activates.
+ *   Level 6 requires L6_FREE (classic_wins) → blocks there until completed.
  */
 
 const { computeUserLevel } = require('../routes/battlepass');
@@ -34,8 +33,8 @@ const L2_PRO  = 'bp_s1_l2_pro';
 const L3_PRO  = 'bp_s1_l3_pro';
 const L4_FREE = 'bp_s1_l4_free';
 const L4_PRO  = 'bp_s1_l4_pro';
-const L5_PRO  = 'bp_s1_l5_pro';   // Trading Mode — enabled:false
-const L6_FREE = 'bp_s1_l6_free';  // Trading Mode — enabled:false
+const L5_PRO  = 'bp_s1_l5_pro';   // historical_event target=2
+const L6_FREE = 'bp_s1_l6_free';  // classic_wins target=10
 const L6_PRO  = 'bp_s1_l6_pro';
 
 // ─── Test suite ─────────────────────────────────────────────────────────────
@@ -58,7 +57,7 @@ describe('computeUserLevel — sequential mission-based level system', () => {
 
     test('completing L2_FREE + L4_FREE → frontier becomes level 6 (level 5 auto-passes)', () => {
       // Levels 1 (auto), 2 (done), 3 (auto), 4 (done), 5 (auto) all pass.
-      // Level 6 has a disabled freeMission (Trading Mode) → blocked at frontier 6.
+      // Level 6 freeMission = L6_FREE (classic_wins) not done → blocked at frontier 6.
       expect(computeUserLevel([L2_FREE, L4_FREE], false)).toBe(6);
     });
 
@@ -126,7 +125,7 @@ describe('computeUserLevel — sequential mission-based level system', () => {
   describe('Free→Pro upgrade mid-way', () => {
     test('as Free, [L2_FREE, L4_FREE] → level 6; after Pro upgrade → recalculates to level 1 (L1_PRO never done)', () => {
       // The spec allows level to drop on upgrade (recálculo natural).
-      // As Free: levels 1(auto),2,3(auto),4,5(auto) pass → frontier 6 (blocked by disabled L6_FREE).
+      // As Free: levels 1(auto),2,3(auto),4,5(auto) pass → frontier 6 (L6_FREE not done).
       // As Pro:  level 1 needs L1_PRO which was never completed → blocked at 1.
       const freeOnlyMissions = [L2_FREE, L4_FREE];
       expect(computeUserLevel(freeOnlyMissions, false)).toBe(6);
@@ -149,31 +148,30 @@ describe('computeUserLevel — sequential mission-based level system', () => {
     });
   });
 
-  // ── 4. Trading Mode missions (enabled:false) block advancement ─────────────
-  describe('Trading Mode missions (enabled:false) block advancement', () => {
-    test('Free user: levels 1–5 pass but blocked at frontier 6 by disabled L6_FREE', () => {
+  // ── 4. New real missions block advancement the same as any other ─────────────
+  describe('New missions at levels 5 and 6 block advancement', () => {
+    test('Free user: levels 1–5 pass but blocked at frontier 6 by L6_FREE (classic_wins)', () => {
       // Levels 1 (auto), 2 (L2_FREE), 3 (auto), 4 (L4_FREE), 5 (auto) all pass.
-      // Level 6 freeMission = L6_FREE which is disabled and NOT completed → block.
+      // Level 6 freeMission = L6_FREE (classic_wins target=10) not done → block.
       const throughL4Free = [L2_FREE, L4_FREE];
       expect(computeUserLevel(throughL4Free, false)).toBe(6);
     });
 
-    test('Free user advances past level 6 once the disabled mission is completed', () => {
-      // After Trading Mode activates and user completes L6_FREE:
+    test('Free user advances past level 6 once L6_FREE is completed', () => {
       // Level 6 passes. Level 7 has no freeMission (auto). Level 8 needs L8_FREE (not done).
       const missions = [L2_FREE, L4_FREE, L6_FREE];
       expect(computeUserLevel(missions, false)).toBe(8);
     });
 
-    test('Pro user blocked at frontier 5 by disabled L5_PRO', () => {
-      // All through level 4 done for Pro. Level 5: freeMission=null (ok), L5_PRO disabled and not done → block.
+    test('Pro user blocked at frontier 5 by L5_PRO (historical_event target=2)', () => {
+      // All through level 4 done for Pro. Level 5: freeMission=null (ok), L5_PRO not done → block.
       const throughL4Pro = [L1_PRO, L2_FREE, L2_PRO, L3_PRO, L4_FREE, L4_PRO];
       expect(computeUserLevel(throughL4Pro, true)).toBe(5);
     });
 
-    test('Pro user advances past level 5 once the disabled mission is completed', () => {
+    test('Pro user advances past level 5 once L5_PRO is completed', () => {
       const missions = [L1_PRO, L2_FREE, L2_PRO, L3_PRO, L4_FREE, L4_PRO, L5_PRO];
-      // Level 5 done. Level 6: L6_FREE (disabled, not done) → blocked at 6.
+      // Level 5 done. Level 6: L6_FREE (classic_wins, not done) → blocked at 6.
       expect(computeUserLevel(missions, true)).toBe(6);
     });
   });

@@ -35,12 +35,12 @@ export const SEASON1_LEVELS = [
     level: 5,
     freeMission: null,
     freeReward:  null,
-    proMission:  { title: 'Stop Loss & TP',        desc: 'Usa Stop Loss y Take Profit en una misma operación',             enabled: false },
+    proMission:  { title: 'Historical Básico',      desc: 'Completa 2 eventos en Historical Mode',                          enabled: true  },
     proReward:   { type: 'ticket',         name: 'Restauración de Racha' },
   },
   {
     level: 6,
-    freeMission: { title: 'Primera Posición',      desc: 'Abre tu primera posición en Trading Mode',                       enabled: false },
+    freeMission: { title: 'Victorias Classic',      desc: 'Gana 10 rondas en Classic Mode',                                 enabled: true  },
     freeReward:  { type: 'xp',             amount: 500 },
     proMission:  { title: 'Duelos en Arena',       desc: 'Gana 5 duelos en Arena contra jugadores reales',                 enabled: true  },
     proReward:   { type: 'badge',          name: 'Elite',               emoji: '⭐' },
@@ -77,7 +77,7 @@ export const SEASON1_LEVELS = [
     level: 11,
     freeMission: null,
     freeReward:  null,
-    proMission:  { title: '4 Categorías',          desc: 'Opera en las 4 categorías (cripto, materias, índices, acciones)', enabled: false },
+    proMission:  { title: 'Classic Veterano',       desc: 'Gana 30 rondas en Classic Mode',                                 enabled: true  },
     proReward:   { type: 'xp',             amount: 1500 },
   },
   {
@@ -96,7 +96,7 @@ export const SEASON1_LEVELS = [
   },
   {
     level: 14,
-    freeMission: { title: 'Ganancia Trading',      desc: 'Cierra una posición con al menos +1% de ganancia',               enabled: false },
+    freeMission: { title: 'Survival Constante',     desc: 'Sobrevive 35 rondas en Survival',                                enabled: true  },
     freeReward:  { type: 'xp',             amount: 1000 },
     proMission:  { title: 'Racha Classic',         desc: 'Acierta 15 rondas seguidas en Classic',                          enabled: true  },
     proReward:   { type: 'theme',          name: 'Midnight' },
@@ -119,7 +119,7 @@ export const SEASON1_LEVELS = [
     level: 17,
     freeMission: null,
     freeReward:  null,
-    proMission:  { title: '15 Operaciones +1%',    desc: 'Cierra 15 operaciones con +1% o más cada una',                   enabled: false },
+    proMission:  { title: 'Survival Centenario',    desc: 'Sobrevive 100 rondas en Survival',                               enabled: true  },
     proReward:   { type: 'xp',             amount: 2500 },
   },
   {
@@ -182,7 +182,7 @@ export const SEASON1_LEVELS = [
     level: 26,
     freeMission: { title: 'Duelos en Arena',       desc: 'Gana 3 duelos en Arena contra jugadores reales',                 enabled: true  },
     freeReward:  { type: 'xp',             amount: 2500 },
-    proMission:  { title: 'Rentabilidad +50%',     desc: 'Alcanza +50% de rentabilidad en tu cuenta de Trading',           enabled: false },
+    proMission:  { title: 'Historical Experto',     desc: 'Completa 20 eventos en Historical Mode',                         enabled: true  },
     proReward:   { type: 'xp',             amount: 5000 },
   },
   {

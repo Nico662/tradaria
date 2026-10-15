@@ -38,7 +38,7 @@ function computeCardState(lvlCfg, track, userLevel, claimedForTrack, isPro, allM
   if (claimedForTrack.includes(levelNum)) return 'claimed';
   if (track === 'pro' && !isPro) return 'pro_locked';
   if (userLevel < levelNum) return 'locked';
-  if (mission && mission.enabled !== false && allMissionProgress) {
+  if (mission && allMissionProgress) {
     const prog = allMissionProgress[levelNum]?.[track];
     if (prog && prog.current < prog.target) return 'mission_pending';
   }
@@ -52,7 +52,7 @@ function getCardState(reward, mission, levelNum, track, userLevel, claimedReward
   if (claimedRewards.includes(levelNum)) return 'claimed';
   if (track === 'pro' && !isPro) return 'pro_locked';
   if (userLevel < levelNum) return 'locked';
-  if (mission && mission.enabled !== false) {
+  if (mission) {
     if (!missionProgress || missionProgress.current < missionProgress.target) {
       return 'mission_pending';
     }
@@ -67,7 +67,7 @@ function getCardStateBuggy(reward, mission, levelNum, track, userLevel, claimedR
   if (track === 'pro' && !isPro) return 'pro_locked';
   if (userLevel < levelNum) return 'locked';
   // BUG: null missionProgress silently skips this guard
-  if (mission && mission.enabled !== false && missionProgress && missionProgress.current < missionProgress.target) {
+  if (mission && missionProgress && missionProgress.current < missionProgress.target) {
     return 'mission_pending';
   }
   return 'claimable';
@@ -75,17 +75,13 @@ function getCardStateBuggy(reward, mission, levelNum, track, userLevel, claimedR
 
 // ── Helper: build allMissionProgress the way the fixed server does ────────────
 // (using bpForCalc = synthetic empty bp when no real bp exists)
-function buildAllMissionProgressEmpty(user = {}) {
-  const bpForCalc = { completedMissions: [] };
+function buildAllMissionProgressEmpty() {
   const acc = {};
   for (const lvlCfg of season1.LEVELS) {
-    const free = lvlCfg.freeMission
-      ? (lvlCfg.freeMission.enabled === false ? null : { current: 0, target: lvlCfg.freeMission.target })
-      : null;
-    const pro = lvlCfg.proMission
-      ? (lvlCfg.proMission.enabled === false ? null : { current: 0, target: lvlCfg.proMission.target })
-      : null;
-    acc[lvlCfg.level] = { free, pro };
+    acc[lvlCfg.level] = {
+      free: lvlCfg.freeMission ? { current: 0, target: lvlCfg.freeMission.target } : null,
+      pro:  lvlCfg.proMission  ? { current: 0, target: lvlCfg.proMission.target  } : null,
+    };
   }
   return acc;
 }
@@ -277,14 +273,11 @@ describe('partial progress — Free user with bp_s1_l2_free done but not l4_free
 });
 
 // ── 6. All missions done up to level N → all lower cards claimable ────────────
-describe('all free missions completed through level 6 → levels 2/4/6 free are claimable', () => {
+describe('free missions completed through level 4 → level 6 frontier, l6_free mission_pending', () => {
 
-  // Level 6 Free uses Trading Mode (enabled:false) — it auto-passes for level computation
-  // but the reward can still be claimed without completing it.
-  const doneMissions = [
-    'bp_s1_l2_free', 'bp_s1_l4_free',
-    // Note: l6_free is enabled:false → not required for level advancement
-  ];
+  // Free user has completed l2_free and l4_free → frontier is level 6.
+  // Level 6 freeMission = l6_free (classic_wins target=10, not done) → mission_pending.
+  const doneMissions = ['bp_s1_l2_free', 'bp_s1_l4_free'];
   const isPro     = false;
   const userLevel = computeUserLevel(doneMissions, isPro); // = 6
 
@@ -295,21 +288,17 @@ describe('all free missions completed through level 6 → levels 2/4/6 free are 
       const proDone  = doneMissions.includes(lvlCfg.proMission?.id);
       acc[lvlCfg.level] = {
         free: lvlCfg.freeMission
-          ? (lvlCfg.freeMission.enabled === false
-            ? null
-            : { current: freeDone ? lvlCfg.freeMission.target : 0, target: lvlCfg.freeMission.target })
+          ? { current: freeDone ? lvlCfg.freeMission.target : 0, target: lvlCfg.freeMission.target }
           : null,
         pro: lvlCfg.proMission
-          ? (lvlCfg.proMission.enabled === false
-            ? null
-            : { current: proDone ? lvlCfg.proMission.target : 0, target: lvlCfg.proMission.target })
+          ? { current: proDone ? lvlCfg.proMission.target : 0, target: lvlCfg.proMission.target }
           : null,
       };
     }
     return acc;
   })();
 
-  test('userLevel after l2_free + l4_free is 6 (levels 1,2,3,4,5 done; 5 has no free mission; 6 is TM disabled)', () => {
+  test('userLevel after l2_free + l4_free is 6', () => {
     expect(userLevel).toBe(6);
   });
 
@@ -323,12 +312,9 @@ describe('all free missions completed through level 6 → levels 2/4/6 free are 
     expect(state).toBe('claimable');
   });
 
-  test('Level 6 Free → claimable (disabled mission — no mission guard applies)', () => {
-    // Level 6 free mission is Trading Mode (enabled:false) → exempt from mission check
-    const lvl6   = season1.LEVELS[5];
-    expect(lvl6.freeMission?.enabled).toBe(false);
-    const state = computeCardState(lvl6, 'free', userLevel, [], isPro, allMissionProgress);
-    expect(state).toBe('claimable');
+  test('Level 6 Free → mission_pending (classic_wins 0/10 not yet done)', () => {
+    const state = computeCardState(season1.LEVELS[5], 'free', userLevel, [], isPro, allMissionProgress);
+    expect(state).toBe('mission_pending');
   });
 
   test('Level 8 Free → locked (userLevel = 6 < 8)', () => {
@@ -339,7 +325,7 @@ describe('all free missions completed through level 6 → levels 2/4/6 free are 
 
 // ── 7. Regression: daily_streak/streak_days above userLevel must NOT be claimable
 describe('regression: streak missions above userLevel are never claimable', () => {
-  // Pro user blocked at level 5 by TM mission bp_s1_l5_pro (enabled:false).
+  // Pro user blocked at level 5 by bp_s1_l5_pro (historical_event target=2, not done).
   // They have a dailyStreak of 90, which numerically satisfies ALL streak targets
   // (7, 14, 21, 30, 45, 60).  None of those cards (levels 10, 15, 18, 23, 24, 28)
   // should be 'claimable' because userLevel (5) < each of those level numbers.
@@ -358,14 +344,14 @@ describe('regression: streak missions above userLevel are never claimable', () =
       acc[lvlCfg.level] = {
         free: (() => {
           const m = lvlCfg.freeMission;
-          if (!m || m.enabled === false) return null;
+          if (!m) return null;
           if (done.has(m.id)) return { current: m.target, target: m.target };
           if (m.type === 'daily_streak' || m.type === 'streak_days') return { current: 90, target: m.target };
           return { current: 0, target: m.target };
         })(),
         pro: (() => {
           const m = lvlCfg.proMission;
-          if (!m || m.enabled === false) return null;
+          if (!m) return null;
           if (done.has(m.id)) return { current: m.target, target: m.target };
           if (m.type === 'daily_streak' || m.type === 'streak_days') return { current: 90, target: m.target };
           return { current: 0, target: m.target };
@@ -375,14 +361,13 @@ describe('regression: streak missions above userLevel are never claimable', () =
     return acc;
   })();
 
-  test('computeUserLevel for Pro blocked by TM l5_pro is 5', () => {
+  test('computeUserLevel for Pro blocked by l5_pro (historical_event 0/2) is 5', () => {
     expect(userLevel).toBe(5);
   });
 
-  test('level 5 pro is claimable (TM-disabled mission, exempt from guard)', () => {
+  test('level 5 pro is mission_pending (historical_event 0/2 not done)', () => {
     const lvl5 = season1.LEVELS[4];
-    expect(lvl5.proMission.enabled).toBe(false);
-    expect(computeCardState(lvl5, 'pro', userLevel, [], isPro, allMissionProgress)).toBe('claimable');
+    expect(computeCardState(lvl5, 'pro', userLevel, [], isPro, allMissionProgress)).toBe('mission_pending');
   });
 
   const STREAK_MISSIONS = [
@@ -444,13 +429,12 @@ describe('getCardState (client fallback) — null / zero / done missionProgress'
     expect(getCardState(reward, mission, 2, 'free', 2, [], false, { current: 1, target: 1 })).toBe('claimable');
   });
 
-  test('disabled mission (enabled:false) + null progress → claimable (exempt from guard)', () => {
-    const lvl6Free = season1.LEVELS[5].freeMission; // enabled:false
-    expect(lvl6Free.enabled).toBe(false);
+  test('null missionProgress with real mission → mission_pending (no free pass)', () => {
+    const lvl6Free = season1.LEVELS[5].freeMission; // classic_wins target=10
     const state = getCardState(
       season1.LEVELS[5].freeReward, lvl6Free, 6, 'free', 6, [], false, null,
     );
-    expect(state).toBe('claimable');
+    expect(state).toBe('mission_pending');
   });
 
   test('level not reached → locked regardless of missionProgress', () => {

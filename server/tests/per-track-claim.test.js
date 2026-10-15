@@ -233,17 +233,15 @@ test('after badge reward claim, badge appears in user.badges and is inferred as 
   expect(result.claimedProRewards).toContain(2);
 });
 
-// ── Test 9: enabled:false missions still claimable (Trading Mode exempt) ──────
+// ── Test 9: level 5 not yet claimed until l5_pro is completed ─────────────────
 
-test('level 5 Pro claimable without completing Trading Mode mission (enabled:false)', () => {
-  // Level 5 has only a proMission with enabled:false → no mission gate → claimable
-  // if user has reached level 5
+test('level 5 Pro not yet claimed when bp_s1_l5_pro is not in completedMissions', () => {
+  // Level 5 proMission = bp_s1_l5_pro (historical_event target=2).
+  // User has reached level 5 (all 1–4 done) but has NOT completed l5_pro.
   const completedMissions = ['bp_s1_l1_pro', 'bp_s1_l2_free', 'bp_s1_l2_pro', 'bp_s1_l3_pro', 'bp_s1_l4_free', 'bp_s1_l4_pro'];
   const userLevel = computeUserLevel(completedMissions, true);
-  expect(userLevel).toBeGreaterThanOrEqual(5);
+  expect(userLevel).toBe(5);
 
-  // bp_s1_l5_pro is enabled:false → exempt from mission guard
-  // (no mission to check, so the claim should be allowed for level 5)
   const bp = {
     claimedRewards:    [],
     claimedFreeRewards:[],

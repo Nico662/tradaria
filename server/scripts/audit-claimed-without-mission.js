@@ -178,7 +178,7 @@ async function main() {
       const lvlCfg = season1.LEVELS[levelNum - 1];
       if (!lvlCfg) continue;
       const m = lvlCfg.freeMission;
-      if (!m || m.enabled === false) continue; // disabled missions never completable — skip
+      if (!m) continue;
       if (!completedSet.has(m.id)) {
         const classification = classifyRewardDelivery(lvlCfg.freeReward, user);
         violations.push({
@@ -196,7 +196,7 @@ async function main() {
       const lvlCfg = season1.LEVELS[levelNum - 1];
       if (!lvlCfg) continue;
       const m = lvlCfg.proMission;
-      if (!m || m.enabled === false) continue;
+      if (!m) continue;
       if (!completedSet.has(m.id)) {
         const classification = classifyRewardDelivery(lvlCfg.proReward, user);
         violations.push({

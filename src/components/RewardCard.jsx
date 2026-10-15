@@ -1,4 +1,4 @@
-import { Lock, Award, Droplet, Tag, Ticket, CircleUser, Palette, Square, Eye, TrendingUp, Clock } from 'lucide-react';
+import { Lock, Award, Droplet, Tag, Ticket, CircleUser, Palette, Square, Eye, TrendingUp } from 'lucide-react';
 
 const REWARD_ICONS = {
   xp:             TrendingUp,
@@ -76,18 +76,14 @@ export default function RewardCard({
     ? 'rgba(224,85,133,0.22)'
     : 'rgba(0,192,135,0.18)';
 
-  const hasComingSoon = mission && mission.enabled === false;
+  const cardBorder = isClaimable
+    ? (isProTrack ? 'rgba(224,85,133,0.6)'  : 'rgba(0,192,135,0.6)')
+    : isClaimed
+      ? (isProTrack ? 'rgba(224,85,133,0.15)' : 'rgba(0,192,135,0.15)')
+      : (isProTrack ? 'rgba(224,85,133,0.25)' : 'rgba(0,192,135,0.22)');
 
-  const cardBorder = hasComingSoon
-    ? (isProTrack ? 'rgba(224,85,133,0.2)'  : 'rgba(0,192,135,0.15)')
-    : isClaimable
-      ? (isProTrack ? 'rgba(224,85,133,0.6)'  : 'rgba(0,192,135,0.6)')
-      : isClaimed
-        ? (isProTrack ? 'rgba(224,85,133,0.15)' : 'rgba(0,192,135,0.15)')
-        : (isProTrack ? 'rgba(224,85,133,0.25)' : 'rgba(0,192,135,0.22)');
-
-  const showProgress  = state !== 'claimed' && !!missionProgress && !hasComingSoon;
-  const showRibbon    = isClaimable && !hasComingSoon;
+  const showProgress = state !== 'claimed' && !!missionProgress;
+  const showRibbon   = isClaimable;
 
   const Icon = reward ? REWARD_ICONS[reward.type] : null;
   const isXp = reward?.type === 'xp';
@@ -99,7 +95,7 @@ export default function RewardCard({
       position: 'relative',
       borderRadius: '12px',
       background: cardBg,
-      border: `1px ${hasComingSoon ? 'dashed' : 'solid'} ${cardBorder}`,
+      border: `1px solid ${cardBorder}`,
       display: 'flex',
       flexDirection: 'column',
       overflow: 'hidden',
@@ -200,18 +196,6 @@ export default function RewardCard({
               </div>
             )}
 
-            {/* Próximamente — misiones de Trading Mode */}
-            {hasComingSoon && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 3, marginTop: 4 }}>
-                <Clock size={8} color="var(--text-hint)" strokeWidth={2} />
-                <span style={{
-                  fontFamily: 'var(--font-body)', fontSize: '8px', fontWeight: 600,
-                  color: 'var(--text-hint)', letterSpacing: '0.04em',
-                }}>
-                  {t.traderPass.comingSoon}
-                </span>
-              </div>
-            )}
           </div>
         </div>
       </div>

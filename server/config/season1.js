@@ -15,11 +15,6 @@
 //
 // Completing either mission awards +300 BP points via addBattlePassProgress().
 // Mission IDs use the pattern 'bp_s1_l{N}_free' / 'bp_s1_l{N}_pro'.
-//
-// Trading Mode missions (enabled:false) — inactive until the TM backend ships:
-//   Free track: levels 6 and 14
-//   Pro  track: levels 5, 11, 17, 26
-// Level 26 is even: freeMission is a normal mission; proMission is Trading Mode.
 
 const BP_POINTS_PER_LEVEL = 300;
 
@@ -44,8 +39,8 @@ const mechanic = (itemId, name)        => ({ type: 'mechanic',      itemId, name
 void effect; // reserved for future levels
 
 // ── Mission helper ────────────────────────────────────────────────────────────
-const mission = (id, titleStr, desc, type, mode, target, enabled = true) =>
-  ({ id, title: titleStr, desc, type, mode, target, enabled });
+const mission = (id, titleStr, desc, type, mode, target) =>
+  ({ id, title: titleStr, desc, type, mode, target });
 
 // ── 30 levels ─────────────────────────────────────────────────────────────────
 const LEVELS = [
@@ -91,14 +86,14 @@ const LEVELS = [
     level: 5,
     freeMission: null,
     freeReward:  null,
-    proMission: mission('bp_s1_l5_pro',  'Stop Loss & Take Profit', 'Usa Stop Loss y Take Profit en una misma operación', 'trading_sl_tp',             'trading_mode', 1, false),
+    proMission: mission('bp_s1_l5_pro',  'Historical Básico',       'Completa 2 eventos en Historical Mode',              'historical_event',          'historical',   2),
     proReward:  ticket('ticket_restore_streak', 'Restauración de Racha'),
   },
 
   // ── Level 6 ──────────────────────────────────────────────────────────────────
   {
     level: 6,
-    freeMission: mission('bp_s1_l6_free', 'Primera Posición',     'Abre tu primera posición en Trading Mode',            'trading_first_position',     'trading_mode', 1, false),
+    freeMission: mission('bp_s1_l6_free', 'Victorias Classic',    'Gana 10 rondas en Classic Mode',                      'classic_wins',               'classic',     10),
     freeReward:  xp(500),
     proMission: mission('bp_s1_l6_pro',  'Duelos en Arena',       'Gana 5 duelos en Arena contra jugadores reales',      'arena_wins',                 'arena',        5),
     proReward:  badge('bp_s1_elite', 'Elite', '⭐'),
@@ -145,7 +140,7 @@ const LEVELS = [
     level: 11,
     freeMission: null,
     freeReward:  null,
-    proMission: mission('bp_s1_l11_pro', '4 Categorías',          'Opera en las 4 categorías (cripto, materias, índices, acciones)', 'trading_all_categories', 'trading_mode', 4, false),
+    proMission: mission('bp_s1_l11_pro', 'Classic Veterano',      'Gana 30 rondas en Classic Mode',                      'classic_wins',               'classic',     30),
     proReward:  xp(1500),
   },
 
@@ -170,7 +165,7 @@ const LEVELS = [
   // ── Level 14 ─────────────────────────────────────────────────────────────────
   {
     level: 14,
-    freeMission: mission('bp_s1_l14_free', 'Ganancia en Trading', 'Cierra una posición con al menos +1% de ganancia',    'trading_close_plus1pct',     'trading_mode', 1, false),
+    freeMission: mission('bp_s1_l14_free', 'Survival Constante',  'Sobrevive 35 rondas en Survival',                     'survival_rounds',            'survival',    35),
     freeReward:  xp(1000),
     proMission: mission('bp_s1_l14_pro', 'Racha en Classic',      'Acierta 15 rondas seguidas en Classic',               'classic_streak',             'classic',     15),
     proReward:  theme('theme_midnight', 'Midnight'),
@@ -199,7 +194,7 @@ const LEVELS = [
     level: 17,
     freeMission: null,
     freeReward:  null,
-    proMission: mission('bp_s1_l17_pro', '15 Operaciones +1%',    'Cierra 15 operaciones con +1% o más cada una',        'trading_15_plus1pct',        'trading_mode', 15, false),
+    proMission: mission('bp_s1_l17_pro', 'Survival Centenario',   'Sobrevive 100 rondas en Survival',                    'survival_rounds',            'survival',   100),
     proReward:  xp(2500),
   },
 
@@ -281,7 +276,7 @@ const LEVELS = [
     level: 26,
     freeMission: mission('bp_s1_l26_free', 'Duelos en Arena',     'Gana 3 duelos en Arena contra jugadores reales',      'arena_wins',                 'arena',        3),
     freeReward:  xp(2500),
-    proMission: mission('bp_s1_l26_pro', 'Rentabilidad +50%',     'Alcanza +50% de rentabilidad en tu cuenta de Trading', 'trading_account_return_50pct', 'trading_mode', 50, false),
+    proMission: mission('bp_s1_l26_pro', 'Historical Experto',    'Completa 20 eventos en Historical Mode',              'historical_event',           'historical',  20),
     proReward:  xp(5000),
   },
 
@@ -335,14 +330,6 @@ for (const l of LEVELS) {
   if (l.proMission === null || l.proReward === null)
     throw new Error(`season1: level ${l.level} is missing proMission or proReward`);
 }
-
-// Trading Mode missions: Free track at levels 6 and 14; Pro track at levels 5, 11, 17, 26
-const tradingFree = LEVELS.filter(l => l.freeMission && !l.freeMission.enabled).map(l => l.level);
-const tradingPro  = LEVELS.filter(l => !l.proMission.enabled).map(l => l.level);
-if (JSON.stringify(tradingFree) !== JSON.stringify([6, 14]))
-  throw new Error(`season1: Trading Mode free missions must be at levels [6, 14]. Got: ${tradingFree}`);
-if (JSON.stringify(tradingPro) !== JSON.stringify([5, 11, 17, 26]))
-  throw new Error(`season1: Trading Mode pro missions must be at levels [5, 11, 17, 26]. Got: ${tradingPro}`);
 
 // All mission IDs must be unique across both tracks
 const allIds = LEVELS.flatMap(l => [l.freeMission?.id, l.proMission?.id]).filter(Boolean);

@@ -32,7 +32,7 @@ function computeCardState(lvlCfg, track, userLevel, claimedForTrack, isPro, bp) 
   if (claimedForTrack.includes(levelNum)) return 'claimed';
   if (track === 'pro' && !isPro) return 'pro_locked';
   if (userLevel < levelNum) return 'locked';
-  if (mission && mission.enabled !== false && bp) {
+  if (mission && bp) {
     const done = bp.completedMissions.includes(mission.id);
     if (!done) return 'mission_pending';
   }

@@ -53,8 +53,6 @@ function relativeProgress(missionId, type, bp) {
 //
 // Free user: freeMission required (if null at that level → auto-pass).
 // Pro  user: both freeMission AND proMission required (those that exist).
-// Trading Mode missions (enabled:false) are NOT exempted — they block just
-// like any other mission until activated.
 function computeUserLevel(completedMissions, isPro) {
   const done = new Set(completedMissions || []);
   let level = 1;
@@ -245,24 +243,20 @@ function inferClaimedTracks(bp, user) {
 
 // ── progressFor ──────────────────────────────────────────────────────────────
 // Maps a mission config + stored bp counters → { current, target } for the UI.
-// Returns null for disabled missions or unrecognised types (no progress bar shown).
+// Returns null for unrecognised types (no progress bar shown).
 function progressFor(m, bp, user) {
-  if (!m || m.enabled === false || !bp) return null;
+  if (!m || !bp) return null;
 
   // Level-30 completion missions have target=0 in config; compute real target dynamically.
   if (m.type === 'complete_all_free_missions') {
-    const enabledFreeIds = season1.LEVELS.slice(0, 29)
-      .filter(l => l.freeMission && l.freeMission.enabled !== false)
-      .map(l => l.freeMission.id);
-    const done = enabledFreeIds.filter(id => bp.completedMissions.includes(id)).length;
-    return { current: done, target: enabledFreeIds.length };
+    const freeIds = season1.LEVELS.slice(0, 29).filter(l => l.freeMission).map(l => l.freeMission.id);
+    const done = freeIds.filter(id => bp.completedMissions.includes(id)).length;
+    return { current: done, target: freeIds.length };
   }
   if (m.type === 'complete_all_pro_missions') {
-    const enabledProIds = season1.LEVELS.slice(0, 29)
-      .filter(l => l.proMission && l.proMission.enabled !== false)
-      .map(l => l.proMission.id);
-    const done = enabledProIds.filter(id => bp.completedMissions.includes(id)).length;
-    return { current: done, target: enabledProIds.length };
+    const proIds = season1.LEVELS.slice(0, 29).filter(l => l.proMission).map(l => l.proMission.id);
+    const done = proIds.filter(id => bp.completedMissions.includes(id)).length;
+    return { current: done, target: proIds.length };
   }
 
   if (bp.completedMissions.includes(m.id)) return { current: m.target, target: m.target };
@@ -292,12 +286,9 @@ function computeCardState(lvlCfg, track, userLevel, claimedForTrack, isPro, allM
   if (claimedForTrack.includes(levelNum)) return 'claimed';
   if (track === 'pro' && !isPro) return 'pro_locked';
   if (userLevel < levelNum) return 'locked';
-  if (mission) {
-    if (mission.enabled === false) return 'mission_pending';
-    if (allMissionProgress) {
-      const prog = allMissionProgress[levelNum]?.[track];
-      if (prog && prog.current < prog.target) return 'mission_pending';
-    }
+  if (mission && allMissionProgress) {
+    const prog = allMissionProgress[levelNum]?.[track];
+    if (prog && prog.current < prog.target) return 'mission_pending';
   }
   return 'claimable';
 }
@@ -466,8 +457,6 @@ router.post('/claim/:level', requireAuth, async (req, res) => {
     }
 
     // Fix G: mission-specific completion check per track.
-    // Disabled missions (Trading Mode, enabled===false) block the claim just like any
-    // other incomplete mission — they cannot be completed until TM activates.
     if (grantFree && levelCfg.freeMission) {
       if (!user.battlePass.completedMissions.includes(levelCfg.freeMission.id))
         return res.status(403).json({ error: 'MISSION_NOT_COMPLETED', missionId: levelCfg.freeMission.id });
@@ -586,7 +575,7 @@ function buildMissionsByType() {
   const map = {};
   for (const lvl of season1.LEVELS) {
     for (const m of [lvl.freeMission, lvl.proMission]) {
-      if (!m || !m.enabled) continue;
+      if (!m) continue;
       if (!map[m.type]) map[m.type] = [];
       map[m.type].push(m);
     }
@@ -603,14 +592,13 @@ const MISSION_LEVEL_MAP = new Map(
   ].filter(Boolean))
 );
 
-// Enabled mission IDs for each track, excluding level 30 (the completion missions themselves).
-// enabled:false missions (Trading Mode, not yet live) are excluded so level 30 is reachable.
+// Mission IDs for each track, excluding level 30 (the completion missions themselves).
 const ENABLED_FREE_MISSION_IDS = season1.LEVELS.slice(0, 29)
-  .filter(l => l.freeMission && l.freeMission.enabled !== false)
+  .filter(l => l.freeMission)
   .map(l => l.freeMission.id);
 
 const ENABLED_PRO_MISSION_IDS = season1.LEVELS.slice(0, 29)
-  .filter(l => l.proMission && l.proMission.enabled !== false)
+  .filter(l => l.proMission)
   .map(l => l.proMission.id);
 
 // ── checkLevel30Atomic ────────────────────────────────────────────────────────
