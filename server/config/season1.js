@@ -104,7 +104,7 @@ const LEVELS = [
     level: 7,
     freeMission: null,
     freeReward:  null,
-    proMission: mission('bp_s1_l7_pro',  'Racha en Classic',      'Acierta 10 rondas seguidas en Classic',               'classic_streak',             'classic',     10),
+    proMission: mission('bp_s1_l7_pro',  'Racha en Classic',      'Acierta 4 rondas seguidas en Classic',                'classic_streak',             'classic',      4),
     proReward:  xp(1000),
   },
 

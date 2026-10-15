@@ -139,7 +139,7 @@ test('classic_streak mission is awarded when post-unlock streak reaches target',
   const User = getUser();
   await createSeason();
 
-  // missionStreakCounters initialised to 0 at unlock (target=10)
+  // missionStreakCounters initialised to 0 at unlock (target=4)
   const streakCounters = new Map([['bp_s1_l7_pro', 0]]);
   const user = await createUser(User, {
     isPro: true,
@@ -147,7 +147,7 @@ test('classic_streak mission is awarded when post-unlock streak reaches target',
     bp: { missionStreakCounters: streakCounters },
   });
 
-  const result = await processGameBpProgress(user._id, { mode: 'guess', streak: 10 });
+  const result = await processGameBpProgress(user._id, { mode: 'guess', streak: 4 });
 
   expect(result.awardedMissions).toContain('bp_s1_l7_pro');
 });
@@ -165,8 +165,8 @@ test('classic_streak pre-unlock streak is not counted toward the mission', async
     bp: {},
   });
 
-  // streak=10 but the counter is not initialised — $max should not fire
-  const result = await processGameBpProgress(user._id, { mode: 'guess', streak: 10 });
+  // streak=4 but the counter is not initialised — $max should not fire
+  const result = await processGameBpProgress(user._id, { mode: 'guess', streak: 4 });
 
   expect(result.awardedMissions).not.toContain('bp_s1_l7_pro');
 

@@ -49,7 +49,7 @@ export const SEASON1_LEVELS = [
     level: 7,
     freeMission: null,
     freeReward:  null,
-    proMission:  { title: 'Racha Classic',         desc: 'Acierta 10 rondas seguidas en Classic',                          enabled: true  },
+    proMission:  { title: 'Racha Classic',         desc: 'Acierta 4 rondas seguidas en Classic',                           enabled: true  },
     proReward:   { type: 'xp',             amount: 1000 },
   },
   {
