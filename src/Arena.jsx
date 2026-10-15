@@ -210,8 +210,9 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
     setName(playerName);
     setStatus('JOINING_CHALLENGE');
     setScreen('waiting');
+    const token  = localStorage.getItem('tradaria_token');
     const socket = initSocket(playerName);
-    const doJoin = () => socket.emit('challenge:join', { name: playerName, code: challengeRoomCode });
+    const doJoin = () => socket.emit('challenge:join', { name: playerName, code: challengeRoomCode, token });
     socket.on('connect', doJoin);
     if (socket.connected) doJoin();
   }, [challengeRoomCode]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -350,6 +351,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
     socketRef.current = socket;
 
     socket.on('connect_error',             () => setStatus(t.arena.connError));
+    socket.on('bp:updated',               () => refreshBattlePass({ force: true }));
     socket.on('matchmaking:waiting',       () => { setScreen('waiting'); setStatus(t.arena.searching); });
     socket.on('room:created',         (d) => { setRoomCode(d.code); setScreen('waiting'); setStatus('waiting_for_friend'); });
     socket.on('room:error',           (d) => setStatus(d.message));
@@ -436,16 +438,18 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
 
   function findRandom() {
     if (!name.trim()) return;
+    const token  = localStorage.getItem('tradaria_token');
     const socket = initSocket(name.trim());
-    socket.on('connect', () => socket.emit('matchmaking:join', { name: name.trim() }));
-    if (socket.connected) socket.emit('matchmaking:join', { name: name.trim() });
+    socket.on('connect', () => socket.emit('matchmaking:join', { name: name.trim(), token }));
+    if (socket.connected) socket.emit('matchmaking:join', { name: name.trim(), token });
   }
 
   function createRoom() {
     if (!name.trim()) return;
+    const token  = localStorage.getItem('tradaria_token');
     const socket = initSocket(name.trim());
-    socket.on('connect', () => socket.emit('room:create', { name: name.trim() }));
-    if (socket.connected) socket.emit('room:create', { name: name.trim() });
+    socket.on('connect', () => socket.emit('room:create', { name: name.trim(), token }));
+    if (socket.connected) socket.emit('room:create', { name: name.trim(), token });
     tryUnlockArenaBadge('recruiter');
   }
 
@@ -486,9 +490,10 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
 
   function joinRoom() {
     if (!name.trim() || !joinCode.trim()) return;
+    const token  = localStorage.getItem('tradaria_token');
     const socket = initSocket(name.trim());
-    socket.on('connect', () => socket.emit('room:join', { name: name.trim(), code: joinCode.trim().toUpperCase() }));
-    if (socket.connected) socket.emit('room:join', { name: name.trim(), code: joinCode.trim().toUpperCase() });
+    socket.on('connect', () => socket.emit('room:join', { name: name.trim(), code: joinCode.trim().toUpperCase(), token }));
+    if (socket.connected) socket.emit('room:join', { name: name.trim(), code: joinCode.trim().toUpperCase(), token });
   }
 
   function sendChat(msg) {

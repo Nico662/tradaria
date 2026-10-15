@@ -2680,7 +2680,8 @@ function resolveRound(roomId) {
     setTimeout(() => {
       io.to(roomId).emit('game:over', { scores: room.scores, names: room.names });
       finishedRooms[roomId] = { ...room };
-      // 5D: award arena win BP progress to the higher-scoring player
+      // 5D: award arena win BP progress to the higher-scoring player.
+      // Tie (s1 === s2): no winner, neither player is credited.
       const [p1, p2] = room.players;
       const s1 = room.scores[p1] ?? 0;
       const s2 = room.scores[p2] ?? 0;
@@ -2688,7 +2689,12 @@ function resolveRound(roomId) {
         const winnerSocketId = s1 > s2 ? p1 : p2;
         const winnerSocket   = io.sockets.sockets.get(winnerSocketId);
         if (winnerSocket?.userId) {
-          processArenaWinBpProgress(winnerSocket.userId).catch(() => {});
+          console.log(`[Arena BP] Crediting arena win for userId: ${winnerSocket.userId}`);
+          processArenaWinBpProgress(winnerSocket.userId)
+            .then(() => { winnerSocket.emit('bp:updated'); })
+            .catch(err => console.error('[Arena BP] Error crediting arena win:', err));
+        } else {
+          console.warn(`[Arena BP] Winner socket ${winnerSocketId} has no userId — arena win not credited`);
         }
       }
       delete rooms[roomId];
@@ -2746,11 +2752,14 @@ function generateCode() {
   return privateLobby[code] ? generateCode() : code;
 }
 
+const { verifySocketToken } = require('./utils/socketAuth');
+
 io.on('connection', (socket) => {
   console.log('Connected:', socket.id);
 
-  socket.on('matchmaking:join', ({ name }) => {
+  socket.on('matchmaking:join', ({ name, token }) => {
     socket.playerName = name || 'Player';
+    if (!socket.userId) socket.userId = verifySocketToken(token) || undefined;
     if (waiting && waiting.id !== socket.id) {
       const opponent = waiting; waiting = null;
       startRoom(opponent, socket);
@@ -2782,16 +2791,18 @@ io.on('connection', (socket) => {
       socket.to(socket.roomId).emit('chat:message', { msg, from: socket.playerName });
   });
 
-  socket.on('room:create', ({ name }) => {
+  socket.on('room:create', ({ name, token }) => {
     socket.playerName = name || 'Player';
+    if (!socket.userId) socket.userId = verifySocketToken(token) || undefined;
     const code = generateCode();
     privateLobby[code] = { host: socket, name };
     socket.roomCode = code;
     socket.emit('room:created', { code });
   });
 
-  socket.on('room:join', ({ name, code }) => {
+  socket.on('room:join', ({ name, code, token }) => {
     socket.playerName = name || 'Player';
+    if (!socket.userId) socket.userId = verifySocketToken(token) || undefined;
     const lobby = privateLobby[code.toUpperCase()];
     if (!lobby) { socket.emit('room:error', { message: 'Sala no encontrada' }); return; }
     if (!lobby.host.connected) { socket.emit('room:error', { message: 'El host se desconectó' }); delete privateLobby[code]; return; }
@@ -2898,8 +2909,9 @@ io.on('connection', (socket) => {
     delete challengeRooms[roomCode];
   });
 
-  socket.on('challenge:join', ({ name, code }) => {
+  socket.on('challenge:join', ({ name, code, token }) => {
     socket.playerName = name || 'Player';
+    if (!socket.userId) socket.userId = verifySocketToken(token) || undefined;
     const challenge = challengeRooms[code];
     if (!challenge?.accepted) {
       socket.emit('room:error', { message: 'Reto no encontrado o expirado' });
