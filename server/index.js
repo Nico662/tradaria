@@ -1149,31 +1149,69 @@ app.post('/tickets/use', async (req, res) => {
     const user = await User.findById(decoded.id);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    // Must have at least one unused streak-restore ticket
+    // Ticket must exist and be unused
     const ticketIdx = (user.battlePassItems || []).findIndex(
       t => !t.used && t.itemId === 'ticket_restore_streak'
     );
     if (ticketIdx === -1) return res.status(400).json({ error: 'No tickets available' });
 
-    // Must have a streak worth restoring
-    const snapshot = user.streakBeforeLoss || 0;
-    if (snapshot === 0 || snapshot <= user.dailyStreak) {
+    // Date helpers (UTC) — same convention as /daily/complete
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+    const todayStr     = today.toISOString().slice(0, 10);
+    const yd           = new Date(today);
+    yd.setUTCDate(today.getUTCDate() - 1);
+    const yesterdayStr = yd.toISOString().slice(0, 10);
+
+    // Compute snapshot.
+    // Prefer streakBeforeLoss (set by /daily/complete when streak resets).
+    // If 0, infer from dailyStreak when streak is currently broken but the daily
+    // hasn't been played today yet — covers USE pressed before today's /daily/complete.
+    let snapshot = user.streakBeforeLoss || 0;
+    if (snapshot === 0) {
+      const lpDate = user.lastPlayed instanceof Date
+        ? user.lastPlayed
+        : (user.lastPlayed ? new Date(user.lastPlayed + 'T00:00:00Z') : null);
+      const streakBroken = !lpDate || lpDate < yd;
+      if (user.dailyStreak > 1 && streakBroken) {
+        snapshot = user.dailyStreak;
+      } else {
+        return res.status(400).json({ error: 'NO_STREAK_TO_RESTORE' });
+      }
+    } else if (snapshot <= user.dailyStreak) {
       return res.status(400).json({ error: 'NO_STREAK_TO_RESTORE' });
     }
 
-    // Compute yesterday string for lastPlayed adjustment
-    const yd = new Date();
-    yd.setDate(yd.getDate() - 1);
-    const yesterdayStr = yd.toISOString().split('T')[0];
+    // lastPlayed: keep today if the daily was already played today so tomorrow's
+    // /daily/complete still sees a consecutive play and increments the streak.
+    // Otherwise set to yesterday so today's daily can still extend the restored streak.
+    const lpStr = user.lastPlayed instanceof Date
+      ? user.lastPlayed.toISOString().slice(0, 10)
+      : (user.lastPlayed || null);
+    const newLastPlayed = lpStr === todayStr ? todayStr : yesterdayStr;
 
-    // Atomically restore streak, consume ticket, clear snapshot
-    user.battlePassItems[ticketIdx].used = true;
-    user.dailyStreak      = snapshot;
-    user.lastPlayed       = yesterdayStr;
-    user.streakBeforeLoss = 0;
-    await user.save();
+    // Atomically consume the ticket and apply the restore.
+    // The $elemMatch condition re-checks that the ticket is still unused,
+    // preventing double-use if two requests race.
+    const updated = await User.findOneAndUpdate(
+      {
+        _id:             decoded.id,
+        battlePassItems: { $elemMatch: { itemId: 'ticket_restore_streak', used: false } },
+      },
+      {
+        $set: {
+          'battlePassItems.$.used': true,
+          dailyStreak:              snapshot,
+          lastPlayed:               newLastPlayed,
+          streakBeforeLoss:         0,
+        },
+      },
+      { new: true }
+    );
 
-    const remaining = user.battlePassItems.filter(t => !t.used).length;
+    if (!updated) return res.status(400).json({ error: 'No tickets available' });
+
+    const remaining = (updated.battlePassItems || []).filter(t => !t.used).length;
     res.json({ success: true, restoredTo: snapshot, remaining });
   } catch (err) {
     res.status(500).json({ error: 'internal_error' });

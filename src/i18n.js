@@ -701,6 +701,8 @@ export const LANGS = {
       ticketUse: 'Use',
       ticketRestored: 'Streak restored to {n} days!',
       ticketNoStreak: 'No broken streak to restore',
+      ticketNoTicket:     'No tickets available',
+      ticketNetworkError: 'Network error, try again',
       inventoryBtn: 'Inventory',
     },
     season1: {
@@ -1493,6 +1495,8 @@ export const LANGS = {
       ticketUse: 'Usar',
       ticketRestored: 'Racha restaurada a {n} días',
       ticketNoStreak: 'No hay ninguna racha que restaurar',
+      ticketNoTicket:     'No tienes tickets disponibles',
+      ticketNetworkError: 'Error de red, inténtalo de nuevo',
       inventoryBtn: 'Inventario',
     },
     nav: { home: 'Inicio', modes: 'Modos', play: 'Jugar', league: 'Liga', profile: 'Perfil' },
@@ -2232,6 +2236,8 @@ export const LANGS = {
       ticketUse: 'Verwenden',
       ticketRestored: 'Serie auf {n} Tage wiederhergestellt',
       ticketNoStreak: 'Keine unterbrochene Serie zum Wiederherstellen',
+      ticketNoTicket:     'Keine Tickets verfügbar',
+      ticketNetworkError: 'Netzwerkfehler, erneut versuchen',
       inventoryBtn: 'Inventar',
     },
     season1: {

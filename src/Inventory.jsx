@@ -69,7 +69,7 @@ const COMING_SOON = [
 ];
 
 export default function Inventory({ onBack }) {
-  const { purchases, activeCosmetics, equipCosmetic, unequipCosmetic, user } = useAuth();
+  const { purchases, activeCosmetics, equipCosmetic, unequipCosmetic, user, updateUser } = useAuth();
   const { t } = useLang();
   const [filter, setFilter] = useState('all');
   const [tickets, setTickets] = useState(user?.battlePassItems || []);
@@ -111,13 +111,21 @@ export default function Inventory({ onBack }) {
           next[idx] = { ...next[idx], used: true };
           return next;
         });
+        updateUser({ dailyStreak: data.restoredTo, streakBeforeLoss: 0 });
+        localStorage.setItem('tradaria_daily_streak', String(data.restoredTo));
         setTicketMsg({ type: 'success', text: ti.ticketRestored.replace('{n}', data.restoredTo) });
-      } else if (data.error === 'NO_STREAK_TO_RESTORE') {
-        setTicketMsg({ type: 'error', text: ti.ticketNoStreak });
+      } else {
+        const errKey =
+          data.error === 'No tickets available'  ? 'ticketNoTicket' :
+          data.error === 'NO_STREAK_TO_RESTORE'  ? 'ticketNoStreak' :
+                                                   'ticketNetworkError';
+        setTicketMsg({ type: 'error', text: ti[errKey] });
       }
-    } catch {}
+    } catch {
+      setTicketMsg({ type: 'error', text: ti.ticketNetworkError });
+    }
     setBusyTicket(false);
-  }, [busyTicket, unusedTickets, ti]);
+  }, [busyTicket, unusedTickets, ti, updateUser]);
 
   const isEmpty =
     ownedFrames.length === 0 && ownedThemes.length === 0 &&
@@ -368,8 +376,30 @@ export default function Inventory({ onBack }) {
                 background: ticketMsg.type === 'success' ? 'var(--green-dim)' : 'var(--pink-dim)',
                 color: ticketMsg.type === 'success' ? 'var(--green)' : 'var(--pink)',
                 border: `0.5px solid ${ticketMsg.type === 'success' ? 'var(--border-green)' : 'var(--border-pink)'}`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '8px',
               }}>
-                {ticketMsg.text}
+                <span>{ticketMsg.text}</span>
+                <button
+                  onClick={() => setTicketMsg(null)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: 'inherit',
+                    padding: '0',
+                    fontSize: '16px',
+                    lineHeight: 1,
+                    flexShrink: 0,
+                    WebkitAppearance: 'none',
+                    appearance: 'none',
+                  }}
+                  aria-label="close"
+                >
+                  ×
+                </button>
               </div>
             )}
           </Section>
