@@ -420,6 +420,8 @@ export default function BattlePass({ onBack, onGoPricing }) {
       ? Math.min(100, (missionsForNextLevel.current / missionsForNextLevel.total) * 100)
       : 0;
 
+  const proRewardCount = SEASON1_LEVELS.filter(lvl => lvl.proReward).length;
+
   // Extrae la parte de texto después de {n}, p.ej. "días restantes" / "days remaining"
   const daysUnit = tp.daysLeft.split('{n}').pop()?.trim() ?? '';
 
@@ -636,6 +638,35 @@ export default function BattlePass({ onBack, onGoPricing }) {
             </div>
           </div>
         </div>
+
+        {/* Pro rewards teaser — only for Free users with an active season */}
+        {!isPro && season && (
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '7px 16px',
+            borderBottom: '0.5px solid rgba(255,255,255,0.04)',
+          }}>
+            <span style={{
+              fontFamily: 'var(--font-body)', fontSize: '11px',
+              color: 'var(--text-muted)', fontWeight: 500,
+            }}>
+              {(tp.proRewardsCount ?? '{n} Pro rewards').replace('{n}', proRewardCount)}
+            </span>
+            <button
+              onClick={onGoPricing}
+              style={{
+                fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 800,
+                color: '#e05585', background: 'none',
+                border: '0.5px solid rgba(224,85,133,0.45)',
+                borderRadius: '6px', padding: '3px 8px',
+                cursor: 'pointer', letterSpacing: '0.04em',
+                flexShrink: 0,
+              }}
+            >
+              {tp.goPro}
+            </button>
+          </div>
+        )}
 
         {/* Level rows — memoized to avoid re-rendering all 30 when a single state changes */}
         {SEASON1_LEVELS.map((lvl) => {
