@@ -1,9 +1,11 @@
 /**
  * Bloque 3A: /daily/complete atomic concurrency fix
  *
- * Tests that the atomic findOneAndUpdate with a filter on lastPlayed < startOfToday
- * prevents double-processing: only one of two concurrent requests will match the
- * filter and update, the other will get null back.
+ * Mirrors the production implementation exactly:
+ *   - lastPlayed stored as String "YYYY-MM-DD" (not Date / $$NOW)
+ *   - Filter uses { $type: 'string', $lt: todayStr } for the normal case
+ *   - Pipeline writes lastPlayed: todayStr (a string)
+ *   - streakBeforeLoss computed inside the same pipeline
  */
 
 const mongoose = require('mongoose');
@@ -13,15 +15,42 @@ beforeAll(async () => { await connect(); });
 afterAll(async () => { await disconnect(); });
 beforeEach(async () => { await clearDatabase(); });
 
+function todayStr() {
+  const d = new Date();
+  d.setUTCHours(0, 0, 0, 0);
+  return d.toISOString().slice(0, 10);
+}
+function daysAgoStr(n) {
+  const d = new Date();
+  d.setUTCHours(0, 0, 0, 0);
+  d.setUTCDate(d.getUTCDate() - n);
+  return d.toISOString().slice(0, 10);
+}
+
 /**
- * Simulates the atomic /daily/complete update.
- * Returns the updated document, or null if the user already played today.
+ * Mirrors the production /daily/complete update from server/index.js.
+ * Uses String-typed lastPlayed and type-specific filter, matching production.
  */
 async function atomicDailyComplete(User, userId, safeXp, safeBadges, dailyResult) {
   const startOfToday = new Date();
   startOfToday.setUTCHours(0, 0, 0, 0);
   const startOfYesterday = new Date(startOfToday);
   startOfYesterday.setUTCDate(startOfYesterday.getUTCDate() - 1);
+  const today = startOfToday.toISOString().slice(0, 10);
+
+  const lastPlayedAsDate = {
+    $cond: {
+      if: { $eq: [{ $type: '$lastPlayed' }, 'date'] },
+      then: '$lastPlayed',
+      else: {
+        $cond: {
+          if: { $ne: [{ $ifNull: ['$lastPlayed', null] }, null] },
+          then: { $dateFromString: { dateString: '$lastPlayed', onError: null, onNull: null } },
+          else: null,
+        },
+      },
+    },
+  };
 
   return User.findOneAndUpdate(
     {
@@ -29,19 +58,20 @@ async function atomicDailyComplete(User, userId, safeXp, safeBadges, dailyResult
       $or: [
         { lastPlayed: { $exists: false } },
         { lastPlayed: null },
-        { lastPlayed: { $lt: startOfToday } },
+        { lastPlayed: { $type: 'string', $lt: today } },
+        { lastPlayed: { $type: 'date',   $lt: startOfToday } },
       ],
     },
     [
       {
         $set: {
-          lastPlayed: '$$NOW',
+          lastPlayed: today,
           dailyStreak: {
             $cond: {
               if: {
                 $and: [
                   { $ne: [{ $ifNull: ['$lastPlayed', null] }, null] },
-                  { $gte: ['$lastPlayed', startOfYesterday] },
+                  { $gte: [lastPlayedAsDate, startOfYesterday] },
                 ],
               },
               then: { $add: ['$dailyStreak', 1] },
@@ -56,7 +86,7 @@ async function atomicDailyComplete(User, userId, safeXp, safeBadges, dailyResult
                   {
                     $or: [
                       { $eq: [{ $ifNull: ['$lastPlayed', null] }, null] },
-                      { $lt: ['$lastPlayed', startOfYesterday] },
+                      { $lt: [lastPlayedAsDate, startOfYesterday] },
                     ],
                   },
                 ],
@@ -75,73 +105,40 @@ async function atomicDailyComplete(User, userId, safeXp, safeBadges, dailyResult
   );
 }
 
-describe('Bloque 3A: /daily/complete atomic concurrency', () => {
-  test('two concurrent requests only increment streak once', async () => {
+describe('Bloque 3A: /daily/complete — String-based lastPlayed (production schema)', () => {
+  test('streak increments when lastPlayed is yesterday (string)', async () => {
     const User = getUser();
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    const u = await User.create({ dailyStreak: 3, lastPlayed: yesterday, xp: 100 });
-
-    // Simulate two concurrent requests
-    const [r1, r2] = await Promise.all([
-      atomicDailyComplete(User, u._id, 200, [], null),
-      atomicDailyComplete(User, u._id, 200, [], null),
-    ]);
-
-    const updated = await User.findById(u._id);
-    // Streak should be exactly 4 (incremented once, not twice)
-    expect(updated.dailyStreak).toBe(4);
-
-    // Exactly one of the two should have returned null (didn't match filter)
-    const nullCount = [r1, r2].filter(r => r === null).length;
-    expect(nullCount).toBe(1);
-  });
-
-  test('streak increments when last played yesterday', async () => {
-    const User = getUser();
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    const u = await User.create({ dailyStreak: 5, lastPlayed: yesterday });
+    const u = await User.create({ dailyStreak: 5, lastPlayed: daysAgoStr(1), xp: 0 });
     const result = await atomicDailyComplete(User, u._id, 0, [], null);
-
     expect(result).not.toBeNull();
     expect(result.dailyStreak).toBe(6);
+    // lastPlayed may be returned as Date or String depending on schema; both should represent today
+    const lp = result.lastPlayed instanceof Date
+      ? result.lastPlayed.toISOString().slice(0, 10)
+      : result.lastPlayed;
+    expect(lp).toBe(todayStr());
   });
 
-  test('streak resets to 1 when last played 2+ days ago', async () => {
+  test('streak resets to 1 when lastPlayed is 2+ days ago (string)', async () => {
     const User = getUser();
-    const twoDaysAgo = new Date();
-    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
-
-    const u = await User.create({ dailyStreak: 10, lastPlayed: twoDaysAgo });
+    const u = await User.create({ dailyStreak: 10, lastPlayed: daysAgoStr(2), xp: 0 });
     const result = await atomicDailyComplete(User, u._id, 0, [], null);
-
     expect(result).not.toBeNull();
     expect(result.dailyStreak).toBe(1);
   });
 
-  test('streakBeforeLoss is set when streak resets', async () => {
+  test('streakBeforeLoss is set when streak resets (string lastPlayed)', async () => {
     const User = getUser();
-    const twoDaysAgo = new Date();
-    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
-
-    const u = await User.create({ dailyStreak: 8, lastPlayed: twoDaysAgo });
+    const u = await User.create({ dailyStreak: 8, lastPlayed: daysAgoStr(3), xp: 0 });
     const result = await atomicDailyComplete(User, u._id, 0, [], null);
-
     expect(result.streakBeforeLoss).toBe(8);
     expect(result.dailyStreak).toBe(1);
   });
 
-  test('streakBeforeLoss is NOT set when streak continues', async () => {
+  test('streakBeforeLoss is NOT set when streak continues (string lastPlayed)', async () => {
     const User = getUser();
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    const u = await User.create({ dailyStreak: 4, lastPlayed: yesterday, streakBeforeLoss: 0 });
+    const u = await User.create({ dailyStreak: 4, lastPlayed: daysAgoStr(1), streakBeforeLoss: 0 });
     const result = await atomicDailyComplete(User, u._id, 0, [], null);
-
     expect(result.streakBeforeLoss).toBe(0);
     expect(result.dailyStreak).toBe(5);
   });
@@ -150,33 +147,40 @@ describe('Bloque 3A: /daily/complete atomic concurrency', () => {
     const User = getUser();
     const u = await User.create({ dailyStreak: 0 });
     const result = await atomicDailyComplete(User, u._id, 500, ['badge_a'], null);
-
     expect(result).not.toBeNull();
     expect(result.dailyStreak).toBe(1);
   });
 
-  test('xp is set to max of existing and incoming', async () => {
+  test('returns null (alreadyPlayed) if lastPlayed is today (string)', async () => {
     const User = getUser();
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    const u = await User.create({ xp: 300, dailyStreak: 1, lastPlayed: yesterday });
-    const result = await atomicDailyComplete(User, u._id, 500, [], null);
-    expect(result.xp).toBe(500);
-
-    // Now test that lower xp doesn't downgrade
-    const u2 = await User.create({ xp: 600, dailyStreak: 1, lastPlayed: yesterday });
-    const result2 = await atomicDailyComplete(User, u2._id, 400, [], null);
-    expect(result2.xp).toBe(600);
+    const u = await User.create({ dailyStreak: 3, lastPlayed: todayStr() });
+    const result = await atomicDailyComplete(User, u._id, 100, [], null);
+    expect(result).toBeNull();
   });
 
-  test('returns null (alreadyPlayed) if lastPlayed is today', async () => {
+  test('two concurrent requests only increment streak once', async () => {
     const User = getUser();
-    const now = new Date();
+    const u = await User.create({ dailyStreak: 3, lastPlayed: daysAgoStr(1), xp: 100 });
+    const [r1, r2] = await Promise.all([
+      atomicDailyComplete(User, u._id, 200, [], null),
+      atomicDailyComplete(User, u._id, 200, [], null),
+    ]);
+    const updated = await User.findById(u._id);
+    expect(updated.dailyStreak).toBe(4);
+    expect([r1, r2].filter(r => r === null).length).toBe(1);
+  });
 
-    const u = await User.create({ dailyStreak: 3, lastPlayed: now });
-    const result = await atomicDailyComplete(User, u._id, 100, [], null);
+  test('xp is set to max of existing and incoming', async () => {
+    const User = getUser();
+    const u = await User.create({ xp: 300, dailyStreak: 1, lastPlayed: daysAgoStr(1) });
+    const result = await atomicDailyComplete(User, u._id, 500, [], null);
+    expect(result.xp).toBe(500);
+  });
 
-    expect(result).toBeNull();
+  test('lower incoming xp does not downgrade existing xp', async () => {
+    const User = getUser();
+    const u = await User.create({ xp: 600, dailyStreak: 1, lastPlayed: daysAgoStr(1) });
+    const result = await atomicDailyComplete(User, u._id, 400, [], null);
+    expect(result.xp).toBe(600);
   });
 });

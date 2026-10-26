@@ -1044,7 +1044,7 @@ app.post('/auth/sync', async (req, res) => {
   try {
     const current = await User.findById(decoded.id);
     if (!current) return res.status(404).json({ error: 'User not found' });
-    const { xp, badges, dailyStreak, lastPlayed, dailyResult } = req.body;
+    const { xp, badges, dailyResult } = req.body;
 
     // XP: only allow increase, cap delta at 2000 per sync
     const newXP = Number(xp);
@@ -1059,19 +1059,11 @@ app.post('/auth/sync', async (req, res) => {
       ...incomingBadges.filter(b => typeof b === 'string' && VALID_BADGE_IDS.has(b)),
     ])];
 
-    // Streak: non-negative integer, max 3650
-    const newStreak = Number(dailyStreak);
-    const safeStreak = Number.isFinite(newStreak) && newStreak >= 0 && newStreak <= 3650
-      ? newStreak
-      : current.dailyStreak || 0;
-
-    // lastPlayed: must be YYYY-MM-DD
-    const safeLastPlayed = typeof lastPlayed === 'string' && DATE_REGEX.test(lastPlayed)
-      ? lastPlayed : current.lastPlayed;
+    // dailyStreak and lastPlayed are intentionally NOT accepted here.
+    // They are only written by /daily/complete (atomic, idempotent) and
+    // /tickets/use, preventing stale client data from overwriting the server.
 
     const update = { xp: safeXP, badges: safeBadges };
-    if (dailyStreak !== undefined) update.dailyStreak = safeStreak;
-    if (lastPlayed  !== undefined) update.lastPlayed  = safeLastPlayed;
     if (dailyResult !== undefined) {
       const dr = dailyResult && typeof dailyResult === 'object' ? dailyResult : {};
       update.dailyResult = {
@@ -1212,7 +1204,7 @@ app.post('/tickets/use', async (req, res) => {
     if (!updated) return res.status(400).json({ error: 'No tickets available' });
 
     const remaining = (updated.battlePassItems || []).filter(t => !t.used).length;
-    res.json({ success: true, restoredTo: snapshot, remaining });
+    res.json({ success: true, restoredTo: snapshot, lastPlayed: updated.lastPlayed, remaining });
   } catch (err) {
     res.status(500).json({ error: 'internal_error' });
   }

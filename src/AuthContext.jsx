@@ -211,37 +211,25 @@ export function AuthProvider({ children }) {
         const merged = [...new Set([...data.badges, ...localBadges])];
         localStorage.setItem('tradaria_badges', JSON.stringify(merged));
 
-        // Sincronizar streak
-        const serverStreak     = data.dailyStreak || 0;
-        const serverLastPlayed = data.lastPlayed || null;
-        const localStreak      = parseInt(localStorage.getItem('tradaria_daily_streak') || '0');
-        const bestStreak       = serverStreak > 0 ? serverStreak : localStreak;
-        localStorage.setItem('tradaria_daily_streak', String(bestStreak));
-
-        // Normalizar y unificar fechas
-        const localLast1 = normalizeDateStr(localStorage.getItem('tradaria_daily_last'));
-        const localLast2 = normalizeDateStr(localStorage.getItem('tradaria_last_played'));
-        const bestLast   = normalizeDateStr(serverLastPlayed) || localLast1 || localLast2 || null;
-        if (bestLast) {
-          localStorage.setItem('tradaria_daily_last', bestLast);
-          localStorage.setItem('tradaria_last_played', bestLast);
-          const todayISO = new Date().toISOString().split('T')[0];
-          if (bestLast === todayISO) {
-            localStorage.setItem('tradaria_daily_played', todayISO);
+        // Streak: server is the source of truth — always overwrite localStorage
+        localStorage.setItem('tradaria_daily_streak', String(data.dailyStreak || 0));
+        if (data.lastPlayed) {
+          localStorage.setItem('tradaria_daily_last', data.lastPlayed);
+          localStorage.setItem('tradaria_last_played', data.lastPlayed);
+          if (data.lastPlayed === new Date().toISOString().split('T')[0]) {
+            localStorage.setItem('tradaria_daily_played', data.lastPlayed);
           }
         }
 
-        // Sincronizar con servidor si hay diferencias
-        const needsSync = merged.length > data.badges.length || bestStreak > serverStreak;
+        // Sync to server only when local badges exceed server badges
+        const needsSync = merged.length > data.badges.length;
         if (needsSync) {
           await fetch(`${SERVER}/auth/sync`, {
             method: 'POST',
             headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              xp:          Math.max(data.xp, localXP),
-              badges:      merged,
-              dailyStreak: bestStreak,
-              lastPlayed:  bestLast,
+              xp:     Math.max(data.xp, localXP),
+              badges: merged,
             }),
           });
         }
@@ -256,12 +244,10 @@ export function AuthProvider({ children }) {
     const token = localStorage.getItem('tradaria_token');
     if (!token) return;
     try {
-      const dailyStreak = parseInt(localStorage.getItem('tradaria_daily_streak') || '0');
-      const lastPlayed  = localStorage.getItem('tradaria_daily_last') || null;
       await fetch(`${SERVER}/auth/sync`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ xp, badges, dailyStreak, lastPlayed }),
+        body: JSON.stringify({ xp, badges }),
       });
     } catch (e) {}
   }

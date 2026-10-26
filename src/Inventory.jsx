@@ -111,8 +111,12 @@ export default function Inventory({ onBack }) {
           next[idx] = { ...next[idx], used: true };
           return next;
         });
-        updateUser({ dailyStreak: data.restoredTo, streakBeforeLoss: 0 });
+        updateUser({ dailyStreak: data.restoredTo, lastPlayed: data.lastPlayed, streakBeforeLoss: 0 });
         localStorage.setItem('tradaria_daily_streak', String(data.restoredTo));
+        if (data.lastPlayed) {
+          localStorage.setItem('tradaria_daily_last', data.lastPlayed);
+          localStorage.setItem('tradaria_last_played', data.lastPlayed);
+        }
         setTicketMsg({ type: 'success', text: ti.ticketRestored.replace('{n}', data.restoredTo) });
       } else {
         const errKey =

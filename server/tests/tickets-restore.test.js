@@ -183,6 +183,37 @@ test('no unused ticket: 400 No tickets available', async () => {
   expect(res.body.error).toBe('No tickets available');
 });
 
+test('streakBeforeLoss=94, dailyStreak=1 (post-break, pre-ticket): restores to 94', async () => {
+  const id = oid();
+  await col().insertOne({
+    _id: id, dailyStreak: 1, lastPlayed: todayStr(), streakBeforeLoss: 94,
+    battlePassItems: [{ itemId: 'ticket_restore_streak', used: false }],
+  });
+
+  const res = await ticketUse(id);
+  expect(res.status).toBe(200);
+  expect(res.doc.dailyStreak).toBe(94);
+  expect(res.doc.streakBeforeLoss).toBe(0);
+  expect(res.doc.lastPlayed).toBe(todayStr()); // already played today → lastPlayed stays today
+});
+
+test('streakBeforeLoss === dailyStreak (nico_founder case): 400 NO_STREAK_TO_RESTORE', async () => {
+  // State: streak shows 94 but is actually stale (DB not yet updated after break).
+  // streakBeforeLoss also 94 → snapshot(94) <= dailyStreak(94) → cannot restore.
+  const id = oid();
+  await col().insertOne({
+    _id: id, dailyStreak: 94, lastPlayed: daysAgo(4), streakBeforeLoss: 94,
+    battlePassItems: [{ itemId: 'ticket_restore_streak', used: false }],
+  });
+
+  const res = await ticketUse(id);
+  expect(res.status).toBe(400);
+  expect(res.body.error).toBe('NO_STREAK_TO_RESTORE');
+
+  const doc = await col().findOne({ _id: id });
+  expect(doc.battlePassItems[0].used).toBe(false);
+});
+
 test('two concurrent requests: only one restore succeeds', async () => {
   const id = oid();
   await col().insertOne({
