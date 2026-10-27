@@ -3445,7 +3445,6 @@ cron.schedule('55 23 * * 0', async () => {
       { id: 'bp_s1_l19_pro', threshold: 10 },
       { id: 'bp_s1_l24_pro', threshold: 5  },
       { id: 'bp_s1_l29_pro', threshold: 3  },
-      { id: 'bp_s1_l20_pro', threshold: 1  }, // win_tournament = weekly ranking position 1 (NOT Tournament.jsx game mode)
     ];
 
     let processed = 0, awarded = 0;

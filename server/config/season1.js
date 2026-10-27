@@ -167,7 +167,7 @@ const LEVELS = [
     level: 14,
     freeMission: mission('bp_s1_l14_free', 'Survival Constante',  'Sobrevive 35 rondas en Survival',                     'survival_rounds',            'survival',    35),
     freeReward:  xp(1000),
-    proMission: mission('bp_s1_l14_pro', 'Racha en Classic',      'Acierta 15 rondas seguidas en Classic',               'classic_streak',             'classic',     15),
+    proMission: mission('bp_s1_l14_pro', 'Classic Consolidado',   'Acierta 15 rondas en Classic',                        'classic_wins',               'classic',     15),
     proReward:  theme('theme_midnight', 'Midnight'),
   },
 
@@ -183,9 +183,9 @@ const LEVELS = [
   // ── Level 16 ─────────────────────────────────────────────────────────────────
   {
     level: 16,
-    freeMission: mission('bp_s1_l16_free', 'Racha en Classic',    'Acierta 5 rondas seguidas en Classic',                'classic_streak',             'classic',      5),
+    freeMission: mission('bp_s1_l16_free', 'Racha en Classic',    'Acierta 3 rondas seguidas en Classic',                'classic_streak',             'classic',      3),
     freeReward:  title('title_bull_runner', 'Bull Runner'),
-    proMission: mission('bp_s1_l16_pro', 'Duelos en Arena',       'Gana 20 duelos en Arena contra jugadores reales',     'arena_wins',                 'arena',       20),
+    proMission: mission('bp_s1_l16_pro', 'Duelos en Arena',       'Gana 3 duelos en Arena contra jugadores reales',      'arena_wins',                 'arena',        3),
     proReward:  color('color_red', 'Rojo', '#e05555'),
   },
 
@@ -221,8 +221,7 @@ const LEVELS = [
     level: 20,
     freeMission: mission('bp_s1_l20_free', 'Survival Medio',      'Sobrevive 50 rondas en Survival',                     'survival_rounds',            'survival',    50),
     freeReward:  title('title_bear_hunter', 'Bear Hunter'),
-    // win_tournament = awarded by the weekly-ranking cron when rank === 1, NOT by Tournament.jsx
-    proMission: mission('bp_s1_l20_pro', 'Campeón de Torneo',     'Gana un torneo semanal',                              'win_tournament',             'tournament',   1),
+    proMission: mission('bp_s1_l20_pro', 'Classic Constante',     'Acierta 40 rondas en Classic',                        'classic_wins',               'classic',     40),
     proReward:  mechanic('mechanic_verified_badge', 'Insignia Verificada'),
   },
 
@@ -240,7 +239,7 @@ const LEVELS = [
     level: 22,
     freeMission: mission('bp_s1_l22_free', 'Desafíos Masivos',    'Completa 20 Daily Challenges',                        'complete_daily',             'daily',       20),
     freeReward:  xp(2000),
-    proMission: mission('bp_s1_l22_pro', 'Racha en Classic',      'Acierta 20 rondas seguidas en Classic',               'classic_streak',             'classic',     20),
+    proMission: mission('bp_s1_l22_pro', 'Classic Avanzado',      'Acierta 20 rondas en Classic',                        'classic_wins',               'classic',     20),
     proReward:  theme('theme_aurora', 'Aurora'),
   },
 
