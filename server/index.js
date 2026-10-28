@@ -3482,13 +3482,20 @@ app.get('/stats/dashboard', async (req, res) => {
   const key = req.headers['x-admin-secret'];
   if (!ADMIN_SECRET || key !== ADMIN_SECRET) return res.status(403).json({ error: 'Forbidden' });
   try {
+    const todayUTC = new Date().toISOString().split('T')[0];
     const users  = await User.aggregate([
+      { $match: { createdAt: { $ne: null } } },
       { $group: {
         _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
         count: { $sum: 1 }
       }},
       { $sort: { _id: 1 } }
     ]);
+    // Garantiza que hoy siempre aparece en el array aunque nadie se haya
+    // registrado aún en UTC (evita que fillDateGaps del dashboard deje fuera el día actual)
+    if (!users.length || users[users.length - 1]._id < todayUTC) {
+      users.push({ _id: todayUTC, count: 0 });
+    }
     const scores = await Score.aggregate([
       { $group: {
         _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
