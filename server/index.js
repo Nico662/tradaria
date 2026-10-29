@@ -3476,29 +3476,58 @@ const ADMIN_STATS_CORS = {
 
 app.options('/stats/dashboard', (req, res) => res.set(ADMIN_STATS_CORS).sendStatus(200));
 app.options('/stats/revenue',   (req, res) => res.set(ADMIN_STATS_CORS).sendStatus(200));
+app.options('/stats/diag',      (req, res) => res.set(ADMIN_STATS_CORS).sendStatus(200));
+
+// Diagnostic endpoint (read-only) — verifica si createdAt está congelada o es correcto,
+// y muestra la fecha UTC vs. Europe/Berlin de los últimos 20 usuarios.
+app.get('/stats/diag', async (req, res) => {
+  res.set(ADMIN_STATS_CORS);
+  const key = req.headers['x-admin-secret'];
+  if (!ADMIN_SECRET || key !== ADMIN_SECRET) return res.status(403).json({ error: 'Forbidden' });
+  try {
+    const now = new Date();
+    const recent = await User.aggregate([
+      { $sort: { _id: -1 } },
+      { $limit: 20 },
+      { $project: {
+        _id: 1,
+        createdAt: 1,
+        dateUTC:    { $dateToString: { format: '%Y-%m-%d %H:%M', date: '$createdAt' } },
+        dateBerlin: { $dateToString: { format: '%Y-%m-%d %H:%M', date: '$createdAt', timezone: 'Europe/Berlin' } },
+        oidTimestamp: { $dateToString: { format: '%Y-%m-%d %H:%M', date: { $toDate: '$_id' } } },
+      }},
+    ]);
+    res.json({
+      serverNowUTC:    now.toISOString(),
+      serverNowBerlin: new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Berlin', hour: '2-digit', minute: '2-digit', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now),
+      recentUsers: recent,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 app.get('/stats/dashboard', async (req, res) => {
   res.set(ADMIN_STATS_CORS);
   const key = req.headers['x-admin-secret'];
   if (!ADMIN_SECRET || key !== ADMIN_SECRET) return res.status(403).json({ error: 'Forbidden' });
   try {
-    const todayUTC = new Date().toISOString().split('T')[0];
+    const todayBerlin = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin' }).format(new Date());
     const users  = await User.aggregate([
       { $match: { createdAt: { $ne: null } } },
       { $group: {
-        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt', timezone: 'Europe/Berlin' } },
         count: { $sum: 1 }
       }},
       { $sort: { _id: 1 } }
     ]);
-    // Garantiza que hoy siempre aparece en el array aunque nadie se haya
-    // registrado aún en UTC (evita que fillDateGaps del dashboard deje fuera el día actual)
-    if (!users.length || users[users.length - 1]._id < todayUTC) {
-      users.push({ _id: todayUTC, count: 0 });
+    // Garantiza que hoy (hora Berlín) siempre aparece aunque nadie se haya registrado todavía
+    if (!users.length || users[users.length - 1]._id < todayBerlin) {
+      users.push({ _id: todayBerlin, count: 0 });
     }
     const scores = await Score.aggregate([
       { $group: {
-        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt', timezone: 'Europe/Berlin' } },
         count: { $sum: 1 },
         avgScore: { $avg: '$score' }
       }},
