@@ -230,7 +230,7 @@ const LEVELS = [
     level: 21,
     freeMission: null,
     freeReward:  null,
-    proMission: mission('bp_s1_l21_pro', 'Arena Experto',         'Gana 30 duelos en Arena contra jugadores reales',     'arena_wins',                 'arena',       30),
+    proMission: mission('bp_s1_l21_pro', 'Arena Experto',         'Gana 5 duelos en Arena contra jugadores reales',      'arena_wins',                 'arena',        5),
     proReward:  xp(4000),
   },
 

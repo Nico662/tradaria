@@ -1,12 +1,13 @@
 /**
  * season1-changes.test.js
  *
- * Regression tests for the five mission changes applied to season1.js:
+ * Regression tests for the six mission changes applied to season1.js:
  *
  *   L14 Pro  — classic_streak → classic_wins (target 15)
  *   L16 Free — classic_streak target 5 → 3
  *   L16 Pro  — arena_wins target 20 → 3
  *   L20 Pro  — win_tournament → classic_wins (target 40)
+ *   L21 Pro  — arena_wins target 30 → 5
  *   L22 Pro  — classic_streak → classic_wins (target 20)
  */
 
@@ -258,6 +259,44 @@ test('L20 Pro is NOT awarded with only 39 classic wins', async () => {
   const result = await processGameBpProgress(user._id, { mode: 'guess', correct: 39 });
 
   expect(result.awardedMissions).not.toContain('bp_s1_l20_pro');
+});
+
+// ── L21 Pro: arena_wins, target 5 ────────────────────────────────────────────
+
+test('L21 Pro is awarded after 5 arena wins', async () => {
+  const User = getUser();
+  await createSeason();
+
+  const baselines = new Map([['bp_s1_l21_pro', 0]]);
+  const user = await createUser(User, {
+    isPro: true,
+    completedMissions: PRE_L20_PRO,
+    bp: { arenaWinsTotal: 0, missionBaselines: baselines },
+  });
+
+  for (let i = 0; i < 5; i++) {
+    await processArenaWinBpProgress(user._id);
+  }
+
+  const updated = await getUser().findById(user._id);
+  expect(updated.battlePass.completedMissions).toContain('bp_s1_l21_pro');
+});
+
+test('L21 Pro is NOT awarded after only 4 arena wins', async () => {
+  const User = getUser();
+  await createSeason();
+
+  const baselines = new Map([['bp_s1_l21_pro', 0]]);
+  const user = await createUser(User, {
+    isPro: true,
+    completedMissions: PRE_L20_PRO,
+    bp: { arenaWinsTotal: 0, missionBaselines: baselines },
+  });
+
+  for (let i = 0; i < 4; i++) {
+    const r = await processArenaWinBpProgress(user._id);
+    expect(r.awardedMissions).not.toContain('bp_s1_l21_pro');
+  }
 });
 
 // ── L22 Pro: classic_wins, target 20 ─────────────────────────────────────────

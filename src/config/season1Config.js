@@ -147,7 +147,7 @@ export const SEASON1_LEVELS = [
     level: 21,
     freeMission: null,
     freeReward:  null,
-    proMission:  { title: 'Arena Experto',         desc: 'Gana 30 duelos en Arena contra jugadores reales',                 enabled: true  },
+    proMission:  { title: 'Arena Experto',         desc: 'Gana 5 duelos en Arena contra jugadores reales',                  enabled: true  },
     proReward:   { type: 'xp',             amount: 4000 },
   },
   {
