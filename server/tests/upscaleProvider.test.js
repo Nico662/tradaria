@@ -38,14 +38,15 @@ const MOCK_ACCOUNTS = [
   { accountId: 'acc-abc-123', status: 'active', apiTrading: true },
 ];
 
+// Tickers en el formato real devuelto por GET /v2/markets
 const MOCK_MARKETS = [
-  { config: { ticker: 'BTC'    }, state: { indexPrice: fp9Encode(65000)  } },
-  { config: { ticker: 'ETH'    }, state: { indexPrice: fp9Encode(3200)   } },
-  { config: { ticker: 'EURUSD' }, state: { indexPrice: fp9Encode(1.0855) } },
-  { config: { ticker: 'XAU'    }, state: { indexPrice: fp9Encode(2300)   } },
-  { config: { ticker: 'AAPL'   }, state: { indexPrice: fp9Encode(195)    } },
-  { config: { ticker: 'US500'  }, state: { indexPrice: fp9Encode(5300)   } },
-  { config: { ticker: 'NATGAS' }, state: { indexPrice: fp9Encode(2.84)   } },
+  { config: { ticker: 'BTC/USDT'   }, state: { indexPrice: fp9Encode(65000)  } },
+  { config: { ticker: 'ETH/USDT'   }, state: { indexPrice: fp9Encode(3200)   } },
+  { config: { ticker: 'EUR/USD'    }, state: { indexPrice: fp9Encode(1.0855) } },
+  { config: { ticker: 'XAU/USD'   }, state: { indexPrice: fp9Encode(2300)   } },
+  { config: { ticker: 'AAPL/USD'  }, state: { indexPrice: fp9Encode(195)    } },
+  { config: { ticker: 'US500/USD' }, state: { indexPrice: fp9Encode(5300)   } },
+  { config: { ticker: 'NATGAS/USD'}, state: { indexPrice: fp9Encode(2.84)   } },
 ];
 
 // Construye un provider ya iniciado con fetch mockeado
@@ -77,6 +78,10 @@ describe('fp9ToDecimal', () => {
   test('0.6124',  ()   => expect(fp9ToDecimal('612400000')).toBeCloseTo(0.6124, 8));
   test('cero',    ()   => expect(fp9ToDecimal('0')).toBe(0));
 
+  test('valor real de la API: "77928220784749" ≈ 77928.22', () => {
+    expect(fp9ToDecimal('77928220784749')).toBeCloseTo(77928.22, 2);
+  });
+
   test('roundtrip encode→decode dentro de tolerancia float', () => {
     const prices = [65000, 1.0855, 0.6124, 2284.5, 195, 0.13420];
     for (const p of prices) {
@@ -96,22 +101,49 @@ describe('TICKER_MAP', () => {
     }
   });
 
-  test('NO_UPSCALE_SYMBOLS contiene UK100 y JPN225', () => {
+  test('NO_UPSCALE_SYMBOLS contiene solo UK100', () => {
     expect(NO_UPSCALE_SYMBOLS.has('UK100')).toBe(true);
-    expect(NO_UPSCALE_SYMBOLS.has('JPN225')).toBe(true);
-    expect(NO_UPSCALE_SYMBOLS.size).toBe(2);
+    expect(NO_UPSCALE_SYMBOLS.has('JPN225')).toBe(false);
+    expect(NO_UPSCALE_SYMBOLS.size).toBe(1);
   });
 
-  test('variante sin slash y con slash mapean al mismo símbolo (forex)', () => {
-    expect(TICKER_MAP['EURUSD']).toBe(TICKER_MAP['EUR/USD']);
-    expect(TICKER_MAP['USDJPY']).toBe(TICKER_MAP['USD/JPY']);
-    expect(TICKER_MAP['GBPUSD']).toBe(TICKER_MAP['GBP/USD']);
+  test('tickers reales de la API mapean a símbolos internos correctos (forex)', () => {
+    expect(TICKER_MAP['EUR/USD']).toBe('EUR/USD');
+    expect(TICKER_MAP['GBP/USD']).toBe('GBP/USD');
+    expect(TICKER_MAP['AUD/USD']).toBe('AUD/USD');
+    expect(TICKER_MAP['USDJPY/USD']).toBe('USD/JPY');
+    expect(TICKER_MAP['USDCHF/USD']).toBe('USD/CHF');
+    expect(TICKER_MAP['USDCAD/USD']).toBe('USD/CAD');
   });
 
-  test('variante sin slash y con slash mapean al mismo símbolo (índices)', () => {
-    expect(TICKER_MAP['US500']).toBe(TICKER_MAP['US500/USD']);
-    expect(TICKER_MAP['NAS100']).toBe(TICKER_MAP['NAS100/USD']);
-    expect(TICKER_MAP['GER40']).toBe(TICKER_MAP['GER40/EUR']);
+  test('tickers reales de la API mapean a símbolos internos correctos (índices)', () => {
+    expect(TICKER_MAP['US500/USD']).toBe('S&P 500');
+    expect(TICKER_MAP['NAS100/USD']).toBe('NASDAQ');
+    expect(TICKER_MAP['US30/USD']).toBe('DOW');
+    expect(TICKER_MAP['GER40/USD']).toBe('GER40');
+    expect(TICKER_MAP['JP225/USD']).toBe('JPN225');
+  });
+
+  test('tickers reales de la API mapean a símbolos internos correctos (crypto)', () => {
+    expect(TICKER_MAP['BTC/USDT']).toBe('BTC/USD');
+    expect(TICKER_MAP['ETH/USDT']).toBe('ETH/USD');
+    expect(TICKER_MAP['SOL/USDT']).toBe('SOL/USD');
+    expect(TICKER_MAP['DOGE/USDT']).toBe('DOGE/USD');
+  });
+
+  test('tickers reales de la API mapean a símbolos internos correctos (acciones)', () => {
+    expect(TICKER_MAP['AAPL/USD']).toBe('AAPL');
+    expect(TICKER_MAP['TSLA/USD']).toBe('TSLA');
+    expect(TICKER_MAP['NVDA/USD']).toBe('NVDA');
+    expect(TICKER_MAP['GOOGL/USD']).toBe('GOOGL');
+  });
+
+  test('claves cortas antiguas ya no existen en el mapa', () => {
+    expect(TICKER_MAP['BTC']).toBeUndefined();
+    expect(TICKER_MAP['ETH']).toBeUndefined();
+    expect(TICKER_MAP['AAPL']).toBeUndefined();
+    expect(TICKER_MAP['EURUSD']).toBeUndefined();
+    expect(TICKER_MAP['GER40/EUR']).toBeUndefined();
   });
 });
 
@@ -183,7 +215,7 @@ describe('start()', () => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 describe('getPrice() — precios reales', () => {
-  test('devuelve precio de Upscale para BTC/USD', async () => {
+  test('devuelve precio de Upscale para BTC/USD (ticker BTC/USDT)', async () => {
     const { provider } = await makeStarted(buildFetch());
     const r = await provider.getPrice('BTC/USD');
     expect(r.symbol).toBe('BTC/USD');
@@ -194,7 +226,7 @@ describe('getPrice() — precios reales', () => {
     provider.stop();
   });
 
-  test('devuelve precio de Upscale para EUR/USD (ticker EURUSD)', async () => {
+  test('devuelve precio de Upscale para EUR/USD (ticker EUR/USD)', async () => {
     const { provider } = await makeStarted(buildFetch());
     const r = await provider.getPrice('EUR/USD');
     expect(r.price).toBeCloseTo(1.0855, 4);
@@ -202,7 +234,7 @@ describe('getPrice() — precios reales', () => {
     provider.stop();
   });
 
-  test('devuelve precio de Upscale para GOLD (ticker XAU)', async () => {
+  test('devuelve precio de Upscale para GOLD (ticker XAU/USD)', async () => {
     const { provider } = await makeStarted(buildFetch());
     const r = await provider.getPrice('GOLD');
     expect(r.price).toBeCloseTo(2300, 0);
@@ -210,7 +242,7 @@ describe('getPrice() — precios reales', () => {
     provider.stop();
   });
 
-  test('devuelve precio de Upscale para S&P 500 (ticker US500)', async () => {
+  test('devuelve precio de Upscale para S&P 500 (ticker US500/USD)', async () => {
     const { provider } = await makeStarted(buildFetch());
     const r = await provider.getPrice('S&P 500');
     expect(r.price).toBeCloseTo(5300, 0);
@@ -238,7 +270,8 @@ describe('getPrice() — fallback', () => {
     provider.stop();
   });
 
-  test('JPN225 siempre va al fallback (no está en Upscale)', async () => {
+  test('JPN225 va al fallback cuando JP225/USD no está en el poll', async () => {
+    // MOCK_MARKETS no incluye JP225/USD → JPN225 no llega al cache → fallback
     const { provider, fallback } = await makeStarted(buildFetch());
     await provider.getPrice('JPN225');
     expect(fallback.getPrice).toHaveBeenCalledWith('JPN225');
@@ -273,6 +306,99 @@ describe('getPrice() — fallback', () => {
     expect(r2.source).toBe('upscale'); // cache intacto
     expect(r2.price).toBeCloseTo(65000, 0);
     provider.stop();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+describe('tickers reales de la API (validación contra /v2/markets)', () => {
+  // Muestra representativa con los formatos exactos que devuelve la API real
+  const REAL_MARKETS = [
+    { config: { ticker: 'BTC/USDT'   }, state: { indexPrice: fp9Encode(77948)  } },
+    { config: { ticker: 'ETH/USDT'   }, state: { indexPrice: fp9Encode(2268)   } },
+    { config: { ticker: 'AAPL/USD'   }, state: { indexPrice: fp9Encode(345)    } },
+    { config: { ticker: 'TSLA/USD'   }, state: { indexPrice: fp9Encode(400)    } },
+    { config: { ticker: 'MSFT/USD'   }, state: { indexPrice: fp9Encode(525)    } },
+    { config: { ticker: 'USDJPY/USD' }, state: { indexPrice: fp9Encode(157.58) } },
+    { config: { ticker: 'USDCHF/USD' }, state: { indexPrice: fp9Encode(0.825)  } },
+    { config: { ticker: 'USDCAD/USD' }, state: { indexPrice: fp9Encode(1.397)  } },
+    { config: { ticker: 'GER40/USD'  }, state: { indexPrice: fp9Encode(25881)  } },
+    { config: { ticker: 'JP225/USD'  }, state: { indexPrice: fp9Encode(62375)  } },
+  ];
+
+  let provider;
+  beforeEach(async () => {
+    ({ provider } = await makeStarted(buildFetch(REAL_MARKETS)));
+  });
+  afterEach(() => provider.stop());
+
+  test('crypto BTC/USDT → BTC/USD obtiene precio real', async () => {
+    const r = await provider.getPrice('BTC/USD');
+    expect(r.price).toBeCloseTo(77948, 0);
+    expect(r.source).toBe('upscale');
+  });
+
+  test('crypto ETH/USDT → ETH/USD obtiene precio real', async () => {
+    const r = await provider.getPrice('ETH/USD');
+    expect(r.price).toBeCloseTo(2268, 0);
+    expect(r.source).toBe('upscale');
+  });
+
+  test('acción AAPL/USD → AAPL obtiene precio real', async () => {
+    const r = await provider.getPrice('AAPL');
+    expect(r.price).toBeCloseTo(345, 0);
+    expect(r.source).toBe('upscale');
+  });
+
+  test('acción TSLA/USD → TSLA obtiene precio real', async () => {
+    const r = await provider.getPrice('TSLA');
+    expect(r.price).toBeCloseTo(400, 0);
+    expect(r.source).toBe('upscale');
+  });
+
+  test('acción MSFT/USD → MSFT obtiene precio real', async () => {
+    const r = await provider.getPrice('MSFT');
+    expect(r.price).toBeCloseTo(525, 0);
+    expect(r.source).toBe('upscale');
+  });
+
+  test('forex USDJPY/USD → USD/JPY obtiene precio real', async () => {
+    const r = await provider.getPrice('USD/JPY');
+    expect(r.price).toBeCloseTo(157.58, 1);
+    expect(r.source).toBe('upscale');
+  });
+
+  test('forex USDCHF/USD → USD/CHF obtiene precio real', async () => {
+    const r = await provider.getPrice('USD/CHF');
+    expect(r.price).toBeCloseTo(0.825, 3);
+    expect(r.source).toBe('upscale');
+  });
+
+  test('forex USDCAD/USD → USD/CAD obtiene precio real', async () => {
+    const r = await provider.getPrice('USD/CAD');
+    expect(r.price).toBeCloseTo(1.397, 3);
+    expect(r.source).toBe('upscale');
+  });
+
+  test('índice GER40/USD → GER40 obtiene precio real', async () => {
+    const r = await provider.getPrice('GER40');
+    expect(r.price).toBeCloseTo(25881, 0);
+    expect(r.source).toBe('upscale');
+  });
+
+  test('índice JP225/USD → JPN225 obtiene precio real', async () => {
+    const r = await provider.getPrice('JPN225');
+    expect(r.price).toBeCloseTo(62375, 0);
+    expect(r.source).toBe('upscale');
+  });
+
+  test('todos los símbolos de REAL_MARKETS quedan en cache', () => {
+    const expectedSymbols = [
+      'BTC/USD', 'ETH/USD', 'AAPL', 'TSLA', 'MSFT',
+      'USD/JPY', 'USD/CHF', 'USD/CAD', 'GER40', 'JPN225',
+    ];
+    for (const sym of expectedSymbols) {
+      expect(provider._cache.has(sym)).toBe(true);
+    }
   });
 });
 

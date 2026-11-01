@@ -11,9 +11,9 @@
  * GET /v2/markets devuelve TODOS los símbolos en una sola llamada,
  * así que POLL_INTERVAL_MS=6000 → ~10 llamadas/min, dentro del límite.
  *
- * Símbolos NO disponibles en Upscale (delegados a fallback siempre):
- *   UK100 (FTSE 100), JPN225 (Nikkei 225)
- * Están en el catálogo con precios simulados para no reducir la oferta.
+ * Símbolo NO disponible en Upscale (delegado a fallback siempre):
+ *   UK100 (FTSE 100)
+ * Está en el catálogo con precio simulado para no reducir la oferta.
  */
 
 const { PriceProvider, SYMBOL_CATALOG } = require('./priceProvider');
@@ -51,42 +51,42 @@ function spreadHalf(symbol, midPrice) {
 }
 
 // ── Mapeo ticker Upscale → símbolo Tradiko ────────────────────────────────────
-// La documentación de Upscale indica config.ticker como "base ticker" (e.g. "BTC").
-// Para forex e índices el formato exacto no está completamente documentado,
-// por eso se incluyen ambas variantes (con y sin slash).
-// VERIFICAR el formato real contra la respuesta de /v2/markets con la clave real.
+// Tickers verificados contra la respuesta real de GET /v2/markets (sin auth).
+// Crypto: sufijo /USDT. Forex USD-base: sufijo /USD. Resto: par completo/USD.
 const TICKER_MAP = {
-  // Crypto
-  'BTC':     'BTC/USD',  'ETH':     'ETH/USD',  'SOL':    'SOL/USD',
-  'XRP':     'XRP/USD',  'BNB':     'BNB/USD',  'DOGE':   'DOGE/USD',
-  'LINK':    'LINK/USD', 'AVAX':    'AVAX/USD', 'ADA':    'ADA/USD',
-  'DOT':     'DOT/USD',
-  // Forex (ambas variantes por incertidumbre de formato)
-  'EURUSD':  'EUR/USD',  'EUR/USD': 'EUR/USD',
-  'GBPUSD':  'GBP/USD',  'GBP/USD': 'GBP/USD',
-  'USDJPY':  'USD/JPY',  'USD/JPY': 'USD/JPY',
-  'USDCHF':  'USD/CHF',  'USD/CHF': 'USD/CHF',
-  'AUDUSD':  'AUD/USD',  'AUD/USD': 'AUD/USD',
-  'USDCAD':  'USD/CAD',  'USD/CAD': 'USD/CAD',
-  // Índices (Upscale: US500/USD, NAS100/USD, US30/USD, GER40/EUR)
-  'US500':   'S&P 500',  'US500/USD': 'S&P 500',
-  'NAS100':  'NASDAQ',   'NAS100/USD': 'NASDAQ',
-  'US30':    'DOW',      'US30/USD': 'DOW',
-  'GER40':   'GER40',    'GER40/EUR': 'GER40',
-  // Materias primas (Upscale usa códigos: XAU=Gold, XAG=Silver, WTI=Oil, NATGAS, HG=Copper)
-  'XAU':     'GOLD',     'XAU/USD': 'GOLD',
-  'XAG':     'SILVER',   'XAG/USD': 'SILVER',
-  'WTI':     'OIL/USD',  'WTI/USD': 'OIL/USD',
-  'NATGAS':  'NGAS',     'NATGAS/USD': 'NGAS',
-  'HG':      'COPPER',   'HG/USD': 'COPPER',
-  // Acciones
-  'AAPL': 'AAPL', 'TSLA': 'TSLA', 'MSFT': 'MSFT', 'AMZN': 'AMZN',
-  'GOOGL': 'GOOGL', 'META': 'META', 'NVDA': 'NVDA',
+  // Crypto (API: base/USDT)
+  'BTC/USDT':  'BTC/USD',  'ETH/USDT':  'ETH/USD',  'SOL/USDT':  'SOL/USD',
+  'XRP/USDT':  'XRP/USD',  'BNB/USDT':  'BNB/USD',  'DOGE/USDT': 'DOGE/USD',
+  'LINK/USDT': 'LINK/USD', 'AVAX/USDT': 'AVAX/USD', 'ADA/USDT':  'ADA/USD',
+  'DOT/USDT':  'DOT/USD',
+  // Forex (API: par o par/USD)
+  'EUR/USD':    'EUR/USD',
+  'GBP/USD':    'GBP/USD',
+  'USDJPY/USD': 'USD/JPY',
+  'USDCHF/USD': 'USD/CHF',
+  'AUD/USD':    'AUD/USD',
+  'USDCAD/USD': 'USD/CAD',
+  // Índices (API: índice/USD)
+  'US500/USD':  'S&P 500',
+  'NAS100/USD': 'NASDAQ',
+  'US30/USD':   'DOW',
+  'GER40/USD':  'GER40',
+  'JP225/USD':  'JPN225',
+  // Materias primas (API: commodity/USD)
+  'XAU/USD':    'GOLD',
+  'XAG/USD':    'SILVER',
+  'WTI/USD':    'OIL/USD',
+  'NATGAS/USD': 'NGAS',
+  'HG/USD':     'COPPER',
+  // Acciones (API: ticker/USD)
+  'AAPL/USD':  'AAPL',  'TSLA/USD':  'TSLA',  'MSFT/USD':  'MSFT',
+  'AMZN/USD':  'AMZN',  'GOOGL/USD': 'GOOGL', 'META/USD':  'META',
+  'NVDA/USD':  'NVDA',
 };
 
 // Símbolos que NO existen en Upscale → fallback a StubPriceProvider siempre.
 // Los mantenemos en el catálogo con precios simulados en vez de eliminarlos.
-const NO_UPSCALE_SYMBOLS = new Set(['UK100', 'JPN225']);
+const NO_UPSCALE_SYMBOLS = new Set(['UK100']);
 
 // ─────────────────────────────────────────────────────────────────────────────
 class UpscalePriceProvider extends PriceProvider {
