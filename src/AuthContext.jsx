@@ -314,10 +314,15 @@ export function AuthProvider({ children }) {
     setUser(prev => prev ? { ...prev, ...updates } : prev);
   }
 
+  async function refreshUser() {
+    const token = localStorage.getItem('tradaria_token');
+    if (token) await fetchUser(token);
+  }
+
   const isPro = user?.isPro || false;
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, loginWithApple, logout, syncProgress, purchases, refreshPurchases, activeCosmetics, equipCosmetic, unequipCosmetic, updateUser, mergeUser, checkLevelUp, isPro }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithApple, logout, syncProgress, purchases, refreshPurchases, refreshUser, activeCosmetics, equipCosmetic, unequipCosmetic, updateUser, mergeUser, checkLevelUp, isPro }}>
       {children}
       {levelUpData && <LevelUpOverlay {...levelUpData} onClose={() => setLevelUpData(null)} />}
     </AuthContext.Provider>

@@ -8,7 +8,7 @@ import { Star, Heart, Medal, Bell, FileText, TrendingUp, Ticket } from 'lucide-r
 const PRO_ICONS = [Star, Heart, Medal, Bell, FileText, TrendingUp, Ticket];
 
 export default function Pricing({ onBack, fromTournament }) {
-  const { user, isPro, updateUser } = useAuth();
+  const { user, isPro, refreshUser } = useAuth();
   const { t } = useLang();
   const [loading, setLoading] = useState(false);
   const [msg, setMsg]         = useState('');
@@ -48,7 +48,7 @@ export default function Pricing({ onBack, fromTournament }) {
           setMsg(`${t.pricing.iapError}${detail}`);
           return;
         }
-        updateUser({ isPro: true });
+        await refreshUser();
       } catch (err) {
         if (err.message !== 'Purchase cancelled') setMsg(t.pricing.networkError);
       } finally {

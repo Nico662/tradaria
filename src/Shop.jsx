@@ -3,7 +3,7 @@ import { Frame, Palette, User, Sparkles, ShoppingBag } from 'lucide-react';
 import { useLang } from './LangContext.jsx';
 import { useAuth, isIOSApp } from './AuthContext.jsx';
 import { SERVER } from './config.js';
-import { purchaseWithStoreKit, extractReceipt } from './iap.js';
+import { purchaseWithStoreKit, extractReceipt, restorePurchases, productIdToItemId } from './iap.js';
 import { AvatarSVG } from './components/AvatarSVGs.jsx';
 
 const SHOP_ITEMS = {
@@ -529,16 +529,20 @@ function PreviewEffect({ item }) {
 
 export default function Shop({ onBack }) {
   const { lang, t } = useLang();
-  const { user, purchases, refreshPurchases, activeCosmetics, equipCosmetic, unequipCosmetic } = useAuth();
+  const { user, purchases, refreshPurchases, refreshUser, activeCosmetics, equipCosmetic, unequipCosmetic } = useAuth();
   const [activeCategory, setActiveCategory] = useState('frames');
   const [loading, setLoading] = useState(null);
   const [iapError, setIapError] = useState(null);
+  const [restoring, setRestoring] = useState(false);
+  const [restoreMsg, setRestoreMsg] = useState(null);
   const confirmingRef = useRef(new Set());
 
   const items = SHOP_ITEMS[activeCategory];
   const cosmeticType = CATEGORY_TYPES[activeCategory];
 
   async function handlePurchaseSuccess(itemId, receiptData, iapKeys = null) {
+    if (!receiptData) return;
+    if (purchases.includes(itemId)) return;
     if (confirmingRef.current.has(itemId)) return;
     confirmingRef.current.add(itemId);
     const token = localStorage.getItem('tradaria_token');
@@ -575,21 +579,53 @@ export default function Shop({ onBack }) {
       if (window.__iapPurchased) {
         const raw = window.__iapPurchased;
         window.__iapPurchased = null;
-        const productID = typeof raw === 'object' && raw.productID ? raw.productID : raw;
-        const receiptData = typeof raw === 'object' ? extractReceipt(raw) : null;
-        const itemId = String(productID).split('.').slice(2).join('_');
+        if (!raw || typeof raw !== 'object') return;
+        const { productID, receiptData } = raw;
         if (!receiptData) {
-          const keys = typeof raw === 'object' ? Object.keys(raw) : [];
-          if (keys.length) console.warn('[iap] __iapPurchased sin recibo, claves:', keys);
+          const keys = Object.keys(raw);
           const detail = keys.length ? ` (no receipt; keys:${keys.join(',')})` : '';
           setIapError(`${t.shop.iapError}${detail}`);
           return;
         }
+        const itemId = productIdToItemId(productID);
+        if (!itemId) return;
         handlePurchaseSuccess(itemId, receiptData);
       }
     }, 500);
     return () => clearInterval(interval);
   }, []);
+
+  async function handleRestore() {
+    setRestoring(true);
+    setRestoreMsg(null);
+    try {
+      const { productIDs, receiptData } = await restorePurchases();
+      const token = localStorage.getItem('tradaria_token');
+      let count = 0;
+      for (const pid of productIDs) {
+        const itemId = productIdToItemId(pid);
+        if (!itemId || purchases.includes(itemId)) continue;
+        try {
+          await fetch(`${SERVER}/shop/iap-confirm`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ itemId, receiptData }),
+          });
+          count++;
+        } catch {}
+      }
+      await refreshPurchases();
+      await refreshUser();
+      setRestoreMsg(count > 0
+        ? t.shop.restoreOk.replace('{n}', count)
+        : t.shop.restoreNone
+      );
+    } catch {
+      setRestoreMsg(t.shop.restoreError);
+    } finally {
+      setRestoring(false);
+    }
+  }
 
   async function handleBuy(itemId) {
     const token = localStorage.getItem('tradaria_token');
@@ -733,6 +769,40 @@ export default function Shop({ onBack }) {
             );
           })}
         </div>
+
+        {window.webkit?.messageHandlers?.iapRestore && (
+          <div style={{ padding: '0 20px 24px' }}>
+            {restoreMsg && (
+              <div style={{
+                marginBottom: '10px', padding: '10px 14px',
+                background: 'var(--bg-card)', border: '1px solid var(--bd)',
+                borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              }}>
+                <span style={{ fontSize: '12px', color: 'var(--t3)', fontFamily: 'var(--font-body)' }}>
+                  {restoreMsg}
+                </span>
+                <button onClick={() => setRestoreMsg(null)} style={{
+                  background: 'transparent', border: 'none', color: 'var(--t5)',
+                  cursor: 'pointer', fontSize: '14px', lineHeight: 1, padding: '0 4px',
+                }}>×</button>
+              </div>
+            )}
+            <button
+              onClick={handleRestore}
+              disabled={restoring}
+              style={{
+                width: '100%', padding: '11px',
+                background: 'transparent', border: '1px solid var(--bd2)',
+                borderRadius: '6px', color: restoring ? 'var(--t5)' : 'var(--t4)',
+                fontFamily: 'var(--font-body)', fontSize: '12px',
+                fontWeight: 700, letterSpacing: '0.06em',
+                textTransform: 'uppercase', cursor: restoring ? 'default' : 'pointer',
+              }}
+            >
+              {restoring ? t.shop.restoring : t.shop.restore}
+            </button>
+          </div>
+        )}
 
       </div>
     </div>
