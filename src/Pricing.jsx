@@ -29,7 +29,7 @@ export default function Pricing({ onBack, fromTournament }) {
     setLoading(true);
     if (isIOSApp()) {
       try {
-        const { receiptData } = await purchaseWithStoreKit('dev.tradiko.pro.monthly');
+        const { receiptData, _iapKeys } = await purchaseWithStoreKit('dev.tradiko.pro.monthly');
         const token = localStorage.getItem('tradaria_token');
         const confirmRes = await fetch(`${SERVER}/shop/iap-confirm`, {
           method: 'POST',
@@ -37,7 +37,15 @@ export default function Pricing({ onBack, fromTournament }) {
           body: JSON.stringify({ itemId: 'pro', receiptData }),
         });
         if (!confirmRes.ok) {
-          setMsg(t.pricing.iapError);
+          let detail = '';
+          try {
+            const body = await confirmRes.json();
+            detail = body.error ? ` (${body.error}` : ' (error';
+            if (body.appleStatus != null) detail += `; apple:${body.appleStatus}`;
+            if (!receiptData && _iapKeys) detail += `; keys:${_iapKeys.join(',')}`;
+            detail += ')';
+          } catch { /* ignore parse errors */ }
+          setMsg(`${t.pricing.iapError}${detail}`);
           return;
         }
         updateUser({ isPro: true });

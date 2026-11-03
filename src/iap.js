@@ -1,3 +1,13 @@
+const RECEIPT_FIELDS = ['receiptData', 'receipt', 'receipt_data', 'transactionReceipt', 'appStoreReceipt'];
+
+export function extractReceipt(obj) {
+  if (!obj || typeof obj !== 'object') return null;
+  for (const f of RECEIPT_FIELDS) {
+    if (obj[f]) return obj[f];
+  }
+  return null;
+}
+
 export function purchaseWithStoreKit(productID) {
   return new Promise((resolve, reject) => {
     window.__iapResult = null;
@@ -5,13 +15,15 @@ export function purchaseWithStoreKit(productID) {
     const interval = setInterval(() => {
       if (window.__iapResult !== null) {
         clearInterval(interval);
-        if (window.__iapResult.success) {
-          resolve({
-            productID: window.__iapResult.productID,
-            receiptData: window.__iapResult.receiptData || null,
-          });
+        const r = window.__iapResult;
+        if (r.success) {
+          const receiptData = extractReceipt(r);
+          if (!receiptData) {
+            console.warn('[iap] __iapResult sin recibo, claves:', Object.keys(r));
+          }
+          resolve({ productID: r.productID, receiptData, _iapKeys: Object.keys(r) });
         } else {
-          reject(new Error(window.__iapResult.error || 'Purchase cancelled'));
+          reject(new Error(r.error || 'Purchase cancelled'));
         }
       }
     }, 200);

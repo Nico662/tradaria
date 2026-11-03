@@ -3,7 +3,7 @@ import { Frame, Palette, User, Sparkles, ShoppingBag } from 'lucide-react';
 import { useLang } from './LangContext.jsx';
 import { useAuth, isIOSApp } from './AuthContext.jsx';
 import { SERVER } from './config.js';
-import { purchaseWithStoreKit } from './iap.js';
+import { purchaseWithStoreKit, extractReceipt } from './iap.js';
 import { AvatarSVG } from './components/AvatarSVGs.jsx';
 
 const SHOP_ITEMS = {
@@ -538,7 +538,7 @@ export default function Shop({ onBack }) {
   const items = SHOP_ITEMS[activeCategory];
   const cosmeticType = CATEGORY_TYPES[activeCategory];
 
-  async function handlePurchaseSuccess(itemId, receiptData) {
+  async function handlePurchaseSuccess(itemId, receiptData, iapKeys = null) {
     if (confirmingRef.current.has(itemId)) return;
     confirmingRef.current.add(itemId);
     const token = localStorage.getItem('tradaria_token');
@@ -550,7 +550,15 @@ export default function Shop({ onBack }) {
         body: JSON.stringify({ itemId, receiptData }),
       });
       if (!res.ok) {
-        setIapError(t.shop.iapError);
+        let detail = '';
+        try {
+          const body = await res.json();
+          detail = body.error ? ` (${body.error}` : ' (error';
+          if (body.appleStatus != null) detail += `; apple:${body.appleStatus}`;
+          if (!receiptData && iapKeys) detail += `; keys:${iapKeys.join(',')}`;
+          detail += ')';
+        } catch { /* ignore parse errors */ }
+        setIapError(`${t.shop.iapError}${detail}`);
         return;
       }
       await refreshPurchases();
@@ -568,10 +576,13 @@ export default function Shop({ onBack }) {
         const raw = window.__iapPurchased;
         window.__iapPurchased = null;
         const productID = typeof raw === 'object' && raw.productID ? raw.productID : raw;
-        const receiptData = typeof raw === 'object' ? (raw.receiptData || null) : null;
+        const receiptData = typeof raw === 'object' ? extractReceipt(raw) : null;
         const itemId = String(productID).split('.').slice(2).join('_');
         if (!receiptData) {
-          setIapError(t.shop.iapError);
+          const keys = typeof raw === 'object' ? Object.keys(raw) : [];
+          if (keys.length) console.warn('[iap] __iapPurchased sin recibo, claves:', keys);
+          const detail = keys.length ? ` (no receipt; keys:${keys.join(',')})` : '';
+          setIapError(`${t.shop.iapError}${detail}`);
           return;
         }
         handlePurchaseSuccess(itemId, receiptData);
@@ -590,8 +601,8 @@ export default function Shop({ onBack }) {
       setLoading(itemId);
       try {
         const productID = `dev.tradiko.${itemId.replace('_', '.')}`;
-        const { receiptData } = await purchaseWithStoreKit(productID);
-        await handlePurchaseSuccess(itemId, receiptData);
+        const { receiptData, _iapKeys } = await purchaseWithStoreKit(productID);
+        await handlePurchaseSuccess(itemId, receiptData, _iapKeys);
       } catch (err) {
         if (err.message !== 'Purchase cancelled') console.error('IAP error:', err.message);
       } finally {
