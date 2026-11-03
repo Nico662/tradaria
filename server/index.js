@@ -1609,15 +1609,22 @@ app.get('/shop/purchases', async (req, res) => {
 
 app.post('/shop/iap-confirm', async (req, res) => {
   const IAP_SHARED_SECRET = process.env.IAP_SHARED_SECRET;
-  if (!IAP_SHARED_SECRET) return res.status(500).json({ error: 'internal_error' });
+  if (!IAP_SHARED_SECRET) {
+    console.error('[iap-confirm] IAP_SHARED_SECRET not set');
+    return res.status(500).json({ error: 'internal_error' });
+  }
 
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'Unauthorized' });
   try {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const userId = String(decoded.id);
     const { itemId, receiptData } = req.body;
     if (!itemId) return res.status(400).json({ error: 'Missing itemId' });
-    if (!receiptData) return res.status(400).json({ error: 'Missing receiptData' });
+    if (!receiptData) {
+      console.log('[iap-confirm] missing_receiptData', { userId, itemId });
+      return res.status(400).json({ error: 'Missing receiptData' });
+    }
 
     const expectedProductId = itemId === 'pro'
       ? 'dev.tradiko.pro.monthly'
@@ -1637,6 +1644,7 @@ app.post('/shop/iap-confirm', async (req, res) => {
       result = await verifyWithApple('https://sandbox.itunes.apple.com/verifyReceipt');
     }
     if (result.status !== 0) {
+      console.log('[iap-confirm] apple_rejected', { userId, itemId, appleStatus: result.status });
       return res.status(400).json({ error: 'Receipt verification failed', appleStatus: result.status });
     }
 
@@ -1644,6 +1652,7 @@ app.post('/shop/iap-confirm', async (req, res) => {
     const latestInfo = result.latest_receipt_info || [];
     const validPurchase = [...inApp, ...latestInfo].some(p => p.product_id === expectedProductId);
     if (!validPurchase) {
+      console.log('[iap-confirm] product_mismatch', { userId, itemId, expectedProductId });
       return res.status(400).json({ error: 'Receipt does not contain expected product' });
     }
 
@@ -1651,8 +1660,10 @@ app.post('/shop/iap-confirm', async (req, res) => {
       ? { isPro: true, $addToSet: { purchases: itemId } }
       : { $addToSet: { purchases: itemId } };
     await User.findByIdAndUpdate(decoded.id, update);
+    console.log('[iap-confirm] granted', { userId, itemId });
     res.json({ success: true });
-  } catch {
+  } catch (err) {
+    console.error('[iap-confirm] exception', { err: err?.message });
     res.status(401).json({ error: 'Invalid token' });
   }
 });

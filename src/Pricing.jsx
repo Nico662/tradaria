@@ -8,7 +8,7 @@ import { Star, Heart, Medal, Bell, FileText, TrendingUp, Ticket } from 'lucide-r
 const PRO_ICONS = [Star, Heart, Medal, Bell, FileText, TrendingUp, Ticket];
 
 export default function Pricing({ onBack, fromTournament }) {
-  const { user, isPro, updateUser } = useAuth();
+  const { user, isPro, refreshUser } = useAuth();
   const { t } = useLang();
   const [loading, setLoading] = useState(false);
   const [msg, setMsg]         = useState('');
@@ -25,17 +25,30 @@ export default function Pricing({ onBack, fromTournament }) {
 
   async function handleUpgrade() {
     if (!user) { setMsg(t.pricing.signInFirst); return; }
+    if (loading) return;
     setLoading(true);
     if (isIOSApp()) {
       try {
-        await purchaseWithStoreKit('dev.tradiko.pro.monthly');
+        const { receiptData, _iapKeys } = await purchaseWithStoreKit('dev.tradiko.pro.monthly');
         const token = localStorage.getItem('tradaria_token');
-        await fetch(`${SERVER}/shop/iap-confirm`, {
+        const confirmRes = await fetch(`${SERVER}/shop/iap-confirm`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ itemId: 'pro' }),
+          body: JSON.stringify({ itemId: 'pro', receiptData }),
         });
-        updateUser({ isPro: true });
+        if (!confirmRes.ok) {
+          let detail = '';
+          try {
+            const body = await confirmRes.json();
+            detail = body.error ? ` (${body.error}` : ' (error';
+            if (body.appleStatus != null) detail += `; apple:${body.appleStatus}`;
+            if (!receiptData && _iapKeys) detail += `; keys:${_iapKeys.join(',')}`;
+            detail += ')';
+          } catch { /* ignore parse errors */ }
+          setMsg(`${t.pricing.iapError}${detail}`);
+          return;
+        }
+        await refreshUser();
       } catch (err) {
         if (err.message !== 'Purchase cancelled') setMsg(t.pricing.networkError);
       } finally {

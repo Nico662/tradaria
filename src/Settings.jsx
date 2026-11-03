@@ -3,6 +3,7 @@ import { useAuth, isIOSApp } from './AuthContext';
 import { useLang } from './LangContext.jsx';
 import UsernameModal from './UsernameModal.jsx';
 import { SERVER } from './config.js';
+import { restorePurchases } from './iap.js';
 import { Zap } from 'lucide-react';
 
 const STRINGS = {
@@ -22,6 +23,7 @@ const STRINGS = {
     cancel: 'Cancel', yesDelete: 'Yes, delete', deleting: 'Deleting...',
     cancelError: 'Error cancelling. Contact tradikonicolasvidal@gmail.com', connectionError: 'Connection error. Please try again.',
     howToPlay: 'How to play',
+    restore: 'Restore purchases', restoring: 'Restoring...', restoreOk: '{n} purchases restored', restoreNone: 'No purchases to restore', restoreError: 'Restore failed',
   },
   es: {
     title: 'Configuración', back: '← volver',
@@ -39,6 +41,7 @@ const STRINGS = {
     cancel: 'Cancelar', yesDelete: 'Sí, eliminar', deleting: 'Eliminando...',
     cancelError: 'Error al cancelar. Contacta con tradikonicolasvidal@gmail.com', connectionError: 'Error de conexión. Inténtalo de nuevo.',
     howToPlay: 'Cómo se juega',
+    restore: 'Restaurar compras', restoring: 'Restaurando...', restoreOk: '{n} compras restauradas', restoreNone: 'No hay compras que restaurar', restoreError: 'Error al restaurar',
   },
   de: {
     title: 'Einstellungen', back: '← zurück',
@@ -56,6 +59,7 @@ const STRINGS = {
     cancel: 'Abbrechen', yesDelete: 'Ja, löschen', deleting: 'Wird gelöscht...',
     cancelError: 'Fehler beim Kündigen. Kontaktiere tradikonicolasvidal@gmail.com', connectionError: 'Verbindungsfehler. Bitte versuche es erneut.',
     howToPlay: 'So wird gespielt',
+    restore: 'Käufe wiederherstellen', restoring: 'Wird wiederhergestellt...', restoreOk: '{n} Käufe wiederhergestellt', restoreNone: 'Keine Käufe zum Wiederherstellen', restoreError: 'Wiederherstellung fehlgeschlagen',
   },
 };
 
@@ -106,7 +110,7 @@ function Row({ label, children, last }) {
 }
 
 export default function Settings({ onBack, onShowTutorial }) {
-  const { user, logout, updateUser, isPro } = useAuth();
+  const { user, logout, updateUser, isPro, refreshPurchases, refreshUser } = useAuth();
   const { lang, setLang } = useLang();
   const s = STRINGS[lang] || STRINGS.en;
 
@@ -125,6 +129,8 @@ export default function Settings({ onBack, onShowTutorial }) {
   const [leaveMessage, setLeaveMessage] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [restoring, setRestoring] = useState(false);
+  const [restoreMsg, setRestoreMsg] = useState(null);
 
   async function handleCancelSubscription() {
     try {
@@ -174,6 +180,38 @@ export default function Settings({ onBack, onShowTutorial }) {
       console.error(err);
     }
     setDeleting(false);
+  }
+
+  async function handleRestore() {
+    setRestoring(true);
+    setRestoreMsg(null);
+    try {
+      const { productIDs, receiptData } = await restorePurchases();
+      const token = localStorage.getItem('tradaria_token');
+      let count = 0;
+      for (const pid of productIDs) {
+        const parts = pid.split('.');
+        let itemId = null;
+        if (parts[2] === 'pro') itemId = 'pro';
+        else if (parts.length >= 4) itemId = `${parts[2]}_${parts[3]}`;
+        if (!itemId) continue;
+        try {
+          await fetch(`${SERVER}/shop/iap-confirm`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ itemId, receiptData }),
+          });
+          count++;
+        } catch {}
+      }
+      await refreshPurchases();
+      await refreshUser();
+      setRestoreMsg(count > 0 ? s.restoreOk.replace('{n}', count) : s.restoreNone);
+    } catch {
+      setRestoreMsg(s.restoreError);
+    } finally {
+      setRestoring(false);
+    }
   }
 
   async function enableNotifications() {
@@ -427,6 +465,39 @@ export default function Settings({ onBack, onShowTutorial }) {
                     </div>
                   )}
                 </div>
+              </div>
+            </Card>
+          </>
+        )}
+
+        {isIOSApp() && window.webkit?.messageHandlers?.iapRestore && (
+          <>
+            <SectionLabel text={s.restore} />
+            <Card>
+              <div style={{ padding: '12px 16px' }}>
+                {restoreMsg && (
+                  <div style={{
+                    marginBottom: '10px', padding: '10px 14px',
+                    background: 'var(--bg-card2)', border: '1px solid var(--bd)',
+                    borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  }}>
+                    <span style={{ fontSize: '12px', color: 'var(--t3)', fontFamily: 'var(--font-body)' }}>{restoreMsg}</span>
+                    <button onClick={() => setRestoreMsg(null)} style={{
+                      background: 'transparent', border: 'none', color: 'var(--t5)',
+                      cursor: 'pointer', fontSize: '14px', lineHeight: 1, padding: '0 4px',
+                    }}>×</button>
+                  </div>
+                )}
+                <button onClick={handleRestore} disabled={restoring} style={{
+                  width: '100%', padding: '11px',
+                  background: 'transparent', border: '1px solid var(--bd2)',
+                  borderRadius: '6px', color: restoring ? 'var(--t5)' : 'var(--t4)',
+                  fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700,
+                  letterSpacing: '0.06em', textTransform: 'uppercase',
+                  cursor: restoring ? 'default' : 'pointer',
+                }}>
+                  {restoring ? s.restoring : s.restore}
+                </button>
               </div>
             </Card>
           </>
