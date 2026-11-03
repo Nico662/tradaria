@@ -3,7 +3,7 @@ import { Frame, Palette, User, Sparkles, ShoppingBag } from 'lucide-react';
 import { useLang } from './LangContext.jsx';
 import { useAuth, isIOSApp } from './AuthContext.jsx';
 import { SERVER } from './config.js';
-import { purchaseWithStoreKit, extractReceipt, restorePurchases, productIdToItemId } from './iap.js';
+import { purchaseWithStoreKit, extractReceipt, restorePurchases, productIdToItemId, canPurchaseIAP } from './iap.js';
 import { AvatarSVG } from './components/AvatarSVGs.jsx';
 
 const SHOP_ITEMS = {
@@ -536,6 +536,7 @@ export default function Shop({ onBack }) {
   const [restoring, setRestoring] = useState(false);
   const [restoreMsg, setRestoreMsg] = useState(null);
   const confirmingRef = useRef(new Set());
+  const [updateBannerDismissed, setUpdateBannerDismissed] = useState(false);
 
   const items = SHOP_ITEMS[activeCategory];
   const cosmeticType = CATEGORY_TYPES[activeCategory];
@@ -628,6 +629,7 @@ export default function Shop({ onBack }) {
   }
 
   async function handleBuy(itemId) {
+    if (!canPurchaseIAP()) return;
     const token = localStorage.getItem('tradaria_token');
     if (!token) {
       alert(t.shop.signIn);
@@ -685,6 +687,13 @@ export default function Shop({ onBack }) {
             <ShoppingBag size={16} strokeWidth={2} aria-hidden style={{ marginRight: '4px', verticalAlign: 'middle' }} /> {t.home.shop}
           </div>
         </div>
+
+        {!canPurchaseIAP() && !updateBannerDismissed && (
+          <div style={{ margin: '12px 20px 0', padding: '10px 12px', background: 'rgba(232,184,75,0.08)', border: '1px solid var(--color-neutral)', borderRadius: '8px', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+            <span style={{ flex: 1, fontSize: '12px', color: 'var(--color-neutral)', fontFamily: 'var(--font-body)', lineHeight: '1.5' }}>{t.shop.updateBanner}</span>
+            <button onClick={() => setUpdateBannerDismissed(true)} style={{ background: 'transparent', border: 'none', color: 'var(--color-neutral)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer', flexShrink: 0, padding: 0 }}>{t.shop.dismiss}</button>
+          </div>
+        )}
 
         {iapError && (
           <div style={{ margin: '12px 20px 0', padding: '10px 12px', background: 'rgba(224,85,85,0.10)', border: '1px solid var(--color-down)', borderRadius: '8px', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
@@ -752,17 +761,17 @@ export default function Shop({ onBack }) {
                     {equipped ? t.shop.equipped : t.shop.equip}
                   </button>
                 ) : (
-                  <button onClick={() => handleBuy(item.id)} disabled={loading === item.id} style={{
+                  <button onClick={() => handleBuy(item.id)} disabled={loading === item.id || !canPurchaseIAP()} style={{
                     width: '100%', padding: '8px', marginTop: '4px',
-                    background: loading === item.id ? 'var(--bg-card2)' : 'rgba(0,229,160,0.08)',
-                    border: `1px solid ${loading === item.id ? 'var(--bd2)' : item.color}`,
+                    background: (loading === item.id || !canPurchaseIAP()) ? 'var(--bg-card2)' : 'rgba(0,229,160,0.08)',
+                    border: `1px solid ${(loading === item.id || !canPurchaseIAP()) ? 'var(--bd2)' : item.color}`,
                     borderRadius: '6px',
-                    color: loading === item.id ? 'var(--t5)' : item.color,
+                    color: (loading === item.id || !canPurchaseIAP()) ? 'var(--t5)' : item.color,
                     fontFamily: 'var(--font-body)', fontSize: '12px',
-                    fontWeight: 700, letterSpacing: '0.06em', cursor: loading === item.id ? 'not-allowed' : 'pointer',
+                    fontWeight: 700, letterSpacing: '0.06em', cursor: (loading === item.id || !canPurchaseIAP()) ? 'not-allowed' : 'pointer',
                     transition: 'all 0.15s',
                   }}>
-                    {loading === item.id ? '...' : `€${item.price}`}
+                    {loading === item.id ? '...' : !canPurchaseIAP() ? t.shop.updateRequired : `€${item.price}`}
                   </button>
                 )}
               </div>

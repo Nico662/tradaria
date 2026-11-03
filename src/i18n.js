@@ -455,6 +455,8 @@ export const LANGS = {
       restoreOk: '{n} purchases restored',
       restoreNone: 'No purchases to restore',
       restoreError: 'Restore failed',
+      updateRequired: 'Update app to purchase',
+      updateBanner: 'Purchases require the latest version of the app.',
     },
     friends: {
       title: 'Friends', back: '← back',
@@ -621,6 +623,7 @@ export const LANGS = {
       proFeat3: 'Pro badge on profile', proFeat4: 'Price alerts on your positions',
       proFeat5: 'Notes on your portfolio positions', proFeat6: 'Compare your portfolio vs #1 on the ranking', proFeat7: 'Trader Pass Pro — exclusive season rewards',
       perMonth: '/mo', legalAgree: 'By subscribing, you agree to our', termsOfUse: 'Terms of Use', legalAnd: 'and', privacyPolicy: 'Privacy Policy',
+      updateRequired: 'Update app to purchase',
     },
     maintenance: {
       banner: "We're making changes to the site. Things might look a bit off for a while.",
@@ -1263,6 +1266,8 @@ export const LANGS = {
       restoreOk: '{n} compras restauradas',
       restoreNone: 'No hay compras que restaurar',
       restoreError: 'Error al restaurar',
+      updateRequired: 'Actualiza la app para comprar',
+      updateBanner: 'Las compras requieren la última versión de la app.',
     },
     friends: {
       title: 'Amigos', back: '← volver',
@@ -1429,6 +1434,7 @@ export const LANGS = {
       proFeat3: 'Badge Pro en el perfil', proFeat4: 'Alertas de precio en tus posiciones',
       proFeat5: 'Notas en tus posiciones del portfolio', proFeat6: 'Comparar tu portfolio vs el #1 del ranking', proFeat7: 'Trader Pass Pro — recompensas de temporada exclusivas',
       perMonth: '/mes', legalAgree: 'Al suscribirte, aceptas nuestros', termsOfUse: 'Términos de uso', legalAnd: 'y la', privacyPolicy: 'Política de privacidad',
+      updateRequired: 'Actualiza la app para comprar',
     },
     maintenance: {
       banner: 'Estamos realizando mejoras en la plataforma. Es posible que experimentes algunas interrupciones temporales.',
@@ -2020,6 +2026,8 @@ export const LANGS = {
       restoreOk: '{n} Käufe wiederhergestellt',
       restoreNone: 'Keine Käufe zum Wiederherstellen',
       restoreError: 'Wiederherstellung fehlgeschlagen',
+      updateRequired: 'App aktualisieren zum Kaufen',
+      updateBanner: 'Käufe erfordern die neueste App-Version.',
     },
     friends: {
       title: 'Freunde', back: '← zurück',
@@ -2186,6 +2194,7 @@ export const LANGS = {
       proFeat3: 'Pro-Badge im Profil', proFeat4: 'Preisalarme auf deine Positionen',
       proFeat5: 'Notizen zu deinen Portfolio-Positionen', proFeat6: 'Portfolio vs #1 im Ranking vergleichen', proFeat7: 'Trader Pass Pro — exklusive Saison-Belohnungen',
       perMonth: '/Monat', legalAgree: 'Durch das Abonnieren stimmst du unseren', termsOfUse: 'Nutzungsbedingungen', legalAnd: 'und der', privacyPolicy: 'Datenschutzerklärung',
+      updateRequired: 'App aktualisieren zum Kaufen',
     },
     maintenance: {
       banner: 'Wir nehmen gerade Änderungen vor. Es kann kurzzeitig zu Darstellungsfehlern kommen.',

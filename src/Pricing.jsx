@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth, isIOSApp } from './AuthContext';
 import { SERVER } from './config.js';
 import { useLang } from './LangContext.jsx';
-import { purchaseWithStoreKit } from './iap.js';
+import { purchaseWithStoreKit, canPurchaseIAP } from './iap.js';
 import { Star, Heart, Medal, Bell, FileText, TrendingUp, Ticket } from 'lucide-react';
 
 const PRO_ICONS = [Star, Heart, Medal, Bell, FileText, TrendingUp, Ticket];
@@ -25,6 +25,7 @@ export default function Pricing({ onBack, fromTournament }) {
 
   async function handleUpgrade() {
     if (!user) { setMsg(t.pricing.signInFirst); return; }
+    if (!canPurchaseIAP()) { setMsg(t.pricing.updateRequired); return; }
     if (loading) return;
     setLoading(true);
     if (isIOSApp()) {
@@ -166,19 +167,19 @@ export default function Pricing({ onBack, fromTournament }) {
           {!isPro && (
             <button
               onClick={handleUpgrade}
-              disabled={loading}
+              disabled={loading || !canPurchaseIAP()}
               style={{
                 width: '100%', padding: '14px',
-                background: loading ? 'rgba(0,192,135,0.3)' : 'linear-gradient(135deg, #00c087, #1aaa84)',
+                background: (loading || !canPurchaseIAP()) ? 'rgba(0,192,135,0.3)' : 'linear-gradient(135deg, #00c087, #1aaa84)',
                 border: 'none', borderRadius: '8px', color: '#060b10',
                 fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800,
                 letterSpacing: '0.08em', textTransform: 'uppercase',
-                cursor: loading ? 'default' : 'pointer',
-                boxShadow: loading ? 'none' : '0 4px 18px rgba(0,192,135,0.38)',
+                cursor: (loading || !canPurchaseIAP()) ? 'default' : 'pointer',
+                boxShadow: (loading || !canPurchaseIAP()) ? 'none' : '0 4px 18px rgba(0,192,135,0.38)',
                 position: 'relative',
               }}
             >
-              {loading ? t.pricing.redirecting : t.pricing.upgradeBtn}
+              {loading ? t.pricing.redirecting : !canPurchaseIAP() ? t.pricing.updateRequired : t.pricing.upgradeBtn}
             </button>
           )}
           {msg && (

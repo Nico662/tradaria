@@ -1,3 +1,10 @@
+import { isIOSApp } from './AuthContext';
+
+export function canPurchaseIAP() {
+  if (!isIOSApp()) return true;
+  return !!window.webkit?.messageHandlers?.iapRestore;
+}
+
 const RECEIPT_FIELDS = ['receiptData', 'receipt', 'receipt_data', 'transactionReceipt', 'appStoreReceipt'];
 
 export function extractReceipt(obj) {
