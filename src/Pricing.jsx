@@ -25,16 +25,21 @@ export default function Pricing({ onBack, fromTournament }) {
 
   async function handleUpgrade() {
     if (!user) { setMsg(t.pricing.signInFirst); return; }
+    if (loading) return;
     setLoading(true);
     if (isIOSApp()) {
       try {
-        await purchaseWithStoreKit('dev.tradiko.pro.monthly');
+        const { receiptData } = await purchaseWithStoreKit('dev.tradiko.pro.monthly');
         const token = localStorage.getItem('tradaria_token');
-        await fetch(`${SERVER}/shop/iap-confirm`, {
+        const confirmRes = await fetch(`${SERVER}/shop/iap-confirm`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ itemId: 'pro' }),
+          body: JSON.stringify({ itemId: 'pro', receiptData }),
         });
+        if (!confirmRes.ok) {
+          setMsg(t.pricing.iapError);
+          return;
+        }
         updateUser({ isPro: true });
       } catch (err) {
         if (err.message !== 'Purchase cancelled') setMsg(t.pricing.networkError);

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Frame, Palette, User, Sparkles, ShoppingBag } from 'lucide-react';
 import { useLang } from './LangContext.jsx';
 import { useAuth, isIOSApp } from './AuthContext.jsx';
@@ -532,32 +532,49 @@ export default function Shop({ onBack }) {
   const { user, purchases, refreshPurchases, activeCosmetics, equipCosmetic, unequipCosmetic } = useAuth();
   const [activeCategory, setActiveCategory] = useState('frames');
   const [loading, setLoading] = useState(null);
+  const [iapError, setIapError] = useState(null);
+  const confirmingRef = useRef(new Set());
 
   const items = SHOP_ITEMS[activeCategory];
   const cosmeticType = CATEGORY_TYPES[activeCategory];
 
-  async function handlePurchaseSuccess(itemId) {
+  async function handlePurchaseSuccess(itemId, receiptData) {
+    if (confirmingRef.current.has(itemId)) return;
+    confirmingRef.current.add(itemId);
     const token = localStorage.getItem('tradaria_token');
-    if (!token) return;
+    if (!token) { confirmingRef.current.delete(itemId); return; }
     try {
-      await fetch(`${SERVER}/shop/iap-confirm`, {
+      const res = await fetch(`${SERVER}/shop/iap-confirm`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ itemId }),
+        body: JSON.stringify({ itemId, receiptData }),
       });
+      if (!res.ok) {
+        setIapError(t.shop.iapError);
+        return;
+      }
       await refreshPurchases();
     } catch (err) {
       console.error('IAP confirm error:', err);
+      setIapError(t.shop.iapError);
+    } finally {
+      confirmingRef.current.delete(itemId);
     }
   }
 
   useEffect(() => {
     const interval = setInterval(() => {
       if (window.__iapPurchased) {
-        const productID = window.__iapPurchased;
+        const raw = window.__iapPurchased;
         window.__iapPurchased = null;
-        const itemId = productID.split('.').slice(2).join('_');
-        handlePurchaseSuccess(itemId);
+        const productID = typeof raw === 'object' && raw.productID ? raw.productID : raw;
+        const receiptData = typeof raw === 'object' ? (raw.receiptData || null) : null;
+        const itemId = String(productID).split('.').slice(2).join('_');
+        if (!receiptData) {
+          setIapError(t.shop.iapError);
+          return;
+        }
+        handlePurchaseSuccess(itemId, receiptData);
       }
     }, 500);
     return () => clearInterval(interval);
@@ -573,10 +590,10 @@ export default function Shop({ onBack }) {
       setLoading(itemId);
       try {
         const productID = `dev.tradiko.${itemId.replace('_', '.')}`;
-        await purchaseWithStoreKit(productID);
-        await handlePurchaseSuccess(itemId);
+        const { receiptData } = await purchaseWithStoreKit(productID);
+        await handlePurchaseSuccess(itemId, receiptData);
       } catch (err) {
-        console.error('IAP error:', err.message);
+        if (err.message !== 'Purchase cancelled') console.error('IAP error:', err.message);
       } finally {
         setLoading(null);
       }
@@ -621,6 +638,13 @@ export default function Shop({ onBack }) {
             <ShoppingBag size={16} strokeWidth={2} aria-hidden style={{ marginRight: '4px', verticalAlign: 'middle' }} /> {t.home.shop}
           </div>
         </div>
+
+        {iapError && (
+          <div style={{ margin: '12px 20px 0', padding: '10px 12px', background: 'rgba(224,85,85,0.10)', border: '1px solid var(--color-down)', borderRadius: '8px', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+            <span style={{ flex: 1, fontSize: '12px', color: 'var(--color-down)', fontFamily: 'var(--font-body)', lineHeight: '1.5' }}>{iapError}</span>
+            <button onClick={() => setIapError(null)} style={{ background: 'transparent', border: 'none', color: 'var(--color-down)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer', flexShrink: 0, padding: 0 }}>{t.shop.dismiss}</button>
+          </div>
+        )}
 
         <div style={{ display: 'flex', gap: '6px', padding: '16px 20px', overflowX: 'auto' }}>
           {CATEGORIES.map(cat => (
