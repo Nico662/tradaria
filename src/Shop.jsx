@@ -45,6 +45,7 @@ const THEME_COLORS = {
   theme_gold:     { bg: '#120f0a', border: 'rgba(230,180,50,0.35)',  accent: '#e6b432', text: '#e8e3d5', down: '#e6b432' },
   theme_midnight: { bg: '#0a0d14', border: 'rgba(107,159,255,0.35)', accent: '#6b9fff', text: '#dce4f5', down: '#6b9fff' },
   theme_matrix:   { bg: '#0a100c', border: 'rgba(0,255,65,0.35)',    accent: '#00ff41', text: '#c8e8d0', down: '#00ff41' },
+  theme_aurora:   { bg: '#0d0a14', border: 'rgba(192,132,252,0.35)', accent: '#c084fc', text: '#ede8f5', down: '#c084fc' },
 };
 
 const MINI_CANDLES = [
@@ -258,6 +259,23 @@ function ThemeBgMotif({ id, c }) {
           }} />
         </>
       )}
+
+      {id === 'theme_aurora' && [
+        { w: '40%', color: 'rgba(45,212,160,0.22)',  dur: '9s',  delay: '0s'  },
+        { w: '30%', color: 'rgba(192,132,252,0.24)', dur: '12s', delay: '3s'  },
+        { w: '22%', color: 'rgba(45,212,160,0.16)',  dur: '15s', delay: '6s'  },
+      ].map((b, i) => (
+        <div key={i} className="game-aurora-band" style={{
+          position: 'absolute',
+          top: '-20%',
+          left: 0,
+          width: b.w,
+          height: '150%',
+          background: `linear-gradient(90deg, transparent, ${b.color}, transparent)`,
+          pointerEvents: 'none',
+          animation: `game-aurora-sweep ${b.dur} linear ${b.delay} infinite`,
+        }} />
+      ))}
     </div>
   );
 }

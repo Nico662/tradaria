@@ -236,7 +236,7 @@ export default function Inventory({ onBack }) {
               const equipped = activeCosmetics.theme === id;
               return (
                 <ItemCard key={id} equipped={equipped} onClick={() => toggle('theme', id)}>
-                  <ThemePreview meta={meta} />
+                  <ThemePreview meta={meta} id={id} />
                   <ItemLabel name={meta.name} equipped={equipped} ti={ti} />
                 </ItemCard>
               );
@@ -527,7 +527,21 @@ function LockedPreview({ item }) {
           gap: '2px',
           padding: '0 6px 5px',
           overflow: 'hidden',
+          position: 'relative',
         }}>
+          {item.id === 'theme_aurora' && AURORA_BANDS.map((b, i) => (
+            <div key={i} className="game-aurora-band" style={{
+              position: 'absolute',
+              top: '-20%',
+              left: 0,
+              width: b.w,
+              height: '150%',
+              background: `linear-gradient(90deg, transparent, ${b.color}, transparent)`,
+              pointerEvents: 'none',
+              zIndex: 0,
+              animation: `game-aurora-sweep ${b.dur} linear ${b.delay} infinite`,
+            }} />
+          ))}
           {MINI_HEIGHTS.slice(0, 6).map((h, i) => (
             <div key={i} style={{
               width: '6px',
@@ -535,6 +549,8 @@ function LockedPreview({ item }) {
               background: i % 3 === 2 ? `${item.accent}55` : item.accent,
               borderRadius: '1px 1px 0 0',
               opacity: 0.85 + (i % 2) * 0.15,
+              position: 'relative',
+              zIndex: 1,
             }} />
           ))}
         </div>
@@ -645,7 +661,13 @@ function FramePreview({ id }) {
   );
 }
 
-function ThemePreview({ meta }) {
+const AURORA_BANDS = [
+  { w: '40%', color: 'rgba(45,212,160,0.22)',  dur: '9s',  delay: '0s'  },
+  { w: '30%', color: 'rgba(192,132,252,0.24)', dur: '12s', delay: '3s'  },
+  { w: '22%', color: 'rgba(45,212,160,0.16)',  dur: '15s', delay: '6s'  },
+];
+
+function ThemePreview({ meta, id }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '12px 0 6px' }}>
       <div style={{
@@ -660,7 +682,21 @@ function ThemePreview({ meta }) {
         gap: '2px',
         padding: '0 6px 5px',
         overflow: 'hidden',
+        position: 'relative',
       }}>
+        {id === 'theme_aurora' && AURORA_BANDS.map((b, i) => (
+          <div key={i} className="game-aurora-band" style={{
+            position: 'absolute',
+            top: '-20%',
+            left: 0,
+            width: b.w,
+            height: '150%',
+            background: `linear-gradient(90deg, transparent, ${b.color}, transparent)`,
+            pointerEvents: 'none',
+            zIndex: 0,
+            animation: `game-aurora-sweep ${b.dur} linear ${b.delay} infinite`,
+          }} />
+        ))}
         {MINI_HEIGHTS.slice(0, 6).map((h, i) => (
           <div key={i} style={{
             width: '6px',
@@ -668,6 +704,8 @@ function ThemePreview({ meta }) {
             background: i % 3 === 2 ? `${meta.accent}55` : meta.accent,
             borderRadius: '1px 1px 0 0',
             opacity: 0.85 + (i % 2) * 0.15,
+            position: 'relative',
+            zIndex: 1,
           }} />
         ))}
       </div>

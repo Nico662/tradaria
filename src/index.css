@@ -377,6 +377,8 @@ html, body {
 #root.theme_aurora #gtm-root .result-detail       { color: rgba(192,132,252,0.35); }
 #root.theme_aurora #gtm-root .mode-sub            { color: rgba(192,132,252,0.35); }
 #root.theme_aurora #gtm-root .streak-label        { color: rgba(192,132,252,0.35); }
+#root.theme_aurora #gtm-root .stat-val.yellow     { color: #c084fc; }
+#root.theme_aurora #gtm-root .phase-label.active  { color: #c084fc; }
 
 /* ══════════════════════════════════════════════════
    MATRIX  — accent #00ff41
@@ -466,6 +468,10 @@ html, body {
   45%  { opacity: 0;    transform: rotate(20deg) translateX(650px); }
   100% { opacity: 0;    transform: rotate(20deg) translateX(650px); }
 }
+@keyframes game-aurora-sweep {
+  from { transform: rotate(22deg) translateX(-120%); }
+  to   { transform: rotate(22deg) translateX(320%);  }
+}
 
 /* ─── Design enhancements ───────────────────────── */
 
@@ -488,8 +494,9 @@ html, body {
   flex-shrink: 0;
 }
 @media (prefers-reduced-motion: reduce) {
-  .league-spinner { animation: none; opacity: 0.5; }
-  .skeleton-bar    { animation: none; opacity: 0.5; }
+  .league-spinner   { animation: none; opacity: 0.5; }
+  .skeleton-bar     { animation: none; opacity: 0.5; }
+  .game-aurora-band { animation: none !important; }
 }
 
 /* Page entrance animation */
