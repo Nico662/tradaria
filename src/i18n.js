@@ -526,6 +526,9 @@ export const LANGS = {
       arenaWinRate: 'Arena win rate',
       playMore: 'Play more games to see your comparison',
       myHistory: 'My history',
+      modeGuess: 'Classic', modeHistorical: 'Historical', modeArena: 'Arena', modeSurvival: 'Survival', modePortfolio: 'Portfolio', modeDaily: 'Daily', modeTournament: 'Tournament',
+      gamesSubLabel: 'all modes', accuracySubLabel: 'global ranking', bestStreakSubLabel: 'consecutive rounds', bestScoreSubLabel: 'one game',
+      trendLastN: 'Last {n} games', nGames: '{n} games',
     },
     challenge: {
       challenges: 'challenges you in Arena',
@@ -1337,6 +1340,9 @@ export const LANGS = {
       arenaWinRate: 'Win rate Arena',
       playMore: 'Juega más partidas para ver tu comparativa',
       myHistory: 'Tu historial',
+      modeGuess: 'Classic', modeHistorical: 'Historical', modeArena: 'Arena', modeSurvival: 'Survival', modePortfolio: 'Portfolio', modeDaily: 'Diario', modeTournament: 'Torneo',
+      gamesSubLabel: 'todos los modos', accuracySubLabel: 'ranking global', bestStreakSubLabel: 'rondas seguidas', bestScoreSubLabel: 'una partida',
+      trendLastN: 'Últimas {n} partidas', nGames: '{n} partidas',
     },
     challenge: {
       challenges: 'te reta en Arena',
@@ -2097,6 +2103,9 @@ export const LANGS = {
       arenaWinRate: 'Arena-Siegquote',
       playMore: 'Spiele mehr Runden um deinen Vergleich zu sehen',
       myHistory: 'Mein Verlauf',
+      modeGuess: 'Classic', modeHistorical: 'Historical', modeArena: 'Arena', modeSurvival: 'Survival', modePortfolio: 'Portfolio', modeDaily: 'Täglich', modeTournament: 'Turnier',
+      gamesSubLabel: 'alle Modi', accuracySubLabel: 'globales Ranking', bestStreakSubLabel: 'aufeinanderfolgend', bestScoreSubLabel: 'ein Spiel',
+      trendLastN: 'Letzte {n} Spiele', nGames: '{n} Spiele',
     },
     challenge: {
       challenges: 'fordert dich in Arena heraus',
