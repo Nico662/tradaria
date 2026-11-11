@@ -676,6 +676,12 @@ async function snapshotNewlyUnlockedMissions(userId) {
   // the level guard in processDailyBpProgress would prevent the award until the
   // next daily completion — leaving the reward unreachable for users who had the
   // streak/count before reaching the level.
+  //
+  // Fix: collect missions awarded here and re-run checkLevel30Atomic afterwards.
+  // Previously the array was [], so catch-up awards were invisible to the level-30
+  // check that had already run before snapshotNewlyUnlockedMissions was called.
+  const catchupMissions = [];
+
   for (let i = 0; i < userLevel && i < season1.LEVELS.length; i++) {
     const lvlCfg = season1.LEVELS[i];
     for (const m of [lvlCfg.freeMission, lvlCfg.proMission].filter(Boolean)) {
@@ -684,7 +690,7 @@ async function snapshotNewlyUnlockedMissions(userId) {
       const counter = m.type === 'complete_daily'
         ? (bp.dailiesCompleted || 0)
         : (user.dailyStreak   || 0);
-      if (counter >= m.target) await tryAwardAtomic(userId, m.id, []);
+      if (counter >= m.target) await tryAwardAtomic(userId, m.id, catchupMissions);
     }
   }
 
@@ -696,8 +702,16 @@ async function snapshotNewlyUnlockedMissions(userId) {
     for (const m of [lvlCfg.freeMission, lvlCfg.proMission].filter(Boolean)) {
       if (m.type !== 'historical_all_events')  continue;
       if (bp.completedMissions.includes(m.id)) continue;
-      if (validEventCount(bp) >= m.target) await tryAwardAtomic(userId, m.id, []);
+      if (validEventCount(bp) >= m.target) await tryAwardAtomic(userId, m.id, catchupMissions);
     }
+  }
+
+  // If the catch-up awarded any missions, re-check level-30 completion.
+  // The caller already ran checkLevel30Atomic before this function, so without
+  // this second pass a catch-up mission that completes the prerequisites for
+  // bp_s1_l30_free or bp_s1_l30_pro would never trigger the level-30 award.
+  if (catchupMissions.length > 0) {
+    await checkLevel30Atomic(userId, catchupMissions);
   }
 }
 
