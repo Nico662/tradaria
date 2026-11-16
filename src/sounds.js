@@ -1,6 +1,17 @@
 const ctx = new (window.AudioContext || window.webkitAudioContext)();
 
+let _enabled = true;
+try { _enabled = localStorage.getItem('tradaria_sound') !== 'off'; } catch {}
+
+export function isSoundEnabled() { return _enabled; }
+
+export function setSoundEnabled(val) {
+  _enabled = val;
+  try { localStorage.setItem('tradaria_sound', val ? 'on' : 'off'); } catch {}
+}
+
 function playTone(freq, type, duration, vol = 0.3) {
+  if (!_enabled) return;
   const osc  = ctx.createOscillator();
   const gain = ctx.createGain();
   osc.connect(gain);
