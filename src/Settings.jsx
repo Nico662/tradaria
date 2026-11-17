@@ -10,7 +10,6 @@ const STRINGS = {
   en: {
     title: 'Settings', back: '← back',
     appearance: 'Appearance', darkMode: 'Dark mode',
-    audio: 'Audio', music: 'Music',
     language: 'Language',
     notifications: 'Notifications',
     notifOn: '✓ Notifications enabled', notifOff: 'Enable notifications', notifDisable: 'Disable notifications',
@@ -29,7 +28,6 @@ const STRINGS = {
   es: {
     title: 'Configuración', back: '← volver',
     appearance: 'Apariencia', darkMode: 'Modo oscuro',
-    audio: 'Audio', music: 'Música',
     language: 'Idioma',
     notifications: 'Notificaciones',
     notifOn: '✓ Notificaciones activadas', notifOff: 'Activar notificaciones', notifDisable: 'Desactivar notificaciones',
@@ -48,7 +46,6 @@ const STRINGS = {
   de: {
     title: 'Einstellungen', back: '← zurück',
     appearance: 'Aussehen', darkMode: 'Dunkelmodus',
-    audio: 'Audio', music: 'Musik',
     language: 'Sprache',
     notifications: 'Benachrichtigungen',
     notifOn: '✓ Benachrichtigungen aktiv', notifOff: 'Benachrichtigungen aktivieren', notifDisable: 'Benachrichtigungen deaktivieren',

@@ -5,13 +5,9 @@ try { _enabled = localStorage.getItem('tradaria_sound') !== 'off'; } catch {}
 
 export function isSoundEnabled() { return _enabled; }
 
-const _soundListeners = [];
-export function onSoundChange(cb) { _soundListeners.push(cb); }
-
 export function setSoundEnabled(val) {
   _enabled = val;
   try { localStorage.setItem('tradaria_sound', val ? 'on' : 'off'); } catch {}
-  _soundListeners.forEach(cb => cb(val));
 }
 
 function playTone(freq, type, duration, vol = 0.3) {

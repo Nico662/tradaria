@@ -3,7 +3,6 @@ import { useState, useEffect, useRef } from 'react';
 import { useBattlePass } from './BattlePassContext.jsx';
 import { ShoppingBag, Users, Settings, Trophy, Briefcase, Zap, User, Camera, Ticket, CandlestickChart, Volume2, VolumeX } from 'lucide-react';
 import { isSoundEnabled, setSoundEnabled } from './sounds.js';
-import { playMusic } from './music.js';
 import { ModeIcon, StreakIcon, ProIcon, LevelIcon } from './components/AppIcons';
 import MissionsCard from './MissionsCard.jsx';
 import WordOfTheDay from './WordOfTheDay.jsx';
@@ -48,9 +47,8 @@ export default function Home({ onSelect }) {
 
   function toggleSound() {
     const next = !soundOn;
-    setSoundEnabled(next); // triggers onSoundChange → pauses music if !next
+    setSoundEnabled(next);
     setSoundOn(next);
-    if (next) playMusic(); // resume music (Home is always a menu screen)
   }
 
   useEffect(() => {
