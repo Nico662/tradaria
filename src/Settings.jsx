@@ -5,11 +5,13 @@ import UsernameModal from './UsernameModal.jsx';
 import { SERVER } from './config.js';
 import { restorePurchases } from './iap.js';
 import { Zap } from 'lucide-react';
+import { isMusicEnabled, setMusicEnabled, playMusic, pauseMusic } from './music.js';
 
 const STRINGS = {
   en: {
     title: 'Settings', back: '← back',
     appearance: 'Appearance', darkMode: 'Dark mode',
+    audio: 'Audio', music: 'Music',
     language: 'Language',
     notifications: 'Notifications',
     notifOn: '✓ Notifications enabled', notifOff: 'Enable notifications', notifDisable: 'Disable notifications',
@@ -28,6 +30,7 @@ const STRINGS = {
   es: {
     title: 'Configuración', back: '← volver',
     appearance: 'Apariencia', darkMode: 'Modo oscuro',
+    audio: 'Audio', music: 'Música',
     language: 'Idioma',
     notifications: 'Notificaciones',
     notifOn: '✓ Notificaciones activadas', notifOff: 'Activar notificaciones', notifDisable: 'Desactivar notificaciones',
@@ -46,6 +49,7 @@ const STRINGS = {
   de: {
     title: 'Einstellungen', back: '← zurück',
     appearance: 'Aussehen', darkMode: 'Dunkelmodus',
+    audio: 'Audio', music: 'Musik',
     language: 'Sprache',
     notifications: 'Benachrichtigungen',
     notifOn: '✓ Benachrichtigungen aktiv', notifOff: 'Benachrichtigungen aktivieren', notifDisable: 'Benachrichtigungen deaktivieren',
@@ -113,6 +117,15 @@ export default function Settings({ onBack, onShowTutorial }) {
   const { user, logout, updateUser, isPro, refreshPurchases, refreshUser } = useAuth();
   const { lang, setLang } = useLang();
   const s = STRINGS[lang] || STRINGS.en;
+
+  const [musicOn, setMusicOn] = useState(() => isMusicEnabled());
+
+  function toggleMusic() {
+    const next = !musicOn;
+    setMusicEnabled(next);
+    setMusicOn(next);
+    if (next) playMusic(); else pauseMusic();
+  }
 
   const [notifEnabled, setNotifEnabled] = useState(
     () => {
@@ -301,6 +314,14 @@ export default function Settings({ onBack, onShowTutorial }) {
                 </button>
               ))}
             </div>
+          </Row>
+        </Card>
+
+        {/* Audio */}
+        <SectionLabel text={s.audio} />
+        <Card>
+          <Row label={s.music} last>
+            <Toggle on={musicOn} onChange={toggleMusic} />
           </Row>
         </Card>
 

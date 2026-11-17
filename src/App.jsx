@@ -9,6 +9,7 @@ import { useLang } from './LangContext.jsx';
 import Arena from './Arena.jsx';
 import { copyToClipboard } from './utils/share.js';
 import { playWin, playLose, playClick, playStreak } from './sounds.js';
+import { playMusic, pauseMusic, isMusicEnabled } from './music.js';
 import Legal from './Legal.jsx';
 import Privacy from './Privacy.jsx';
 import Support from './Support.jsx';
@@ -49,6 +50,8 @@ import BattlePassNotification from './BattlePassNotification.jsx';
 import { useBattlePass } from './BattlePassContext.jsx';
 import Inventory from './Inventory.jsx';
 
+
+const GAME_SCREENS = new Set(['game', 'daily', 'historical', 'arena', 'survival', 'portfolio', 'trading']);
 
 const CATEGORIES = [
   { id: 'all',         labelKey: 'all'         },
@@ -238,6 +241,37 @@ export default function App() {
 
   const screenRef = useRef(screen);
   useEffect(() => { screenRef.current = screen; }, [screen]);
+
+  // Music: play in menus, pause in game screens
+  useEffect(() => {
+    if (GAME_SCREENS.has(screen)) pauseMusic();
+    else playMusic();
+  }, [screen]);
+
+  // Music: unlock autoplay on first user gesture
+  useEffect(() => {
+    function onFirstGesture() {
+      if (isMusicEnabled() && !GAME_SCREENS.has(screenRef.current)) playMusic();
+      document.removeEventListener('click',      onFirstGesture, true);
+      document.removeEventListener('touchstart', onFirstGesture, true);
+    }
+    document.addEventListener('click',      onFirstGesture, true);
+    document.addEventListener('touchstart', onFirstGesture, true);
+    return () => {
+      document.removeEventListener('click',      onFirstGesture, true);
+      document.removeEventListener('touchstart', onFirstGesture, true);
+    };
+  }, []);
+
+  // Music: pause when app goes to background, resume when it comes back
+  useEffect(() => {
+    function onVisibilityChange() {
+      if (document.hidden) pauseMusic();
+      else if (!GAME_SCREENS.has(screenRef.current)) playMusic();
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange);
+  }, []);
 
   useEffect(() => {
     // Don't strip query params if this is an OAuth callback (code= present)
