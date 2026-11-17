@@ -9,7 +9,7 @@ import { useLang } from './LangContext.jsx';
 import Arena from './Arena.jsx';
 import { copyToClipboard } from './utils/share.js';
 import { playWin, playLose, playClick, playStreak } from './sounds.js';
-import { playMusic, pauseMusic, isMusicEnabled } from './music.js';
+import { playMusic, pauseMusic } from './music.js';
 import Legal from './Legal.jsx';
 import Privacy from './Privacy.jsx';
 import Support from './Support.jsx';
@@ -251,7 +251,7 @@ export default function App() {
   // Music: unlock autoplay on first user gesture
   useEffect(() => {
     function onFirstGesture() {
-      if (isMusicEnabled() && !GAME_SCREENS.has(screenRef.current)) playMusic();
+      if (!GAME_SCREENS.has(screenRef.current)) playMusic(); // playMusic guards isSoundEnabled internally
       document.removeEventListener('click',      onFirstGesture, true);
       document.removeEventListener('touchstart', onFirstGesture, true);
     }
