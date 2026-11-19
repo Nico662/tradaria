@@ -1,28 +1,25 @@
 import { BADGES, getUnlocked } from './badges.js';
 import { useLang } from './LangContext.jsx';
 import BadgeIcon, { RARITY_COLORS } from './BadgeIcon.jsx';
+import { ScreenHeader } from './components/ui';
 
 export default function Badges({ onBack, onSelect }) {
   const unlocked = getUnlocked();
   const { t } = useLang();
 
   return (
-    <div id="gtm-root" style={{ padding: '16px 16px 24px', fontFamily: 'var(--font-body)', background: 'var(--bg-base)', minHeight: '100vh' }}>
+    <div id="gtm-root" style={{ padding: '0 0 24px', fontFamily: 'var(--font-body)', background: 'var(--bg-base)', minHeight: '100vh' }}>
 
-      <button onClick={() => onSelect('stats')}
-        style={{ background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 10px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', marginBottom: '16px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-        {t.badges.back}
-      </button>
+      <ScreenHeader
+        title={t.badges.title}
+        subtitle={`${unlocked.length} ${t.badges.of} ${BADGES.length} ${t.badges.unlocked}`}
+        onBack={() => onSelect('stats')}
+      />
 
-      <div style={{ marginBottom: '16px' }}>
-        <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '22px', color: 'var(--text-primary)', letterSpacing: '-0.5px', marginBottom: '4px' }}>{t.badges.title}</div>
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)' }}>
-          {unlocked.length} {t.badges.of} {BADGES.length} {t.badges.unlocked}
-        </div>
-        <div style={{ marginTop: '8px', height: '4px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>
+      <div style={{ padding: '0 16px 16px' }}>
+        <div style={{ height: '4px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-full)', overflow: 'hidden', marginBottom: '16px' }}>
           <div style={{ height: '100%', width: `${(unlocked.length / BADGES.length) * 100}%`, background: 'linear-gradient(90deg, var(--pink), var(--green))', borderRadius: 'var(--radius-full)', transition: 'width 0.6s ease' }} />
         </div>
-      </div>
 
       {/* Rarity legend */}
       <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginBottom: '16px' }}>
@@ -80,6 +77,7 @@ export default function Badges({ onBack, onSelect }) {
             </div>
           );
         })}
+      </div>
       </div>
     </div>
   );

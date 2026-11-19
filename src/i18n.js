@@ -533,6 +533,7 @@ export const LANGS = {
       modeGuess: 'Classic', modeHistorical: 'Historical', modeArena: 'Arena', modeSurvival: 'Survival', modePortfolio: 'Portfolio', modeDaily: 'Daily', modeTournament: 'Tournament',
       gamesSubLabel: 'all modes', accuracySubLabel: 'global ranking', bestStreakSubLabel: 'consecutive rounds', bestScoreSubLabel: 'one game',
       trendLastN: 'Last {n} games', nGames: '{n} games',
+      sectionStats: 'Statistics',
     },
     challenge: {
       challenges: 'challenges you in Arena',
@@ -730,6 +731,7 @@ export const LANGS = {
       ticketNoTicket:     'No tickets available',
       ticketNetworkError: 'Network error, try again',
       inventoryBtn: 'Inventory',
+      traderPassTeaser: 'Unlock with Trader Pass',
     },
     season1: {
       missionDesc: {
@@ -1351,6 +1353,7 @@ export const LANGS = {
       modeGuess: 'Classic', modeHistorical: 'Historical', modeArena: 'Arena', modeSurvival: 'Survival', modePortfolio: 'Portfolio', modeDaily: 'Diario', modeTournament: 'Torneo',
       gamesSubLabel: 'todos los modos', accuracySubLabel: 'ranking global', bestStreakSubLabel: 'rondas seguidas', bestScoreSubLabel: 'una partida',
       trendLastN: 'Últimas {n} partidas', nGames: '{n} partidas',
+      sectionStats: 'Estadísticas',
     },
     challenge: {
       challenges: 'te reta en Arena',
@@ -1548,6 +1551,7 @@ export const LANGS = {
       ticketNoTicket:     'No tienes tickets disponibles',
       ticketNetworkError: 'Error de red, inténtalo de nuevo',
       inventoryBtn: 'Inventario',
+      traderPassTeaser: 'Desbloquear con Trader Pass',
     },
     nav: { home: 'Inicio', modes: 'Modos', play: 'Jugar', league: 'Liga', profile: 'Perfil' },
     trading: {
@@ -2118,6 +2122,7 @@ export const LANGS = {
       modeGuess: 'Classic', modeHistorical: 'Historical', modeArena: 'Arena', modeSurvival: 'Survival', modePortfolio: 'Portfolio', modeDaily: 'Täglich', modeTournament: 'Turnier',
       gamesSubLabel: 'alle Modi', accuracySubLabel: 'globales Ranking', bestStreakSubLabel: 'aufeinanderfolgend', bestScoreSubLabel: 'ein Spiel',
       trendLastN: 'Letzte {n} Spiele', nGames: '{n} Spiele',
+      sectionStats: 'Statistiken',
     },
     challenge: {
       challenges: 'fordert dich in Arena heraus',
@@ -2315,6 +2320,7 @@ export const LANGS = {
       ticketNoTicket:     'Keine Tickets verfügbar',
       ticketNetworkError: 'Netzwerkfehler, erneut versuchen',
       inventoryBtn: 'Inventar',
+      traderPassTeaser: 'Mit Trader Pass freischalten',
     },
     season1: {
       missionDesc: {

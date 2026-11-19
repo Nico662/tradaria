@@ -12,10 +12,11 @@ import EquippedBadge from './components/EquippedBadge';
 import SpecialBadge, { getSpecialUserByUsername } from './SpecialBadge.jsx';
 import BadgeIcon, { RARITY_COLORS } from './BadgeIcon.jsx';
 import { getXP, getLevel } from './levels.js';
+import { FlatRow, SectionTitle, StatusText, ScreenHeader } from './components/ui';
 
 function AccuracyGraph({ trend }) {
   if (!trend || trend.length < 2) return null;
-  const W = 260, H = 72, padL = 26, padR = 8, padT = 8, padB = 8;
+  const W = 280, H = 64, padL = 8, padR = 8, padT = 8, padB = 8;
   const toY = v => padT + ((100 - v) / 100) * (H - padT - padB);
   const pts = trend.map((v, i) => {
     const x = padL + (i / (trend.length - 1)) * (W - padL - padR);
@@ -23,24 +24,15 @@ function AccuracyGraph({ trend }) {
     return `${x.toFixed(1)},${y.toFixed(1)}`;
   });
   const path = 'M' + pts.join('L');
-  const y0 = toY(0), y50 = toY(50);
-  const area = `${path}L${(W - padR).toFixed(1)},${y0.toFixed(1)}L${padL},${y0.toFixed(1)}Z`;
+  const y50 = toY(50);
   return (
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block' }}>
-      <defs>
-        <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="var(--green)" stopOpacity="0.25" />
-          <stop offset="100%" stopColor="var(--green)" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <text x="0" y={padT + 3} fontSize="7" fill="var(--text-muted)" fontFamily="var(--font-body)" opacity="0.7">100</text>
-      <text x="2" y={y50 + 3} fontSize="7" fill="var(--text-muted)" fontFamily="var(--font-body)" opacity="0.7">50</text>
-      <text x="4" y={H - padB + 2} fontSize="7" fill="var(--text-muted)" fontFamily="var(--font-body)" opacity="0.7">0</text>
-      <line x1={padL} y1={y50} x2={W - padR} y2={y50} stroke="var(--text-muted)" strokeWidth="0.8" strokeDasharray="3 3" opacity="0.35" />
-      <path d={area} fill="url(#trendGrad)" />
-      <path d={path} fill="none" stroke="var(--green)" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
-      {trend.map((v, i) => {
-        const [x, y] = pts[i].split(',');
+      <line x1={padL} y1={y50} x2={W - padR} y2={y50}
+        stroke="var(--border-default)" strokeWidth="1" strokeDasharray="4 3" />
+      <path d={path} fill="none" stroke="var(--green)"
+        strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+      {pts.map((pt, i) => {
+        const [x, y] = pt.split(',');
         return <circle key={i} cx={x} cy={y} r="3" fill="var(--green)" />;
       })}
     </svg>
@@ -81,84 +73,58 @@ export default function Stats({ onBack, onSelect }) {
   const nGamesLabel = (n) =>
     (t.stats.nGames || '{n} games').replace('{n}', n);
 
-  return (
-    <div id="gtm-root" style={{ position: 'relative', minHeight: '100vh', background: 'var(--bg-base)', padding: '0 0 24px', fontFamily: 'var(--font-body)', overflow: 'hidden' }}>
-
-      {/* Header */}
-      <div style={{ padding: '16px 16px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-        <div style={{ flex: '1 1 0', minWidth: 0 }}>
-          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '22px', color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>{t.stats.title2}</div>
-          <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', marginTop: '2px' }}>{t.stats.subtitle}</div>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-          {user?.username && (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', minWidth: 0, maxWidth: '130px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end', gap: '2px', width: '100%' }}>
-                <span style={{ wordBreak: 'break-word', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: getUsernameColor(activeCosmetics) || 'var(--text-muted)', letterSpacing: '0.04em' }}>
-                  @{user.username}
-                </span>
-                <SpecialBadge specialUser={getSpecialUserByUsername(user.username)} size={11} />
-                {user?.battlePassMechanics?.includes('mechanic_verified_badge') && <VerifiedBadge size={11} />}
-                <EquippedBadge id={activeCosmetics?.badge} size={11} />
-              </div>
-              <TitleBadge title={activeCosmetics?.title} />
-            </div>
-          )}
-          <div style={{ width: '56px', height: '56px', borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--pink)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-elevated)', flexShrink: 0 }}>
-            {user?.customAvatar || user?.avatar ? (
-              <img
-                src={user.customAvatar || user.avatar}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                alt="profile"
-              />
-            ) : (
-              <User size={24} strokeWidth={1.5} aria-hidden style={{ stroke: 'var(--text-muted)' }} />
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Chips: streak + level/XP */}
-      <div style={{ padding: '0 16px 12px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-        {dailyStreak > 0 && (
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'var(--pink-dim)', border: '0.5px solid var(--border-pink)', borderRadius: 'var(--radius-full)', padding: '4px 10px' }}>
-            <StreakIcon size={12} style={{ stroke: 'var(--pink)' }} />
-            <span style={{ fontSize: '12px', color: 'var(--pink)', fontFamily: 'var(--font-body)', fontWeight: 800, letterSpacing: '0.06em' }}>
-              {dailyStreak} {dailyStreak === 1 ? (t.common.day ?? t.common.days) : t.common.days}
-            </span>
-          </div>
-        )}
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'var(--green-dim)', border: '0.5px solid var(--border-green)', borderRadius: 'var(--radius-full)', padding: '4px 10px' }}>
-          <LevelIcon id={level.id} size={12} style={{ stroke: 'var(--green)' }} />
-          <span style={{ fontSize: '12px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontWeight: 800, letterSpacing: '0.06em' }}>
-            {level.name} · {xp} XP
+  const avatarAction = user?.username ? (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', minWidth: 0, maxWidth: '120px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end', gap: '2px' }}>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: getUsernameColor(activeCosmetics) || 'var(--text-muted)', wordBreak: 'break-word' }}>
+            @{user.username}
           </span>
+          <SpecialBadge specialUser={getSpecialUserByUsername(user.username)} size={11} />
+          {user?.battlePassMechanics?.includes('mechanic_verified_badge') && <VerifiedBadge size={11} />}
+          <EquippedBadge id={activeCosmetics?.badge} size={11} />
         </div>
+        <TitleBadge title={activeCosmetics?.title} />
+      </div>
+      <div style={{ width: '48px', height: '48px', borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--pink)', background: 'var(--bg-elevated)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {user?.customAvatar || user?.avatar ? (
+          <img src={user.customAvatar || user.avatar} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="profile" />
+        ) : (
+          <User size={22} strokeWidth={1.5} aria-hidden style={{ stroke: 'var(--text-muted)' }} />
+        )}
+      </div>
+    </div>
+  ) : null;
+
+  return (
+    <div id="gtm-root" style={{ position: 'relative', minHeight: '100vh', background: 'var(--bg-base)', padding: '0 0 24px', fontFamily: 'var(--font-body)' }}>
+
+      <ScreenHeader title={t.stats.title2} subtitle={t.stats.subtitle} action={avatarAction} />
+
+      {/* Streak + level */}
+      <div style={{ padding: '0 16px 12px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+        {dailyStreak > 0 && (
+          <StatusText color="var(--pink)" icon={<StreakIcon size={12} style={{ stroke: 'var(--pink)' }} />}>
+            {dailyStreak} {dailyStreak === 1 ? (t.common.day ?? t.common.days) : t.common.days}
+          </StatusText>
+        )}
+        <StatusText color="var(--green)" icon={<LevelIcon id={level.id} size={12} style={{ stroke: 'var(--green)' }} />}>
+          {level.name} · {xp} XP
+        </StatusText>
       </div>
 
-      {/* Inventory + Trader Pass */}
-      <div style={{ padding: '0 16px 16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-        <button
+      {/* Quick links */}
+      <div style={{ padding: '0 16px 16px' }}>
+        <FlatRow
+          icon={<Backpack size={18} strokeWidth={1.8} style={{ stroke: 'var(--text-muted)' }} aria-hidden />}
+          title={t.inventory.inventoryBtn}
           onClick={() => onSelect?.('inventory')}
-          style={{ padding: '13px 16px', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', fontFamily: 'var(--font-body)' }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Backpack size={18} strokeWidth={1.8} color="var(--text-muted)" aria-hidden />
-            <span style={{ fontWeight: 800, fontSize: '13px', color: 'var(--text-primary)', letterSpacing: '0.02em' }}>{t.inventory.inventoryBtn}</span>
-          </div>
-          <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>›</span>
-        </button>
-        <button
+        />
+        <FlatRow
+          icon={<Diamond size={18} strokeWidth={1.8} style={{ stroke: 'var(--text-muted)' }} aria-hidden />}
+          title={t.home.traderPass}
           onClick={() => onSelect?.('battle_pass')}
-          style={{ padding: '13px 16px', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', fontFamily: 'var(--font-body)' }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Diamond size={18} strokeWidth={1.8} color="var(--text-muted)" aria-hidden />
-            <span style={{ fontWeight: 800, fontSize: '13px', color: 'var(--text-primary)', letterSpacing: '0.02em' }}>{t.home.traderPass}</span>
-          </div>
-          <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>›</span>
-        </button>
+        />
       </div>
 
       {loading && (
@@ -181,51 +147,29 @@ export default function Stats({ onBack, onSelect }) {
       )}
 
       {data && (
-        <>
-          {/* Stat cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', padding: '0 16px 16px' }}>
-            {[
-              {
-                label: t.stats.games,
-                value: data.totalGames,
-                color: 'var(--text-primary)',
-                sub: t.stats.gamesSubLabel,
-              },
-              {
-                label: t.stats.accuracy,
-                value: `${data.avgAccuracy}%`,
-                color: data.avgAccuracy >= 50 ? 'var(--green)' : 'var(--pink)',
-                sub: data.totalGames > 0 && data.betterThan != null
-                  ? `Top ${100 - data.betterThan}%`
-                  : t.stats.accuracySubLabel,
-              },
-              {
-                label: t.stats.bestStreak,
-                value: data.bestStreak,
-                color: 'var(--pink)',
-                sub: t.stats.bestStreakSubLabel,
-              },
-              {
-                label: t.stats.bestScore,
-                value: data.bestScore,
-                color: 'var(--green)',
-                sub: t.stats.bestScoreSubLabel,
-              },
-            ].map(({ label, value, color, sub }, i) => (
-              <div key={label} className={`animate-fade-in-up stagger-${i + 1}`} style={{ background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', padding: '14px 12px' }}>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '6px' }}>{label}</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '26px', fontWeight: 900, color, letterSpacing: '-0.5px', lineHeight: 1 }}>{value ?? '—'}</div>
-                {sub && <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', marginTop: '4px', letterSpacing: '0.04em' }}>{sub}</div>}
-              </div>
-            ))}
-          </div>
+        <div style={{ padding: '0 16px' }}>
+
+          {/* Stats section */}
+          <SectionTitle style={{ marginBottom: '4px' }}>{t.stats.sectionStats}</SectionTitle>
+          {[
+            { label: t.stats.games,      value: data.totalGames,                    color: 'var(--text-primary)' },
+            { label: t.stats.accuracy,   value: `${data.avgAccuracy}%`,             color: data.avgAccuracy >= 50 ? 'var(--green)' : 'var(--pink)' },
+            { label: t.stats.bestStreak, value: data.bestStreak,                    color: 'var(--pink)' },
+            { label: t.stats.bestScore,  value: data.bestScore,                     color: 'var(--green)' },
+          ].map(({ label, value, color }) => (
+            <FlatRow
+              key={label}
+              title={<span style={{ color: 'var(--text-muted)', fontWeight: 'var(--font-weight-medium)' }}>{label}</span>}
+              value={<span style={{ fontWeight: 900, fontSize: '20px', color, letterSpacing: '-0.3px', lineHeight: 1 }}>{value ?? '—'}</span>}
+            />
+          ))}
 
           {/* Accuracy trend */}
           {data.accuracyTrend?.length >= 2 && (
-            <div style={{ margin: '0 16px 16px', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-lg)', padding: '14px' }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '10px' }}>
+            <div style={{ marginTop: '12px' }}>
+              <SectionTitle style={{ marginBottom: '10px' }}>
                 {(t.stats.trendLastN || 'Last {n} games').replace('{n}', data.accuracyTrend.length)}
-              </div>
+              </SectionTitle>
               <AccuracyGraph trend={data.accuracyTrend} />
             </div>
           )}
@@ -234,39 +178,35 @@ export default function Stats({ onBack, onSelect }) {
           {data.modeCounts && Object.keys(data.modeCounts).length > 0 && (() => {
             const maxCount = Math.max(...Object.values(data.modeCounts));
             return (
-              <div style={{ margin: '0 16px 16px' }}>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '10px' }}>{t.stats.byMode}</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  {Object.entries(data.modeCounts).sort((a, b) => b[1] - a[1]).map(([mode, count]) => {
-                    const pct  = Math.round(count / maxCount * 100);
-                    const iconId = ICON_MODE_ID[mode] || mode;
-                    return (
-                      <div key={mode} style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', padding: '10px 12px' }}>
-                        <span style={{ flexShrink: 0, display: 'flex', width: '16px', justifyContent: 'center' }}>
-                          <ModeIcon id={iconId} size={16} style={{ stroke: 'var(--text-muted)' }} />
-                        </span>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '12px', color: 'var(--text-primary)', marginBottom: '4px' }}>{getModeLabel(mode)}</div>
-                          <div style={{ height: '3px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>
-                            <div style={{ height: '100%', width: `${pct}%`, background: 'var(--green)', borderRadius: 'var(--radius-full)', transition: 'width 0.6s ease' }} />
-                          </div>
-                        </div>
-                        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', flexShrink: 0 }}>{nGamesLabel(count)}</div>
+              <div style={{ marginTop: '16px' }}>
+                <SectionTitle style={{ marginBottom: '4px' }}>{t.stats.byMode}</SectionTitle>
+                {Object.entries(data.modeCounts).sort((a, b) => b[1] - a[1]).map(([mode, count]) => {
+                  const pct    = Math.round(count / maxCount * 100);
+                  const iconId = ICON_MODE_ID[mode] || mode;
+                  return (
+                    <FlatRow
+                      key={mode}
+                      icon={<ModeIcon id={iconId} size={16} style={{ stroke: 'var(--text-muted)' }} />}
+                      title={getModeLabel(mode)}
+                      value={<span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600 }}>{nGamesLabel(count)}</span>}
+                    >
+                      <div style={{ height: '4px', background: 'var(--bg-elevated)', borderRadius: '2px', overflow: 'hidden', marginTop: '4px' }}>
+                        <div style={{ height: '100%', width: `${pct}%`, background: 'var(--green)', borderRadius: '2px', transition: 'width 0.6s ease' }} />
                       </div>
-                    );
-                  })}
-                </div>
+                    </FlatRow>
+                  );
+                })}
               </div>
             );
           })()}
 
           {/* Recent badges */}
           {recentBadges.length > 0 && (
-            <div style={{ margin: '0 16px 16px' }}>
+            <div style={{ marginTop: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>{t.stats.recentBadges}</div>
+                <SectionTitle style={{ marginBottom: 0 }}>{t.stats.recentBadges}</SectionTitle>
                 <button onClick={() => onSelect?.('badges')}
-                  style={{ background: 'transparent', border: 'none', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--green)', cursor: 'pointer', letterSpacing: '0.06em' }}>
+                  style={{ background: 'transparent', border: 'none', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--green)', cursor: 'pointer' }}>
                   {t.stats.seeAll}
                 </button>
               </div>
@@ -288,29 +228,29 @@ export default function Stats({ onBack, onSelect }) {
           )}
 
           {/* Global comparison */}
-          <div style={{ margin: '0 16px 16px', background: 'var(--bg-surface)', border: '0.5px solid var(--border-pink)', borderRadius: 'var(--radius-lg)', padding: '14px' }}>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '10px' }}>{t.stats.vsGlobal}</div>
+          <div style={{ marginTop: '16px', marginBottom: '8px' }}>
+            <SectionTitle style={{ marginBottom: '4px' }}>{t.stats.vsGlobal}</SectionTitle>
             {data.totalGames > 0 ? (
               <>
-                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '28px', color: 'var(--green)', letterSpacing: '-0.5px', lineHeight: 1 }}>
-                  Top {100 - (data.betterThan || 50)}%
-                </div>
-                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px', fontFamily: 'var(--font-body)' }}>
-                  {t.stats.betterThan} {data.betterThan}{t.stats.betterThanSuffix}
-                </div>
+                <FlatRow
+                  title={<span style={{ color: 'var(--text-muted)', fontWeight: 'var(--font-weight-medium)' }}>{t.stats.betterThan} {data.betterThan}{t.stats.betterThanSuffix}</span>}
+                  value={<span style={{ fontWeight: 900, fontSize: '20px', color: 'var(--green)', letterSpacing: '-0.3px' }}>Top {100 - (data.betterThan || 50)}%</span>}
+                />
                 {data.winRate > 0 && (
-                  <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--text-muted)' }}>
-                    {t.stats.arenaWinRate}: <span style={{ color: data.winRate >= 50 ? 'var(--green)' : 'var(--pink)', fontWeight: 900 }}>{data.winRate}%</span>
-                  </div>
+                  <FlatRow
+                    title={<span style={{ color: 'var(--text-muted)', fontWeight: 'var(--font-weight-medium)' }}>{t.stats.arenaWinRate}</span>}
+                    value={<span style={{ fontWeight: 900, fontSize: '16px', color: data.winRate >= 50 ? 'var(--green)' : 'var(--pink)' }}>{data.winRate}%</span>}
+                  />
                 )}
               </>
             ) : (
-              <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)' }}>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)', padding: '8px 0' }}>
                 {t.stats.playMore}
               </div>
             )}
           </div>
-        </>
+
+        </div>
       )}
     </div>
   );

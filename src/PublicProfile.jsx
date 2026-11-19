@@ -13,6 +13,7 @@ import TitleBadge from './components/TitleBadge';
 import VerifiedBadge from './VerifiedBadge';
 import EquippedBadge from './components/EquippedBadge';
 import BadgeIcon, { RARITY_COLORS } from './BadgeIcon.jsx';
+import { FlatRow, StatusText } from './components/ui';
 
 export default function PublicProfile({ username, onBack, onChallenge }) {
   const { user } = useAuth();
@@ -101,27 +102,29 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
             <EquippedBadge id={profile.activeCosmetics?.badge} size={16} />
             <TitleBadge title={profile.activeCosmetics?.title} />
             {profile.isPro && (
-              <span style={{ fontSize: '12px', color: 'var(--green)', background: 'rgba(0,229,160,0.1)', border: '1px solid var(--green)', borderRadius: '20px', padding: '2px 7px', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                <Zap size={12} strokeWidth={2} aria-hidden /> Pro
-              </span>
+              <StatusText color="var(--green)" icon={<Zap size={12} strokeWidth={2} aria-hidden />}>Pro</StatusText>
             )}
           </div>
           <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>{profile.name}</div>
         </div>
 
         {/* Stats: level / streak / badges */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '16px' }}>
-          {[
-            { icon: <LevelIcon id={level.id} size={22} />, value: level.name, sub: `${profile.xp} XP` },
-            { icon: <Flame size={14} strokeWidth={2} aria-hidden />, value: profile.dailyStreak, sub: t.profile.streak },
-            { icon: <Medal size={14} strokeWidth={2} aria-hidden />, value: unlockedBadges.length, sub: t.profile.badges },
-          ].map((s, i) => (
-            <div key={i} style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '14px 10px', textAlign: 'center' }}>
-              <div style={{ marginBottom: '4px', display: 'flex', justifyContent: 'center' }}>{s.icon}</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: typeof s.value === 'number' ? '20px' : '11px', color: 'var(--t1)' }}>{s.value}</div>
-              <div style={{ fontSize: '12px', color: 'var(--t5)', marginTop: '2px' }}>{s.sub}</div>
-            </div>
-          ))}
+        <div style={{ marginBottom: '16px' }}>
+          <FlatRow
+            icon={<LevelIcon id={level.id} size={18} />}
+            title={<span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>{`${profile.xp} XP`}</span>}
+            value={<span style={{ fontWeight: 900, fontSize: '16px', color: 'var(--t1)' }}>{level.name}</span>}
+          />
+          <FlatRow
+            icon={<Flame size={16} strokeWidth={2} style={{ stroke: 'var(--pink)' }} aria-hidden />}
+            title={<span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>{t.profile.streak}</span>}
+            value={<span style={{ fontWeight: 900, fontSize: '16px', color: 'var(--t1)' }}>{profile.dailyStreak}</span>}
+          />
+          <FlatRow
+            icon={<Medal size={16} strokeWidth={2} style={{ stroke: 'var(--color-neutral)' }} aria-hidden />}
+            title={<span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>{t.profile.badges}</span>}
+            value={<span style={{ fontWeight: 900, fontSize: '16px', color: 'var(--t1)' }}>{unlockedBadges.length}</span>}
+          />
         </div>
 
         {/* Portfolio A */}

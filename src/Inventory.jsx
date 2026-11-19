@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { ChevronLeft, PackageOpen, Lock, Ticket, Sparkles, Trophy, Star, Swords, Medal, PartyPopper, Zap, Flame } from 'lucide-react';
+import { PackageOpen, Lock, Ticket, Sparkles, Trophy, Star, Swords, Medal, PartyPopper, Zap, Flame } from 'lucide-react';
 import { useAuth } from './AuthContext';
 import { useLang } from './LangContext';
 import { SERVER } from './config';
@@ -7,6 +7,7 @@ import UserAvatar from './UserAvatar';
 import { AvatarSVG } from './components/AvatarSVGs';
 import { USERNAME_COLORS, TITLE_LABELS } from './cosmeticColors';
 import BadgeIcon, { RARITY_COLORS, BADGE_COLOR_OVERRIDES } from './BadgeIcon.jsx';
+import { ScreenHeader, TextTabs, SectionTitle, FlatRow, StatusText } from './components/ui';
 
 const FRAME_META = {
   frame_gold:    { name: 'Gold Frame'    },
@@ -159,46 +160,16 @@ export default function Inventory({ onBack }) {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-base)', paddingBottom: '90px', fontFamily: 'var(--font-body)' }}>
 
-      {/* Header */}
-      <div style={{ padding: '16px 16px 8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <button onClick={onBack} style={{ background: 'none', border: 'none', padding: '6px', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', borderRadius: '8px', WebkitAppearance: 'none', appearance: 'none' }}>
-          <ChevronLeft size={22} />
-        </button>
-        <div>
-          <div style={{ fontWeight: 900, fontSize: '22px', color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>{ti.title}</div>
-          <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', marginTop: '2px' }}>{ti.subtitle}</div>
-        </div>
-      </div>
+      <ScreenHeader title={ti.title} subtitle={ti.subtitle} onBack={onBack} />
 
-      {/* Filter chips */}
+      {/* Filter tabs */}
       {!isEmpty && chips.length > 1 && (
-        <div style={{ display: 'flex', gap: '8px', padding: '6px 16px 12px', overflowX: 'auto', scrollbarWidth: 'none' }}>
-          {chips.map(chip => {
-            const active = filter === chip.id;
-            return (
-              <button key={chip.id} onClick={() => setFilter(chip.id)} style={{
-                flexShrink: 0,
-                padding: '5px 14px',
-                borderRadius: '999px',
-                border: `1.5px solid ${active ? 'var(--border-green)' : 'var(--border-default)'}`,
-                background: active ? 'var(--green-dim)' : 'var(--bg-elevated)',
-                color: active ? 'var(--green)' : 'var(--text-muted)',
-                fontFamily: 'var(--font-body)',
-                fontSize: '11px',
-                fontWeight: 800,
-                cursor: 'pointer',
-                letterSpacing: '0.06em',
-                textTransform: 'uppercase',
-                transition: 'all 0.15s',
-                whiteSpace: 'nowrap',
-                WebkitAppearance: 'none',
-                appearance: 'none',
-              }}>
-                {chip.label}{chip.n ? ` · ${chip.n}` : ''}
-              </button>
-            );
-          })}
-        </div>
+        <TextTabs
+          tabs={chips.map(c => ({ value: c.id, label: `${c.label}${c.n ? ` · ${c.n}` : ''}` }))}
+          active={filter}
+          onChange={setFilter}
+          style={{ padding: '0 16px 12px' }}
+        />
       )}
 
       {/* Empty state */}
@@ -219,10 +190,13 @@ export default function Inventory({ onBack }) {
               const meta = FRAME_META[id];
               const equipped = activeCosmetics.frame === id;
               return (
-                <ItemCard key={id} equipped={equipped} onClick={() => toggle('frame', id)}>
-                  <FramePreview id={id} />
-                  <ItemLabel name={meta.name} equipped={equipped} ti={ti} />
-                </ItemCard>
+                <FlatRow key={id}
+                  icon={<FramePreview id={id} small />}
+                  title={meta.name}
+                  onClick={() => toggle('frame', id)}
+                  chevron={false}
+                  value={<EquipValue equipped={equipped} ti={ti} onClick={() => toggle('frame', id)} />}
+                />
               );
             })}
           </Section>
@@ -235,10 +209,13 @@ export default function Inventory({ onBack }) {
               const meta = THEME_META[id];
               const equipped = activeCosmetics.theme === id;
               return (
-                <ItemCard key={id} equipped={equipped} onClick={() => toggle('theme', id)}>
-                  <ThemePreview meta={meta} id={id} />
-                  <ItemLabel name={meta.name} equipped={equipped} ti={ti} />
-                </ItemCard>
+                <FlatRow key={id}
+                  icon={<ThemePreview meta={meta} id={id} small />}
+                  title={meta.name}
+                  onClick={() => toggle('theme', id)}
+                  chevron={false}
+                  value={<EquipValue equipped={equipped} ti={ti} onClick={() => toggle('theme', id)} />}
+                />
               );
             })}
           </Section>
@@ -250,12 +227,13 @@ export default function Inventory({ onBack }) {
             {ownedAvatars.map(id => {
               const equipped = activeCosmetics.avatar === id;
               return (
-                <ItemCard key={id} equipped={equipped} onClick={() => toggle('avatar', id)}>
-                  <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 6px' }}>
-                    <AvatarSVG id={id} size={56} />
-                  </div>
-                  <ItemLabel name={AVATAR_META[id] || id} equipped={equipped} ti={ti} />
-                </ItemCard>
+                <FlatRow key={id}
+                  icon={<AvatarSVG id={id} size={32} />}
+                  title={AVATAR_META[id] || id}
+                  onClick={() => toggle('avatar', id)}
+                  chevron={false}
+                  value={<EquipValue equipped={equipped} ti={ti} onClick={() => toggle('avatar', id)} />}
+                />
               );
             })}
           </Section>
@@ -268,12 +246,13 @@ export default function Inventory({ onBack }) {
               const meta = EFFECT_META[id];
               const equipped = activeCosmetics.effect === id;
               return (
-                <ItemCard key={id} equipped={equipped} onClick={() => toggle('effect', id)}>
-                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '12px 0 6px' }}>
-                    <meta.Icon size={38} color={meta.color} strokeWidth={1.5} aria-hidden />
-                  </div>
-                  <ItemLabel name={meta.name} equipped={equipped} ti={ti} />
-                </ItemCard>
+                <FlatRow key={id}
+                  icon={<meta.Icon size={22} color={meta.color} strokeWidth={1.5} aria-hidden />}
+                  title={meta.name}
+                  onClick={() => toggle('effect', id)}
+                  chevron={false}
+                  value={<EquipValue equipped={equipped} ti={ti} onClick={() => toggle('effect', id)} />}
+                />
               );
             })}
           </Section>
@@ -286,16 +265,13 @@ export default function Inventory({ onBack }) {
               const meta = USERNAME_COLORS[id];
               const equipped = activeCosmetics.username_color === id;
               return (
-                <ItemCard key={id} equipped={equipped} onClick={() => toggle('username_color', id)}>
-                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '12px 0 6px' }}>
-                    <div style={{
-                      width: '46px', height: '46px', borderRadius: '12px',
-                      background: meta.hex,
-                      boxShadow: `0 0 16px ${meta.hex}55`,
-                    }} />
-                  </div>
-                  <ItemLabel name={meta.name} equipped={equipped} ti={ti} />
-                </ItemCard>
+                <FlatRow key={id}
+                  icon={<div style={{ width: 22, height: 22, borderRadius: 6, background: meta.hex }} />}
+                  title={meta.name}
+                  onClick={() => toggle('username_color', id)}
+                  chevron={false}
+                  value={<EquipValue equipped={equipped} ti={ti} onClick={() => toggle('username_color', id)} />}
+                />
               );
             })}
           </Section>
@@ -308,21 +284,13 @@ export default function Inventory({ onBack }) {
               const name = TITLE_LABELS[id] || id;
               const equipped = activeCosmetics.title === id;
               return (
-                <ItemCard key={id} equipped={equipped} onClick={() => toggle('title', id)}>
-                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '12px 0 6px' }}>
-                    <span style={{
-                      fontSize: '11px', fontWeight: 800, letterSpacing: '0.08em',
-                      padding: '4px 10px', borderRadius: '6px',
-                      background: equipped ? 'rgba(196,154,42,0.15)' : 'rgba(196,154,42,0.08)',
-                      color: 'var(--color-neutral)',
-                      border: `0.5px solid rgba(196,154,42,${equipped ? '0.4' : '0.2'})`,
-                      textTransform: 'uppercase',
-                    }}>
-                      {name}
-                    </span>
-                  </div>
-                  <ItemLabel name={name} equipped={equipped} ti={ti} />
-                </ItemCard>
+                <FlatRow key={id}
+                  icon={<span style={{ fontSize: '9px', fontWeight: 800, color: 'var(--color-neutral)', border: '0.5px solid rgba(196,154,42,0.3)', borderRadius: 4, padding: '2px 4px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{name}</span>}
+                  title={name}
+                  onClick={() => toggle('title', id)}
+                  chevron={false}
+                  value={<EquipValue equipped={equipped} ti={ti} onClick={() => toggle('title', id)} />}
+                />
               );
             })}
           </Section>
@@ -331,79 +299,36 @@ export default function Inventory({ onBack }) {
         {/* TICKETS */}
         {show('tickets') && unusedTickets > 0 && (
           <Section title={ti.tickets}>
-            <div style={{
-              gridColumn: '1 / -1',
-              background: 'var(--bg-surface)',
-              border: '0.5px solid var(--border-default)',
-              borderRadius: '12px',
-              padding: '16px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '14px',
-            }}>
-              <Ticket size={28} strokeWidth={1.5} color="var(--text-muted)" aria-hidden style={{ flexShrink: 0 }} />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 800, fontSize: '14px', color: 'var(--text-primary)', letterSpacing: '0.02em' }}>{ti.ticketStreak}</div>
-                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '3px', fontWeight: 700 }}>
-                  {ti.youHave} {unusedTickets}
-                </div>
-              </div>
-              <button onClick={useTicket} disabled={busyTicket} style={{
-                padding: '8px 14px',
-                borderRadius: '8px',
-                border: '1px solid var(--green)',
-                background: 'var(--green-dim)',
-                color: 'var(--green)',
-                fontFamily: 'var(--font-body)',
-                fontSize: '11px',
-                fontWeight: 800,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                cursor: busyTicket ? 'not-allowed' : 'pointer',
-                opacity: busyTicket ? 0.6 : 1,
-                flexShrink: 0,
-                WebkitAppearance: 'none',
-                appearance: 'none',
-              }}>
-                {busyTicket ? '...' : ti.ticketUse}
-              </button>
-            </div>
+            <FlatRow
+              icon={<Ticket size={20} strokeWidth={1.5} color="var(--text-muted)" aria-hidden />}
+              title={ti.ticketStreak}
+              subtitle={`${ti.youHave} ${unusedTickets}`}
+              chevron={false}
+              value={
+                <button onClick={useTicket} disabled={busyTicket} style={{
+                  padding: '6px 12px', borderRadius: '6px',
+                  border: '1px solid var(--green)', background: 'var(--green-dim)',
+                  color: 'var(--green)', fontFamily: 'var(--font-body)',
+                  fontSize: '11px', fontWeight: 800, letterSpacing: '0.08em',
+                  cursor: busyTicket ? 'not-allowed' : 'pointer',
+                  opacity: busyTicket ? 0.6 : 1, flexShrink: 0,
+                  WebkitAppearance: 'none', appearance: 'none',
+                }}>
+                  {busyTicket ? '...' : ti.ticketUse}
+                </button>
+              }
+            />
             {ticketMsg && (
               <div style={{
-                gridColumn: '1 / -1',
-                marginTop: '8px',
-                padding: '10px 14px',
-                borderRadius: '8px',
-                fontSize: '12px',
-                fontWeight: 700,
-                fontFamily: 'var(--font-body)',
+                marginTop: '4px', padding: '10px 14px', borderRadius: '8px',
+                fontSize: '12px', fontWeight: 700, fontFamily: 'var(--font-body)',
                 background: ticketMsg.type === 'success' ? 'var(--green-dim)' : 'var(--pink-dim)',
                 color: ticketMsg.type === 'success' ? 'var(--green)' : 'var(--pink)',
                 border: `0.5px solid ${ticketMsg.type === 'success' ? 'var(--border-green)' : 'var(--border-pink)'}`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '8px',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px',
               }}>
                 <span>{ticketMsg.text}</span>
-                <button
-                  onClick={() => setTicketMsg(null)}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    color: 'inherit',
-                    padding: '0',
-                    fontSize: '16px',
-                    lineHeight: 1,
-                    flexShrink: 0,
-                    WebkitAppearance: 'none',
-                    appearance: 'none',
-                  }}
-                  aria-label="close"
-                >
-                  ×
-                </button>
+                <button onClick={() => setTicketMsg(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', padding: 0, fontSize: '16px', lineHeight: 1, flexShrink: 0 }} aria-label="close">×</button>
               </div>
             )}
           </Section>
@@ -416,12 +341,13 @@ export default function Inventory({ onBack }) {
               const equipped = activeCosmetics.badge === badge.id;
               const color = BADGE_COLOR_OVERRIDES[badge.id] ?? RARITY_COLORS[badge.rarity] ?? RARITY_COLORS.common;
               return (
-                <ItemCard key={badge.id} equipped={equipped} onClick={() => toggle('badge', badge.id)}>
-                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '12px 0 6px', color }}>
-                    <BadgeIcon id={badge.id} size={36} />
-                  </div>
-                  <ItemLabel name={badge.name} equipped={equipped} ti={ti} />
-                </ItemCard>
+                <FlatRow key={badge.id}
+                  icon={<div style={{ color }}><BadgeIcon id={badge.id} size={22} /></div>}
+                  title={badge.name}
+                  onClick={() => toggle('badge', badge.id)}
+                  chevron={false}
+                  value={<EquipValue equipped={equipped} ti={ti} onClick={() => toggle('badge', badge.id)} />}
+                />
               );
             })}
           </Section>
@@ -430,18 +356,9 @@ export default function Inventory({ onBack }) {
         {/* PRÓXIMAMENTE — Trader Pass teaser */}
         {filter === 'all' && (
           <div style={{ marginTop: isEmpty ? '0' : '8px', marginBottom: '24px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-                {ti.traderPassTeaser}
-              </div>
-              <div style={{
-                fontSize: '9px', fontWeight: 900, letterSpacing: '0.1em',
-                background: 'var(--pink-dim)', color: 'var(--pink)',
-                border: '0.5px solid var(--border-pink)', borderRadius: '4px',
-                padding: '2px 7px', textTransform: 'uppercase',
-              }}>
-                {ti.ticketSoon}
-              </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+              <SectionTitle style={{ marginBottom: 0 }}>{ti.traderPassTeaser}</SectionTitle>
+              <StatusText color="var(--pink)">{ti.ticketSoon}</StatusText>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
               {COMING_SOON.filter(item => {
@@ -582,78 +499,28 @@ function LockedPreview({ item }) {
 
 function Section({ title, children }) {
   return (
-    <div style={{ marginBottom: '24px' }}>
-      <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '10px' }}>
-        {title}
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+    <div style={{ marginBottom: '20px' }}>
+      <SectionTitle>{title}</SectionTitle>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
         {children}
       </div>
     </div>
   );
 }
 
-function ItemCard({ equipped, onClick, children }) {
-  return (
-    <button onClick={onClick} style={{
-      position: 'relative',
-      background: 'var(--bg-surface)',
-      border: `1.5px solid ${equipped ? 'var(--green)' : 'var(--border-default)'}`,
-      borderRadius: '12px',
-      padding: 0,
-      overflow: 'hidden',
-      cursor: 'pointer',
-      width: '100%',
-      transition: 'border-color 0.15s, box-shadow 0.15s',
-      boxShadow: equipped ? '0 0 14px rgba(0,192,135,0.18)' : 'none',
-      WebkitAppearance: 'none',
-      appearance: 'none',
-    }}>
-      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-        {children}
-      </div>
-      {equipped && <ActiveBadge />}
-    </button>
-  );
+function EquipValue({ equipped, ti, onClick }) {
+  return equipped
+    ? <StatusText color="var(--green)">{ti.equipped}</StatusText>
+    : <span
+        onClick={onClick}
+        style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', fontFamily: 'var(--font-body)', cursor: 'pointer' }}
+      >{ti.tap}</span>;
 }
 
-function ActiveBadge() {
-  return (
-    <div style={{
-      position: 'absolute',
-      top: '7px',
-      right: '7px',
-      background: 'var(--green)',
-      color: '#000',
-      fontSize: '9px',
-      fontWeight: 900,
-      letterSpacing: '0.06em',
-      padding: '2px 6px',
-      borderRadius: '4px',
-      textTransform: 'uppercase',
-      lineHeight: 1.5,
-    }}>
-      ON
-    </div>
-  );
-}
-
-function ItemLabel({ name, equipped, ti }) {
-  return (
-    <div style={{ padding: '0 10px 10px', textAlign: 'center' }}>
-      <div style={{ fontSize: '12px', fontWeight: 800, color: equipped ? 'var(--green)' : 'var(--text-muted)', letterSpacing: '0.04em' }}>
-        {name}
-      </div>
-      <div style={{ fontSize: '10px', color: equipped ? 'var(--green)' : 'var(--t5)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '3px' }}>
-        {equipped ? ti.equipped : ti.tap}
-      </div>
-    </div>
-  );
-}
-
-function FramePreview({ id }) {
+function FramePreview({ id, small }) {
   const { user } = useAuth();
   const previewUser = { ...user, activeCosmetics: { ...(user?.activeCosmetics || {}), frame: id } };
+  if (small) return <UserAvatar user={previewUser} size={32} />;
   return (
     <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 6px' }}>
       <UserAvatar user={previewUser} size={52} />
@@ -667,48 +534,40 @@ const AURORA_BANDS = [
   { w: '22%', color: 'rgba(45,212,160,0.16)',  dur: '15s', delay: '6s'  },
 ];
 
-function ThemePreview({ meta, id }) {
+function ThemePreview({ meta, id, small }) {
+  const w = small ? '36px' : '64px';
+  const h = small ? '28px' : '48px';
+  const inner = (
+    <div style={{
+      width: w, height: h,
+      background: meta.bg,
+      borderRadius: '8px',
+      border: `1.5px solid ${meta.accent}44`,
+      display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+      gap: '2px', padding: '0 6px 5px', overflow: 'hidden', position: 'relative',
+    }}>
+      {id === 'theme_aurora' && AURORA_BANDS.map((b, i) => (
+        <div key={i} className="game-aurora-band" style={{
+          position: 'absolute', top: '-20%', left: 0, width: b.w, height: '150%',
+          background: `linear-gradient(90deg, transparent, ${b.color}, transparent)`,
+          pointerEvents: 'none', zIndex: 0,
+          animation: `game-aurora-sweep ${b.dur} linear ${b.delay} infinite`,
+        }} />
+      ))}
+      {MINI_HEIGHTS.slice(0, 6).map((h2, i) => (
+        <div key={i} style={{
+          width: '6px', height: `${Math.round(h2 * 26) + 5}px`,
+          background: i % 3 === 2 ? `${meta.accent}55` : meta.accent,
+          borderRadius: '1px 1px 0 0', opacity: 0.85 + (i % 2) * 0.15,
+          position: 'relative', zIndex: 1,
+        }} />
+      ))}
+    </div>
+  );
+  if (small) return inner;
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '12px 0 6px' }}>
-      <div style={{
-        width: '64px',
-        height: '48px',
-        background: meta.bg,
-        borderRadius: '8px',
-        border: `1.5px solid ${meta.accent}44`,
-        display: 'flex',
-        alignItems: 'flex-end',
-        justifyContent: 'center',
-        gap: '2px',
-        padding: '0 6px 5px',
-        overflow: 'hidden',
-        position: 'relative',
-      }}>
-        {id === 'theme_aurora' && AURORA_BANDS.map((b, i) => (
-          <div key={i} className="game-aurora-band" style={{
-            position: 'absolute',
-            top: '-20%',
-            left: 0,
-            width: b.w,
-            height: '150%',
-            background: `linear-gradient(90deg, transparent, ${b.color}, transparent)`,
-            pointerEvents: 'none',
-            zIndex: 0,
-            animation: `game-aurora-sweep ${b.dur} linear ${b.delay} infinite`,
-          }} />
-        ))}
-        {MINI_HEIGHTS.slice(0, 6).map((h, i) => (
-          <div key={i} style={{
-            width: '6px',
-            height: `${Math.round(h * 26) + 5}px`,
-            background: i % 3 === 2 ? `${meta.accent}55` : meta.accent,
-            borderRadius: '1px 1px 0 0',
-            opacity: 0.85 + (i % 2) * 0.15,
-            position: 'relative',
-            zIndex: 1,
-          }} />
-        ))}
-      </div>
+      {inner}
     </div>
   );
 }
