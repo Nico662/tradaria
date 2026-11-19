@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { getTodayMissions, getMissionProgress, getWeeklyMission, getWeeklyProgress } from './missions.js';
 import { useLang } from './LangContext.jsx';
-import { TrendingUp, Briefcase, Zap, Shield, Calendar, Clock, Trophy, Target } from 'lucide-react';
+import { TrendingUp, Briefcase, Zap, Shield, Calendar, Clock, Trophy, Target, Check } from 'lucide-react';
+import SectionTitle from './components/ui/SectionTitle.jsx';
 
 const LABELS = {
   header: { en: '— MISSIONS —', es: '— MISIONES —', de: '— MISSIONEN —' },
@@ -168,7 +169,7 @@ function DetailScreen({ onClose }) {
 // ─── Compact Card ─────────────────────────────────────────────────────────────
 
 export default function MissionsCard() {
-  const { lang } = useLang();
+  const { lang, t } = useLang();
   const [showDetail, setShowDetail] = useState(false);
 
   const missions = getTodayMissions();
@@ -183,22 +184,8 @@ export default function MissionsCard() {
     <>
       {showDetail && <DetailScreen onClose={() => setShowDetail(false)} />}
 
-      <div style={{
-        flex: 1,
-        minWidth: 0,
-        alignSelf: 'stretch',
-        background: 'var(--bg-surface)',
-        border: '1px solid var(--border-default)',
-        borderTop: '2px solid var(--green)',
-        borderRadius: '8px',
-        padding: '10px 12px 12px',
-        display: 'flex',
-        flexDirection: 'column',
-      }}>
-        {/* Header */}
-        <div style={{ fontSize: '12px', color: '#888', letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '8px' }}>
-          {LABELS.header[lang]}
-        </div>
+      <div style={{ flex: 1, minWidth: 0, alignSelf: 'stretch', display: 'flex', flexDirection: 'column' }}>
+        <SectionTitle onClick={() => setShowDetail(true)}>{t.home.sectionMissions}</SectionTitle>
 
         {/* Daily missions list */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '8px', flex: 1 }}>
@@ -211,7 +198,7 @@ export default function MissionsCard() {
               <div key={m.id}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '3px' }}>
                   {done
-                    ? <span style={{ fontSize: '12px', color: 'var(--green)', flexShrink: 0, lineHeight: 1 }}>✓</span>
+                    ? <Check size={12} strokeWidth={2.5} style={{ stroke: 'var(--green)', flexShrink: 0 }} aria-hidden />
                     : <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--border-subtle)', display: 'inline-block', flexShrink: 0 }} />
                   }
                   <span style={{
@@ -241,7 +228,7 @@ export default function MissionsCard() {
         <div style={{ borderTop: '1px solid var(--border-default)', paddingTop: '6px', marginBottom: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             {weeklyDone
-              ? <span style={{ fontSize: '12px', color: 'var(--green)', flexShrink: 0, lineHeight: 1 }}>✓</span>
+              ? <Check size={12} strokeWidth={2.5} style={{ stroke: 'var(--green)', flexShrink: 0 }} aria-hidden />
               : <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#3a2a08', display: 'inline-block', flexShrink: 0 }} />
             }
             <span style={{

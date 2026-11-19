@@ -6,6 +6,7 @@ import { isSoundEnabled, setSoundEnabled } from './sounds.js';
 import { ModeIcon, StreakIcon, ProIcon, LevelIcon } from './components/AppIcons';
 import MissionsCard from './MissionsCard.jsx';
 import WordOfTheDay from './WordOfTheDay.jsx';
+import { FlatRow, StatusText } from './components/ui';
 import { SERVER } from './config.js';
 import { getUnlocked } from './badges.js';
 import { getXP, getLevel } from './levels.js';
@@ -218,9 +219,7 @@ export default function Home({ onSelect }) {
           </div>
 
           {isPro ? (
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '5px 12px', background: 'var(--green-dim)', border: '0.5px solid var(--border-green)', borderRadius: 'var(--radius-full)', fontSize: '12px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontWeight: 800, letterSpacing: '0.06em' }}>
-              <ProIcon size={12} style={{ stroke: 'var(--green)' }} /> Pro
-            </div>
+            <StatusText color="var(--green)" icon={<ProIcon size={12} style={{ stroke: 'var(--green)' }} />}>Pro</StatusText>
           ) : (
             <button onClick={() => onSelect('pricing')}
               style={{ background: 'var(--gradient-brand)', border: 'none', borderRadius: 'var(--radius-full)', padding: '6px 16px', color: '#0d0d0d', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 900, cursor: 'pointer', letterSpacing: '0.06em' }}>
@@ -267,9 +266,7 @@ export default function Home({ onSelect }) {
                   </span>
                 )}
                 {user.academyId && user.isAcademyPro && academyName && (
-                  <span style={{ fontSize: '12px', color: 'var(--green)', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', background: 'rgba(0,229,160,0.08)', border: '1px solid rgba(0,229,160,0.2)', borderRadius: '4px', padding: '2px 6px', alignSelf: 'flex-start' }}>
-                    {t.home.student} — {academyName}
-                  </span>
+                  <StatusText color="var(--green)">{t.home.student} — {academyName}</StatusText>
                 )}
               </div>
               {!user.username && (
@@ -379,17 +376,17 @@ export default function Home({ onSelect }) {
           </div>
           <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px' }}>
             {dailyStreak > 0 && (
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'var(--pink-dim)', border: '0.5px solid var(--border-pink)', borderRadius: 'var(--radius-full)', padding: '4px 10px' }}>
-                <StreakIcon size={12} style={{ stroke: 'var(--pink)' }} />
-                <span style={{ fontSize: '12px', color: 'var(--pink)', fontFamily: 'var(--font-body)', fontWeight: 800, letterSpacing: '0.06em' }}>{dailyStreak} {dailyStreak === 1 ? (t.common.day ?? t.common.days) : t.common.days}</span>
-              </div>
+              <StatusText color="var(--pink)" icon={<StreakIcon size={12} style={{ stroke: 'var(--pink)' }} />}>
+                {dailyStreak} {dailyStreak === 1 ? (t.common.day ?? t.common.days) : t.common.days}
+              </StatusText>
             )}
             <button
               onClick={() => setShowLevels(true)}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'var(--green-dim)', border: '0.5px solid var(--border-green)', borderRadius: 'var(--radius-full)', padding: '4px 10px', cursor: 'pointer' }}
+              style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
             >
-              <LevelIcon id={level.id} size={12} style={{ stroke: 'var(--green)' }} />
-              <span style={{ fontSize: '12px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontWeight: 800, letterSpacing: '0.06em' }}>{level.name} · {xp} XP</span>
+              <StatusText color="var(--green)" icon={<LevelIcon id={level.id} size={12} style={{ stroke: 'var(--green)' }} />}>
+                {level.name} · {xp} XP
+              </StatusText>
             </button>
           </div>
         </div>
@@ -400,7 +397,7 @@ export default function Home({ onSelect }) {
         </div>
 
         {/* Mode cards */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
 
           {/* Hero: Copa del Mundo (world cup week only) */}
           {new Date() >= new Date('2026-07-20') && new Date() <= new Date('2026-07-27') && (
@@ -440,71 +437,41 @@ export default function Home({ onSelect }) {
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '15px', color: '#ffffff', marginBottom: '3px' }}>{t.home.traderPass}</div>
               <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: '#00c087' }}>{t.home.traderPassSub}</div>
             </div>
-            <span style={{ fontSize: '9px', letterSpacing: '1px', borderRadius: '999px', padding: '3px 8px', background: 'rgba(0,192,135,0.15)', border: '0.5px solid rgba(0,192,135,0.5)', color: '#00c087', fontFamily: 'var(--font-body)', fontWeight: 700, flexShrink: 0 }}>{t.academy?.newBadgeLabel ?? 'NEW'}</span>
+            <StatusText color="var(--green)">{t.academy?.newBadgeLabel ?? 'NEW'}</StatusText>
           </button>
 
           {/* Trading Mode — próximamente */}
-          <div
-            style={{ width: '100%', background: 'var(--bg-surface)', border: '1px dashed #2a2a2a', borderRadius: 'var(--radius-lg)', padding: '18px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'default', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.05s both', opacity: 0.5 }}
-          >
-            <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-md)', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(96,165,250,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><CandlestickChart size={22} strokeWidth={2} aria-hidden style={{ stroke: '#6a6a6a' }} /></div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '15px', color: '#8a8a8a', marginBottom: '3px' }}>{t.home.tradingMode}</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: '#6a6a6a' }}>{t.home.tradingModeSub}</div>
-            </div>
-            <span style={{ fontSize: '9px', letterSpacing: '1px', borderRadius: '999px', padding: '3px 8px', border: '0.5px solid #2a2a2a', color: '#6a6a6a', fontFamily: 'var(--font-body)', fontWeight: 700, flexShrink: 0 }}>{t.home.comingSoon}</span>
-          </div>
+          <FlatRow
+            icon={<div className="flat-row-icon" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(96,165,250,0.3)' }}><CandlestickChart size={20} strokeWidth={2} aria-hidden style={{ stroke: '#6a6a6a' }} /></div>}
+            title={t.home.tradingMode}
+            subtitle={t.home.tradingModeSub}
+            dimmed
+            value={<StatusText>{t.home.comingSoon}</StatusText>}
+          />
 
-          {/* Hero: Portfolio */}
-          <button
+          {/* Portfolio */}
+          <FlatRow
+            icon={<div className="flat-row-icon" style={{ background: 'rgba(55,138,221,0.15)', border: '1px solid rgba(55,138,221,0.3)' }}><Briefcase size={20} strokeWidth={2} aria-hidden style={{ stroke: '#378ADD' }} /></div>}
+            title={t.portfolio?.title ?? 'Portfolio Mode'}
+            subtitle={t.portfolio?.sub ?? '$50,000 virtual · real prices'}
             onClick={() => onSelect('portfolio')}
-            style={{ width: '100%', background: 'var(--gradient-surface)', border: '0.5px solid var(--border-pink)', borderRadius: 'var(--radius-lg)', padding: '18px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', transition: 'transform 0.1s', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.07s both' }}
-            onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
-            onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
-            onTouchStart={e => e.currentTarget.style.transform = 'scale(0.98)'}
-            onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
-          >
-            <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-md)', background: 'rgba(55,138,221,0.15)', border: '1px solid rgba(55,138,221,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Briefcase size={22} strokeWidth={2} aria-hidden style={{ stroke: '#378ADD' }} /></div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '15px', color: 'var(--text-primary)', marginBottom: '3px' }}>{t.portfolio?.title ?? 'Portfolio Mode'}</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>{t.portfolio?.sub ?? '$50,000 virtual · real prices'}</div>
-            </div>
-            <span style={{ color: 'var(--text-primary)', fontSize: '18px', flexShrink: 0 }}>›</span>
-          </button>
+          />
 
-          {/* Hero: Daily */}
-          <button
+          {/* Daily */}
+          <FlatRow
+            icon={<div className="flat-row-icon" style={{ background: 'rgba(232,184,75,0.12)', border: '1px solid rgba(232,184,75,0.3)' }}><Zap size={20} strokeWidth={2} aria-hidden style={{ stroke: '#e8b84b' }} /></div>}
+            title={t.home.mode4}
+            subtitle={t.home.mode4sub}
             onClick={() => onSelect('daily')}
-            style={{ width: '100%', background: 'var(--gradient-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-lg)', padding: '18px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', transition: 'transform 0.1s', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.10s both' }}
-            onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
-            onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
-            onTouchStart={e => e.currentTarget.style.transform = 'scale(0.98)'}
-            onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
-          >
-            <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-md)', background: 'rgba(232,184,75,0.12)', border: '1px solid rgba(232,184,75,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Zap size={22} strokeWidth={2} aria-hidden style={{ stroke: '#e8b84b' }} /></div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '15px', color: 'var(--text-primary)', marginBottom: '3px' }}>{t.home.mode4}</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>{t.home.mode4sub}</div>
-            </div>
-            <span style={{ color: 'var(--text-primary)', fontSize: '18px', flexShrink: 0 }}>›</span>
-          </button>
+          />
 
           {/* Torneos */}
-          <button
+          <FlatRow
+            icon={<div className="flat-row-icon" style={{ background: 'rgba(248,113,113,0.12)', border: '1px solid rgba(248,113,113,0.3)' }}><ModeIcon id="tournament" size={20} style={{ stroke: '#f87171' }} /></div>}
+            title={t.home.mode3}
+            subtitle={TOURNAMENT_SUB[lang]}
             onClick={() => onSelect('tournament')}
-            style={{ width: '100%', background: 'linear-gradient(135deg, rgba(248,113,113,0.10), var(--bg-surface))', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-lg)', padding: '18px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', transition: 'transform 0.1s', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.13s both', boxShadow: '0 0 16px rgba(248,113,113,0.08)' }}
-            onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
-            onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
-            onTouchStart={e => e.currentTarget.style.transform = 'scale(0.98)'}
-            onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
-          >
-            <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-md)', background: 'rgba(248,113,113,0.12)', border: '1px solid rgba(248,113,113,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><ModeIcon id="tournament" size={22} style={{ stroke: '#f87171' }} /></div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '15px', color: 'var(--text-primary)', marginBottom: '3px' }}>{t.home.mode3}</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>{TOURNAMENT_SUB[lang]}</div>
-            </div>
-            <span style={{ color: 'var(--text-primary)', fontSize: '18px', flexShrink: 0 }}>›</span>
-          </button>
+          />
 
         </div>
 

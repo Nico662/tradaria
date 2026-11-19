@@ -4,6 +4,7 @@ import { Lightbulb, BookOpen } from 'lucide-react';
 import { GLOSSARY } from './tradingGlossary.js';
 import { CHARTS } from './glossaryCharts.jsx';
 import { useLang } from './LangContext.jsx';
+import SectionTitle from './components/ui/SectionTitle.jsx';
 
 const ACCENTS = ['var(--green)', 'var(--color-neutral)', 'var(--text-secondary)'];
 
@@ -196,7 +197,7 @@ function DetailScreen({ dayOffset, onOffsetChange, onClose }) {
 // ─── Compact Card ─────────────────────────────────────────────────────────────
 
 export default function WordOfTheDay() {
-  const { lang } = useLang();
+  const { lang, t } = useLang();
   const [showDetail, setShowDetail] = useState(false);
   const [dayOffset,  setDayOffset]  = useState(0);
 
@@ -228,17 +229,11 @@ export default function WordOfTheDay() {
         />
       )}
 
-      <div style={{
-        flex: 1, minWidth: 0, alignSelf: 'stretch',
-        background: 'var(--bg-surface)',
-        border: '1px solid var(--border-default)',
-        borderTop: `2px solid ${accent}`,
-        borderRadius: '8px',
-        padding: '10px 12px 12px',
-        display: 'flex', flexDirection: 'column',
-      }}>
+      <div style={{ flex: 1, minWidth: 0, alignSelf: 'stretch', display: 'flex', flexDirection: 'column' }}>
 
-        {/* Header + day nav */}
+        <SectionTitle onClick={() => setShowDetail(true)}>{t.home.sectionWordOfDay}</SectionTitle>
+
+        {/* Day nav */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px', gap: '4px' }}>
           <button
             onClick={() => setDayOffset(d => Math.max(d - 1, -30))}

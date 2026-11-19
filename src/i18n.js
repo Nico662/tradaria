@@ -23,6 +23,8 @@ export const LANGS = {
       tradingMode: 'Trading Mode',
       tradingModeSub: '1:100 leverage · real lots · crypto 24/7',
       comingSoon: 'SOON',
+      sectionMissions: 'Missions',
+      sectionWordOfDay: 'Word of the day',
     },
     game: {
       round: 'ROUND', score: 'SCORE', streak: 'STREAK',
@@ -839,6 +841,8 @@ export const LANGS = {
       tradingMode: 'Trading Mode',
       tradingModeSub: 'apalancamiento 1:100 · lotes reales · cripto 24/7',
       comingSoon: 'PRONTO',
+      sectionMissions: 'Misiones',
+      sectionWordOfDay: 'Concepto del día',
     },
     game: {
       round: 'RONDA', score: 'PUNTOS', streak: 'RACHA',
@@ -1604,6 +1608,8 @@ export const LANGS = {
       tradingMode: 'Trading Mode',
       tradingModeSub: '1:100 Hebel · echte Lots · Krypto 24/7',
       comingSoon: 'BALD',
+      sectionMissions: 'Missionen',
+      sectionWordOfDay: 'Wort des Tages',
     },
     game: {
       round: 'RUNDE', score: 'PUNKTE', streak: 'SERIE',

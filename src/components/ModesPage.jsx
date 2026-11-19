@@ -1,6 +1,7 @@
 import { useLang } from '../LangContext';
 import { ModeIcon } from './AppIcons';
 import { CandlestickChart, Ticket } from 'lucide-react';
+import { FlatRow, StatusText } from './ui';
 
 export default function ModesPage({ onSelect }) {
   const { t } = useLang();
@@ -27,122 +28,39 @@ export default function ModesPage({ onSelect }) {
         </p>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
 
         {/* Trader Pass — activo */}
-        <button
-          className="animate-fade-in-up stagger-1"
-          onClick={() => onSelect('battle_pass')}
-          style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid rgba(0,192,135,0.2)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '14px 16px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 14,
-            cursor: 'pointer',
-            width: '100%',
-            textAlign: 'left',
-            transition: 'transform 0.1s',
-          }}
-          onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
-          onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
-          onTouchStart={e => e.currentTarget.style.transform = 'scale(0.98)'}
-          onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
-        >
-          <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-md)', background: 'rgba(0,192,135,0.08)', border: '1px solid rgba(0,192,135,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <Ticket size={20} strokeWidth={2} aria-hidden style={{ stroke: '#00c087' }} />
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 900, fontSize: 14, color: 'var(--text-primary)', marginBottom: 3 }}>{t.home.traderPass}</div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: '#00c087', lineHeight: 1.4 }}>{t.home.traderPassSub}</div>
-          </div>
-          <span style={{ fontSize: '9px', letterSpacing: '1px', borderRadius: '999px', padding: '3px 8px', background: 'rgba(0,192,135,0.15)', border: '0.5px solid rgba(0,192,135,0.5)', color: '#00c087', fontFamily: 'var(--font-body)', fontWeight: 700, flexShrink: 0 }}>{t.academy?.newBadgeLabel ?? 'NEW'}</span>
-        </button>
+        <div className="animate-fade-in-up stagger-1" style={{ background: 'var(--bg-surface)', border: '1px solid rgba(0,192,135,0.2)', borderRadius: 'var(--radius-lg)', padding: '4px 16px', marginBottom: 4 }}>
+          <FlatRow
+            icon={<div className="flat-row-icon" style={{ background: 'rgba(0,192,135,0.08)', border: '1px solid rgba(0,192,135,0.3)' }}><Ticket size={20} strokeWidth={2} aria-hidden style={{ stroke: '#00c087' }} /></div>}
+            title={t.home.traderPass}
+            subtitle={t.home.traderPassSub}
+            onClick={() => onSelect('battle_pass')}
+            value={<StatusText color="var(--green)">{t.academy?.newBadgeLabel ?? 'NEW'}</StatusText>}
+          />
+        </div>
 
         {/* Trading Mode — próximamente */}
-        <div
-          className="animate-fade-in-up stagger-2"
-          style={{
-            background: 'transparent',
-            border: '1px dashed #2a2a2a',
-            borderRadius: 'var(--radius-lg)',
-            padding: '14px 16px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 14,
-            cursor: 'default',
-            opacity: 0.5,
-            width: '100%',
-            textAlign: 'left',
-          }}
-        >
-          <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-md)', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(96,165,250,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <CandlestickChart size={22} strokeWidth={2} aria-hidden style={{ stroke: '#6a6a6a' }} />
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 900, fontSize: 14, color: '#8a8a8a', marginBottom: 3 }}>{t.home.tradingMode}</div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: '#6a6a6a', lineHeight: 1.4 }}>{t.home.tradingModeSub}</div>
-          </div>
-          <span style={{ fontSize: '9px', letterSpacing: '1px', borderRadius: '999px', padding: '3px 8px', border: '0.5px solid #2a2a2a', color: '#6a6a6a', fontFamily: 'var(--font-body)', fontWeight: 700, flexShrink: 0 }}>{t.home.comingSoon}</span>
+        <div className="animate-fade-in-up stagger-2">
+          <FlatRow
+            icon={<div className="flat-row-icon" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(96,165,250,0.3)' }}><CandlestickChart size={20} strokeWidth={2} aria-hidden style={{ stroke: '#6a6a6a' }} /></div>}
+            title={t.home.tradingMode}
+            subtitle={t.home.tradingModeSub}
+            dimmed
+            value={<StatusText>{t.home.comingSoon}</StatusText>}
+          />
         </div>
 
         {MODES.map((mode, index) => (
-          <button
-            key={mode.id}
-            className={`animate-fade-in-up stagger-${index + 3}`}
-            onClick={() => mode.available && onSelect(mode.id)}
-            disabled={!mode.available}
-            style={{
-              background: index === 0 ? 'var(--gradient-surface)' : 'var(--bg-surface)',
-              border: `0.5px solid ${index === 0 ? 'var(--border-pink)' : 'var(--border-default)'}`,
-              borderRadius: 'var(--radius-lg)',
-              padding: '14px 16px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 14,
-              cursor: mode.available ? 'pointer' : 'not-allowed',
-              opacity: mode.available ? 1 : 0.5,
-              width: '100%',
-              textAlign: 'left',
-              transition: 'transform 0.1s, opacity 0.15s',
-            }}
-            onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
-            onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
-            onTouchStart={e => e.currentTarget.style.transform = 'scale(0.98)'}
-            onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
-          >
-            <div style={{
-              width: 44,
-              height: 44,
-              borderRadius: 'var(--radius-md)',
-              background: mode.color === 'green' ? 'var(--green-dim)' : 'var(--pink-dim)',
-              border: `1.5px solid ${mode.color === 'green' ? 'var(--border-green)' : 'var(--border-pink)'}`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}>
-              <ModeIcon id={mode.id} size={20} style={{ stroke: mode.color === 'green' ? 'var(--green)' : 'var(--pink)' }} />
-            </div>
-
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 900, fontSize: 14, color: 'var(--text-primary)', marginBottom: 3 }}>
-                {t.modes.items[mode.id].title}
-              </div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', lineHeight: 1.4 }}>
-                {t.modes.items[mode.id].description}
-              </div>
-            </div>
-
-            <div style={{
-              color: mode.color === 'green' ? 'var(--green)' : 'var(--pink)',
-              flexShrink: 0,
-              fontSize: 18,
-            }}>›</div>
-
-          </button>
+          <div key={mode.id} className={`animate-fade-in-up stagger-${index + 3}`}>
+            <FlatRow
+              icon={<div className="flat-row-icon" style={{ background: mode.color === 'green' ? 'var(--green-dim)' : 'var(--pink-dim)', border: `1.5px solid ${mode.color === 'green' ? 'var(--border-green)' : 'var(--border-pink)'}` }}><ModeIcon id={mode.id} size={20} style={{ stroke: mode.color === 'green' ? 'var(--green)' : 'var(--pink)' }} /></div>}
+              title={t.modes.items[mode.id].title}
+              subtitle={t.modes.items[mode.id].description}
+              onClick={() => onSelect(mode.id)}
+            />
+          </div>
         ))}
       </div>
     </div>
