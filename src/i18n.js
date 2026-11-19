@@ -180,7 +180,7 @@ export const LANGS = {
     },
     historical: {
       title: 'Historical Mode',
-      mode: 'Historical Mode',
+      mode: '50 real events',
       sub: '50 real events · can you call them?',
       back: '← back',
       eventsBack: '← events',
@@ -1001,7 +1001,7 @@ export const LANGS = {
     },
     historical: {
       title: 'Modo Histórico',
-      mode: 'Modo Histórico',
+      mode: '50 eventos reales',
       sub: '50 eventos reales · ¿puedes acertarlos?',
       back: '← volver',
       eventsBack: '← eventos',
@@ -1771,7 +1771,7 @@ export const LANGS = {
     },
     historical: {
       title: 'Historischer Modus',
-      mode: 'Historischer Modus',
+      mode: '50 echte Ereignisse',
       sub: '50 echte Ereignisse · kannst du sie erraten?',
       back: '← zurück',
       eventsBack: '← Ereignisse',

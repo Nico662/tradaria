@@ -12,6 +12,7 @@ import { useBattlePass } from './BattlePassContext.jsx';
 import EffectOverlay from './EffectOverlay.jsx';
 import { incrementMission, recordModePlayed, recordWeeklyModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
+import { ScreenHeader, TextTabs } from './components/ui';
 
 function EventIcon({ event, size = 32 }) {
   return (
@@ -184,30 +185,18 @@ export default function Historical({ onBack }) {
       <div className="scanlines" />
       <div style={{ padding: '12px 20px 32px', position: 'relative', zIndex: 2 }}>
 
-        <div className="header" style={{ display: 'grid', gridTemplateColumns: '80px 1fr 80px', alignItems: 'center', padding: '0 0 12px', borderBottom: '1px solid var(--bd)', marginBottom: '24px', background: 'none' }}>
-          <button onClick={onBack}
-            style={{ background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-          >{t.historical.back}</button>
-
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--color-neutral)', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(232,184,75,0.2)' }}>
-              <Scroll size={18} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} /> {t.historical.title}
-            </div>
-            <div style={{ fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: 'var(--font-body)' }}>
-              {t.historical.mode}
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <div className="lang-selector">
-              {['en', 'es', 'de'].map(l => (
-                <button key={l} className={`lang-btn${lang === l ? ' active' : ''}`} onClick={() => setLang(l)}>
-                  {l.toUpperCase()}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+        <ScreenHeader
+          title={t.historical.title}
+          subtitle={t.historical.mode}
+          onBack={onBack}
+          action={
+            <TextTabs
+              tabs={[{ value: 'en', label: 'EN' }, { value: 'es', label: 'ES' }, { value: 'de', label: 'DE' }]}
+              active={lang}
+              onChange={l => setLang(l)}
+            />
+          }
+        />
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {HISTORICAL_EVENTS.map(ev => {
@@ -255,22 +244,11 @@ export default function Historical({ onBack }) {
       <div className="scanlines" />
       <div style={{ padding: '0 0 32px', position: 'relative', zIndex: 2 }}>
 
-        <div className="header" style={{ display: 'grid', gridTemplateColumns: '80px 1fr 80px', alignItems: 'center', padding: '12px 20px 10px', marginBottom: '12px' }}>
-          <button onClick={() => { setPhase('select'); setResult(null); setCandles(null); setFuture(null); }}
-            style={{ background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-          >{t.historical.eventsBack}</button>
-
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--color-neutral)', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(232,184,75,0.2)' }}>
-              <Scroll size={18} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} /> {t.historical.title}
-            </div>
-            <div style={{ fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: 'var(--font-body)' }}>
-              {t.historical.mode}
-            </div>
-          </div>
-
-          <div />
-        </div>
+        <ScreenHeader
+          title={t.historical.title}
+          subtitle={t.historical.mode}
+          onBack={() => { setPhase('select'); setResult(null); setCandles(null); setFuture(null); }}
+        />
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', padding: '0 20px' }}>
           {event && <EventIcon event={event} size={32} />}
