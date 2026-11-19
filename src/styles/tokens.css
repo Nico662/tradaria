@@ -59,6 +59,24 @@
   --font-body:    'Nunito', sans-serif;
   --font-display: 'Nunito', sans-serif;
   --font-mono:    'Courier New', 'Menlo', monospace;
+
+  /* Escala tipográfica */
+  --font-size-hero:    32px;
+  --font-size-title:   22px;
+  --font-size-section: 17px;
+  --font-size-body:    14px;
+  --font-size-sub:     13px;
+  --font-size-label:   12px;
+  --font-size-micro:   11px;
+
+  /* Pesos */
+  --font-weight-black:  900;
+  --font-weight-bold:   800;
+  --font-weight-medium: 600;
+  --font-weight-normal: 400;
+
+  /* Color de acento (alias que respeta overrides de tema) */
+  --color-accent: var(--green);
 }
 
 body {
