@@ -450,7 +450,7 @@ export const LANGS = {
     shop: {
       back: '← back',
       signIn: 'Sign in to purchase',
-      equipped: '✓ Equipped', equip: 'Equip',
+      equipped: 'Equipped', equip: 'Equip', owned: 'Yours',
       frames: 'Frames', themes: 'Themes', avatars: 'Avatars', effects: 'Effects',
       iapError: 'Purchase could not be verified. If you were charged, please contact support.',
       dismiss: 'Dismiss',
@@ -1271,7 +1271,7 @@ export const LANGS = {
     shop: {
       back: '← volver',
       signIn: 'Inicia sesión para comprar',
-      equipped: '✓ Equipado', equip: 'Equipar',
+      equipped: 'Equipado', equip: 'Equipar', owned: 'Tuyo',
       frames: 'Marcos', themes: 'Temas', avatars: 'Avatares', effects: 'Efectos',
       iapError: 'No se pudo verificar la compra. Si te han cobrado, contacta con soporte.',
       dismiss: 'Cerrar',
@@ -2041,7 +2041,7 @@ export const LANGS = {
     shop: {
       back: '← zurück',
       signIn: 'Anmelden zum Kaufen',
-      equipped: '✓ Ausgerüstet', equip: 'Ausrüsten',
+      equipped: 'Ausgerüstet', equip: 'Ausrüsten', owned: 'Deins',
       frames: 'Rahmen', themes: 'Themes', avatars: 'Avatare', effects: 'Effekte',
       iapError: 'Kauf konnte nicht verifiziert werden. Wende dich an den Support, wenn du belastet wurdest.',
       dismiss: 'Schließen',

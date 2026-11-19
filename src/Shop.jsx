@@ -1,43 +1,44 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Frame, Palette, User, Sparkles, ShoppingBag } from 'lucide-react';
+import { Frame, Palette, User, Sparkles, Zap, Flame, Star, Check } from 'lucide-react';
 import { useLang } from './LangContext.jsx';
 import { useAuth, isIOSApp } from './AuthContext.jsx';
 import { SERVER } from './config.js';
 import { purchaseWithStoreKit, extractReceipt, restorePurchases, productIdToItemId, canPurchaseIAP } from './iap.js';
 import { AvatarSVG } from './components/AvatarSVGs.jsx';
+import { ScreenHeader, TextTabs, FlatRow, StatusText } from './components/ui';
 
 const SHOP_ITEMS = {
   frames: [
-    { id: 'frame_gold',     name: 'Gold Frame',     desc: { en: 'Exclusive gold border',     es: 'Borde dorado exclusivo',      de: 'Exklusiver Goldrahmen'     }, price: 2.99, emoji: '🥇', color: 'var(--color-neutral)' },
-    { id: 'frame_neon',     name: 'Neon Frame',     desc: { en: 'Glowing neon border',       es: 'Borde neón brillante',        de: 'Leuchtender Neonrahmen'    }, price: 1.99, emoji: '💚', color: 'var(--green)' },
-    { id: 'frame_fire',     name: 'Fire Frame',     desc: { en: 'Animated fire border',      es: 'Borde de fuego animado',      de: 'Animierter Feuerrahmen'    }, price: 3.99, emoji: '🔥', color: 'var(--color-down)' },
-    { id: 'frame_diamond',  name: 'Diamond Frame',  desc: { en: 'Diamond pattern border',    es: 'Borde con patrón de diamante',de: 'Diamantmuster-Rahmen'      }, price: 4.99, emoji: '💎', color: 'var(--t3)' },
+    { id: 'frame_gold',     name: 'Gold Frame',     desc: { en: 'Exclusive gold border',      es: 'Borde dorado exclusivo',       de: 'Exklusiver Goldrahmen'      }, price: 2.99, color: 'var(--color-neutral)' },
+    { id: 'frame_neon',     name: 'Neon Frame',     desc: { en: 'Glowing neon border',        es: 'Borde neón brillante',         de: 'Leuchtender Neonrahmen'     }, price: 1.99, color: 'var(--green)' },
+    { id: 'frame_fire',     name: 'Fire Frame',     desc: { en: 'Animated fire border',       es: 'Borde de fuego animado',       de: 'Animierter Feuerrahmen'     }, price: 3.99, color: 'var(--color-down)' },
+    { id: 'frame_diamond',  name: 'Diamond Frame',  desc: { en: 'Diamond pattern border',     es: 'Borde con patrón de diamante', de: 'Diamantmuster-Rahmen'       }, price: 4.99, color: 'var(--t3)' },
   ],
   themes: [
-    { id: 'theme_matrix',   name: 'Matrix',         desc: { en: 'Green on black',            es: 'Verde sobre negro',           de: 'Grün auf Schwarz'          }, price: 1.99, emoji: '🟩', color: 'var(--green)' },
-    { id: 'theme_blood',    name: 'Blood Market',   desc: { en: 'Red dark theme',            es: 'Tema oscuro rojo',            de: 'Rotes dunkles Theme'       }, price: 1.99, emoji: '🩸', color: 'var(--color-down)' },
-    { id: 'theme_gold',     name: 'Gold Rush',      desc: { en: 'Gold and black theme',      es: 'Tema dorado y negro',         de: 'Gold und Schwarz Theme'    }, price: 2.99, emoji: '✨', color: 'var(--color-neutral)' },
-    { id: 'theme_midnight', name: 'Midnight',       desc: { en: 'Deep blue dark theme',      es: 'Tema azul oscuro profundo',   de: 'Tiefblaues dunkles Theme'  }, price: 1.99, emoji: '🌙', color: 'var(--t4)' },
+    { id: 'theme_matrix',   name: 'Matrix',         desc: { en: 'Green on black',             es: 'Verde sobre negro',            de: 'Grün auf Schwarz'           }, price: 1.99, color: 'var(--green)' },
+    { id: 'theme_blood',    name: 'Blood Market',   desc: { en: 'Red dark theme',             es: 'Tema oscuro rojo',             de: 'Rotes dunkles Theme'        }, price: 1.99, color: 'var(--color-down)' },
+    { id: 'theme_gold',     name: 'Gold Rush',      desc: { en: 'Gold and black theme',       es: 'Tema dorado y negro',          de: 'Gold und Schwarz Theme'     }, price: 2.99, color: 'var(--color-neutral)' },
+    { id: 'theme_midnight', name: 'Midnight',       desc: { en: 'Deep blue dark theme',       es: 'Tema azul oscuro profundo',    de: 'Tiefblaues dunkles Theme'   }, price: 1.99, color: 'var(--t4)' },
   ],
   avatars: [
-    { id: 'avatar_bull',    name: 'Bull',           desc: { en: 'Bullish trader avatar',     es: 'Avatar de trader alcista',    de: 'Bullen-Trader Avatar'      }, price: 0.99, color: 'var(--green)' },
-    { id: 'avatar_bear',    name: 'Bear',           desc: { en: 'Bearish trader avatar',     es: 'Avatar de trader bajista',    de: 'Bären-Trader Avatar'       }, price: 0.99, color: 'var(--color-down)' },
-    { id: 'avatar_whale',   name: 'Whale',          desc: { en: 'Big money avatar',          es: 'Avatar de gran inversor',     de: 'Großinvestor Avatar'       }, price: 1.99, color: 'var(--t3)' },
-    { id: 'avatar_robot',   name: 'AlgoBot',        desc: { en: 'Algorithm trader avatar',   es: 'Avatar de trader algorítmico',de: 'Algorithmus-Trader Avatar' }, price: 1.99, color: 'var(--color-neutral)' },
+    { id: 'avatar_bull',    name: 'Bull',           desc: { en: 'Bullish trader avatar',      es: 'Avatar de trader alcista',     de: 'Bullen-Trader Avatar'       }, price: 0.99, color: 'var(--green)' },
+    { id: 'avatar_bear',    name: 'Bear',           desc: { en: 'Bearish trader avatar',      es: 'Avatar de trader bajista',     de: 'Bären-Trader Avatar'        }, price: 0.99, color: 'var(--color-down)' },
+    { id: 'avatar_whale',   name: 'Whale',          desc: { en: 'Big money avatar',           es: 'Avatar de gran inversor',      de: 'Großinvestor Avatar'        }, price: 1.99, color: 'var(--t3)' },
+    { id: 'avatar_robot',   name: 'AlgoBot',        desc: { en: 'Algorithm trader avatar',    es: 'Avatar de trader algorítmico', de: 'Algorithmus-Trader Avatar'  }, price: 1.99, color: 'var(--color-neutral)' },
   ],
   effects: [
-    { id: 'effect_confetti',  name: 'Confetti',     desc: { en: 'Confetti on correct answer',es: 'Confeti al acertar',          de: 'Konfetti bei richtiger Antwort'}, price: 1.99, emoji: '🎉', color: 'var(--color-neutral)' },
-    { id: 'effect_lightning', name: 'Lightning',    desc: { en: 'Lightning bolt on streak',  es: 'Rayo en racha',               de: 'Blitz bei Serie'           }, price: 2.99, emoji: '⚡', color: 'var(--green)' },
-    { id: 'effect_explosion', name: 'Explosion',    desc: { en: 'Explosion on big win',      es: 'Explosión en gran victoria',  de: 'Explosion bei großem Gewinn'}, price: 2.99, emoji: '💥', color: 'var(--color-down)' },
-    { id: 'effect_stars',     name: 'Stars',        desc: { en: 'Stars rain on win',         es: 'Lluvia de estrellas al ganar',de: 'Sternregen beim Gewinn'    }, price: 1.99, emoji: '⭐', color: 'var(--color-neutral)' },
+    { id: 'effect_confetti',  name: 'Confetti',     desc: { en: 'Confetti on correct answer', es: 'Confeti al acertar',           de: 'Konfetti bei richtiger Antwort' }, price: 1.99, color: 'var(--color-neutral)' },
+    { id: 'effect_lightning', name: 'Lightning',    desc: { en: 'Lightning bolt on streak',   es: 'Rayo en racha',                de: 'Blitz bei Serie'                }, price: 2.99, color: 'var(--green)' },
+    { id: 'effect_explosion', name: 'Explosion',    desc: { en: 'Explosion on big win',       es: 'Explosión en gran victoria',   de: 'Explosion bei großem Gewinn'    }, price: 2.99, color: 'var(--color-down)' },
+    { id: 'effect_stars',     name: 'Stars',        desc: { en: 'Stars rain on win',          es: 'Lluvia de estrellas al ganar', de: 'Sternregen beim Gewinn'         }, price: 1.99, color: 'var(--color-neutral)' },
   ],
 };
 
-const FRAME_STYLES = {
-  frame_gold:    { border: '2px solid var(--color-neutral)', boxShadow: '0 0 8px rgba(232,184,75,0.6)' },
-  frame_neon:    { border: '2px solid var(--green)', boxShadow: '0 0 8px rgba(0,229,160,0.6)' },
-  frame_fire:    { border: '2px solid var(--color-down)', boxShadow: '0 0 8px rgba(255,126,179,0.6)' },
-  frame_diamond: { border: '2px solid var(--t3)', boxShadow: '0 0 8px rgba(136,153,176,0.6)' },
+const FRAME_BORDERS = {
+  frame_gold:    '2px solid var(--color-neutral)',
+  frame_neon:    '2px solid var(--green)',
+  frame_fire:    '2px solid var(--color-down)',
+  frame_diamond: '2px solid var(--t3)',
 };
 
 const THEME_COLORS = {
@@ -46,6 +47,13 @@ const THEME_COLORS = {
   theme_midnight: { bg: '#0a0d14', border: 'rgba(107,159,255,0.35)', accent: '#6b9fff', text: '#dce4f5', down: '#6b9fff' },
   theme_matrix:   { bg: '#0a100c', border: 'rgba(0,255,65,0.35)',    accent: '#00ff41', text: '#c8e8d0', down: '#00ff41' },
   theme_aurora:   { bg: '#0d0a14', border: 'rgba(192,132,252,0.35)', accent: '#c084fc', text: '#ede8f5', down: '#c084fc' },
+};
+
+const EFFECT_ICONS = {
+  effect_confetti:  Sparkles,
+  effect_lightning: Zap,
+  effect_explosion: Flame,
+  effect_stars:     Star,
 };
 
 const MINI_CANDLES = [
@@ -120,12 +128,7 @@ const CATEGORY_TYPES = {
   effects: 'effect',
 };
 
-const CATEGORIES = [
-  { id: 'frames',  icon: <Frame    size={14} strokeWidth={2} aria-hidden /> },
-  { id: 'themes',  icon: <Palette  size={14} strokeWidth={2} aria-hidden /> },
-  { id: 'avatars', icon: <User     size={14} strokeWidth={2} aria-hidden /> },
-  { id: 'effects', icon: <Sparkles size={14} strokeWidth={2} aria-hidden /> },
-];
+const CATEGORIES = ['frames', 'themes', 'avatars', 'effects'];
 
 const MATRIX_BG_COLS = [
   { chars: ['1','0','1','1','0','1'], x: '8%',  delay: '0s',    dur: '2.8s' },
@@ -194,41 +197,26 @@ function ThemeBgMotif({ id, c }) {
 
       {id === 'theme_gold' && (
         <>
-          {/* Radial glow */}
           <div style={{
-            position: 'absolute',
-            inset: 0,
+            position: 'absolute', inset: 0,
             background: 'radial-gradient(ellipse 50% 40% at 90% 8%, rgba(232,185,60,0.18), transparent)',
             pointerEvents: 'none',
           }} />
-          {/* Diagonal shimmer sweep */}
           <div style={{
-            position: 'absolute',
-            inset: 0,
+            position: 'absolute', inset: 0,
             animation: 'game-gold-shimmer 5s linear infinite',
             pointerEvents: 'none',
           }}>
             <div style={{
-              position: 'absolute',
-              top: '-50%',
-              left: '25%',
-              width: '20%',
-              height: '250%',
+              position: 'absolute', top: '-50%', left: '25%', width: '20%', height: '250%',
               background: 'linear-gradient(to right, transparent, rgba(255,231,166,0.22), transparent)',
               transform: 'rotate(25deg)',
             }} />
           </div>
-          {/* Rising sparks */}
           {SHOP_GOLD_SPARKS.map((p, i) => (
             <div key={i} style={{
-              position: 'absolute',
-              bottom: 0,
-              left: p.left,
-              width: '2px',
-              height: '2px',
-              borderRadius: '50%',
-              background: p.color,
-              boxShadow: `0 0 4px 1px ${p.color}b3`,
+              position: 'absolute', bottom: 0, left: p.left, width: '2px', height: '2px',
+              borderRadius: '50%', background: p.color,
               animation: `game-gold-spark ${p.dur} ease-in ${p.delay} infinite`,
               pointerEvents: 'none',
             }} />
@@ -240,22 +228,15 @@ function ThemeBgMotif({ id, c }) {
         <>
           {SHOP_STARS.map((s, i) => (
             <div key={i} style={{
-              position: 'absolute',
-              left: s.x, top: s.y,
-              width: '5px', height: '5px',
-              borderRadius: '50%',
-              background: '#cfe0fa',
-              transform: 'translate(-50%, -50%)',
+              position: 'absolute', left: s.x, top: s.y, width: '5px', height: '5px',
+              borderRadius: '50%', background: '#cfe0fa', transform: 'translate(-50%, -50%)',
               animation: `game-star-twinkle ${s.dur} ease-in-out ${s.delay} infinite`,
             }} />
           ))}
           <div style={{
-            position: 'absolute',
-            top: '25%', left: '-5%',
-            width: '30px', height: '1.5px',
+            position: 'absolute', top: '25%', left: '-5%', width: '30px', height: '1.5px',
             background: 'linear-gradient(90deg, transparent, #cfe0fa, transparent)',
-            borderRadius: '1px',
-            animation: 'game-shooting-star 5s ease-in-out infinite',
+            borderRadius: '1px', animation: 'game-shooting-star 5s ease-in-out infinite',
           }} />
         </>
       )}
@@ -266,11 +247,7 @@ function ThemeBgMotif({ id, c }) {
         { w: '22%', color: 'rgba(45,212,160,0.16)',  dur: '15s', delay: '6s'  },
       ].map((b, i) => (
         <div key={i} className="game-aurora-band" style={{
-          position: 'absolute',
-          top: '-20%',
-          left: 0,
-          width: b.w,
-          height: '150%',
+          position: 'absolute', top: '-20%', left: 0, width: b.w, height: '150%',
           background: `linear-gradient(90deg, transparent, ${b.color}, transparent)`,
           pointerEvents: 'none',
           animation: `game-aurora-sweep ${b.dur} linear ${b.delay} infinite`,
@@ -285,9 +262,9 @@ function PreviewFrame({ item, userAvatar }) {
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '12px 0 4px' }}>
       <div style={{ position: 'relative' }}>
         {userAvatar ? (
-          <img src={userAvatar} style={{ width: '48px', height: '48px', borderRadius: '50%', ...FRAME_STYLES[item.id] }} />
+          <img src={userAvatar} style={{ width: '48px', height: '48px', borderRadius: '50%', border: FRAME_BORDERS[item.id] }} />
         ) : (
-          <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--bg-card2)', display: 'flex', alignItems: 'center', justifyContent: 'center', ...FRAME_STYLES[item.id] }}>
+          <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--bg-card2)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: FRAME_BORDERS[item.id] }}>
             <User size={28} strokeWidth={1.5} aria-hidden />
           </div>
         )}
@@ -303,7 +280,6 @@ function PreviewTheme({ item }) {
     <div style={{
       height: '120px', borderRadius: '6px', overflow: 'hidden',
       border: `1px solid ${c.border}`,
-      boxShadow: `inset 0 1px 0 0 ${c.accent}66`,
       background: c.bg,
       display: 'flex', flexDirection: 'column',
       margin: '4px 0',
@@ -341,7 +317,7 @@ function PreviewTheme({ item }) {
         <div style={{ flex: 1, background: `${c.accent}14`, border: `1px solid ${c.accent}`, borderRadius: '2px', padding: '2px 0', textAlign: 'center' }}>
           <span style={{ fontSize: '10px', color: c.accent, fontFamily: 'var(--font-body)', fontWeight: 700 }}>▲ {t.game.long.toUpperCase()}</span>
         </div>
-        <div style={{ flex: 1, border: `1px solid ${c.border}`, borderRadius: '2px', padding: '2px 0', textAlign: 'center', background: 'transparent' }}>
+        <div style={{ flex: 1, border: `1px solid ${c.border}`, borderRadius: '2px', padding: '2px 0', textAlign: 'center' }}>
           <span style={{ fontSize: '10px', color: `${c.accent}60`, fontFamily: 'var(--font-body)', fontWeight: 700 }}>— {t.game.noTrade.toUpperCase()}</span>
         </div>
         <div style={{ flex: 1, background: `${c.accent}14`, border: `1px solid ${c.border}`, borderRadius: '2px', padding: '2px 0', textAlign: 'center' }}>
@@ -411,8 +387,7 @@ function PreviewLightning() {
       }} />
       <svg
         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', animation: 'preview-lightning-flash 0.9s ease forwards' }}
-        viewBox="0 0 100 80"
-        preserveAspectRatio="none"
+        viewBox="0 0 100 80" preserveAspectRatio="none"
       >
         <polyline points="5,74 18,74 18,55 35,55 35,35 55,35 55,18 75,18 75,6 95,6"
           fill="none" stroke="#e8b93c" strokeWidth="15" strokeLinecap="round" strokeLinejoin="round" opacity="0.18" />
@@ -448,7 +423,6 @@ function PreviewExplosion() {
   );
   return (
     <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      {/* Sunburst rays */}
       {rays.map((r, i) => (
         <div key={`ray-${i}`} style={{
           position: 'absolute', left: '50%', top: '50%', marginTop: '-1px',
@@ -459,13 +433,11 @@ function PreviewExplosion() {
           animation: 'preview-sunburst-ray 0.2s ease-out forwards',
         }} />
       ))}
-      {/* Inner ring */}
       <div style={{
         position: 'absolute', width: '22px', height: '22px', borderRadius: '50%',
         border: '2px solid #ff6ea8',
         animation: 'preview-explosion-ring 0.9s ease-out forwards',
       }} />
-      {/* Outer ring */}
       <div style={{
         position: 'absolute', width: '44px', height: '44px', borderRadius: '50%',
         border: '1px solid #2dd4a0',
@@ -474,8 +446,7 @@ function PreviewExplosion() {
       {particles.map((p, i) => (
         p.isArrow ? (
           <div key={i} style={{
-            position: 'absolute', fontSize: '10px', lineHeight: 1,
-            color: p.color,
+            position: 'absolute', fontSize: '10px', lineHeight: 1, color: p.color,
             '--tx': `${p.tx}px`, '--ty': `${p.ty}px`,
             animation: `preview-particle-out 0.8s ${p.delay}s ease-out forwards`,
           }}>▲</div>
@@ -545,18 +516,68 @@ function PreviewEffect({ item }) {
   );
 }
 
+function SmallPreview({ item, category, userAvatar }) {
+  if (category === 'frames') {
+    return (
+      <div style={{
+        width: 32, height: 32, borderRadius: '50%',
+        background: 'var(--bg-elevated)',
+        border: FRAME_BORDERS[item.id] ?? '1px solid var(--border-default)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        overflow: 'hidden', flexShrink: 0,
+      }}>
+        {userAvatar
+          ? <img src={userAvatar} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          : <User size={14} strokeWidth={1.5} style={{ stroke: 'var(--text-muted)' }} />
+        }
+      </div>
+    );
+  }
+  if (category === 'themes') {
+    const c = THEME_COLORS[item.id];
+    return (
+      <div style={{
+        width: 32, height: 32, borderRadius: 8, flexShrink: 0,
+        background: c?.bg ?? 'var(--bg-elevated)',
+        border: `1px solid ${c?.border ?? 'var(--border-default)'}`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <div style={{ width: 10, height: 10, borderRadius: 2, background: c?.accent ?? 'var(--green)' }} />
+      </div>
+    );
+  }
+  if (category === 'avatars') {
+    return <AvatarSVG id={item.id} size={32} />;
+  }
+  if (category === 'effects') {
+    const EffectIcon = EFFECT_ICONS[item.id] ?? Sparkles;
+    return (
+      <div style={{
+        width: 32, height: 32, borderRadius: 8, flexShrink: 0,
+        background: `${item.color}14`,
+        border: `1px solid ${item.color}33`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <EffectIcon size={16} strokeWidth={2} style={{ color: item.color }} />
+      </div>
+    );
+  }
+  return null;
+}
+
 export default function Shop({ onBack }) {
   const { lang, t } = useLang();
   const { user, purchases, refreshPurchases, refreshUser, activeCosmetics, equipCosmetic, unequipCosmetic } = useAuth();
   const [activeCategory, setActiveCategory] = useState('frames');
-  const [loading, setLoading] = useState(null);
-  const [iapError, setIapError] = useState(null);
-  const [restoring, setRestoring] = useState(false);
-  const [restoreMsg, setRestoreMsg] = useState(null);
+  const [selectedId, setSelectedId]         = useState(null);
+  const [loading, setLoading]               = useState(null);
+  const [iapError, setIapError]             = useState(null);
+  const [restoring, setRestoring]           = useState(false);
+  const [restoreMsg, setRestoreMsg]         = useState(null);
   const confirmingRef = useRef(new Set());
   const [updateBannerDismissed, setUpdateBannerDismissed] = useState(false);
 
-  const items = SHOP_ITEMS[activeCategory];
+  const items       = SHOP_ITEMS[activeCategory];
   const cosmeticType = CATEGORY_TYPES[activeCategory];
 
   async function handlePurchaseSuccess(itemId, receiptData, iapKeys = null) {
@@ -690,148 +711,131 @@ export default function Shop({ onBack }) {
     }
   }
 
+  const tabs = CATEGORIES.map(cat => ({ value: cat, label: t.shop[cat] }));
+
   return (
-    <div id="gtm-root" style={{ position: 'relative' }}>
-      <div className="scanlines" />
-      <div style={{ position: 'relative', zIndex: 2 }}>
+    <div id="gtm-root" style={{ minHeight: '100dvh', background: 'var(--bg-base)', fontFamily: 'var(--font-body)' }}>
 
-        <div style={{ padding: '14px 20px 13px', borderBottom: '1px solid var(--bd)', display: 'flex', alignItems: 'center', gap: '12px', background: 'linear-gradient(180deg, rgba(232,184,75,0.025) 0%, transparent 100%)' }}>
-          <button onClick={onBack}
-            style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', letterSpacing: '0.06em', transition: 'color 0.15s' }}
-            onMouseEnter={e => e.target.style.color = 'var(--t2)'}
-            onMouseLeave={e => e.target.style.color = 'var(--t6)'}
-          >{t.shop.back}</button>
-          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '15px', color: 'var(--color-neutral)', letterSpacing: '0.06em', textShadow: '0 0 20px rgba(232,184,75,0.25)' }}>
-            <ShoppingBag size={16} strokeWidth={2} aria-hidden style={{ marginRight: '4px', verticalAlign: 'middle' }} /> {t.home.shop}
-          </div>
+      <ScreenHeader title={t.home.shop} onBack={onBack} />
+
+      {!canPurchaseIAP() && !updateBannerDismissed && (
+        <div style={{ margin: '0 16px 12px', padding: '10px 12px', background: 'rgba(232,184,75,0.08)', border: '1px solid var(--color-neutral)', borderRadius: '8px', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+          <span style={{ flex: 1, fontSize: '12px', color: 'var(--color-neutral)', fontFamily: 'var(--font-body)', lineHeight: '1.5' }}>{t.shop.updateBanner}</span>
+          <button onClick={() => setUpdateBannerDismissed(true)} style={{ background: 'transparent', border: 'none', color: 'var(--color-neutral)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer', flexShrink: 0, padding: 0 }}>{t.shop.dismiss}</button>
         </div>
+      )}
 
-        {!canPurchaseIAP() && !updateBannerDismissed && (
-          <div style={{ margin: '12px 20px 0', padding: '10px 12px', background: 'rgba(232,184,75,0.08)', border: '1px solid var(--color-neutral)', borderRadius: '8px', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-            <span style={{ flex: 1, fontSize: '12px', color: 'var(--color-neutral)', fontFamily: 'var(--font-body)', lineHeight: '1.5' }}>{t.shop.updateBanner}</span>
-            <button onClick={() => setUpdateBannerDismissed(true)} style={{ background: 'transparent', border: 'none', color: 'var(--color-neutral)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer', flexShrink: 0, padding: 0 }}>{t.shop.dismiss}</button>
-          </div>
-        )}
-
-        {iapError && (
-          <div style={{ margin: '12px 20px 0', padding: '10px 12px', background: 'rgba(224,85,85,0.10)', border: '1px solid var(--color-down)', borderRadius: '8px', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-            <span style={{ flex: 1, fontSize: '12px', color: 'var(--color-down)', fontFamily: 'var(--font-body)', lineHeight: '1.5' }}>{iapError}</span>
-            <button onClick={() => setIapError(null)} style={{ background: 'transparent', border: 'none', color: 'var(--color-down)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer', flexShrink: 0, padding: 0 }}>{t.shop.dismiss}</button>
-          </div>
-        )}
-
-        <div style={{ display: 'flex', gap: '6px', padding: '16px 20px', overflowX: 'auto' }}>
-          {CATEGORIES.map(cat => (
-            <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
-              style={{
-                padding: '6px 14px', borderRadius: '20px', whiteSpace: 'nowrap',
-                border: `1px solid ${activeCategory === cat.id ? 'var(--green)' : 'var(--bd2)'}`,
-                background: activeCategory === cat.id ? 'rgba(0,229,160,0.08)' : 'transparent',
-                color: activeCategory === cat.id ? 'var(--green)' : 'var(--t5)',
-                fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700,
-                letterSpacing: '0.08em', cursor: 'pointer', textTransform: 'uppercase',
-              }}>
-              {cat.icon} {t.shop[cat.id]}
-            </button>
-          ))}
+      {iapError && (
+        <div style={{ margin: '0 16px 12px', padding: '10px 12px', background: 'rgba(224,85,85,0.10)', border: '1px solid var(--color-down)', borderRadius: '8px', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+          <span style={{ flex: 1, fontSize: '12px', color: 'var(--color-down)', fontFamily: 'var(--font-body)', lineHeight: '1.5' }}>{iapError}</span>
+          <button onClick={() => setIapError(null)} style={{ background: 'transparent', border: 'none', color: 'var(--color-down)', fontFamily: 'var(--font-body)', fontSize: '11px', cursor: 'pointer', flexShrink: 0, padding: 0 }}>{t.shop.dismiss}</button>
         </div>
+      )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', padding: '0 20px 40px' }}>
-          {items.map(item => {
-            const owned   = purchases.includes(item.id);
-            const equipped = activeCosmetics[cosmeticType] === item.id;
+      <TextTabs
+        tabs={tabs}
+        active={activeCategory}
+        onChange={cat => { setActiveCategory(cat); setSelectedId(null); }}
+        style={{ padding: '0 16px 8px' }}
+      />
 
-            return (
-              <div key={item.id} style={{
-                background: 'var(--bg-card)',
-                border: `1px solid ${equipped ? item.color : 'var(--bd)'}`,
-                borderRadius: '10px',
-                padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px',
-                transition: 'border-color 0.2s, box-shadow 0.2s, transform 0.2s',
-                boxShadow: equipped ? `0 0 20px ${item.color}22, 0 4px 20px rgba(0,0,0,0.4)` : 'none',
-              }}
-                onMouseEnter={e => { if (!equipped) { e.currentTarget.style.borderColor = item.color; e.currentTarget.style.boxShadow = `0 8px 28px rgba(0,0,0,0.5)`; e.currentTarget.style.transform = 'translateY(-2px)'; } }}
-                onMouseLeave={e => { if (!equipped) { e.currentTarget.style.borderColor = 'var(--bd)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; } }}
+      <div style={{ paddingBottom: 40 }}>
+        {items.map(item => {
+          const owned    = purchases.includes(item.id);
+          const equipped = activeCosmetics[cosmeticType] === item.id;
+
+          return (
+            <div key={item.id}>
+              <div
+                style={{ cursor: 'pointer' }}
+                onClick={() => setSelectedId(selectedId === item.id ? null : item.id)}
               >
-                {activeCategory === 'frames'  && <PreviewFrame  item={item} userAvatar={user?.customAvatar || user?.avatar} />}
-                {activeCategory === 'themes'  && <PreviewTheme  item={item} />}
-                {activeCategory === 'avatars' && <PreviewAvatar item={item} />}
-                {activeCategory === 'effects' && <PreviewEffect item={item} />}
-
-                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '12px', color: item.color, textAlign: 'center' }}>
-                  {item.name}
-                </div>
-                <div style={{ fontSize: '12px', color: 'var(--t5)', textAlign: 'center', letterSpacing: '0.04em' }}>
-                  {item.desc[lang] || item.desc.en}
-                </div>
-
-                {owned ? (
-                  <button onClick={() => handleEquip(item)} style={{
-                    width: '100%', padding: '8px', marginTop: '4px',
-                    background: equipped ? item.color : 'transparent',
-                    border: `1px solid ${item.color}`,
-                    borderRadius: '6px',
-                    color: equipped ? 'var(--bg-page)' : item.color,
-                    fontFamily: 'var(--font-body)', fontSize: '12px',
-                    fontWeight: 700, letterSpacing: '0.06em', cursor: 'pointer',
-                    transition: 'all 0.15s',
-                  }}>
-                    {equipped ? t.shop.equipped : t.shop.equip}
-                  </button>
-                ) : (
-                  <button onClick={() => handleBuy(item.id)} disabled={loading === item.id || !canPurchaseIAP()} style={{
-                    width: '100%', padding: '8px', marginTop: '4px',
-                    background: (loading === item.id || !canPurchaseIAP()) ? 'var(--bg-card2)' : 'rgba(0,229,160,0.08)',
-                    border: `1px solid ${(loading === item.id || !canPurchaseIAP()) ? 'var(--bd2)' : item.color}`,
-                    borderRadius: '6px',
-                    color: (loading === item.id || !canPurchaseIAP()) ? 'var(--t5)' : item.color,
-                    fontFamily: 'var(--font-body)', fontSize: '12px',
-                    fontWeight: 700, letterSpacing: '0.06em', cursor: (loading === item.id || !canPurchaseIAP()) ? 'not-allowed' : 'pointer',
-                    transition: 'all 0.15s',
-                  }}>
-                    {loading === item.id ? '...' : !canPurchaseIAP() ? t.shop.updateRequired : `€${item.price}`}
-                  </button>
-                )}
+                <FlatRow
+                  icon={<SmallPreview item={item} category={activeCategory} userAvatar={user?.customAvatar || user?.avatar} />}
+                  title={<span style={{ fontWeight: 800 }}>{item.name}</span>}
+                  subtitle={item.desc[lang] || item.desc.en}
+                  chevron={false}
+                  value={
+                    <div onClick={e => e.stopPropagation()}>
+                      {owned ? (
+                        <button
+                          onClick={() => handleEquip(item)}
+                          style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                        >
+                          <StatusText
+                            color={equipped ? item.color : 'var(--text-muted)'}
+                            icon={equipped ? <Check size={11} strokeWidth={2.5} style={{ stroke: item.color }} /> : undefined}
+                          >
+                            {equipped ? t.shop.equipped : t.shop.equip}
+                          </StatusText>
+                        </button>
+                      ) : loading === item.id ? (
+                        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>...</span>
+                      ) : (
+                        <button
+                          onClick={() => handleBuy(item.id)}
+                          disabled={!canPurchaseIAP()}
+                          style={{
+                            background: 'none', border: 'none', padding: 0,
+                            fontFamily: 'var(--font-body)', fontSize: '14px', fontWeight: 900,
+                            color: canPurchaseIAP() ? item.color : 'var(--text-hint)',
+                            cursor: canPurchaseIAP() ? 'pointer' : 'not-allowed',
+                          }}
+                        >
+                          {canPurchaseIAP() ? `€${item.price}` : '—'}
+                        </button>
+                      )}
+                    </div>
+                  }
+                />
               </div>
-            );
-          })}
-        </div>
 
-        {window.webkit?.messageHandlers?.iapRestore && (
-          <div style={{ padding: '0 20px 24px' }}>
-            {restoreMsg && (
-              <div style={{
-                marginBottom: '10px', padding: '10px 14px',
-                background: 'var(--bg-card)', border: '1px solid var(--bd)',
-                borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              }}>
-                <span style={{ fontSize: '12px', color: 'var(--t3)', fontFamily: 'var(--font-body)' }}>
-                  {restoreMsg}
-                </span>
-                <button onClick={() => setRestoreMsg(null)} style={{
-                  background: 'transparent', border: 'none', color: 'var(--t5)',
-                  cursor: 'pointer', fontSize: '14px', lineHeight: 1, padding: '0 4px',
-                }}>×</button>
-              </div>
-            )}
-            <button
-              onClick={handleRestore}
-              disabled={restoring}
-              style={{
-                width: '100%', padding: '11px',
-                background: 'transparent', border: '1px solid var(--bd2)',
-                borderRadius: '6px', color: restoring ? 'var(--t5)' : 'var(--t4)',
-                fontFamily: 'var(--font-body)', fontSize: '12px',
-                fontWeight: 700, letterSpacing: '0.06em',
-                textTransform: 'uppercase', cursor: restoring ? 'default' : 'pointer',
-              }}
-            >
-              {restoring ? t.shop.restoring : t.shop.restore}
-            </button>
-          </div>
-        )}
-
+              {selectedId === item.id && (
+                <div style={{ padding: '0 16px 8px' }}>
+                  {activeCategory === 'frames'  && <PreviewFrame  item={item} userAvatar={user?.customAvatar || user?.avatar} />}
+                  {activeCategory === 'themes'  && <PreviewTheme  item={item} />}
+                  {activeCategory === 'avatars' && <PreviewAvatar item={item} />}
+                  {activeCategory === 'effects' && <PreviewEffect item={item} />}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
+
+      {window.webkit?.messageHandlers?.iapRestore && (
+        <div style={{ padding: '0 16px 32px' }}>
+          {restoreMsg && (
+            <div style={{
+              marginBottom: '10px', padding: '10px 14px',
+              background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
+              borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            }}>
+              <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontFamily: 'var(--font-body)' }}>
+                {restoreMsg}
+              </span>
+              <button onClick={() => setRestoreMsg(null)} style={{
+                background: 'transparent', border: 'none', color: 'var(--text-hint)',
+                cursor: 'pointer', fontSize: '14px', lineHeight: 1, padding: '0 4px',
+              }}>×</button>
+            </div>
+          )}
+          <button
+            onClick={handleRestore}
+            disabled={restoring}
+            style={{
+              width: '100%', padding: '11px',
+              background: 'transparent', border: '1px solid var(--border-default)',
+              borderRadius: '6px', color: restoring ? 'var(--text-hint)' : 'var(--text-muted)',
+              fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700,
+              cursor: restoring ? 'default' : 'pointer',
+            }}
+          >
+            {restoring ? t.shop.restoring : t.shop.restore}
+          </button>
+        </div>
+      )}
+
     </div>
   );
 }
