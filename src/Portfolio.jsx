@@ -246,6 +246,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
   const chartRef   = useRef(null);
   const tabBarRef  = useRef(null);
   const [tabsAtEnd, setTabsAtEnd] = useState(true);
+  const [scrubIdx, setScrubIdx]   = useState(null);
 
   useEffect(() => {
     const el = tabBarRef.current;
@@ -1011,7 +1012,10 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
               </div>
             </>
           ) : (() => {
-            const pnl    = totalValue - 50000;
+            const scrubEntry  = scrubIdx !== null ? portfolioHistory[scrubIdx] : null;
+            const displayVal  = scrubEntry ? scrubEntry.totalValue : totalValue;
+            const displayDate = scrubEntry ? scrubEntry.date : null;
+            const pnl    = displayVal - 50000;
             const pnlPct = (pnl / 50000) * 100;
             const color  = pnl >= 0 ? 'var(--green)' : 'var(--color-down)';
             const arrow  = pnl >= 0 ? '↑' : '↓';
@@ -1023,54 +1027,118 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                 <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '16px', color, marginBottom: '10px' }}>
                   {pnlPct >= 0 ? '+' : ''}{pnlPct.toFixed(2)}%
                 </div>
-                <div style={{ fontSize: '11px', color: 'var(--t5)', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                  {t.portfolio.cash} {formatCash(portfolio.cash)} · {t.portfolio.invested} {formatCash(totalInvested)}
-                </div>
+                {displayDate ? (
+                  <div style={{ fontSize: '11px', color: 'var(--t5)', fontFamily: 'var(--font-body)', letterSpacing: '0.06em' }}>
+                    {displayDate}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '11px', color: 'var(--t5)', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                    {t.portfolio.cash} {formatCash(portfolio.cash)} · {t.portfolio.invested} {formatCash(totalInvested)}
+                  </div>
+                )}
               </>
             );
           })()}
         </div>
 
         {portfolioHistory.length > 1 && (() => {
-          const values    = portfolioHistory.map(h => h.totalValue);
-          const min       = Math.min(...values) * 0.998;
-          const max       = Math.max(...values) * 1.002;
-          const range     = max - min || 1;
-          const n         = values.length;
-          const w         = n * 20;
-          const toY       = v => 80 - ((v - min) / range) * 72;
-          const points    = values.map((v, i) => `${i * 20},${toY(v)}`).join(' ');
-          const isUp      = values[n - 1] >= values[0];
-          const color     = isUp ? 'var(--green)' : 'var(--color-down)';
-          const colorRgba = isUp ? 'rgba(0,229,160,' : 'rgba(255,126,179,';
-          const fillPts   = `0,80 ${points} ${w},80`;
-          const toXPct    = i => `${(i / n) * 100}%`;
-          const lastIdx   = n - 1;
-          const maxIdx    = values.reduce((best, v, i) => v > values[best] ? i : best, 0);
-          const lastY     = toY(values[lastIdx]);
-          const maxY      = toY(values[maxIdx]);
+          const CHART_H = 240;
+          const VW      = 1000;
+          const INITIAL = 50000;
+
+          const values = portfolioHistory.map(h => h.totalValue);
+          const n      = values.length;
+
+          // Vertical scale includes 50k so the reference line is always inside the viewport
+          const allVals    = [...values, INITIAL];
+          const rawMin     = Math.min(...allVals);
+          const rawMax     = Math.max(...allVals);
+          const dataRange  = rawMax - rawMin || 1;
+          const pad        = dataRange * 0.08;
+          const minV       = rawMin - pad;
+          const maxV       = rawMax + pad;
+          const totalRange = maxV - minV;
+
+          const toY = v => CHART_H - ((v - minV) / totalRange) * CHART_H;
+          const toX = i => (n > 1 ? i / (n - 1) : 0.5) * VW;
+
+          const isUp      = values[n - 1] >= INITIAL;
+          const lineColor = isUp ? 'var(--green)' : 'var(--color-down)';
+          const glowColor = isUp ? 'rgba(0,229,160,0.2)' : 'rgba(224,85,133,0.2)';
+
+          const refY           = toY(INITIAL);
+          const polylinePoints = values.map((v, i) => `${toX(i)},${toY(v)}`).join(' ');
+
+          const activeScrub = scrubIdx !== null && scrubIdx >= 0 && scrubIdx < n;
+          const hairX       = activeScrub ? toX(scrubIdx) : null;
+          const dotY        = activeScrub ? toY(values[scrubIdx]) : null;
+
+          function getIdxFromClientX(clientX, el) {
+            const rect = el.getBoundingClientRect();
+            const frac = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+            return Math.round(frac * (n - 1));
+          }
+
           return (
-            <div style={{ padding: '4px 16px 12px' }}>
-              <div style={{ position: 'relative' }}>
-                <svg width="100%" height="80" viewBox={`0 0 ${w} 80`} preserveAspectRatio="none" style={{ display: 'block' }}>
-                  {/* Horizontal guide lines — horizontal lines are unaffected by x-distortion */}
-                  <line x1="0" y1={80 / 3}  x2={w} y2={80 / 3}  stroke="white" strokeOpacity="0.05" strokeWidth="1" strokeDasharray="4,4" />
-                  <line x1="0" y1={160 / 3} x2={w} y2={160 / 3} stroke="white" strokeOpacity="0.05" strokeWidth="1" strokeDasharray="4,4" />
-                  <polygon points={fillPts} fill={`${colorRgba}0.08)`} />
-                  <polyline points={points} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-
-                {maxIdx !== lastIdx && (
-                  <div style={{ position: 'absolute', left: toXPct(maxIdx), top: `${maxY}px`, transform: 'translate(-50%, -50%)', width: '4px', height: '4px', borderRadius: '50%', background: color, opacity: 0.5, pointerEvents: 'none' }} />
+            <div
+              style={{ position: 'relative', touchAction: 'none', userSelect: 'none' }}
+              onMouseDown={e => setScrubIdx(getIdxFromClientX(e.clientX, e.currentTarget))}
+              onMouseMove={e => { if (e.buttons === 1) setScrubIdx(getIdxFromClientX(e.clientX, e.currentTarget)); }}
+              onMouseUp={() => setScrubIdx(null)}
+              onMouseLeave={() => setScrubIdx(null)}
+              onTouchStart={e => { e.preventDefault(); setScrubIdx(getIdxFromClientX(e.touches[0].clientX, e.currentTarget)); }}
+              onTouchMove={e => { e.preventDefault(); setScrubIdx(getIdxFromClientX(e.touches[0].clientX, e.currentTarget)); }}
+              onTouchEnd={() => setScrubIdx(null)}
+              onTouchCancel={() => setScrubIdx(null)}
+            >
+              <svg
+                width="100%"
+                height={CHART_H}
+                viewBox={`0 0 ${VW} ${CHART_H}`}
+                preserveAspectRatio="none"
+                style={{ display: 'block' }}
+              >
+                {/* Reference line at initial capital ($50k) */}
+                <line
+                  x1="0" y1={refY} x2={VW} y2={refY}
+                  stroke="white" strokeOpacity="0.12" strokeWidth="1" strokeDasharray="5,5"
+                  vectorEffect="non-scaling-stroke"
+                />
+                {/* Performance line */}
+                <polyline
+                  points={polylinePoints}
+                  fill="none"
+                  stroke={lineColor}
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  vectorEffect="non-scaling-stroke"
+                />
+                {/* Scrub hairline */}
+                {activeScrub && (
+                  <line
+                    x1={hairX} y1="0" x2={hairX} y2={CHART_H}
+                    stroke="white" strokeOpacity="0.25" strokeWidth="1"
+                    vectorEffect="non-scaling-stroke"
+                  />
                 )}
-                <div style={{ position: 'absolute', left: toXPct(lastIdx), top: `${lastY}px`, transform: 'translate(-50%, -50%)', width: '12px', height: '12px', borderRadius: '50%', border: `1px solid ${colorRgba}0.4)`, pointerEvents: 'none' }} />
-                <div style={{ position: 'absolute', left: toXPct(lastIdx), top: `${lastY}px`, transform: 'translate(-50%, -50%)', width: '6px', height: '6px', borderRadius: '50%', background: color, pointerEvents: 'none' }} />
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px' }}>
-                <div style={{ fontSize: '12px', color: 'var(--t6)' }}>{portfolioHistory[0]?.date}</div>
-                <div style={{ fontSize: '12px', color: 'var(--t6)' }}>{portfolioHistory[n - 1]?.date}</div>
-              </div>
+              </svg>
+              {/* Scrub dot — absolutely positioned div avoids SVG non-uniform scale distortion */}
+              {activeScrub && (
+                <div style={{
+                  position: 'absolute',
+                  left: `${(scrubIdx / (n - 1)) * 100}%`,
+                  top: `${(dotY / CHART_H) * 100}%`,
+                  transform: 'translate(-50%, -50%)',
+                  width: '10px', height: '10px',
+                  borderRadius: '50%',
+                  background: lineColor,
+                  border: '2px solid #111',
+                  boxShadow: `0 0 0 3px ${glowColor}`,
+                  pointerEvents: 'none',
+                  zIndex: 2,
+                }} />
+              )}
             </div>
           );
         })()}
