@@ -5,6 +5,7 @@ import { SERVER } from './config.js';
 import CodeErrorBlock from './components/CodeErrorBlock.jsx';
 import BottomSheet from './components/BottomSheet.jsx';
 import { Trophy, Plus, ChevronRight, X } from 'lucide-react';
+import { ScreenHeader } from './components/ui';
 
 function formatCash(n) {
   return '$' + Math.abs(n).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -61,13 +62,13 @@ export default function LeagueList({ onOpenLeague, onBack, leaguesState, onRefre
   const leagues  = leaguesState?.list   ?? [];
   const status   = leaguesState?.status ?? 'loading';
 
-  const [sheet, setSheet]         = useState(null); // null | 'create' | 'join'
-  const [name, setName]           = useState('');
-  const [endDate, setEndDate]     = useState('');
-  const [joinCode, setJoinCode]   = useState('');
+  const [sheet, setSheet]           = useState(null); // null | 'create' | 'join'
+  const [name, setName]             = useState('');
+  const [endDate, setEndDate]       = useState('');
+  const [joinCode, setJoinCode]     = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [msg, setMsg]             = useState(null);
-  const [joinErr, setJoinErr]     = useState(null);
+  const [msg, setMsg]               = useState(null);
+  const [joinErr, setJoinErr]       = useState(null);
 
   const tok = localStorage.getItem('tradaria_token');
 
@@ -137,103 +138,109 @@ export default function LeagueList({ onOpenLeague, onBack, leaguesState, onRefre
     : null;
 
   return (
-    <div style={{ padding: '16px 16px 100px', fontFamily: 'var(--font-body)', background: 'var(--bg-base)', minHeight: '100vh' }}>
+    <div style={{ fontFamily: 'var(--font-body)', background: 'var(--bg-base)', minHeight: '100vh' }}>
 
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-        <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '22px', color: 'var(--text-primary)' }}>{tl.title}</div>
-        <button onClick={() => openSheet('create')} aria-label="new league"
-          style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(0,229,160,0.1)', border: '1px solid var(--border-green)', color: 'var(--green)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
-          <Plus size={16} strokeWidth={2.5} />
-        </button>
-      </div>
-      <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', marginBottom: '20px', minHeight: '16px' }}>{subtitle}</div>
+      <ScreenHeader
+        title={tl.title}
+        onBack={onBack}
+        subtitle={subtitle}
+        action={
+          <button onClick={() => openSheet('create')} aria-label="new league"
+            style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(0,229,160,0.1)', border: '1px solid var(--border-green)', color: 'var(--green)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
+            <Plus size={16} strokeWidth={2.5} />
+          </button>
+        }
+      />
 
-      {/* Loading state */}
-      {status === 'loading' && (
-        <div role="status" aria-live="polite" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', paddingTop: '32px' }}>
-          <div className="league-spinner" />
-          <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.04em' }}>{tl.loading}</div>
-          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <SkeletonLeagueCard />
-            <SkeletonLeagueCard />
-            <SkeletonLeagueCard />
+      <div style={{ padding: '0 16px 100px' }}>
+
+        {/* Loading state */}
+        {status === 'loading' && (
+          <div role="status" aria-live="polite" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', paddingTop: '32px' }}>
+            <div className="league-spinner" />
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)' }}>{tl.loading}</div>
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <SkeletonLeagueCard />
+              <SkeletonLeagueCard />
+              <SkeletonLeagueCard />
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Error state */}
-      {status === 'error' && (
-        <div style={{ textAlign: 'center', padding: '48px 0 32px' }}>
-          <div style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>{tl.loadError}</div>
-          <button onClick={() => onRefreshLeagues?.()}
-            style={{ padding: '10px 24px', background: 'rgba(0,229,160,0.08)', border: '1.5px solid var(--border-green)', borderRadius: 'var(--radius-full)', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, letterSpacing: '0.06em', cursor: 'pointer' }}>
-            {tl.retry}
+        {/* Error state */}
+        {status === 'error' && (
+          <div style={{ textAlign: 'center', padding: '48px 0 32px' }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>{tl.loadError}</div>
+            <button onClick={() => onRefreshLeagues?.()}
+              style={{ padding: '10px 24px', background: 'rgba(0,229,160,0.08)', border: '1.5px solid var(--border-green)', borderRadius: 'var(--radius-full)', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer' }}>
+              {tl.retry}
+            </button>
+          </div>
+        )}
+
+        {/* List / empty state */}
+        {status === 'done' && leagues.length === 0 ? (
+          <div className="animate-fade-in-up" style={{ textAlign: 'center', padding: '48px 0 32px' }}>
+            <Trophy size={40} strokeWidth={1.5} style={{ stroke: 'var(--text-muted)', display: 'block', margin: '0 auto 16px' }} />
+            <div style={{ fontWeight: 800, fontSize: '14px', color: 'var(--text-primary)', marginBottom: '6px' }}>{tl.noLeague}</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '28px' }}>{tl.noLeagueSub}</div>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
+            {leagues.map((l, idx) => {
+              const rankColor = l.myRank === 1 ? 'var(--color-neutral)' : l.myRank === 2 ? 'var(--text-secondary)' : l.myRank === 3 ? '#cd7f32' : 'var(--text-primary)';
+              return (
+                <div key={l._id} onClick={() => onOpenLeague(l._id)}
+                  className={`animate-fade-in-up stagger-${Math.min(idx + 1, 6)}`}
+                  style={{ padding: '14px', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', transition: 'border-color 0.15s' }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(0,229,160,0.3)'}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-default)'}
+                >
+                  <AvatarStack seed={l._id} count={l.memberCount} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px', flexWrap: 'wrap' }}>
+                      <div style={{ fontWeight: 800, fontSize: '13px', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '160px' }}>{l.name}</div>
+                      {l.isOwner && <span style={{ fontSize: '11px', color: 'var(--color-neutral)', padding: '1px 5px', background: 'rgba(232,184,75,0.1)', border: '0.5px solid rgba(232,184,75,0.25)', borderRadius: '3px', flexShrink: 0 }}>{tl.owner}</span>}
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '9px' }}>{l.memberCount} {l.memberCount === 1 ? tl.member : tl.members}</div>
+                    <div style={{ display: 'flex', gap: '14px' }}>
+                      <div>
+                        <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px' }}>{tl.yourRank}</div>
+                        <div style={{ fontSize: '13px', fontWeight: 900, color: rankColor }}>
+                          #{l.myRank}<span style={{ color: 'var(--text-muted)', fontSize: '11px', fontWeight: 400 }}>/{l.memberCount}</span>
+                        </div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px' }}>{tl.profitability}</div>
+                        <div style={{ fontSize: '13px', fontWeight: 900, color: l.myReturnPct >= 0 ? 'var(--green)' : 'var(--pink)' }}>
+                          {l.myReturnPct >= 0 ? '+' : ''}{l.myReturnPct.toFixed(2)}%
+                        </div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px' }}>{tl.balance}</div>
+                        <div style={{ fontSize: '13px', fontWeight: 900, color: 'var(--text-primary)' }}>{formatCash(l.myTotalValue)}</div>
+                      </div>
+                    </div>
+                  </div>
+                  <ChevronRight size={16} strokeWidth={2} style={{ stroke: 'var(--text-muted)', flexShrink: 0 }} />
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Action buttons */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <button onClick={() => openSheet('create')}
+            style={{ width: '100%', padding: '13px', background: 'rgba(0,229,160,0.08)', border: '1.5px solid var(--border-green)', borderRadius: 'var(--radius-full)', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer' }}>
+            {tl.createLeague}
+          </button>
+          <button onClick={() => openSheet('join')}
+            style={{ width: '100%', padding: '13px', background: 'var(--bg-elevated)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-full)', color: 'var(--text-primary)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer' }}>
+            {tl.joinWithCode}
           </button>
         </div>
-      )}
 
-      {/* List / empty state */}
-      {status === 'done' && leagues.length === 0 ? (
-        <div className="animate-fade-in-up" style={{ textAlign: 'center', padding: '48px 0 32px' }}>
-          <Trophy size={40} strokeWidth={1.5} style={{ stroke: 'var(--text-muted)', display: 'block', margin: '0 auto 16px' }} />
-          <div style={{ fontWeight: 800, fontSize: '14px', color: 'var(--text-primary)', marginBottom: '6px' }}>{tl.noLeague}</div>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '28px' }}>{tl.noLeagueSub}</div>
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
-          {leagues.map((l, idx) => {
-            const rankColor = l.myRank === 1 ? 'var(--color-neutral)' : l.myRank === 2 ? 'var(--text-secondary)' : l.myRank === 3 ? '#cd7f32' : 'var(--text-primary)';
-            return (
-              <div key={l._id} onClick={() => onOpenLeague(l._id)}
-                className={`animate-fade-in-up stagger-${Math.min(idx + 1, 6)}`}
-                style={{ padding: '14px', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', transition: 'border-color 0.15s' }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(0,229,160,0.3)'}
-                onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-default)'}
-              >
-                <AvatarStack seed={l._id} count={l.memberCount} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px', flexWrap: 'wrap' }}>
-                    <div style={{ fontWeight: 800, fontSize: '13px', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '160px' }}>{l.name}</div>
-                    {l.isOwner && <span style={{ fontSize: '11px', color: 'var(--color-neutral)', padding: '1px 5px', background: 'rgba(232,184,75,0.1)', border: '0.5px solid rgba(232,184,75,0.25)', borderRadius: '3px', flexShrink: 0, letterSpacing: '0.04em' }}>{tl.owner}</span>}
-                  </div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '9px' }}>{l.memberCount} {l.memberCount === 1 ? tl.member : tl.members}</div>
-                  <div style={{ display: 'flex', gap: '14px' }}>
-                    <div>
-                      <div style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '2px' }}>{tl.yourRank}</div>
-                      <div style={{ fontSize: '13px', fontWeight: 900, color: rankColor }}>
-                        #{l.myRank}<span style={{ color: 'var(--text-muted)', fontSize: '11px', fontWeight: 400 }}>/{l.memberCount}</span>
-                      </div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '2px' }}>{tl.profitability}</div>
-                      <div style={{ fontSize: '13px', fontWeight: 900, color: l.myReturnPct >= 0 ? 'var(--green)' : 'var(--pink)' }}>
-                        {l.myReturnPct >= 0 ? '+' : ''}{l.myReturnPct.toFixed(2)}%
-                      </div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '2px' }}>{tl.balance}</div>
-                      <div style={{ fontSize: '13px', fontWeight: 900, color: 'var(--text-primary)' }}>{formatCash(l.myTotalValue)}</div>
-                    </div>
-                  </div>
-                </div>
-                <ChevronRight size={16} strokeWidth={2} style={{ stroke: 'var(--text-muted)', flexShrink: 0 }} />
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Action buttons */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <button onClick={() => openSheet('create')}
-          style={{ width: '100%', padding: '13px', background: 'rgba(0,229,160,0.08)', border: '1.5px solid var(--border-green)', borderRadius: 'var(--radius-full)', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, letterSpacing: '0.06em', cursor: 'pointer' }}>
-          {tl.createLeague}
-        </button>
-        <button onClick={() => openSheet('join')}
-          style={{ width: '100%', padding: '13px', background: 'var(--bg-elevated)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-full)', color: 'var(--text-primary)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer' }}>
-          {tl.joinWithCode}
-        </button>
       </div>
 
       {/* Bottom sheet — rendered above BottomNav via BottomSheet component */}
@@ -251,25 +258,25 @@ export default function LeagueList({ onOpenLeague, onBack, leaguesState, onRefre
 
             {sheet === 'create' && (<>
               <div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px' }}>{tl.nameLabel}</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '6px' }}>{tl.nameLabel}</div>
                 <input value={name} onChange={e => setName(e.target.value)} maxLength={30} placeholder={tl.namePlaceholder}
                   style={{ width: '100%', padding: '12px', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', color: 'var(--text-primary)', fontFamily: 'var(--font-body)', fontSize: '12px', boxSizing: 'border-box', outline: 'none' }} />
               </div>
               <div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px' }}>{tl.endDateLabel}</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '6px' }}>{tl.endDateLabel}</div>
                 <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
                   style={{ display: 'block', width: '100%', maxWidth: '100%', minWidth: 0, padding: '12px', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', color: 'var(--text-primary)', fontFamily: 'var(--font-body)', fontSize: '12px', boxSizing: 'border-box', outline: 'none', colorScheme: 'dark', WebkitAppearance: 'none', appearance: 'none', textAlign: 'left' }} />
               </div>
               {msg && <div style={{ fontSize: '12px', color: msg.ok ? 'var(--green)' : 'var(--pink)' }}>{msg.text}</div>}
               <button onClick={createLeague} disabled={submitting}
-                style={{ width: '100%', padding: '13px', background: 'rgba(0,229,160,0.08)', border: '1.5px solid var(--border-green)', borderRadius: 'var(--radius-full)', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: submitting ? 'default' : 'pointer', opacity: submitting ? 0.6 : 1 }}>
+                style={{ width: '100%', padding: '13px', background: 'rgba(0,229,160,0.08)', border: '1.5px solid var(--border-green)', borderRadius: 'var(--radius-full)', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: submitting ? 'default' : 'pointer', opacity: submitting ? 0.6 : 1 }}>
                 {submitting ? '...' : tl.createBtn}
               </button>
             </>)}
 
             {sheet === 'join' && (<>
               <div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px' }}>{tl.codeLabel}</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '6px' }}>{tl.codeLabel}</div>
                 <input value={joinCode} onChange={e => { setJoinCode(e.target.value.toUpperCase()); setJoinErr(null); }} maxLength={6} placeholder="XXXXXX"
                   style={{ width: '100%', padding: '14px', background: 'var(--bg-surface)', border: `0.5px solid ${joinErr ? 'var(--pink)' : 'var(--border-default)'}`, borderRadius: 'var(--radius-md)', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '22px', fontWeight: 700, letterSpacing: '0.22em', textAlign: 'center', boxSizing: 'border-box', outline: 'none', transition: 'border-color 0.15s' }} />
               </div>
@@ -277,7 +284,7 @@ export default function LeagueList({ onOpenLeague, onBack, leaguesState, onRefre
               {joinErr === 'rate_limit' && <CodeErrorBlock title={tl.codeTooMany} />}
               {msg && !joinErr && <div style={{ fontSize: '12px', color: msg.ok ? 'var(--green)' : 'var(--pink)' }}>{msg.text}</div>}
               <button onClick={joinLeague} disabled={submitting}
-                style={{ width: '100%', padding: '13px', background: 'rgba(0,229,160,0.08)', border: '1.5px solid var(--border-green)', borderRadius: 'var(--radius-full)', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: submitting ? 'default' : 'pointer', opacity: submitting ? 0.6 : 1 }}>
+                style={{ width: '100%', padding: '13px', background: 'rgba(0,229,160,0.08)', border: '1.5px solid var(--border-green)', borderRadius: 'var(--radius-full)', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: submitting ? 'default' : 'pointer', opacity: submitting ? 0.6 : 1 }}>
                 {submitting ? '...' : tl.joinBtn}
               </button>
             </>)}

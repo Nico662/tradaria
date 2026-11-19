@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { useAuth } from './AuthContext';
 import { useLang } from './LangContext.jsx';
 import UserAvatar from './UserAvatar.jsx';
 import SpecialBadge, { getSpecialUserByUsername } from './SpecialBadge.jsx';
@@ -10,6 +9,7 @@ import TitleBadge from './components/TitleBadge';
 import VerifiedBadge from './VerifiedBadge';
 import EquippedBadge from './components/EquippedBadge';
 import { Share2, MoreHorizontal, ChevronRight } from 'lucide-react';
+import { ScreenHeader } from './components/ui';
 
 function formatCash(n) {
   return '$' + Math.abs(n).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -103,34 +103,31 @@ export default function League({ leagueId, onBack, onSwitchLeague, onViewProfile
   const daysLeft = data.endDate
     ? Math.max(0, Math.ceil((new Date(data.endDate) - new Date()) / 86400000))
     : null;
-  const myEntry    = data.ranking?.find(e => e.isYou) || data.userPosition;
-  const myRank     = data.userPosition?.rank ?? (data.ranking ? data.ranking.findIndex(e => e.isYou) + 1 : 0);
-  // advantage over next-ranked member (only if user is in top10 and not last)
-  const nextEntry  = !data.userPosition && myRank < (data.ranking?.length ?? 0)
-    ? data.ranking[myRank] : null; // myRank is 1-indexed → index of next person
-  const advantage  = nextEntry ? myEntry.returnPct - nextEntry.returnPct : null;
+  const myEntry   = data.ranking?.find(e => e.isYou) || data.userPosition;
+  const myRank    = data.userPosition?.rank ?? (data.ranking ? data.ranking.findIndex(e => e.isYou) + 1 : 0);
+  const nextEntry = !data.userPosition && myRank < (data.ranking?.length ?? 0)
+    ? data.ranking[myRank] : null;
+  const advantage = nextEntry ? myEntry.returnPct - nextEntry.returnPct : null;
 
   return (
     <div style={{ fontFamily: 'var(--font-body)', background: 'var(--bg-base)', minHeight: '100vh', paddingBottom: '32px' }}>
 
-      {/* Top bar */}
-      <div style={{ display: 'flex', alignItems: 'center', padding: '14px 16px 0', gap: '8px' }}>
-        <button onClick={onBack}
-          style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, padding: 0, flexShrink: 0 }}>
-          {tl.backToLeagues}
-        </button>
-        <div style={{ flex: 1 }} />
-        <button onClick={share} aria-label="share"
-          style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '6px', display: 'flex', alignItems: 'center' }}>
-          <Share2 size={16} strokeWidth={2} />
-        </button>
-        <div style={{ position: 'relative' }}>
-          <button onClick={() => setMenuOpen(v => !v)} aria-label="more options"
-            style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '6px', display: 'flex', alignItems: 'center' }}>
-            <MoreHorizontal size={16} strokeWidth={2} />
-          </button>
-        </div>
-      </div>
+      <ScreenHeader
+        title={data.name}
+        onBack={onBack}
+        action={
+          <div style={{ display: 'flex', gap: 4 }}>
+            <button onClick={share} aria-label="share"
+              style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '6px', display: 'flex', alignItems: 'center' }}>
+              <Share2 size={16} strokeWidth={2} />
+            </button>
+            <button onClick={() => setMenuOpen(v => !v)} aria-label="more options"
+              style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '6px', display: 'flex', alignItems: 'center' }}>
+              <MoreHorizontal size={16} strokeWidth={2} />
+            </button>
+          </div>
+        }
+      />
 
       {/* League chips (only when user has >1 league) */}
       {myLeagues.length > 1 && (
@@ -145,15 +142,14 @@ export default function League({ leagueId, onBack, onSwitchLeague, onViewProfile
       )}
 
       {/* Hero card */}
-      <div className="animate-slide-in-up" style={{ margin: '14px 16px 0', background: 'var(--gradient-surface)', border: '0.5px solid var(--border-pink)', borderRadius: 'var(--radius-lg)', padding: '16px', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: -20, right: -20, width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,126,179,0.15), transparent 70%)' }} />
+      <div className="animate-slide-in-up" style={{ margin: '14px 16px 0', background: 'var(--gradient-surface)', border: '0.5px solid var(--border-pink)', borderRadius: 'var(--radius-lg)', padding: '16px' }}>
         <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '18px', color: 'var(--text-primary)', marginBottom: '10px' }}>{data.name}</div>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
-          <span style={{ background: 'var(--green-dim)', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, padding: '3px 10px', borderRadius: 'var(--radius-full)', letterSpacing: '0.08em' }}>
+          <span style={{ background: 'var(--green-dim)', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, padding: '3px 10px', borderRadius: 'var(--radius-full)' }}>
             {totalMembers} {t.league.players}
           </span>
           {daysLeft !== null && (
-            <span style={{ background: 'var(--pink-dim)', color: 'var(--pink)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, padding: '3px 10px', borderRadius: 'var(--radius-full)', letterSpacing: '0.08em' }}>
+            <span style={{ background: 'var(--pink-dim)', color: 'var(--pink)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800, padding: '3px 10px', borderRadius: 'var(--radius-full)' }}>
               {daysLeft > 0 ? `${daysLeft} ${t.league.daysLeft}` : t.league.finished}
             </span>
           )}
@@ -161,25 +157,25 @@ export default function League({ leagueId, onBack, onSwitchLeague, onViewProfile
         {myEntry && (
           <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
             <div>
-              <div style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '2px' }}>{tl.yourRank}</div>
+              <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px' }}>{tl.yourRank}</div>
               <div style={{ fontSize: '28px', fontWeight: 900, color: myRank === 1 ? 'var(--color-neutral)' : myRank === 2 ? 'var(--text-secondary)' : myRank === 3 ? '#cd7f32' : 'var(--text-primary)', lineHeight: 1 }}>
                 #{myRank}
                 <span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 400 }}>/{totalMembers}</span>
               </div>
             </div>
             <div>
-              <div style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '2px' }}>{tl.profitability}</div>
+              <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px' }}>{tl.profitability}</div>
               <div style={{ fontSize: '18px', fontWeight: 900, color: myEntry.returnPct >= 0 ? 'var(--green)' : 'var(--pink)', lineHeight: 1 }}>
                 {myEntry.returnPct >= 0 ? '+' : ''}{myEntry.returnPct.toFixed(2)}%
               </div>
             </div>
             <div>
-              <div style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '2px' }}>{tl.balance}</div>
+              <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px' }}>{tl.balance}</div>
               <div style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-primary)', lineHeight: 1 }}>{formatCash(myEntry.totalValue)}</div>
             </div>
             {advantage !== null && (
               <div>
-                <div style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '2px' }}>{tl.advantage}</div>
+                <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px' }}>{tl.advantage}</div>
                 <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--green)', lineHeight: 1 }}>+{advantage.toFixed(2)}%</div>
               </div>
             )}
@@ -189,7 +185,7 @@ export default function League({ leagueId, onBack, onSwitchLeague, onViewProfile
 
       {/* Ranking */}
       <div style={{ padding: '16px 16px 0' }}>
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '10px' }}>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', fontWeight: 800, marginBottom: '10px' }}>
           {tl.rankingLabel} · {totalMembers} {tl.participants}
         </div>
 
@@ -202,10 +198,9 @@ export default function League({ leagueId, onBack, onSwitchLeague, onViewProfile
               onClick={() => canViewProfile && onViewProfile(entry.username)}
               style={{
                 display: 'flex', alignItems: 'center', gap: '10px',
-                background: isMe ? 'rgba(255,126,179,0.06)' : 'var(--bg-surface)',
-                border: `0.5px solid ${isMe ? 'var(--border-pink)' : 'var(--border-default)'}`,
-                borderRadius: 'var(--radius-md)',
-                padding: '10px 12px', marginBottom: '6px',
+                background: isMe ? 'rgba(255,126,179,0.04)' : 'transparent',
+                borderRadius: isMe ? 'var(--radius-md)' : 0,
+                padding: '10px 12px', marginBottom: '4px',
                 cursor: canViewProfile ? 'pointer' : 'default',
               }}>
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '13px', color: i < 3 ? MEDAL[i] : (isMe ? 'var(--pink)' : 'var(--text-muted)'), width: '20px', textAlign: 'center', flexShrink: 0 }}>
@@ -241,7 +236,7 @@ export default function League({ leagueId, onBack, onSwitchLeague, onViewProfile
               <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)' }}>···</span>
               <div style={{ flex: 1, height: '1px', background: 'var(--border-default)' }} />
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(255,126,179,0.06)', border: '0.5px solid var(--border-pink)', borderRadius: 'var(--radius-md)', padding: '10px 12px', marginBottom: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(255,126,179,0.04)', borderRadius: 'var(--radius-md)', padding: '10px 12px', marginBottom: '6px' }}>
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '13px', color: 'var(--pink)', width: '20px', textAlign: 'center', flexShrink: 0 }}>#{up.rank}</div>
               <UserAvatar user={up} size={24} showBadge />
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -264,7 +259,7 @@ export default function League({ leagueId, onBack, onSwitchLeague, onViewProfile
 
       {/* Invite code block */}
       <div style={{ margin: '20px 16px 0', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-lg)', padding: '16px' }}>
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>{tl.inviteCode}</div>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px' }}>{tl.inviteCode}</div>
         <div style={{ fontFamily: 'var(--font-body)', fontSize: '26px', fontWeight: 900, color: 'var(--green)', letterSpacing: '0.2em', marginBottom: '12px' }}>{data.code}</div>
         <button onClick={share}
           style={{ width: '100%', padding: '12px', background: 'var(--green-dim)', border: '1.5px solid var(--border-green)', borderRadius: 'var(--radius-full)', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 900, cursor: 'pointer' }}>
