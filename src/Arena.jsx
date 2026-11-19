@@ -1052,7 +1052,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-            <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{t.game.round.toLowerCase()} {round}/{total}</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{t.game.round.toLowerCase()} {round}/{total}</div>
             {phase === 'choose' && !isAsyncGame && (
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: timeLeft <= 5 ? 'var(--color-down)' : 'var(--color-neutral)' }}>
                 {timeLeft}s

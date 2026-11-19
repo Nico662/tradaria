@@ -13,6 +13,7 @@ import { incrementMission, recordModePlayed, incrementWeeklyMission, recordWeekl
 import MissionNotification from './MissionNotification.jsx';
 import { useAuth } from './AuthContext';
 import { useBattlePass } from './BattlePassContext.jsx';
+import { ScreenHeader } from './components/ui';
 import { SERVER } from './config.js';
 
 
@@ -476,28 +477,16 @@ export default function Survival({ onBack }) {
     <div id="gtm-root" style={{ position: 'relative' }}>
       <div className="scanlines" />
 
-      <div className="header" style={{ display: 'grid', gridTemplateColumns: '80px 1fr 80px', alignItems: 'center', padding: '12px 20px 10px' }}>
-        {/* Back */}
-        <button onClick={onBack}
-          style={{ background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-        >{t.survival.back}</button>
-
-        {/* Centered title */}
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--text-primary)', letterSpacing: '0.08em', lineHeight: 1 }}>
-            <Skull size={18} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} /> {t.survival.title}
+      <ScreenHeader
+        title={t.survival.title}
+        onBack={onBack}
+        action={
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '18px', color: 'var(--color-neutral)', lineHeight: 1 }}>{score}</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{t.game.score}</div>
           </div>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: 'var(--font-body)' }}>
-            {t.survival.mode}
-          </div>
-        </div>
-
-        {/* Stats right */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
-          <span style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.06em' }}>{t.game.score}</span>
-          <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--color-neutral)', textShadow: '0 0 14px rgba(232,184,75,0.35)' }}>{score}</span>
-        </div>
-      </div>
+        }
+      />
 
       <div className="asset-bar">
         <div className="asset-name">{asset.name}</div>
@@ -524,7 +513,7 @@ export default function Survival({ onBack }) {
       </div>
       {/* Lives below chart */}
       <div style={{ padding: '8px 20px 4px', position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px' }}>
-        <span style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: 'var(--font-body)' }}>{t.survival.lives}</span>
+        <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)' }}>{t.survival.lives}</span>
         <div style={{ display: 'flex', gap: '10px' }}>
           {Array.from({ length: MAX_LIVES }, (_, i) => (
             <span key={i} style={{
@@ -536,21 +525,21 @@ export default function Survival({ onBack }) {
             }}><Heart size={16} strokeWidth={2} aria-hidden style={{ color: 'var(--color-down)' }} /></span>
           ))}
         </div>
-        <span style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.18em', fontFamily: 'var(--font-body)' }}>R·{round}</span>
+        <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)' }}>R·{round}</span>
       </div>
 
-      <div style={{ padding: '6px 20px 0', position: 'relative', zIndex: 2, display: 'flex', gap: '6px' }}>
-        <div style={{ flex: 1, background: 'var(--bg-surface)', border: '1px solid var(--border-default)', borderRadius: '6px', padding: '7px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t.game.round}</span>
-          <span style={{ fontSize: '12px', color: 'var(--text-primary)', fontWeight: 700 }}>{round}</span>
+      <div style={{ padding: '6px 20px 0', position: 'relative', zIndex: 2, display: 'flex', gap: '16px', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '18px', color: 'var(--text-primary)', lineHeight: 1 }}>{round}</div>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{t.game.round}</div>
         </div>
-        <div style={{ flex: 1, background: 'var(--bg-surface)', border: '1px solid var(--border-default)', borderRadius: '6px', padding: '7px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t.game.score}</span>
-          <span style={{ fontSize: '12px', color: 'var(--color-neutral)', fontWeight: 700 }}>{score}</span>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '18px', color: 'var(--color-neutral)', lineHeight: 1 }}>{score}</div>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{t.game.score}</div>
         </div>
-        <div style={{ flex: 1, background: 'var(--bg-surface)', border: '1px solid var(--border-default)', borderRadius: '6px', padding: '7px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t.survival.best}</span>
-          <span style={{ fontSize: '12px', color: 'var(--green)', fontWeight: 700 }}>{highscore}</span>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '18px', color: 'var(--green)', lineHeight: 1 }}>{highscore}</div>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{t.survival.best}</div>
         </div>
       </div>
       {phase === 'choose' && chartLoadError && (
@@ -615,15 +604,15 @@ export default function Survival({ onBack }) {
         </div>
       )}
 
-      <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border-default)', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', position: 'relative', zIndex: 2 }}>
+      <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border-default)', display: 'flex', justifyContent: 'center', gap: '24px', position: 'relative', zIndex: 2 }}>
         {[
           { label: t.game.correct, value: history.filter(h => h === 'win').length,  color: 'var(--green)' },
           { label: t.game.wrong,   value: history.filter(h => h === 'lose').length, color: 'var(--color-down)' },
           { label: t.survival.best, value: highscore,                               color: 'var(--color-neutral)' },
         ].map(s => (
-          <div key={s.label} style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-default)', borderRadius: '8px', padding: '10px 8px', textAlign: 'center' }}>
-            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: s.color }}>{s.value}</div>
-            <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: '2px' }}>{s.label}</div>
+          <div key={s.label} style={{ textAlign: 'center' }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '20px', color: s.color, lineHeight: 1 }}>{s.value}</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '3px' }}>{s.label}</div>
           </div>
         ))}
       </div>

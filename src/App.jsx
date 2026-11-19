@@ -47,6 +47,7 @@ import BattlePass from './BattlePass.jsx';
 import TradingMode from './TradingMode.jsx';
 import BattlePassNotification from './BattlePassNotification.jsx';
 import { useBattlePass } from './BattlePassContext.jsx';
+import { TextTabs } from './components/ui';
 import Inventory from './Inventory.jsx';
 
 
@@ -960,33 +961,30 @@ export default function App() {
     <div id="gtm-root" className={activeCosmetics?.theme || ''} style={{ position: 'relative' }}>
 
       {/* Header */}
-      <div style={{ padding: '10px 16px 8px', background: 'var(--bg-surface)', borderBottom: '0.5px solid var(--border-default)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+      <div style={{ padding: '10px 16px 10px', background: 'var(--bg-surface)', borderBottom: '0.5px solid var(--border-default)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
           <button onClick={goHome}
-            style={{ background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 10px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em' }}>
+            style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer', padding: 0 }}>
             {t.game.back}
           </button>
-          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.16em', textTransform: 'uppercase' }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '15px', color: 'var(--text-primary)' }}>
             {t.game.mode}
           </div>
-          <div style={{ display: 'flex', gap: '4px' }}>
-            {['en', 'es', 'de'].map(l => (
-              <button key={l} onClick={() => setLang(l)}
-                style={{ background: lang === l ? 'var(--green-dim)' : 'transparent', color: lang === l ? 'var(--green)' : 'var(--text-muted)', border: `1px solid ${lang === l ? 'var(--border-green)' : 'var(--border-default)'}`, borderRadius: 'var(--radius-sm)', padding: '3px 7px', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer' }}>
-                {l.toUpperCase()}
-              </button>
-            ))}
-          </div>
+          <TextTabs
+            tabs={[{ value: 'en', label: 'EN' }, { value: 'es', label: 'ES' }, { value: 'de', label: 'DE' }]}
+            active={lang}
+            onChange={l => setLang(l)}
+          />
         </div>
-        <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
           {[
             { label: t.game.round,  value: `${round}/25`, color: 'var(--text-primary)' },
             { label: t.game.points, value: score,          color: 'var(--green)'        },
             { label: t.game.streak, value: streak,         color: streak > 0 ? 'var(--pink)' : 'var(--text-muted)' },
           ].map(({ label, value, color }) => (
-            <div key={label} style={{ flex: 1, background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', padding: '6px 8px', textAlign: 'center', border: '0.5px solid var(--border-default)' }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', marginBottom: '2px' }}>{label}</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '16px', fontWeight: 900, color, letterSpacing: '-0.5px', lineHeight: 1 }}>{value}</div>
+            <div key={label} style={{ textAlign: 'center' }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: '18px', fontWeight: 900, color, lineHeight: 1 }}>{value}</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{label}</div>
             </div>
           ))}
         </div>
@@ -1071,17 +1069,17 @@ export default function App() {
             <button className={`btn-long${selected === 'long' ? ' selected' : ''}`} onClick={() => makeChoice('long')}>
               <span style={{ fontSize: '18px', lineHeight: 1 }}>↑</span>
               <span>{t.game.long}</span>
-              <span style={{ fontSize: '12px', opacity: 0.7, fontWeight: 700 }}>{t.game.longSub}</span>
+              <span style={{ fontSize: 'clamp(9px, 2.4vw, 12px)', opacity: 0.7, fontWeight: 700 }}>{t.game.longSub}</span>
             </button>
             <button className={`btn-neutral${selected === 'skip' ? ' selected' : ''}`} onClick={() => makeChoice('skip')}>
               <span style={{ fontSize: '18px', lineHeight: 1 }}>—</span>
               <span>{t.game.noTrade}</span>
-              <span style={{ fontSize: '12px', opacity: 0.7, fontWeight: 700 }}>{t.game.noTradeSub}</span>
+              <span style={{ fontSize: 'clamp(9px, 2.4vw, 12px)', opacity: 0.7, fontWeight: 700 }}>{t.game.noTradeSub}</span>
             </button>
             <button className={`btn-short${selected === 'short' ? ' selected' : ''}`} onClick={() => makeChoice('short')}>
               <span style={{ fontSize: '18px', lineHeight: 1 }}>↓</span>
               <span>{t.game.short}</span>
-              <span style={{ fontSize: '12px', opacity: 0.7, fontWeight: 700 }}>{t.game.shortSub}</span>
+              <span style={{ fontSize: 'clamp(9px, 2.4vw, 12px)', opacity: 0.7, fontWeight: 700 }}>{t.game.shortSub}</span>
             </button>
           </div>
         </div>
@@ -1127,9 +1125,9 @@ export default function App() {
               ? Math.round(history.filter(h => h === 'win').length / history.filter(h => h !== 'skip').length * 100) + '%'
               : '—', color: 'var(--color-neutral)' },
         ].map(s => (
-          <div key={s.label} style={{ background: 'var(--bg-elevated)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', padding: '8px 10px', textAlign: 'center' }}>
+          <div key={s.label} style={{ textAlign: 'center', padding: '8px 4px' }}>
             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '20px', color: s.color, letterSpacing: '-0.5px', lineHeight: 1 }}>{s.value}</div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.10em', textTransform: 'uppercase', marginTop: '3px' }}>{s.label}</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-muted)', marginTop: '3px' }}>{s.label}</div>
           </div>
         ))}
       </div>
