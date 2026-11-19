@@ -378,6 +378,8 @@ export const LANGS = {
       pushOrderExecuted: 'Your order was executed',
       pushOrderCancelled: 'Your order was cancelled',
       pendingOrderBadge: 'pending order',
+      notEnoughHistory: 'Not enough history yet',
+      searchAsset: 'Search asset',
     },
     leagues: {
       back: '← back',
@@ -1192,6 +1194,8 @@ export const LANGS = {
       pushOrderExecuted: 'Tu orden fue ejecutada',
       pushOrderCancelled: 'Tu orden fue cancelada',
       pendingOrderBadge: 'orden pendiente',
+      notEnoughHistory: 'Aún no hay suficiente historial',
+      searchAsset: 'Buscar activo',
     },
     leagues: {
       back: '← volver',
@@ -1955,6 +1959,8 @@ export const LANGS = {
       pushOrderExecuted: 'Deine Order wurde ausgeführt',
       pushOrderCancelled: 'Deine Order wurde abgebrochen',
       pendingOrderBadge: 'auftrag ausstehend',
+      notEnoughHistory: 'Noch nicht genug Verlauf',
+      searchAsset: 'Asset suchen',
     },
     leagues: {
       back: '← zurück',

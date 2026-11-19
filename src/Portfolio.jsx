@@ -517,6 +517,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
   }
 
   useEffect(() => {
+    setPortfolioHistory([]);
     if (!user) { setScreen('login'); return; }
     loadAll();
     const interval = setInterval(loadAll, 30000);
@@ -1041,7 +1042,20 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
           })()}
         </div>
 
-        {portfolioHistory.length > 1 && (() => {
+        {portfolio !== null && (() => {
+          if (portfolioHistory.length <= 1) {
+            return (
+              <div style={{ position: 'relative' }}>
+                <svg width="100%" height={80} viewBox="0 0 1000 80" preserveAspectRatio="none" style={{ display: 'block' }}>
+                  <line x1="0" y1="40" x2="1000" y2="40" stroke="white" strokeOpacity="0.1" strokeWidth="1" strokeDasharray="5,5" vectorEffect="non-scaling-stroke" />
+                </svg>
+                <div style={{ textAlign: 'center', paddingBottom: '14px', fontSize: '11px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>
+                  {t.portfolio.notEnoughHistory}
+                </div>
+              </div>
+            );
+          }
+
           const CHART_H = 240;
           const VW      = 1000;
           const INITIAL = 50000;
