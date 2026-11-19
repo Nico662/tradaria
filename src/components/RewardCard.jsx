@@ -1,4 +1,5 @@
-import { Lock, Award, Droplet, Tag, Ticket, CircleUser, Palette, Square, Eye, TrendingUp } from 'lucide-react';
+import { Lock, Award, Droplet, Tag, Ticket, CircleUser, Palette, Square, Eye, TrendingUp, Check } from 'lucide-react';
+import { StatusText } from './ui';
 
 const REWARD_ICONS = {
   xp:             TrendingUp,
@@ -36,12 +37,12 @@ function getSwatchHex(reward) {
 // Props:
 //   reward          — reward object from season1Config, or null
 //   mission         — mission object { title, desc, enabled } or null (ignored for pro_locked)
-//   state           — 'empty' | 'locked' | 'claimable' | 'claimed' | 'pro_locked'
+//   state           — 'empty' | 'locked' | 'claimable' | 'claimed' | 'pro_locked' | 'mission_pending'
 //   track           — 'free' | 'pro'
 //   isActive        — true when this card is at the user's current level
 //   missionProgress — { current, target } | null — shows progress bar when non-null
 //   isClaiming      — true while the claim request is in-flight
-//   onClaim         — called when the user taps the ribbon
+//   onClaim         — called when the user taps the claim button
 //   t               — translation object (needs t.traderPass)
 //   onGoPricing     — called when free user taps the pro-locked card
 export default function RewardCard({
@@ -131,34 +132,32 @@ export default function RewardCard({
     );
   }
 
-  const isClaimable = state === 'claimable';
-  const isClaimed   = state === 'claimed';
-  const isLocked    = state === 'locked';
+  const isClaimable      = state === 'claimable';
+  const isClaimed        = state === 'claimed';
+  const isLocked         = state === 'locked';
+  const isMissionPending = state === 'mission_pending';
 
   const trackColor = isProTrack ? '#e05585' : '#00c087';
 
-  // Fondo de tarjeta — tintado suave, menos oscuro que antes
   const cardBg = isClaimable
-    ? (isProTrack ? 'rgba(224,85,133,0.13)' : 'rgba(0,192,135,0.12)')
+    ? (isProTrack ? 'rgba(224,85,133,0.08)' : 'rgba(0,192,135,0.07)')
     : isClaimed
       ? (isProTrack ? 'rgba(224,85,133,0.05)' : 'rgba(0,192,135,0.05)')
       : isLocked
         ? 'var(--bg-elevated)'
-        : (isProTrack ? 'rgba(224,85,133,0.08)' : 'rgba(0,192,135,0.07)');
+        : (isProTrack ? 'rgba(224,85,133,0.06)' : 'rgba(0,192,135,0.05)');
 
-  // Fondo del cuadrado de icono — un poco más saturado que el fondo de la tarjeta
   const iconBg = isProTrack
-    ? 'rgba(224,85,133,0.22)'
-    : 'rgba(0,192,135,0.18)';
+    ? 'rgba(224,85,133,0.18)'
+    : 'rgba(0,192,135,0.15)';
 
   const cardBorder = isClaimable
-    ? (isProTrack ? 'rgba(224,85,133,0.6)'  : 'rgba(0,192,135,0.6)')
+    ? (isProTrack ? 'rgba(224,85,133,0.5)'  : 'rgba(0,192,135,0.5)')
     : isClaimed
       ? (isProTrack ? 'rgba(224,85,133,0.15)' : 'rgba(0,192,135,0.15)')
-      : (isProTrack ? 'rgba(224,85,133,0.25)' : 'rgba(0,192,135,0.22)');
+      : (isProTrack ? 'rgba(224,85,133,0.22)' : 'rgba(0,192,135,0.2)');
 
-  const showProgress = state !== 'claimed' && !!missionProgress;
-  const showRibbon   = isClaimable;
+  const showProgress = !isClaimed && !!missionProgress;
 
   return (
     <div style={{
@@ -172,16 +171,15 @@ export default function RewardCard({
       flexDirection: 'column',
       overflow: 'hidden',
       opacity: isLocked ? 0.45 : 1,
-      transition: 'border-color 0.2s, box-shadow 0.2s',
-      '--anim-glow': isProTrack ? 'rgba(224,85,133,0.8)' : 'rgba(0,192,135,0.8)',
+      transition: 'border-color 0.2s',
       animation: animate ? 'claimPop 0.55s ease-out' : 'none',
     }}>
 
-      <div style={{ padding: '8px 8px 8px 8px' }}>
-        {/* Fila: cuadrado de icono + contenido */}
+      <div style={{ padding: '8px', flex: 1 }}>
+        {/* Icon + reward text row */}
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
 
-          {/* Cuadrado de icono */}
+          {/* Icon square */}
           <div style={{
             width: 32, height: 32, flexShrink: 0,
             borderRadius: '8px',
@@ -192,17 +190,15 @@ export default function RewardCard({
               <div style={{
                 width: 12, height: 12, borderRadius: '50%',
                 background: swatchHex,
-                border: '1.5px solid rgba(255,255,255,0.3)',
-                boxShadow: `0 0 6px ${swatchHex}88`,
+                border: '1.5px solid rgba(255,255,255,0.25)',
               }} />
             ) : Icon ? (
               <Icon size={15} color={trackColor} strokeWidth={2.5} />
             ) : null}
           </div>
 
-          {/* Texto */}
+          {/* Text */}
           <div style={{ flex: 1, minWidth: 0 }}>
-            {/* Recompensa: cantidad/nombre */}
             {isXp ? (
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 3, lineHeight: 1 }}>
                 <span style={{
@@ -227,7 +223,7 @@ export default function RewardCard({
               </div>
             ) : null}
 
-            {/* Descripción de misión */}
+            {/* Mission description */}
             {mission && (
               <p style={{
                 margin: '4px 0 0',
@@ -238,7 +234,7 @@ export default function RewardCard({
               </p>
             )}
 
-            {/* Barra de progreso — solo nivel activo con misión habilitada */}
+            {/* Mission progress bar */}
             {showProgress && (
               <div style={{ marginTop: 5 }}>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 2 }}>
@@ -255,7 +251,6 @@ export default function RewardCard({
                     width: `${Math.min(100, (missionProgress.current / missionProgress.target) * 100)}%`,
                     background: trackColor, borderRadius: 2,
                     transition: 'width 0.3s ease',
-                    boxShadow: `0 0 4px ${trackColor}66`,
                   }} />
                 </div>
               </div>
@@ -263,9 +258,40 @@ export default function RewardCard({
 
           </div>
         </div>
+
+        {/* Mission pending label */}
+        {isMissionPending && (
+          <div style={{ marginTop: 5 }}>
+            <StatusText>{t.traderPass?.missionPending ?? 'Mission pending'}</StatusText>
+          </div>
+        )}
+
+        {/* Claim button */}
+        {isClaimable && (
+          <div style={{ marginTop: 6 }}>
+            <button
+              onClick={isClaiming ? undefined : onClaim}
+              disabled={isClaiming}
+              style={{
+                width: '100%',
+                fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 800,
+                color: isClaiming ? 'var(--text-hint)' : trackColor,
+                background: 'none',
+                border: `1px solid ${isClaiming ? 'var(--border-default)' : cardBorder}`,
+                borderRadius: '6px',
+                padding: '4px 0',
+                cursor: isClaiming ? 'default' : 'pointer',
+                letterSpacing: '0.04em',
+                transition: 'color 0.2s, border-color 0.2s',
+              }}
+            >
+              {isClaiming ? '···' : t.traderPass.claim}
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Reclamado: check en círculo (esquina superior derecha) */}
+      {/* Claimed: check circle (top-right corner) */}
       {isClaimed && (
         <div style={{
           position: 'absolute', top: 6, right: 6,
@@ -274,44 +300,11 @@ export default function RewardCard({
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           animation: animate ? 'checkIn 0.35s ease-out' : 'none',
         }}>
-          <span style={{ fontSize: '9px', color: '#000', fontWeight: 900, lineHeight: 1 }}>✓</span>
+          <Check size={10} strokeWidth={2.5} style={{ stroke: '#000' }} />
         </div>
       )}
 
-      {/* Cinta/ribbon RECLAMAR (esquina superior derecha, diagonal) */}
-      {showRibbon && (
-        <div
-          onClick={isClaiming ? undefined : onClaim}
-          style={{
-            position: 'absolute', top: 0, right: 0,
-            overflow: 'hidden', width: 60, height: 60,
-            borderRadius: '0 12px 0 0',
-            cursor: isClaiming ? 'default' : 'pointer',
-          }}
-        >
-          <div style={{
-            position: 'absolute',
-            top: 12,
-            right: -18,
-            width: 72,
-            background: '#e05585',
-            color: '#fff',
-            fontSize: '6.5px',
-            fontWeight: 900,
-            letterSpacing: '0.1em',
-            textAlign: 'center',
-            padding: '4px 0',
-            transform: 'rotate(45deg)',
-            transformOrigin: 'center',
-            opacity: isClaiming ? 0.55 : 1,
-            transition: 'opacity 0.2s',
-          }}>
-            {isClaiming ? '···' : t.traderPass.claim.toUpperCase()}
-          </div>
-        </div>
-      )}
-
-      {/* Bloqueado: icono candado (esquina) */}
+      {/* Locked: lock icon (corner) */}
       {isLocked && (
         <div style={{ position: 'absolute', top: 5, right: 5 }}>
           <Lock size={10} color="rgba(255,255,255,0.2)" strokeWidth={2} />

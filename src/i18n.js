@@ -706,6 +706,7 @@ export const LANGS = {
       errorLevelNotReached: 'Level not reached yet.',
       errorNoSeason: 'No active season.',
       errorNetwork: 'Connection error. Try again.',
+      missionPending: 'Mission pending',
     },
     inventory: {
       title: 'My Inventory',
@@ -1526,6 +1527,7 @@ export const LANGS = {
       errorLevelNotReached: 'Nivel no alcanzado.',
       errorNoSeason: 'No hay temporada activa.',
       errorNetwork: 'Error de conexión. Inténtalo de nuevo.',
+      missionPending: 'Misión pendiente',
     },
     inventory: {
       title: 'Mi Inventario',
@@ -2295,6 +2297,7 @@ export const LANGS = {
       errorLevelNotReached: 'Level noch nicht erreicht.',
       errorNoSeason: 'Keine aktive Saison.',
       errorNetwork: 'Verbindungsfehler. Erneut versuchen.',
+      missionPending: 'Mission ausstehend',
     },
     inventory: {
       title: 'Mein Inventar',

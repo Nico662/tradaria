@@ -4,7 +4,8 @@ import { useAuth } from './AuthContext.jsx';
 import { useLang } from './LangContext.jsx';
 import { SEASON1_LEVELS } from './config/season1Config.js';
 import RewardCard from './components/RewardCard.jsx';
-import { TrendingUp, Diamond } from 'lucide-react';
+import { Check } from 'lucide-react';
+import { ScreenHeader, StatusText } from './components/ui';
 
 // ── DEV MOCK ──────────────────────────────────────────────────────────────────
 // Rellena la pantalla con datos de ejemplo cuando no hay season activa.
@@ -51,45 +52,23 @@ function BattlePassSkeleton({ t }) {
     >
       <div style={{ padding: '16px 16px 0', flexShrink: 0 }}>
         <div className="skeleton-bar" style={{ width: 36, height: 14, marginBottom: 20 }} />
-        <div style={{
-          background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
-          borderRadius: 20, padding: 16, marginBottom: 16,
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
-            <div>
-              <div className="skeleton-bar" style={{ width: 80, height: 10, marginBottom: 8 }} />
-              <div className="skeleton-bar" style={{ width: 150, height: 26, marginBottom: 6 }} />
-              <div className="skeleton-bar" style={{ width: 110, height: 12 }} />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
-              <div className="skeleton-bar" style={{ width: 54, height: 30, borderRadius: 4 }} />
-              <div className="skeleton-bar" style={{ width: 36, height: 28 }} />
-            </div>
+        <div style={{ padding: '0 0 16px' }}>
+          <div className="skeleton-bar" style={{ width: 150, height: 26, marginBottom: 8 }} />
+          <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+            <div className="skeleton-bar" style={{ width: 80, height: 10 }} />
+            <div className="skeleton-bar" style={{ width: 60, height: 10 }} />
           </div>
-          <div style={{ borderBottom: '1px dashed rgba(255,255,255,0.09)', marginBottom: 14 }} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div className="skeleton-bar" style={{ width: 64, height: 64, borderRadius: '50%', flexShrink: 0 }} />
-            <div>
-              <div className="skeleton-bar" style={{ width: 100, height: 16, marginBottom: 6 }} />
-              <div className="skeleton-bar" style={{ width: 140, height: 12 }} />
-            </div>
-          </div>
+          <div className="skeleton-bar" style={{ width: '100%', height: 4, borderRadius: 2 }} />
         </div>
       </div>
       <div style={{ borderBottom: '0.5px solid var(--border-default)' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 44px 1fr', padding: '10px 16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-            <TrendingUp size={14} color="#00c087" strokeWidth={2.5} />
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#00c087' }}>
-              {tp.freeTrack}
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div className="skeleton-bar" style={{ width: 30, height: 10 }} />
           </div>
           <div />
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#e05585' }}>
-              {tp.proTrack}
-            </span>
-            <Diamond size={13} color="#e05585" strokeWidth={2.5} />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div className="skeleton-bar" style={{ width: 24, height: 10 }} />
           </div>
         </div>
       </div>
@@ -196,7 +175,7 @@ const LevelRow = memo(function LevelRow({
           transition: 'border-color 0.3s ease, background 0.3s ease',
         }}>
           {isClaimed ? (
-            <span style={{ fontSize: '10px', color: '#000', fontWeight: 900, lineHeight: 1 }}>✓</span>
+            <Check size={11} strokeWidth={2.5} style={{ stroke: '#000' }} />
           ) : (
             <span style={{
               fontFamily: 'var(--font-body)', fontSize: '9px',
@@ -239,71 +218,6 @@ function getCardState(reward, mission, levelNum, track, userLevel, claimedReward
     }
   }
   return 'claimable';
-}
-
-function MiniCandleChart() {
-  return (
-    <svg width="54" height="30" viewBox="0 0 54 30" fill="none">
-      <line x1="5"  y1="4"  x2="5"  y2="8"  stroke="#00c087" strokeWidth="1.5" strokeLinecap="round"/>
-      <rect x="2"   y="8"   width="6" height="13" rx="1.5" fill="#00c087"/>
-      <line x1="5"  y1="21" x2="5"  y2="26" stroke="#00c087" strokeWidth="1.5" strokeLinecap="round"/>
-
-      <line x1="16" y1="6"  x2="16" y2="10" stroke="#e05585" strokeWidth="1.5" strokeLinecap="round"/>
-      <rect x="13"  y="10"  width="6" height="9"  rx="1.5" fill="#e05585"/>
-      <line x1="16" y1="19" x2="16" y2="24" stroke="#e05585" strokeWidth="1.5" strokeLinecap="round"/>
-
-      <line x1="27" y1="2"  x2="27" y2="6"  stroke="#00c087" strokeWidth="1.5" strokeLinecap="round"/>
-      <rect x="24"  y="6"   width="6" height="16" rx="1.5" fill="#00c087"/>
-      <line x1="27" y1="22" x2="27" y2="27" stroke="#00c087" strokeWidth="1.5" strokeLinecap="round"/>
-
-      <line x1="38" y1="7"  x2="38" y2="11" stroke="#e05585" strokeWidth="1.5" strokeLinecap="round"/>
-      <rect x="35"  y="11"  width="6" height="8"  rx="1.5" fill="#e05585"/>
-      <line x1="38" y1="19" x2="38" y2="23" stroke="#e05585" strokeWidth="1.5" strokeLinecap="round"/>
-
-      <line x1="49" y1="5"  x2="49" y2="9"  stroke="#00c087" strokeWidth="1.5" strokeLinecap="round"/>
-      <rect x="46"  y="9"   width="6" height="12" rx="1.5" fill="#00c087"/>
-      <line x1="49" y1="21" x2="49" y2="26" stroke="#00c087" strokeWidth="1.5" strokeLinecap="round"/>
-    </svg>
-  );
-}
-
-function ProgressRing({ pct, level }) {
-  const r = 26;
-  const circ = 2 * Math.PI * r;
-  const dash = (pct / 100) * circ;
-  return (
-    <div style={{ position: 'relative', width: 64, height: 64, flexShrink: 0 }}>
-      <svg width="64" height="64" viewBox="0 0 64 64">
-        <defs>
-          <linearGradient id="bpRingGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#e05585"/>
-            <stop offset="100%" stopColor="#00c087"/>
-          </linearGradient>
-        </defs>
-        <circle cx="32" cy="32" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="5"/>
-        {dash > 0 && (
-          <circle
-            cx="32" cy="32" r={r} fill="none"
-            stroke="url(#bpRingGrad)" strokeWidth="5"
-            strokeDasharray={`${dash} ${circ}`}
-            strokeLinecap="round"
-            transform="rotate(-90 32 32)"
-          />
-        )}
-      </svg>
-      <div style={{
-        position: 'absolute', inset: 0,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
-        <span style={{
-          fontFamily: 'var(--font-body)', fontWeight: 900,
-          fontSize: '18px', color: 'var(--text-primary)', lineHeight: 1,
-        }}>
-          {level}
-        </span>
-      </div>
-    </div>
-  );
 }
 
 export default function BattlePass({ onBack, onGoPricing }) {
@@ -422,9 +336,6 @@ export default function BattlePass({ onBack, onGoPricing }) {
 
   const proRewardCount = SEASON1_LEVELS.filter(lvl => lvl.proReward).length;
 
-  // Extrae la parte de texto después de {n}, p.ej. "días restantes" / "days remaining"
-  const daysUnit = tp.daysLeft.split('{n}').pop()?.trim() ?? '';
-
   if (isLoading && !mockActive) {
     return <BattlePassSkeleton t={t} />;
   }
@@ -435,26 +346,29 @@ export default function BattlePass({ onBack, onGoPricing }) {
       display: 'flex', flexDirection: 'column',
     }}>
 
-      {/* ── Área de cabecera ───────────────────── */}
-      <div style={{ padding: '16px 16px 0', flexShrink: 0 }}>
+      {/* ── Header ───────────────────────────────── */}
+      <div style={{ flexShrink: 0 }}>
+        <ScreenHeader title={t.home.traderPass} onBack={onBack} />
 
-        <button
-          onClick={onBack}
-          style={{
-            background: 'none', border: 'none', color: 'var(--text-muted)',
-            fontFamily: 'var(--font-body)', fontSize: '13px',
-            cursor: 'pointer', padding: 0, marginBottom: '16px',
-          }}
-        >
-          {t.common.back}
-        </button>
+        {/* Season name + days remaining */}
+        <div style={{ padding: '0 16px 10px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          {season && (
+            <StatusText color="var(--green)">{season.name}</StatusText>
+          )}
+          {daysLeft !== null && (
+            <StatusText color="var(--pink)">
+              {tp.daysLeft.replace('{n}', daysLeft)}
+            </StatusText>
+          )}
+        </div>
 
-        {/* Chip de mock de desarrollo */}
+        {/* DEV MOCK chip */}
         {mockActive && (
           <div style={{
+            margin: '0 16px 10px',
             display: 'inline-flex', alignItems: 'center', gap: 5,
             background: 'rgba(196,154,42,0.1)', border: '1px solid rgba(196,154,42,0.3)',
-            borderRadius: '4px', padding: '2px 8px', marginBottom: '10px',
+            borderRadius: '4px', padding: '2px 8px',
           }}>
             <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-neutral)' }} />
             <span style={{ fontFamily: 'var(--font-body)', fontSize: '9px', fontWeight: 800, color: 'var(--color-neutral)', letterSpacing: '0.08em' }}>
@@ -463,124 +377,47 @@ export default function BattlePass({ onBack, onGoPricing }) {
           </div>
         )}
 
-        {/* ── Tarjeta principal de cabecera ─────── */}
-        <div style={{
-          background: 'var(--bg-surface)',
-          border: '1px solid var(--border-default)',
-          borderRadius: '20px',
-          padding: '16px',
-          marginBottom: '16px',
-        }}>
-
-          {/* Fila superior: badge+título vs. velas+días */}
-          <div style={{
-            display: 'flex', justifyContent: 'space-between',
-            alignItems: 'flex-start', marginBottom: '14px',
-          }}>
-
-            {/* Izquierda */}
-            <div>
-              {season && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 7 }}>
-                  <div style={{
-                    width: 6, height: 6, borderRadius: '50%',
-                    background: 'var(--green)', flexShrink: 0,
-                  }} />
-                  <span style={{
-                    fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 900,
-                    color: 'var(--green)', letterSpacing: '0.12em', textTransform: 'uppercase',
-                  }}>
-                    {season.name}
-                  </span>
-                </div>
-              )}
-              <h1 style={{
-                margin: 0, fontFamily: 'var(--font-body)', fontWeight: 900,
-                fontSize: '26px', color: 'var(--text-primary)',
-                letterSpacing: '-0.02em', lineHeight: 1,
-              }}>
-                {t.home.traderPass}
-              </h1>
-              <p style={{
-                margin: '5px 0 0', fontFamily: 'var(--font-body)',
-                fontSize: '12px', color: 'var(--text-muted)', fontWeight: 500,
-              }}>
-                {t.home.traderPassSub}
-              </p>
-            </div>
-
-            {/* Derecha: mini candle SVG + días */}
+        {/* Level + flat progress bar */}
+        {season ? (
+          <div style={{ padding: '0 16px 14px' }}>
             <div style={{
-              display: 'flex', flexDirection: 'column',
-              alignItems: 'flex-end', gap: 6, flexShrink: 0,
+              fontFamily: 'var(--font-body)', fontWeight: 900,
+              fontSize: '22px', color: 'var(--text-primary)',
+              lineHeight: 1, marginBottom: '8px',
             }}>
-              <MiniCandleChart />
-              {daysLeft !== null && (
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{
-                    fontFamily: 'var(--font-body)', fontWeight: 900,
-                    fontSize: '22px', color: 'var(--pink)', lineHeight: 1,
-                  }}>
-                    {daysLeft}d
-                  </div>
-                  <div style={{
-                    fontFamily: 'var(--font-body)', fontSize: '8px', fontWeight: 800,
-                    color: 'var(--text-muted)', letterSpacing: '0.1em',
-                    textTransform: 'uppercase', marginTop: 1,
-                  }}>
-                    {daysUnit}
-                  </div>
-                </div>
-              )}
+              {tp.levelOf.replace('{n}', userLevel)}
+            </div>
+            <div style={{ height: '4px', background: 'var(--bg-elevated)', borderRadius: '2px', overflow: 'hidden', marginBottom: '6px' }}>
+              <div style={{
+                height: '100%',
+                width: `${progressPct}%`,
+                background: 'var(--green)',
+                borderRadius: '2px',
+                transition: 'width 0.6s ease',
+              }} />
+            </div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-hint)', fontWeight: 600 }}>
+              {userLevel >= 30
+                ? (tp.max ?? 'MAX')
+                : missionsForNextLevel.total === 0
+                  ? tp.levelOf.replace('{n}', userLevel + 1)
+                  : (tp.missionsToNext ?? '{done}/{total} → lv. {n}')
+                      .replace('{done}',  String(missionsForNextLevel.current))
+                      .replace('{total}', String(missionsForNextLevel.total))
+                      .replace('{n}',     String(userLevel + 1))
+              }
             </div>
           </div>
+        ) : (
+          <div style={{ padding: '0 16px 14px', fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--text-muted)' }}>
+            {tp.noSeason}
+          </div>
+        )}
 
-          {/* Divisor punteado */}
-          <div style={{
-            borderBottom: '1px dashed rgba(255,255,255,0.09)',
-            marginBottom: '14px',
-          }} />
-
-          {/* Anillo de progreso + texto de nivel */}
-          {season ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-              <ProgressRing pct={progressPct} level={userLevel} />
-              <div>
-                <div style={{
-                  fontFamily: 'var(--font-body)', fontWeight: 800,
-                  fontSize: '16px', color: 'var(--text-primary)', lineHeight: 1,
-                }}>
-                  {tp.levelOf.replace('{n}', userLevel)}
-                </div>
-                <div style={{
-                  fontFamily: 'var(--font-body)', fontSize: '12px',
-                  color: 'var(--text-muted)', marginTop: 5,
-                }}>
-                  {userLevel >= 30
-                  ? (tp.max ?? 'MAX')
-                  : missionsForNextLevel.total === 0
-                    ? `${tp.levelOf.replace('{n}', userLevel + 1)}`
-                    : (tp.missionsToNext ?? '{done}/{total} → lv. {n}')
-                        .replace('{done}',  String(missionsForNextLevel.current))
-                        .replace('{total}', String(missionsForNextLevel.total))
-                        .replace('{n}',     String(userLevel + 1))
-                }
-                </div>
-              </div>
-            </div>
-          ) : (
-            <p style={{
-              fontFamily: 'var(--font-body)', fontSize: '13px',
-              color: 'var(--text-muted)', margin: 0,
-            }}>
-              {tp.noSeason}
-            </p>
-          )}
-        </div>
-
+        {/* Claim error */}
         {claimError && (
           <div style={{
-            marginBottom: '12px', padding: '8px 32px 8px 12px',
+            margin: '0 16px 12px', padding: '8px 32px 8px 12px',
             background: 'rgba(224,85,85,0.1)', border: '1px solid rgba(224,85,85,0.3)',
             borderRadius: '8px', fontFamily: 'var(--font-body)', fontSize: '12px', color: '#e05555',
             position: 'relative',
@@ -615,26 +452,24 @@ export default function BattlePass({ onBack, onGoPricing }) {
         }}>
           <div style={{
             display: 'grid', gridTemplateColumns: '1fr 44px 1fr',
-            padding: '10px 16px',
+            padding: '8px 16px',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-              <TrendingUp size={14} color="#00c087" strokeWidth={2.5} />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <span style={{
-                fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 800,
-                letterSpacing: '0.14em', textTransform: 'uppercase', color: '#00c087',
+                fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800,
+                letterSpacing: '0.08em', textTransform: 'uppercase', color: '#00c087',
               }}>
                 {tp.freeTrack}
               </span>
             </div>
             <div />
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <span style={{
-                fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 800,
-                letterSpacing: '0.14em', textTransform: 'uppercase', color: '#e05585',
+                fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 800,
+                letterSpacing: '0.08em', textTransform: 'uppercase', color: '#e05585',
               }}>
                 {tp.proTrack}
               </span>
-              <Diamond size={13} color="#e05585" strokeWidth={2.5} />
             </div>
           </div>
         </div>
