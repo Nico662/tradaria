@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const PortfolioOrderSchema = new mongoose.Schema({
   userId:        { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+  slot:          { type: Number, default: 0, enum: [0, 1] },
   symbol:        { type: String, required: true },
   name:          { type: String, required: true },
   type:          { type: String, enum: ['buy', 'sell'], required: true },

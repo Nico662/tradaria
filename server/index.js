@@ -3341,7 +3341,8 @@ cron.schedule('* * * * 1-5', async () => {
         if (!asset) { await cancelOrder(order, 'asset_not_found'); continue; }
         const priceData = await getPrice(asset);
         const execPrice = priceData.price;
-        const portfolio = await Portfolio.findOne(portfolioFilter(order.userId, 0));
+        const orderSlot = order.slot ?? 0;
+        const portfolio = await Portfolio.findOne(portfolioFilter(order.userId, orderSlot));
         if (!portfolio) { await cancelOrder(order, 'portfolio_not_found'); continue; }
 
         if (order.type === 'buy') {
@@ -3352,6 +3353,7 @@ cron.schedule('* * * * 1-5', async () => {
             execQty = Math.floor((portfolio.cash / execPrice) * 10000) / 10000;
             if (execQty < 0.0001) {
               await portfolio.save();
+              redis.del(`portfolio:${order.userId}:${orderSlot}`).catch(() => {});
               redis.del(`portfolio:${order.userId}`).catch(() => {});
               await cancelOrder(order, 'insufficient_funds_at_open');
               continue;
@@ -3368,6 +3370,7 @@ cron.schedule('* * * * 1-5', async () => {
           }
           portfolio.transactions.push({ symbol: order.symbol, name: asset.name, type: asset.type, action: 'buy', qty: execQty, price: execPrice, total });
           await portfolio.save();
+          redis.del(`portfolio:${order.userId}:${orderSlot}`).catch(() => {});
           redis.del(`portfolio:${order.userId}`).catch(() => {});
           order.status = 'executed';
           order.executedAt = new Date();
@@ -3381,7 +3384,7 @@ cron.schedule('* * * * 1-5', async () => {
               : NOTIF_ES.orderExecuted({ type: order.type, name: order.name, qty: order.qty, price: execPrice.toFixed(2) })),
             url: 'https://tradiko.dev',
           });
-          console.log(`[portfolio-orders-cron] Executed buy ${execQty}/${order.qty}x${order.symbol} @ $${execPrice} for userId=${order.userId}`);
+          console.log(`[portfolio-orders-cron] Executed buy ${execQty}/${order.qty}x${order.symbol} @ $${execPrice} for userId=${order.userId} slot=${orderSlot}`);
         } else {
           // sell
           const position = portfolio.positions.find(p => p.symbol === order.symbol);
@@ -3392,6 +3395,7 @@ cron.schedule('* * * * 1-5', async () => {
           if (position.qty < 0.0001) portfolio.positions = portfolio.positions.filter(p => p.symbol !== order.symbol);
           portfolio.transactions.push({ symbol: order.symbol, name: asset.name, type: asset.type, action: 'sell', qty: order.qty, price: execPrice, total });
           await portfolio.save();
+          redis.del(`portfolio:${order.userId}:${orderSlot}`).catch(() => {});
           redis.del(`portfolio:${order.userId}`).catch(() => {});
           order.status = 'executed';
           order.executedAt = new Date();
@@ -3402,7 +3406,7 @@ cron.schedule('* * * * 1-5', async () => {
             ...NOTIF_ES.orderExecuted({ type: order.type, name: order.name, qty: order.qty, price: execPrice.toFixed(2) }),
             url: 'https://tradiko.dev',
           });
-          console.log(`[portfolio-orders-cron] Executed sell ${order.qty}x${order.symbol} @ $${execPrice} for userId=${order.userId}`);
+          console.log(`[portfolio-orders-cron] Executed sell ${order.qty}x${order.symbol} @ $${execPrice} for userId=${order.userId} slot=${orderSlot}`);
         }
       } catch (err) {
         // Revert to pending so a manual retry or future run can recover it
@@ -4123,7 +4127,7 @@ app.post('/portfolio/order', async (req, res) => {
       const position = portfolio.positions.find(p => p.symbol === symbol);
       if (!position || position.qty < qty) return res.status(400).json({ error: 'Insufficient position' });
     }
-    const order = await PortfolioOrder.create({ userId: decoded.id, symbol, name: asset.name, type, qty, reservedCash });
+    const order = await PortfolioOrder.create({ userId: decoded.id, slot, symbol, name: asset.name, type, qty, reservedCash });
     res.json({ ok: true, orderId: order._id });
   } catch (err) {
     console.error('Portfolio order error:', err.message);
@@ -4274,15 +4278,20 @@ const MIN_PORTFOLIO_SNAPSHOT_VALUE = 100; // below $100 is always a bug; initial
 app.post('/portfolio/snapshot', async (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'No token' });
+  let decoded, slot;
   try {
-    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const slot = Number(req.body?.slot ?? req.query?.slot) === 1 ? 1 : 0;
+    decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    slot = Number(req.body?.slot ?? req.query?.slot) === 1 ? 1 : 0;
 
     // Guard: skip if portfolio hasn't been initialized yet — avoids storing $50k fallback as a real baseline.
     const portfolioExists = !!(await Portfolio.exists(portfolioFilter(decoded.id, slot)));
     if (!portfolioExists) return res.json({ ok: true, skipped: true });
 
     const totalValue = await getPortfolioValue(decoded.id, slot);
+    if (!Number.isFinite(totalValue)) {
+      console.warn(`[snapshot] Non-finite totalValue (${totalValue}) for userId=${decoded.id} slot=${slot} — skipping; possible data corruption`);
+      return res.json({ ok: true, skipped: true });
+    }
     if (totalValue < MIN_PORTFOLIO_SNAPSHOT_VALUE) {
       console.warn(`[snapshot] Skipped suspiciously low equity $${totalValue.toFixed(4)} for userId=${decoded.id} slot=${slot}`);
       return res.json({ ok: true, skipped: true });
@@ -4298,6 +4307,7 @@ app.post('/portfolio/snapshot', async (req, res) => {
 
     res.json({ ok: true });
   } catch (err) {
+    console.error(`[snapshot] userId=${decoded?.id} slot=${slot} error: ${err.message}\n${err.stack}`);
     res.status(500).json({ error: 'internal_error' });
   }
 });
@@ -4403,7 +4413,8 @@ async function getPortfolioValue(userId, slot = 0) {
     // Include cash reserved for pending buy orders — without this, an all-in
     // user with no positions yet shows near-zero equity and corrupts the snapshot baseline.
     const PortfolioOrder = mongoose.model('PortfolioOrder');
-    const pendingBuys = await PortfolioOrder.find({ userId, type: 'buy', status: { $in: ['pending', 'processing'] } });
+    const orderSlotFilter = slot === 1 ? { slot: 1 } : { slot: { $in: [0, null] } };
+    const pendingBuys = await PortfolioOrder.find({ userId, ...orderSlotFilter, type: 'buy', status: { $in: ['pending', 'processing'] } });
     const reservedCash = pendingBuys.reduce((s, o) => s + (o.reservedCash || 0), 0);
     const invested = portfolio.positions.reduce((s, pos) => s + (priceMap[pos.symbol] || pos.avgPrice) * pos.qty, 0);
     return portfolio.cash + reservedCash + invested;
