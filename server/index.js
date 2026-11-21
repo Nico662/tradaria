@@ -335,7 +335,7 @@ const PortfolioHistorySchema = new mongoose.Schema({
   date:       { type: String, required: true },
   totalValue: { type: Number, required: true },
 });
-PortfolioHistorySchema.index({ userId: 1, date: 1, slot: 1 }, { unique: true });
+PortfolioHistorySchema.index({ userId: 1, slot: 1, date: 1 }, { unique: true });
 const PortfolioHistory = mongoose.model('PortfolioHistory', PortfolioHistorySchema);
 
 const PriceAlertSchema = new mongoose.Schema({

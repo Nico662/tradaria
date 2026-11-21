@@ -19,7 +19,7 @@ const PortfolioHistorySchema = new mongoose.Schema({
   date:       { type: String, required: true },
   totalValue: { type: Number, required: true },
 });
-PortfolioHistorySchema.index({ userId: 1, date: 1, slot: 1 }, { unique: true });
+PortfolioHistorySchema.index({ userId: 1, slot: 1, date: 1 }, { unique: true });
 
 let PortfolioHistory;
 
@@ -112,6 +112,22 @@ describe('POST /portfolio/snapshot — slot=1 (Portfolio B)', () => {
 
     const doc = await PortfolioHistory.findOne({ userId, slot: 1 });
     expect(doc).toBeNull();
+  });
+
+  test('legacy doc without slot field is found and updated by slot=0 filter', async () => {
+    // Reproduces the migration scenario: a doc was written before the slot field
+    // existed, so it has no slot field. The slot=0 filter (slot: {$in:[0,null]})
+    // must find it, update it (setting slot:0), and not create a duplicate.
+    const userId = new mongoose.Types.ObjectId();
+    await PortfolioHistory.collection.insertOne({ userId, date: '2026-11-21', totalValue: 40000 });
+
+    const result = await saveSnapshot(userId, 0, 45000);
+    expect(result).toEqual({ ok: true });
+
+    const docs = await PortfolioHistory.find({ userId });
+    expect(docs.length).toBe(1);
+    expect(docs[0].totalValue).toBeCloseTo(45000);
+    expect(docs[0].slot).toBe(0);
   });
 
   test('concurrent upserts for slot=1 both succeed (no E11000 race)', async () => {
