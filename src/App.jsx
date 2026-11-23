@@ -822,7 +822,12 @@ export default function App() {
 
   // ── Landing ───────────────────────────────────────────────────────
   if (showLanding) {
-    return <Landing onEnter={() => setShowLanding(false)} />;
+    return (
+      <Landing
+        onEnter={() => setShowLanding(false)}
+        onNavigate={(sc) => { setShowLanding(false); setScreen(sc); }}
+      />
+    );
   }
 
   // ── Modes ─────────────────────────────────────────────────────────
