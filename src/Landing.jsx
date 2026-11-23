@@ -158,21 +158,23 @@ export default function Landing({ onEnter, onNavigate }) {
         }
 
         /* ── Hero mobile ──────────────────────────────────────────── */
-        @media (max-width: 767px) {
+        @media (max-width: 768px) {
           .l-hero { flex-direction: column; gap: 28px; padding: 36px 0 48px; }
           .l-hero-text { order: 1; }
-          .l-h1 { font-size: 32px; }
+          .l-h1 { font-size: 32px; overflow-wrap: anywhere; text-wrap: balance; }
           .l-subtitle { max-width: 100%; font-size: var(--font-size-body); }
           .l-cta-col { align-items: stretch; }
-          .l-cta { display: block; width: 100%; }
+          .l-cta { display: block; width: 100%; min-height: 52px; }
           .l-link { text-align: center; display: block; }
           .l-trust { text-align: center; }
           .l-hero-img-wrap {
-            order: 2; width: 100%; height: 300px;
-            transform: none; border-radius: 20px;
+            order: 2; width: 100%; max-height: 420px;
+            transform: none; border-radius: 20px; box-shadow: none;
+            -webkit-mask-image: linear-gradient(to bottom, black 72%, transparent 100%);
+            mask-image: linear-gradient(to bottom, black 72%, transparent 100%);
           }
         }
-        @media (min-width: 768px) { .l-h1 { font-size: 44px; } }
+        @media (min-width: 769px) { .l-h1 { font-size: 44px; } }
 
         /* ── Dividers ─────────────────────────────────────────────── */
         .l-divider { border: none; border-top: 0.5px solid var(--border-subtle); margin: 0; }
@@ -185,7 +187,11 @@ export default function Landing({ onEnter, onNavigate }) {
           margin: 0 0 36px;
         }
         .l-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
-        @media (max-width: 540px) { .l-steps { grid-template-columns: 1fr; gap: 20px; } }
+        @media (max-width: 768px) {
+          .l-steps { grid-template-columns: 1fr; gap: 20px; }
+          .l-steps > div { display: flex; align-items: center; gap: 16px; }
+          .l-step-num { margin-bottom: 0; min-width: 36px; flex: 0 0 auto; }
+        }
         .l-step-num {
           display: block; font-size: 40px; font-weight: 900; color: var(--pink);
           letter-spacing: -1px; line-height: 1; margin-bottom: 8px;
@@ -214,20 +220,25 @@ export default function Landing({ onEnter, onNavigate }) {
           box-shadow: 0 8px 36px rgba(0, 0, 0, 0.45);
         }
         .l-block.l-flip { flex-direction: row-reverse; }
-        @media (max-width: 767px) {
+        @media (max-width: 768px) {
           .l-block, .l-block.l-flip {
-            flex-direction: column; gap: 20px; margin-bottom: 56px;
+            flex-direction: column; gap: 20px; margin-bottom: 48px;
           }
-          .l-block-text    { order: 2; }
-          .l-block-img-wrap { order: 1; width: 100%; height: 260px; }
+          .l-block-text    { order: 1; overflow-wrap: anywhere; }
+          .l-block-img-wrap {
+            order: 2; width: 100%; max-width: 280px; height: auto;
+            margin: 0 auto; box-shadow: none;
+          }
+          .l-block-img-wrap .l-shot { height: auto; object-fit: contain; }
+          .l-h3 { overflow-wrap: anywhere; }
         }
 
         /* ── Final CTA ────────────────────────────────────────────── */
         .l-final { padding: 64px 0 72px; text-align: center; }
         .l-final .l-h2 { margin-bottom: 24px; }
         .l-final-btns { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-        @media (max-width: 767px) {
-          .l-final-btns .l-cta { width: 100%; }
+        @media (max-width: 768px) {
+          .l-final-btns .l-cta { width: 100%; min-height: 52px; }
           .l-final-btns .l-link { text-align: center; display: block; }
         }
 
@@ -244,6 +255,10 @@ export default function Landing({ onEnter, onNavigate }) {
           -webkit-tap-highlight-color: transparent; transition: color 0.15s;
         }
         .l-footer-btn:hover { color: var(--text-muted); }
+
+        @media (max-width: 768px) {
+          .l-footer { padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
+        }
       `}</style>
 
       {/* 1 ── Header */}
