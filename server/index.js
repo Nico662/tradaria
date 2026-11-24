@@ -463,7 +463,7 @@ require('./models/PortfolioOrder');
 
 // ── VAPID / Push ──────────────────────────────────────────────────
 webpush.setVapidDetails(
-  'mailto:nicolasvidalcorrecher@tradaria.dev',
+  'mailto:tradikonicolasvidal@gmail.com',
   process.env.VAPID_PUBLIC_KEY,
   process.env.VAPID_PRIVATE_KEY
 );
@@ -1375,18 +1375,9 @@ app.post('/shop/webhook', express.raw({ type: 'application/json' }), async (req,
       } catch (err) { console.error('Academy activation error:', err.message); }
     }
 
-    // Paid tournament entry
-    if (metaType === 'tournament_entry' && userId && tournamentId) {
-      try {
-        const pt = await PaidTournament.findById(tournamentId);
-        if (pt && pt.status === 'waiting' && !pt.players.some(p => String(p.userId) === userId)) {
-          pt.players.push({ userId, paymentIntentId: session.payment_intent });
-          if (pt.players.length >= pt.maxPlayers) {
-            pt.status = 'active';
-          }
-          await pt.save();
-        }
-      } catch (err) { console.error('Tournament entry error:', err.message); }
+    // Paid tournament entry — feature disabled; log for manual review
+    if (metaType === 'tournament_entry') {
+      console.warn('[IGNORED] tournament_entry webhook received for session', session.id, '— paid tournaments are disabled; requires manual review');
     }
   }
 
@@ -1469,43 +1460,13 @@ app.post('/pro/cancel', async (req, res) => {
   }
 });
 
-// ── Paid tournament routes ────────────────────────────────────────
-app.post('/tournament/paid/create', async (req, res) => {
-  const auth = req.headers.authorization;
-  if (!auth) return res.status(401).json({ error: 'No token' });
-  try {
-    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const { maxParticipants } = req.body;
-    const n = Number(maxParticipants);
-    if (!Number.isInteger(n) || n < 2 || n > 10) {
-      return res.status(400).json({ error: 'maxParticipants must be an integer between 2 and 10' });
-    }
-    const entryFee = 2;
-    const totalPot = entryFee * n;
-    const prize    = totalPot / 2;
-    const pt = await PaidTournament.create({ entryFee, maxPlayers: n, totalPot, prize, createdBy: decoded.id });
-    res.json({ ok: true, tournament: pt });
-  } catch (err) {
-    console.error('Create tournament error:', err.message);
-    res.status(500).json({ error: 'Create failed' });
-  }
+// ── Paid tournament routes — DISABLED (410) ──────────────────────
+app.post('/tournament/paid/create', (req, res) => {
+  res.status(410).json({ error: 'feature_disabled', message: 'Paid tournaments are no longer available' });
 });
 
-app.delete('/tournament/paid/:tournamentId', async (req, res) => {
-  const auth = req.headers.authorization;
-  if (!auth) return res.status(401).json({ error: 'No token' });
-  try {
-    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const pt = await PaidTournament.findById(req.params.tournamentId);
-    if (!pt) return res.status(404).json({ error: 'Torneo no encontrado' });
-    if (String(pt.createdBy) !== String(decoded.id)) return res.status(403).json({ error: 'No autorizado' });
-    if (pt.players.length > 0) return res.status(400).json({ error: 'No puedes borrar un torneo con jugadores ya inscritos' });
-    await pt.deleteOne();
-    res.json({ success: true });
-  } catch (err) {
-    console.error('Delete tournament error:', err.message);
-    res.status(500).json({ error: 'Error al borrar el torneo' });
-  }
+app.delete('/tournament/paid/:tournamentId', (req, res) => {
+  res.status(410).json({ error: 'feature_disabled', message: 'Paid tournaments are no longer available' });
 });
 
 app.get('/tournaments', async (req, res) => {
@@ -1514,85 +1475,22 @@ app.get('/tournaments', async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(5)
       .lean();
-    // Auto-create a waiting paid tournament if none exist
-    if (paid.filter(t => t.status === 'waiting').length === 0) {
-      const created = await PaidTournament.create({});
-      paid.unshift(created.toObject());
-    }
     res.json({ paid });
   } catch (err) {
     res.status(500).json({ error: 'internal_error' });
   }
 });
 
-app.post('/tournament/paid/join', async (req, res) => {
-  const auth = req.headers.authorization;
-  if (!auth) return res.status(401).json({ error: 'No token' });
-  try {
-    const decoded      = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const { tournamentId } = req.body;
-    const pt = await PaidTournament.findById(tournamentId);
-    if (!pt) return res.status(404).json({ error: 'Tournament not found' });
-    if (pt.status !== 'waiting') return res.status(400).json({ error: 'Tournament not open' });
-    if (pt.players.some(p => p.userId.toString() === String(decoded.id)))
-      return res.status(400).json({ error: 'Already joined' });
-
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [{
-        price_data: {
-          currency: 'eur',
-          product_data: { name: `Torneo Tradiko — entrada €${pt.entryFee}`, description: `Premio al ganador: €${pt.prize}` },
-          unit_amount: pt.entryFee * 100,
-        },
-        quantity: 1,
-      }],
-      mode: 'payment',
-      success_url: `${CLIENT_URL}?tournament=success`,
-      cancel_url:  `${CLIENT_URL}?tournament=cancelled`,
-      metadata: { userId: String(decoded.id), type: 'tournament_entry', tournamentId: String(pt._id) },
-    });
-    res.json({ url: session.url });
-  } catch (err) {
-    console.error('Tournament join error:', err.message);
-    res.status(500).json({ error: 'Join failed' });
-  }
+app.post('/tournament/paid/join', (req, res) => {
+  res.status(410).json({ error: 'feature_disabled', message: 'Paid tournaments are no longer available' });
 });
 
-app.post('/tournament/paid/:tournamentId/leave', async (req, res) => {
-  const auth = req.headers.authorization;
-  if (!auth) return res.status(401).json({ error: 'No token' });
-  try {
-    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const { tournamentId } = req.params;
-    const pt = await PaidTournament.findById(tournamentId);
-    if (!pt) return res.status(404).json({ error: 'Torneo no encontrado' });
-    if (pt.status !== 'waiting') return res.status(400).json({ error: 'El torneo ya ha comenzado, no puedes salir' });
-    const playerEntry = pt.players.find(p => p.userId.toString() === decoded.id.toString());
-    if (!playerEntry) return res.status(404).json({ error: 'No estás en este torneo' });
-    await PaidTournament.updateOne(
-      { _id: tournamentId },
-      { $pull: { players: { userId: decoded.id } } }
-    );
-    res.json({ success: true });
-  } catch (err) {
-    console.error('Tournament leave error:', err.message);
-    res.status(500).json({ error: 'Error al salir del torneo' });
-  }
+app.post('/tournament/paid/:tournamentId/leave', (req, res) => {
+  res.status(410).json({ error: 'feature_disabled', message: 'Paid tournaments are no longer available' });
 });
 
-app.post('/tournament/paid/:id/winner', async (req, res) => {
-  const key = req.headers['x-admin-secret'];
-  if (!ADMIN_SECRET || key !== ADMIN_SECRET) return res.status(403).json({ error: 'forbidden' });
-  try {
-    const { userId } = req.body;
-    const pt = await PaidTournament.findByIdAndUpdate(req.params.id, {
-      winner: userId, status: 'finished', payoutStatus: 'pending',
-    }, { new: true });
-    res.json({ ok: true, tournament: pt });
-  } catch (err) {
-    res.status(500).json({ error: 'internal_error' });
-  }
+app.post('/tournament/paid/:id/winner', (req, res) => {
+  res.status(410).json({ error: 'feature_disabled', message: 'Paid tournaments are no longer available' });
 });
 
 app.get('/shop/purchases', async (req, res) => {
