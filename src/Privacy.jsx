@@ -69,7 +69,7 @@ export default function Privacy({ onSelect }) {
             '• Restriction — ask us to limit how we process your data.',
             '• Objection — object to processing based on legitimate interest.',
             '',
-            'To exercise any of these rights, contact us at: support@tradiko.dev'
+            'To exercise any of these rights, contact us at: tradikonicolasvidal@gmail.com'
           ].join('\n')
         },
         {
@@ -86,7 +86,7 @@ export default function Privacy({ onSelect }) {
         },
         {
           title: 'Contact',
-          text: 'For privacy questions or data deletion requests: support@tradiko.dev'
+          text: 'For privacy questions or data deletion requests: tradikonicolasvidal@gmail.com'
         },
       ].map(({ title, text }) => (
         <div key={title} style={{ marginBottom: '24px' }}>

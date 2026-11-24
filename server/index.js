@@ -263,6 +263,8 @@ const UserSchema = new mongoose.Schema({
     itemId: { type: String,  required: true },
     used:   { type: Boolean, default: false },
   }],
+  ageConfirmedAt:      { type: Date,   default: null },
+  ageConfirmedVersion: { type: Number, default: null },
 });
 
 const TournamentSchema = new mongoose.Schema({
@@ -463,7 +465,7 @@ require('./models/PortfolioOrder');
 
 // ── VAPID / Push ──────────────────────────────────────────────────
 webpush.setVapidDetails(
-  'mailto:support@tradiko.dev',
+  'mailto:tradikonicolasvidal@gmail.com',
   process.env.VAPID_PUBLIC_KEY,
   process.env.VAPID_PRIVATE_KEY
 );
@@ -920,9 +922,27 @@ app.get('/auth/me', async (req, res) => {
       isAcademyPro,
       battlePassItems:     user.battlePassItems     || [],
       battlePassMechanics: user.battlePassMechanics || [],
+      ageConfirmedAt:      user.ageConfirmedAt      || null,
     });
   } catch (err) {
     res.status(401).json({ error: 'Invalid token' });
+  }
+});
+
+app.post('/user/confirm-age', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const { accept } = req.body;
+    if (!accept) return res.status(400).json({ error: 'accept must be true' });
+    await User.findByIdAndUpdate(decoded.id, {
+      $set: { ageConfirmedAt: new Date(), ageConfirmedVersion: 1 },
+    }, { new: true });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('confirm-age error:', err.message);
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 

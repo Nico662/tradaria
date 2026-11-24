@@ -23,7 +23,7 @@ const STRINGS = {
     cancelling: 'Cancelling...', confirmCancel: 'Yes, cancel', goBack: 'Back', cancelSub: 'Cancel subscription',
     deleteAccount: 'Delete account', deleteConfirmMsg: 'Are you sure? This will permanently delete your account and all your data.',
     cancel: 'Cancel', yesDelete: 'Yes, delete', deleting: 'Deleting...',
-    cancelError: 'Error cancelling. Contact support@tradiko.dev', connectionError: 'Connection error. Please try again.',
+    cancelError: 'Error cancelling. Contact tradikonicolasvidal@gmail.com', connectionError: 'Connection error. Please try again.',
     howToPlay: 'How to play',
     cookiePrivacy: 'Cookies / Privacy', cookiePrivacyHint: 'Change your cookie preferences',
     restore: 'Restore purchases', restoring: 'Restoring...', restoreOk: '{n} purchases restored', restoreNone: 'No purchases to restore', restoreError: 'Restore failed',
@@ -42,7 +42,7 @@ const STRINGS = {
     cancelling: 'Cancelando...', confirmCancel: 'Sí, cancelar', goBack: 'Volver', cancelSub: 'Cancelar suscripción',
     deleteAccount: 'Eliminar cuenta', deleteConfirmMsg: '¿Seguro? Esta acción eliminará tu cuenta y todos tus datos permanentemente.',
     cancel: 'Cancelar', yesDelete: 'Sí, eliminar', deleting: 'Eliminando...',
-    cancelError: 'Error al cancelar. Contacta con support@tradiko.dev', connectionError: 'Error de conexión. Inténtalo de nuevo.',
+    cancelError: 'Error al cancelar. Contacta con tradikonicolasvidal@gmail.com', connectionError: 'Error de conexión. Inténtalo de nuevo.',
     howToPlay: 'Cómo se juega',
     cookiePrivacy: 'Cookies / Privacidad', cookiePrivacyHint: 'Cambia tus preferencias de cookies',
     restore: 'Restaurar compras', restoring: 'Restaurando...', restoreOk: '{n} compras restauradas', restoreNone: 'No hay compras que restaurar', restoreError: 'Error al restaurar',
@@ -61,7 +61,7 @@ const STRINGS = {
     cancelling: 'Wird gekündigt...', confirmCancel: 'Ja, kündigen', goBack: 'Zurück', cancelSub: 'Abonnement kündigen',
     deleteAccount: 'Konto löschen', deleteConfirmMsg: 'Bist du sicher? Diese Aktion löscht dein Konto und alle deine Daten dauerhaft.',
     cancel: 'Abbrechen', yesDelete: 'Ja, löschen', deleting: 'Wird gelöscht...',
-    cancelError: 'Fehler beim Kündigen. Kontaktiere support@tradiko.dev', connectionError: 'Verbindungsfehler. Bitte versuche es erneut.',
+    cancelError: 'Fehler beim Kündigen. Kontaktiere tradikonicolasvidal@gmail.com', connectionError: 'Verbindungsfehler. Bitte versuche es erneut.',
     howToPlay: 'So wird gespielt',
     cookiePrivacy: 'Cookies / Datenschutz', cookiePrivacyHint: 'Cookie-Einstellungen ändern',
     restore: 'Käufe wiederherstellen', restoring: 'Wird wiederhergestellt...', restoreOk: '{n} Käufe wiederhergestellt', restoreNone: 'Keine Käufe zum Wiederherstellen', restoreError: 'Wiederherstellung fehlgeschlagen',
@@ -106,7 +106,7 @@ function Row({ label, children, last }) {
   );
 }
 
-export default function Settings({ onBack, onShowTutorial }) {
+export default function Settings({ onBack, onShowTutorial, onNavigate }) {
   const { user, logout, updateUser, isPro, refreshPurchases, refreshUser } = useAuth();
   const { lang, setLang } = useLang();
   const s = STRINGS[lang] || STRINGS.en;
@@ -265,7 +265,7 @@ export default function Settings({ onBack, onShowTutorial }) {
       <div style={{ paddingBottom: 60 }}>
 
         {showUsernameModal && (
-          <UsernameModal onDone={(username) => {
+          <UsernameModal onNavigate={onNavigate || onBack} onDone={(username) => {
             setShowUsernameModal(false);
             updateUser({ username });
           }} />
