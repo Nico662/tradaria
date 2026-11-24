@@ -5,6 +5,7 @@ import upscaleLogo from './assets/upscale-logo.png';
 import { createChart, CandlestickSeries } from 'lightweight-charts';
 import { useLang } from './LangContext';
 import { useAuth, isIOSApp } from './AuthContext';
+import SimulationNotice from './SimulationNotice.jsx';
 import { SERVER } from './config';
 import { ASSETS } from './assets.js';
 import {
@@ -964,6 +965,8 @@ export default function TradingMode({ onBack }) {
           </div>
         </div>
 
+        <SimulationNotice />
+
         {/* Category filter */}
         <div style={{ display: 'flex', gap: 6, padding: '7px 12px', overflowX: 'auto', scrollbarWidth: 'none', borderBottom: '1px solid var(--border-subtle)', flexShrink: 0 }}>
           {CATS.map(c => (
@@ -1266,6 +1269,8 @@ export default function TradingMode({ onBack }) {
             </div>
           </button>
         </div>
+
+        <SimulationNotice showLeverage />
 
         {/* Error from backend (insufficient margin, market closed, etc.) */}
         {orderError && (

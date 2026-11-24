@@ -22,6 +22,7 @@ import VerifiedBadge from './VerifiedBadge.jsx';
 import EquippedBadge from './components/EquippedBadge';
 import PortfolioTutorial from './PortfolioTutorial.jsx';
 import Leagues from './Leagues.jsx';
+import SimulationNotice from './SimulationNotice.jsx';
 
 // Must match PORTFOLIO_ASSETS.length in server/index.js
 const TOTAL_PORTFOLIO_ASSETS = 46;
@@ -1244,6 +1245,8 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
           </div>
         )}
       </div>
+
+      <SimulationNotice />
 
       {/* Summary */}
       <div style={{ padding: '12px 20px 0', position: 'relative', zIndex: 2 }}>
