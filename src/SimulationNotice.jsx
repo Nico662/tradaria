@@ -20,7 +20,7 @@ export default function SimulationNotice({ showLeverage = false }) {
   const s = STRINGS[lang] ?? STRINGS.en;
   const text = showLeverage ? s.leverage : s.base;
   return (
-    <div style={{ padding: '6px 0' }}>
+    <div style={{ padding: '6px 16px' }}>
       <span style={{
         fontFamily: 'var(--font-body)',
         fontWeight: 400,
