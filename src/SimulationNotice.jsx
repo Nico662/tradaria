@@ -2,16 +2,16 @@ import { useLang } from './LangContext.jsx';
 
 const STRINGS = {
   en: {
-    base:     'Simulation only — no real money.',
-    leverage: 'Simulation only — no real money. Leverage amplifies both gains and losses.',
+    base:     'Simulation only. No real money.',
+    leverage: 'Simulation only. No real money. Leverage is simulated.',
   },
   es: {
-    base:     'Solo simulación — sin dinero real.',
-    leverage: 'Solo simulación — sin dinero real. El apalancamiento amplifica ganancias y pérdidas.',
+    base:     'Solo simulación. Sin dinero real.',
+    leverage: 'Solo simulación. Sin dinero real. El apalancamiento es simulado.',
   },
   de: {
-    base:     'Nur Simulation — kein echtes Geld.',
-    leverage: 'Nur Simulation — kein echtes Geld. Hebel verstärkt Gewinne und Verluste.',
+    base:     'Nur Simulation. Kein echtes Geld.',
+    leverage: 'Nur Simulation. Kein echtes Geld. Hebel ist simuliert.',
   },
 };
 
@@ -20,19 +20,13 @@ export default function SimulationNotice({ showLeverage = false }) {
   const s = STRINGS[lang] ?? STRINGS.en;
   const text = showLeverage ? s.leverage : s.base;
   return (
-    <div style={{
-      padding: '5px 12px',
-      background: 'rgba(255,180,0,0.07)',
-      borderTop: '0.5px solid rgba(255,180,0,0.25)',
-      borderBottom: '0.5px solid rgba(255,180,0,0.25)',
-      textAlign: 'center',
-    }}>
+    <div style={{ padding: '6px 0' }}>
       <span style={{
         fontFamily: 'var(--font-body)',
-        fontWeight: 700,
-        fontSize: 10,
-        color: 'rgba(255,180,0,0.85)',
-        letterSpacing: '0.04em',
+        fontWeight: 400,
+        fontSize: 11,
+        color: 'var(--text-muted)',
+        opacity: 0.65,
       }}>
         {text}
       </span>

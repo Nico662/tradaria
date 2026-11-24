@@ -78,6 +78,14 @@ describe('SimulationNotice strings', () => {
     expect(strings[lang].leverage).not.toBe(strings[lang].base);
   });
 
+  test.each(['en', 'es', 'de'])('%s base contains no em-dash', (lang) => {
+    expect(strings[lang].base).not.toContain('—');
+  });
+
+  test.each(['en', 'es', 'de'])('%s leverage contains no em-dash', (lang) => {
+    expect(strings[lang].leverage).not.toContain('—');
+  });
+
   test.each(['en', 'es', 'de'])('%s base does not mention leverage', (lang) => {
     // Base notice must NOT mention leverage (that is for showLeverage=true only)
     const lowerBase = strings[lang].base.toLowerCase();
