@@ -51,7 +51,7 @@ function QuickVersion() {
       <Section emoji="🧠" title="What is Tradiko?">Tradiko is a simulation game, not real trading. Nothing here is financial advice. You must be at least 14 years old to use this app.</Section>
       <Section emoji="📊" title="About the Game">You're trading in a simulated market — no real money, no real risk. Just your skills against the market.</Section>
       <Section emoji="⚠️" title="Keep in Mind">Market data may be delayed or simulated. Don't use it for real-world financial decisions.</Section>
-      <Section emoji="🔐" title="Your Data">We only collect what's needed to run the app (your Google account info and game scores). You can request deletion anytime at tradikonicolasvidal@gmail.com.</Section>
+      <Section emoji="🔐" title="Your Data">We only collect what's needed to run the app (your Google account info and game scores). You can request deletion anytime at support@tradiko.dev.</Section>
       <Section emoji="🍪" title="Cookies">Analytics cookies (Google Analytics, Vercel Analytics) are only loaded with your explicit consent via the cookie banner. We use functional localStorage for session and preferences. You can change your cookie preferences at any time in Settings.</Section>
       <Section emoji="📜" title="Fair Play">No cheating, exploiting bugs, or disrupting others. Play fair or risk losing access.</Section>
       <Section emoji="💰" title="Purchases">Any purchases are optional and don't guarantee better results — skill still wins.</Section>
@@ -81,7 +81,7 @@ function FullVersion() {
         <strong style={{ color: '#8a9ab5' }}>How we use your data:</strong> Your data is used exclusively to operate and improve Tradiko — to maintain your account, display your scores and ranking, and send optional push notifications if you have enabled them. We do not sell, rent, or share your personal data with third parties for commercial purposes.{'\n\n'}
         <strong style={{ color: '#8a9ab5' }}>Legal basis:</strong> We process your data based on your consent at the time of login and on our legitimate interest in operating and securing the service.{'\n\n'}
         <strong style={{ color: '#8a9ab5' }}>Data retention:</strong> Your data is retained for as long as your account is active. If you request account deletion, all personal data will be permanently removed within 30 days.{'\n\n'}
-        <strong style={{ color: '#8a9ab5' }}>Your rights:</strong> Under GDPR, you have the right to access, rectify, or delete your personal data at any time. You may also withdraw consent or request a copy of your data. To exercise any of these rights, contact us at: tradikonicolasvidal@gmail.com
+        <strong style={{ color: '#8a9ab5' }}>Your rights:</strong> Under GDPR, you have the right to access, rectify, or delete your personal data at any time. You may also withdraw consent or request a copy of your data. To exercise any of these rights, contact us at: support@tradiko.dev
       </Section>
 
       <Section emoji="🍪" title="Cookies">

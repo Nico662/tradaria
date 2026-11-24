@@ -465,7 +465,7 @@ require('./models/PortfolioOrder');
 
 // ── VAPID / Push ──────────────────────────────────────────────────
 webpush.setVapidDetails(
-  'mailto:tradikonicolasvidal@gmail.com',
+  'mailto:support@tradiko.dev',
   process.env.VAPID_PUBLIC_KEY,
   process.env.VAPID_PRIVATE_KEY
 );

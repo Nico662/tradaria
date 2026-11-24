@@ -12,6 +12,7 @@ import { getUnlocked } from './badges.js';
 import { getXP, getLevel } from './levels.js';
 import { useAuth, isIOSApp } from './AuthContext';
 import UsernameModal from './UsernameModal.jsx';
+import AgeConfirmModal from './AgeConfirmModal.jsx';
 import { FRAME_STYLES } from './UserAvatar.jsx';
 import { AvatarSVG } from './components/AvatarSVGs.jsx';
 import SpecialBadge, { getSpecialUserByUsername } from './SpecialBadge.jsx';
@@ -138,7 +139,10 @@ export default function Home({ onSelect }) {
   return (
     <div id="gtm-root">
       {showUsernameModal && (
-        <UsernameModal onDone={handleUsernameDone} />
+        <UsernameModal onDone={handleUsernameDone} onNavigate={onSelect} />
+      )}
+      {!showUsernameModal && user && user.ageConfirmedAt === null && (
+        <AgeConfirmModal onDone={() => updateUser({ ageConfirmedAt: new Date().toISOString() })} onNavigate={onSelect} />
       )}
       {showLevels && <LevelsPanel onClose={() => setShowLevels(false)} />}
 

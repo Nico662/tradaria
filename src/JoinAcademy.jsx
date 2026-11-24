@@ -8,7 +8,7 @@ const CODE_LENGTH = 9; // "ABCD-1234"
 
 export default function JoinAcademy({ onBack }) {
   const { updateUser } = useAuth();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const tok = localStorage.getItem('tradaria_token');
 
   const [code,           setCode]           = useState('');
@@ -78,6 +78,15 @@ export default function JoinAcademy({ onBack }) {
         </div>
         <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', marginBottom: '32px' }}>
           {t.academy.joinSub}
+        </div>
+
+        {/* Minor notice */}
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--t5)', marginBottom: '16px' }}>
+          {{
+            en: 'Minors require authorization from their institution or guardian.',
+            es: 'Los menores de edad necesitan autorización del centro o tutor.',
+            de: 'Minderjährige benötigen die Genehmigung ihrer Einrichtung oder ihres Erziehungsberechtigten.',
+          }[lang] || 'Minors require authorization from their institution or guardian.'}
         </div>
 
         {/* Code input */}
