@@ -15,8 +15,8 @@ export default function Support({ onSelect }) {
       <div style={{ background: 'var(--bg-surface)', border: '1.5px solid var(--green)', borderRadius: 'var(--radius-lg)', padding: '16px 20px', marginBottom: '24px' }}>
         <p style={{ fontSize: '15px', color: 'var(--text-primary)', fontWeight: 700, lineHeight: '1.5', margin: 0 }}>
           For support, contact us at{' '}
-          <a href="mailto:tradikonicolasvidal@gmail.com" style={{ color: 'var(--green)', textDecoration: 'underline', fontWeight: 800 }}>
-            tradikonicolasvidal@gmail.com
+          <a href="mailto:support@tradiko.dev" style={{ color: 'var(--green)', textDecoration: 'underline', fontWeight: 800 }}>
+            support@tradiko.dev
           </a>
         </p>
       </div>
@@ -24,7 +24,7 @@ export default function Support({ onSelect }) {
       <div style={{ marginBottom: '24px', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-lg)', padding: '20px' }}>
         <h2 style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--text-primary)', marginBottom: '8px' }}>Contact us</h2>
         <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.7', marginBottom: '12px' }}>For any questions, issues or feedback, reach us at:</p>
-        <a href="mailto:tradikonicolasvidal@gmail.com" style={{ color: 'var(--green)', fontWeight: 700, fontSize: '14px', textDecoration: 'none' }}>tradikonicolasvidal@gmail.com</a>
+        <a href="mailto:support@tradiko.dev" style={{ color: 'var(--green)', fontWeight: 700, fontSize: '14px', textDecoration: 'none' }}>support@tradiko.dev</a>
       </div>
 
       {[
@@ -38,15 +38,15 @@ export default function Support({ onSelect }) {
         },
         {
           title: 'How do I cancel my Pro subscription?',
-          text: 'To cancel your Pro subscription, contact us at tradikonicolasvidal@gmail.com with the subject "Cancel Pro subscription" and we will process it within 24 hours. Your access will continue until the end of the current billing period.'
+          text: 'To cancel your Pro subscription, contact us at support@tradiko.dev with the subject "Cancel Pro subscription" and we will process it within 24 hours. Your access will continue until the end of the current billing period.'
         },
         {
           title: 'The app is not loading',
-          text: 'Make sure you have an active internet connection. Try closing and reopening the app. If the issue persists, contact us at tradikonicolasvidal@gmail.com.'
+          text: 'Make sure you have an active internet connection. Try closing and reopening the app. If the issue persists, contact us at support@tradiko.dev.'
         },
         {
           title: 'I found a bug',
-          text: 'Please report bugs to tradikonicolasvidal@gmail.com with a description of what happened and what device and OS version you are using. We appreciate your help!'
+          text: 'Please report bugs to support@tradiko.dev with a description of what happened and what device and OS version you are using. We appreciate your help!'
         },
       ].map(({ title, text }) => (
         <div key={title} style={{ marginBottom: '16px', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-lg)', padding: '16px' }}>

@@ -6,6 +6,7 @@ import { SERVER } from './config.js';
 import { restorePurchases } from './iap.js';
 import { Zap, Check } from 'lucide-react';
 import { ScreenHeader, SectionTitle } from './components/ui';
+import { saveConsent } from './analytics.js';
 
 const STRINGS = {
   en: {
@@ -22,8 +23,9 @@ const STRINGS = {
     cancelling: 'Cancelling...', confirmCancel: 'Yes, cancel', goBack: 'Back', cancelSub: 'Cancel subscription',
     deleteAccount: 'Delete account', deleteConfirmMsg: 'Are you sure? This will permanently delete your account and all your data.',
     cancel: 'Cancel', yesDelete: 'Yes, delete', deleting: 'Deleting...',
-    cancelError: 'Error cancelling. Contact tradikonicolasvidal@gmail.com', connectionError: 'Connection error. Please try again.',
+    cancelError: 'Error cancelling. Contact support@tradiko.dev', connectionError: 'Connection error. Please try again.',
     howToPlay: 'How to play',
+    cookiePrivacy: 'Cookies / Privacy', cookiePrivacyHint: 'Change your cookie preferences',
     restore: 'Restore purchases', restoring: 'Restoring...', restoreOk: '{n} purchases restored', restoreNone: 'No purchases to restore', restoreError: 'Restore failed',
   },
   es: {
@@ -40,8 +42,9 @@ const STRINGS = {
     cancelling: 'Cancelando...', confirmCancel: 'Sí, cancelar', goBack: 'Volver', cancelSub: 'Cancelar suscripción',
     deleteAccount: 'Eliminar cuenta', deleteConfirmMsg: '¿Seguro? Esta acción eliminará tu cuenta y todos tus datos permanentemente.',
     cancel: 'Cancelar', yesDelete: 'Sí, eliminar', deleting: 'Eliminando...',
-    cancelError: 'Error al cancelar. Contacta con tradikonicolasvidal@gmail.com', connectionError: 'Error de conexión. Inténtalo de nuevo.',
+    cancelError: 'Error al cancelar. Contacta con support@tradiko.dev', connectionError: 'Error de conexión. Inténtalo de nuevo.',
     howToPlay: 'Cómo se juega',
+    cookiePrivacy: 'Cookies / Privacidad', cookiePrivacyHint: 'Cambia tus preferencias de cookies',
     restore: 'Restaurar compras', restoring: 'Restaurando...', restoreOk: '{n} compras restauradas', restoreNone: 'No hay compras que restaurar', restoreError: 'Error al restaurar',
   },
   de: {
@@ -58,8 +61,9 @@ const STRINGS = {
     cancelling: 'Wird gekündigt...', confirmCancel: 'Ja, kündigen', goBack: 'Zurück', cancelSub: 'Abonnement kündigen',
     deleteAccount: 'Konto löschen', deleteConfirmMsg: 'Bist du sicher? Diese Aktion löscht dein Konto und alle deine Daten dauerhaft.',
     cancel: 'Abbrechen', yesDelete: 'Ja, löschen', deleting: 'Wird gelöscht...',
-    cancelError: 'Fehler beim Kündigen. Kontaktiere tradikonicolasvidal@gmail.com', connectionError: 'Verbindungsfehler. Bitte versuche es erneut.',
+    cancelError: 'Fehler beim Kündigen. Kontaktiere support@tradiko.dev', connectionError: 'Verbindungsfehler. Bitte versuche es erneut.',
     howToPlay: 'So wird gespielt',
+    cookiePrivacy: 'Cookies / Datenschutz', cookiePrivacyHint: 'Cookie-Einstellungen ändern',
     restore: 'Käufe wiederherstellen', restoring: 'Wird wiederhergestellt...', restoreOk: '{n} Käufe wiederhergestellt', restoreNone: 'Keine Käufe zum Wiederherstellen', restoreError: 'Wiederherstellung fehlgeschlagen',
   },
 };
@@ -504,6 +508,30 @@ export default function Settings({ onBack, onShowTutorial }) {
                 fontSize: '12px', fontWeight: 700, cursor: 'pointer',
               }}>
                 {s.howToPlay}
+              </button>
+            </div>
+          </Card>
+        </div>
+
+        {/* Cookies / Privacy */}
+        <div style={{ padding: '0 16px' }}>
+          <Card>
+            <div style={{ padding: '12px 16px' }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-hint)', marginBottom: '8px' }}>{s.cookiePrivacyHint}</div>
+              <button
+                onClick={() => {
+                  localStorage.removeItem('tradaria_consent');
+                  window.dispatchEvent(new CustomEvent('tradiko-consent-reset'));
+                  window.location.reload();
+                }}
+                style={{
+                  width: '100%', padding: '11px',
+                  background: 'transparent', border: '1px solid var(--border-default)',
+                  borderRadius: '6px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)',
+                  fontSize: '12px', fontWeight: 700, cursor: 'pointer',
+                }}
+              >
+                {s.cookiePrivacy}
               </button>
             </div>
           </Card>

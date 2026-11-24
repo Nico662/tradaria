@@ -48,16 +48,16 @@ function QuickVersion() {
   return (
     <div>
       <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '20px' }}>Quick Heads-Up</div>
-      <Section emoji="🧠" title="What is Tradiko?">Tradiko is a simulation game, not real trading. Nothing here is financial advice. You must be at least 16 years old to use this app.</Section>
+      <Section emoji="🧠" title="What is Tradiko?">Tradiko is a simulation game, not real trading. Nothing here is financial advice. You must be at least 14 years old to use this app.</Section>
       <Section emoji="📊" title="About the Game">You're trading in a simulated market — no real money, no real risk. Just your skills against the market.</Section>
       <Section emoji="⚠️" title="Keep in Mind">Market data may be delayed or simulated. Don't use it for real-world financial decisions.</Section>
-      <Section emoji="🔐" title="Your Data">We only collect what's needed to run the app (your Google account info and game scores). You can request deletion anytime at nicolasvidalcorrecher@tradaria.dev.</Section>
-      <Section emoji="🍪" title="Cookies">We only use functional cookies for login and session management. No tracking or advertising cookies.</Section>
+      <Section emoji="🔐" title="Your Data">We only collect what's needed to run the app (your Google account info and game scores). You can request deletion anytime at support@tradiko.dev.</Section>
+      <Section emoji="🍪" title="Cookies">Analytics cookies (Google Analytics, Vercel Analytics) are only loaded with your explicit consent via the cookie banner. We use functional localStorage for session and preferences. You can change your cookie preferences at any time in Settings.</Section>
       <Section emoji="📜" title="Fair Play">No cheating, exploiting bugs, or disrupting others. Play fair or risk losing access.</Section>
       <Section emoji="💰" title="Purchases">Any purchases are optional and don't guarantee better results — skill still wins.</Section>
       <Section emoji="🚫" title="Responsibility">Your real-world financial decisions are 100% yours. Tradiko isn't responsible for them.</Section>
       <Section emoji="🌍" title="Governing Law">These terms are governed by the laws of Spain and the European Union.</Section>
-      <Section emoji="🔄" title="Updates">We may update these terms from time to time. Last updated: April 2026.</Section>
+      <Section emoji="🔄" title="Updates">We may update these terms from time to time. Last updated: 24 November 2026.</Section>
     </div>
   );
 }
@@ -72,7 +72,7 @@ function FullVersion() {
       </Section>
 
       <Section emoji="⚖️" title="Nature of the Service">
-        Tradiko is a market simulation platform designed to recreate trading scenarios in an interactive environment. No real financial transactions are executed, and no user funds are managed. All outcomes within the application occur in a simulated environment and have no impact on real-world assets. Tradiko is intended for users aged 16 and older. By using the application, you confirm that you meet this age requirement.
+        Tradiko is a market simulation platform designed to recreate trading scenarios in an interactive environment. No real financial transactions are executed, and no user funds are managed. All outcomes within the application occur in a simulated environment and have no impact on real-world assets. Tradiko is intended for users aged 14 and older. By using the application, you confirm that you meet this age requirement. Accounts found to belong to users under 14 years of age will be permanently deleted.
       </Section>
 
       <Section emoji="🔐" title="Privacy & Data Protection (GDPR)">
@@ -81,15 +81,15 @@ function FullVersion() {
         <strong style={{ color: '#8a9ab5' }}>How we use your data:</strong> Your data is used exclusively to operate and improve Tradiko — to maintain your account, display your scores and ranking, and send optional push notifications if you have enabled them. We do not sell, rent, or share your personal data with third parties for commercial purposes.{'\n\n'}
         <strong style={{ color: '#8a9ab5' }}>Legal basis:</strong> We process your data based on your consent at the time of login and on our legitimate interest in operating and securing the service.{'\n\n'}
         <strong style={{ color: '#8a9ab5' }}>Data retention:</strong> Your data is retained for as long as your account is active. If you request account deletion, all personal data will be permanently removed within 30 days.{'\n\n'}
-        <strong style={{ color: '#8a9ab5' }}>Your rights:</strong> Under GDPR, you have the right to access, rectify, or delete your personal data at any time. You may also withdraw consent or request a copy of your data. To exercise any of these rights, contact us at: nicolasvidalcorrecher@tradaria.dev
+        <strong style={{ color: '#8a9ab5' }}>Your rights:</strong> Under GDPR, you have the right to access, rectify, or delete your personal data at any time. You may also withdraw consent or request a copy of your data. To exercise any of these rights, contact us at: support@tradiko.dev
       </Section>
 
       <Section emoji="🍪" title="Cookies">
-        Tradiko uses only functional cookies and local storage strictly necessary for authentication and session management. We do not use advertising or tracking cookies. No third-party analytics are loaded without your prior consent.
+        Analytics cookies (Google Analytics, Vercel Analytics) are only loaded with your explicit prior consent. We use functional cookies and localStorage strictly necessary for authentication, session management, and preferences. No advertising or tracking cookies are ever used. You can change your cookie preferences at any time in Settings.
       </Section>
 
       <Section emoji="📜" title="Terms of Use">
-        By using Tradiko, you agree to use the application responsibly and in accordance with these terms. You must be at least 16 years old to create an account. Misuse of the platform — including attempts to exploit bugs, manipulate systems, gain unfair advantages in tournaments, or disrupt other users — is strictly prohibited. Tradiko reserves the right to suspend or terminate accounts that violate these terms without prior notice.
+        By using Tradiko, you agree to use the application responsibly and in accordance with these terms. You must be at least 14 years old to create an account. Misuse of the platform — including attempts to exploit bugs, manipulate systems, gain unfair advantages in tournaments, or disrupt other users — is strictly prohibited. Tradiko reserves the right to suspend or terminate accounts that violate these terms without prior notice.
       </Section>
 
       <Section emoji="📈" title="Market Data">
@@ -110,7 +110,7 @@ function FullVersion() {
 
       <Section emoji="🌍" title="Governing Law & Changes to Terms">
         These terms are governed by the laws of Spain and, where applicable, the laws of the European Union. Any disputes arising from the use of Tradiko shall be subject to the jurisdiction of the courts of Spain.{'\n\n'}
-        Tradiko reserves the right to modify these terms at any time. Continued use of the application following any changes constitutes acceptance of the updated terms. Last updated: April 2026.
+        Tradiko reserves the right to modify these terms at any time. Continued use of the application following any changes constitutes acceptance of the updated terms. Last updated: 24 November 2026.
       </Section>
     </div>
   );

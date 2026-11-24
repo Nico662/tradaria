@@ -9,9 +9,10 @@ import { BattlePassProvider } from './BattlePassContext.jsx';
 import MaintenanceBanner from './MaintenanceBanner.jsx';
 import UpdateBanner from './UpdateBanner.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
+import CookieBanner from './CookieBanner.jsx';
 import { SERVER } from './config.js';
-import { inject } from '@vercel/analytics';
-inject();
+import { loadAnalytics } from './analytics.js';
+loadAnalytics();
 
 window.addEventListener('unhandledrejection', (e) => {
   e.preventDefault();
@@ -76,6 +77,7 @@ createRoot(document.getElementById('root')).render(
           <UpdateBanner />
           <MaintenanceBanner />
           <App />
+          <CookieBanner onNavigatePrivacy={() => window.dispatchEvent(new CustomEvent('navigate-privacy'))} />
         </BattlePassProvider>
       </LangProvider>
     </AuthProvider>
