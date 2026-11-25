@@ -18,13 +18,10 @@ export function isTutorialSeen(user) {
 function CandleExplainSVG() {
   return (
     <svg width="200" height="130" viewBox="0 0 200 130" style={{ display: 'block', margin: '0 auto' }}>
-      {/* Green candle — price went up */}
       <line x1="65" y1="12" x2="65" y2="108" stroke="var(--green)" strokeWidth="1.5" />
       <rect x="51" y="35" width="28" height="44" fill="var(--green)" rx="2" />
-      {/* Pink candle — price went down */}
       <line x1="135" y1="12" x2="135" y2="108" stroke="var(--color-down)" strokeWidth="1.5" />
       <rect x="121" y="35" width="28" height="44" fill="var(--color-down)" rx="2" />
-      {/* Wick label arrows */}
       <text x="65"  y="124" fill="var(--green)"      fontSize="10" textAnchor="middle" fontFamily="var(--font-body)" fontWeight="800">+</text>
       <text x="135" y="124" fill="var(--color-down)" fontSize="10" textAnchor="middle" fontFamily="var(--font-body)" fontWeight="800">−</text>
     </svg>
@@ -45,8 +42,8 @@ function GuessSVG() {
           <rect x={c.x - 9} y={Math.min(c.open, c.close)} width="18" height={Math.abs(c.open - c.close)} fill={c.green ? 'var(--green)' : 'var(--color-down)'} rx="1.5" />
         </g>
       ))}
-      <line x1="106" y1="52" x2="144" y2="52" stroke="var(--t5)" strokeWidth="1.5" />
-      <polygon points="144,47 154,52 144,57" fill="var(--t5)" />
+      <line x1="106" y1="52" x2="144" y2="52" stroke="var(--text-muted)" strokeWidth="1.5" />
+      <polygon points="144,47 154,52 144,57" fill="var(--text-muted)" />
       <text x="172" y="60" fill="var(--color-neutral)" fontSize="22" textAnchor="middle" fontFamily="var(--font-body)" fontWeight="800">?</text>
     </svg>
   );
@@ -57,14 +54,14 @@ function ButtonPreview() {
   return (
     <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
       {[
-        { label: 'Long',     sub: t.tutorial.longSub,    color: 'var(--green)',        bg: 'rgba(0,192,135,0.08)',   icon: '▲' },
-        { label: 'No Trade', sub: t.tutorial.noTradeSub, color: 'var(--color-neutral)', bg: 'rgba(196,154,42,0.08)', icon: '—' },
-        { label: 'Short',    sub: t.tutorial.shortSub,   color: 'var(--color-down)',   bg: 'rgba(224,85,133,0.08)',  icon: '▼' },
+        { label: 'Long',     sub: t.tutorial.longSub,    color: 'var(--green)',        icon: '▲' },
+        { label: 'No Trade', sub: t.tutorial.noTradeSub, color: 'var(--color-neutral)', icon: '—' },
+        { label: 'Short',    sub: t.tutorial.shortSub,   color: 'var(--color-down)',   icon: '▼' },
       ].map(b => (
-        <div key={b.label} style={{ flex: 1, padding: '10px 6px', background: b.bg, border: `1px solid ${b.color}`, borderRadius: '8px', textAlign: 'center' }}>
+        <div key={b.label} style={{ flex: 1, padding: '10px 6px', borderBottom: `2px solid ${b.color}`, textAlign: 'center' }}>
           <div style={{ fontSize: '14px', color: b.color, marginBottom: '3px' }}>{b.icon}</div>
           <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: b.color, fontWeight: 700 }}>{b.label}</div>
-          <div style={{ fontSize: '11px', color: 'var(--t5)', marginTop: '2px' }}>{b.sub}</div>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{b.sub}</div>
         </div>
       ))}
     </div>
@@ -107,70 +104,63 @@ export default function Tutorial({ onDone }) {
     }}>
       <div className="scanlines" />
 
-      {/* Skip — always visible */}
-      <div style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 1 }}>
+      {/* Skip */}
+      <div style={{ position: 'absolute', top: 'max(20px, env(safe-area-inset-top, 20px))', right: '20px', zIndex: 1 }}>
         <button onClick={dismiss} style={{
           background: 'transparent', border: 'none',
-          color: 'var(--t5)', fontFamily: 'var(--font-body)',
-          fontSize: '12px', cursor: 'pointer',
-          letterSpacing: '0.06em', padding: '8px',
+          color: 'var(--text-muted)', fontFamily: 'var(--font-body)',
+          fontSize: '13px', cursor: 'pointer', padding: '8px',
         }}>
           {t.tutorial.skip}
         </button>
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '56px 32px 16px' }}>
-        <div style={{ marginBottom: '28px' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '56px 32px 16px', position: 'relative', zIndex: 1 }}>
+        <div style={{ marginBottom: '32px' }}>
           {current.visual === 'candles' && <CandleExplainSVG />}
           {current.visual === 'guess'   && <GuessSVG />}
           {current.visual === 'buttons' && <ButtonPreview />}
         </div>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: 'var(--t1)', marginBottom: '12px', letterSpacing: '-0.01em' }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '24px', color: 'var(--text-primary)', marginBottom: '14px', letterSpacing: '-0.01em', lineHeight: 1.2 }}>
             {current.title}
           </div>
-          <div style={{ fontSize: '13px', color: 'var(--t4)', lineHeight: 1.75, fontFamily: 'var(--font-body)' }}>
+          <div style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.75, fontFamily: 'var(--font-body)' }}>
             {current.body}
           </div>
         </div>
       </div>
 
-      {/* Bottom nav */}
-      <div style={{ padding: '0 32px 44px' }}>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '20px' }}>
-          {STEPS.map((_, i) => (
-            <div key={i} style={{
-              width: i === step ? '20px' : '6px', height: '6px',
-              borderRadius: '3px',
-              background: i === step ? 'var(--green)' : 'var(--bd2)',
-              transition: 'width 0.2s, background 0.2s',
-            }} />
-          ))}
+      {/* Bottom */}
+      <div style={{ padding: '0 32px calc(44px + env(safe-area-inset-bottom, 0px))', position: 'relative', zIndex: 1 }}>
+        {/* Progress */}
+        <div style={{ textAlign: 'center', marginBottom: '16px', fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)' }}>
+          {step + 1}/{STEPS.length}
         </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          {step > 0 && (
-            <button onClick={prev} style={{
-              flex: 1, padding: '14px',
-              background: 'transparent', border: '1px solid var(--bd2)',
-              borderRadius: '10px', color: 'var(--t5)',
-              fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 700,
-              cursor: 'pointer', letterSpacing: '0.04em',
-            }}>
-              {t.tutorial.prev}
-            </button>
-          )}
-          <button onClick={next} style={{
-            flex: step > 0 ? 2 : 1, padding: '14px',
-            background: isLast ? 'rgba(0,192,135,0.12)' : 'rgba(0,192,135,0.08)',
-            border: '1px solid var(--green)',
-            borderRadius: '10px', color: 'var(--green)',
-            fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 700,
-            cursor: 'pointer', letterSpacing: '0.04em',
+
+        {/* Primary CTA */}
+        <button onClick={next} style={{
+          width: '100%', padding: '16px',
+          background: 'var(--pink)', color: '#0d0d0d',
+          border: 'none', borderRadius: 'var(--radius-full)',
+          fontFamily: 'var(--font-body)', fontSize: '15px', fontWeight: 800,
+          cursor: 'pointer', minHeight: '52px', marginBottom: '14px',
+        }}>
+          {isLast ? t.tutorial.start : t.tutorial.next}
+        </button>
+
+        {/* Back (text link) */}
+        {step > 0 && (
+          <button onClick={prev} style={{
+            display: 'block', width: '100%', textAlign: 'center',
+            background: 'transparent', border: 'none',
+            color: 'var(--text-muted)', fontFamily: 'var(--font-body)',
+            fontSize: '13px', cursor: 'pointer', padding: '4px',
           }}>
-            {isLast ? t.tutorial.start : t.tutorial.next}
+            {t.tutorial.prev}
           </button>
-        </div>
+        )}
       </div>
     </div>
   );

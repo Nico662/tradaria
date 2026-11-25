@@ -558,7 +558,8 @@ export default function TradingOnboarding({ t, onClose }) {
         {/* ── Header ── */}
         <div style={{
           display: 'flex', alignItems: 'center',
-          padding: '14px 0 12px',
+          paddingTop: 'max(14px, env(safe-area-inset-top, 14px))',
+          paddingBottom: 12,
           borderBottom: '0.5px solid var(--border-subtle)',
           flexShrink: 0,
         }}>
@@ -575,49 +576,27 @@ export default function TradingOnboarding({ t, onClose }) {
             style={{
               background: 'transparent', border: 'none',
               color: 'var(--text-muted)', cursor: 'pointer',
-              padding: 6, borderRadius: 8, display: 'flex',
+              padding: 6, display: 'flex',
             }}
           >
             <X size={18} />
           </button>
         </div>
 
-        {/* ── Progress segments ── */}
+        {/* ── Progress: text ── */}
         <div style={{
-          display: 'flex', gap: 4,
           padding: '12px 0 0', flexShrink: 0,
+          fontFamily: 'var(--font-body)', fontSize: 12,
+          color: 'var(--text-muted)', textAlign: 'right',
         }}>
-          {STEPS.map((_, i) => (
-            <div
-              key={i}
-              style={{
-                flex: 1, height: 3, borderRadius: 2,
-                background: i < step ? 'var(--green)' : 'var(--border-default)',
-                overflow: 'hidden',
-              }}
-            >
-              {i === step && (
-                <div
-                  key={`fill-${step}`}
-                  className="tut-seg-fill"
-                  style={{
-                    height: '100%', width: '100%',
-                    background: 'var(--green)',
-                  }}
-                />
-              )}
-            </div>
-          ))}
+          {step + 1}/{TOTAL}
         </div>
 
-        {/* ── Illustration card ── */}
+        {/* ── Illustration ── */}
         <div
           key={`illust-${step}`}
           style={{
-            marginTop: 14,
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--border-default)',
-            background: 'var(--bg-subtle)',
+            marginTop: 10,
             height: 'clamp(190px, 30vh, 260px)',
             overflow: 'hidden',
             flexShrink: 0,
@@ -630,17 +609,17 @@ export default function TradingOnboarding({ t, onClose }) {
         <div style={{
           marginTop: 14, flexShrink: 0,
           fontFamily: 'var(--font-mono)', fontSize: 10,
-          color: 'var(--text-hint)', letterSpacing: '0.1em',
+          color: 'var(--text-muted)', letterSpacing: '0.1em',
           textTransform: 'uppercase',
         }}>
-          {String(step + 1).padStart(2, '0')} / {String(TOTAL).padStart(2, '0')} · {cur.tag}
+          {cur.tag}
         </div>
 
         {/* ── Title ── */}
         <div style={{
           marginTop: 6, flexShrink: 0,
-          fontFamily: 'var(--font-body)', fontWeight: 900,
-          fontSize: 'clamp(18px, 4.5vw, 22px)',
+          fontFamily: 'var(--font-body)', fontWeight: 800,
+          fontSize: 24,
           color: 'var(--text-primary)', lineHeight: 1.2,
         }}>
           {cur.title}
@@ -655,40 +634,33 @@ export default function TradingOnboarding({ t, onClose }) {
           {cur.body}
         </div>
 
-        {/* ── Buttons ── */}
-        <div style={{
-          display: 'flex', gap: 10,
-          paddingTop: 14, flexShrink: 0,
-        }}>
-          {/* Left: Skip / Back */}
-          <button
-            onClick={isLast ? () => setStep(s => s - 1) : onClose}
-            style={{
-              flex: 1, padding: '13px 0',
-              background: 'transparent',
-              border: '0.5px solid var(--border-default)',
-              borderRadius: 'var(--radius-md)',
-              color: 'var(--text-muted)',
-              fontFamily: 'var(--font-body)', fontWeight: 800,
-              fontSize: 13, cursor: 'pointer', letterSpacing: '0.04em',
-            }}
-          >
-            {isLast ? (tr.tutBack ?? '← Back') : (tr.tutSkip ?? 'Skip')}
-          </button>
-          {/* Right: Next / Start Trading */}
+        {/* ── CTA ── */}
+        <div style={{ paddingTop: 14, flexShrink: 0 }}>
           <button
             onClick={isLast ? onClose : () => setStep(s => s + 1)}
             style={{
-              flex: 2, padding: '13px 0',
-              background: 'var(--gradient-brand)',
-              border: 'none',
-              borderRadius: 'var(--radius-md)',
-              color: '#0d0d0d',
-              fontFamily: 'var(--font-body)', fontWeight: 900,
-              fontSize: 13, cursor: 'pointer',
+              width: '100%', padding: '16px',
+              background: 'var(--pink)', color: '#0d0d0d',
+              border: 'none', borderRadius: 'var(--radius-full)',
+              fontFamily: 'var(--font-body)', fontSize: 15, fontWeight: 800,
+              cursor: 'pointer', minHeight: 52, marginBottom: 14,
             }}
           >
-            {isLast ? (tr.tutStart ?? 'Start Trading') : (tr.tutNext ?? 'Next →')}
+            {isLast ? (tr.tutStart ?? 'Start Trading') : (tr.tutNext ?? 'Next')}
+          </button>
+
+          {/* Skip / Back text link */}
+          <button
+            onClick={isLast ? () => setStep(s => s - 1) : onClose}
+            style={{
+              display: 'block', width: '100%', textAlign: 'center',
+              background: 'transparent', border: 'none',
+              color: 'var(--text-muted)',
+              fontFamily: 'var(--font-body)', fontSize: 13,
+              cursor: 'pointer', padding: '4px',
+            }}
+          >
+            {isLast ? (tr.tutBack ?? 'Back') : (tr.tutSkip ?? 'Skip')}
           </button>
         </div>
 
