@@ -444,13 +444,12 @@ export default function Home({ onSelect }) {
             <StatusText color="var(--green)">{t.academy?.newBadgeLabel ?? 'NEW'}</StatusText>
           </button>
 
-          {/* Trading Mode — próximamente */}
+          {/* Trading Mode */}
           <FlatRow
-            icon={<div className="flat-row-icon" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(96,165,250,0.3)' }}><CandlestickChart size={20} strokeWidth={2} aria-hidden style={{ stroke: '#6a6a6a' }} /></div>}
+            icon={<div className="flat-row-icon" style={{ background: 'rgba(224,85,133,0.08)', border: '1px solid rgba(224,85,133,0.3)' }}><CandlestickChart size={20} strokeWidth={2} aria-hidden style={{ stroke: '#e05585' }} /></div>}
             title={t.home.tradingMode}
             subtitle={t.home.tradingModeSub}
-            dimmed
-            value={<StatusText>{t.home.comingSoon}</StatusText>}
+            onClick={() => onSelect('trading')}
           />
 
           {/* Portfolio */}
