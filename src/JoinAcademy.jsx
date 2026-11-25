@@ -3,6 +3,7 @@ import { useAuth } from './AuthContext';
 import { SERVER } from './config.js';
 import { useLang } from './LangContext.jsx';
 import CodeErrorBlock from './components/CodeErrorBlock.jsx';
+import { ScreenHeader } from './components/ui/index.js';
 
 const CODE_LENGTH = 9; // "ABCD-1234"
 
@@ -69,127 +70,109 @@ export default function JoinAcademy({ onBack }) {
   return (
     <div id="gtm-root" style={{ background: 'var(--bg-page)', minHeight: '100dvh' }}>
       <div className="scanlines" />
-      <div style={{ padding: '48px 20px 60px', position: 'relative', zIndex: 2 }}>
+      <div style={{ position: 'relative', zIndex: 2 }}>
 
-        <button onClick={onBack} style={backBtn}>{t.academy.back}</button>
+        <ScreenHeader title={t.academy.joinTitle} onBack={onBack} />
 
-        <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '22px', color: 'var(--t1)', marginBottom: '6px' }}>
-          {t.academy.joinTitle}
-        </div>
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', marginBottom: '32px' }}>
-          {t.academy.joinSub}
-        </div>
-
-        {/* Minor notice */}
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--t5)', marginBottom: '16px' }}>
-          {{
-            en: 'Minors require authorization from their institution or guardian.',
-            es: 'Los menores de edad necesitan autorización del centro o tutor.',
-            de: 'Minderjährige benötigen die Genehmigung ihrer Einrichtung oder ihres Erziehungsberechtigten.',
-          }[lang] || 'Minors require authorization from their institution or guardian.'}
-        </div>
-
-        {/* Code input */}
-        <div>
-          <div style={labelStyle}>{t.academy.codeLabel}</div>
-          <input
-            value={code}
-            onChange={handleInput}
-            placeholder={t.academy.codePlaceholder}
-            autoComplete="off"
-            spellCheck={false}
-            style={{
-              width: '100%', padding: '16px',
-              background: 'var(--bg-card)', border: `1px solid ${previewErr ? 'var(--pink)' : preview ? 'var(--green)' : 'var(--bd)'}`,
-              borderRadius: '8px', color: 'var(--green)',
-              fontFamily: 'var(--font-body)', fontSize: '22px', fontWeight: 700,
-              letterSpacing: '0.22em', textAlign: 'center',
-              outline: 'none', boxSizing: 'border-box',
-              transition: 'border-color 0.2s',
-            }}
-          />
-        </div>
-
-        {/* Loading */}
-        {previewLoading && (
-          <div style={{ marginTop: '16px', fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', textAlign: 'center' }}>
-            {t.academy.searching}
+        <div style={{ padding: '0 20px 60px' }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', marginBottom: '32px' }}>
+            {t.academy.joinSub}
           </div>
-        )}
 
-        {/* Error */}
-        {previewErr && !previewLoading && (
-          <CodeErrorBlock
-            title={
-              previewErr === 'code_not_found' ? t.academy.codeNotFoundTitle :
-              previewErr === 'rate_limit'     ? t.academy.codeTooMany :
-              t.common.error
-            }
-            hint={previewErr === 'code_not_found' ? t.academy.codeNotFoundHint : undefined}
-            onRetry={previewErr === 'offline' ? () => fetchPreview(code) : undefined}
-            retryLabel={t.common.retry}
-          />
-        )}
+          {/* Minor notice */}
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '16px' }}>
+            {{
+              en: 'Minors require authorization from their institution or guardian.',
+              es: 'Los menores de edad necesitan autorización del centro o tutor.',
+              de: 'Minderjährige benötigen die Genehmigung ihrer Einrichtung oder ihres Erziehungsberechtigten.',
+            }[lang] || 'Minors require authorization from their institution or guardian.'}
+          </div>
 
-        {/* Preview */}
-        {preview && !previewLoading && !done && (
-          <div style={{
-            marginTop: '20px', padding: '18px 16px',
-            background: 'rgba(0,229,160,0.05)', border: '1px solid rgba(0,229,160,0.25)',
-            borderRadius: '10px', textAlign: 'center',
-          }}>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)', marginBottom: '6px' }}>
-              {t.academy.joinQuestion}
-            </div>
-            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--t1)', marginBottom: '18px' }}>
-              {preview.name}
-            </div>
-            {joinErr && (
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-down)', marginBottom: '12px' }}>
-                {joinErr}
-              </div>
-            )}
-            <button
-              onClick={handleJoin}
-              disabled={joining}
+          {/* Code input */}
+          <div>
+            <div className="micro-label" style={{ marginBottom: '8px' }}>{t.academy.codeLabel}</div>
+            <input
+              value={code}
+              onChange={handleInput}
+              placeholder={t.academy.codePlaceholder}
+              autoComplete="off"
+              spellCheck={false}
               style={{
-                width: '100%', padding: '13px',
-                background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)',
-                borderRadius: '8px', color: 'var(--green)',
-                fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700,
-                letterSpacing: '0.06em', textTransform: 'uppercase',
-                cursor: joining ? 'default' : 'pointer', opacity: joining ? 0.6 : 1,
+                width: '100%', padding: '12px 0',
+                background: 'transparent',
+                border: 'none',
+                borderBottom: `2px solid ${previewErr ? 'var(--pink)' : preview ? 'var(--green)' : 'var(--border-default)'}`,
+                color: 'var(--green)',
+                fontFamily: 'var(--font-body)', fontSize: '22px', fontWeight: 700,
+                letterSpacing: '0.22em', textAlign: 'center',
+                outline: 'none', boxSizing: 'border-box',
+                transition: 'border-color 0.2s',
               }}
-            >
-              {joining ? '...' : t.academy.joinConfirm}
-            </button>
+            />
           </div>
-        )}
 
-        {/* Success */}
-        {done && (
-          <div style={{ marginTop: '20px', padding: '20px', textAlign: 'center', background: 'rgba(0,229,160,0.05)', border: '1px solid rgba(0,229,160,0.25)', borderRadius: '10px' }}>
-            <div style={{ fontSize: '24px', marginBottom: '8px' }}>✓</div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--green)' }}>
-              {t.academy.joinSuccess}
+          {/* Loading */}
+          {previewLoading && (
+            <div style={{ marginTop: '16px', fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center' }}>
+              {t.academy.searching}
             </div>
-          </div>
-        )}
+          )}
 
+          {/* Error */}
+          {previewErr && !previewLoading && (
+            <CodeErrorBlock
+              title={
+                previewErr === 'code_not_found' ? t.academy.codeNotFoundTitle :
+                previewErr === 'rate_limit'     ? t.academy.codeTooMany :
+                t.common.error
+              }
+              hint={previewErr === 'code_not_found' ? t.academy.codeNotFoundHint : undefined}
+              onRetry={previewErr === 'offline' ? () => fetchPreview(code) : undefined}
+              retryLabel={t.common.retry}
+            />
+          )}
+
+          {/* Preview */}
+          {preview && !previewLoading && !done && (
+            <div style={{ marginTop: '20px', padding: '16px 0' }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', marginBottom: '6px' }}>
+                {t.academy.joinQuestion}
+              </div>
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--text-primary)', marginBottom: '20px' }}>
+                {preview.name}
+              </div>
+              {joinErr && (
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--pink)', marginBottom: '12px' }}>
+                  {joinErr}
+                </div>
+              )}
+              <button
+                onClick={handleJoin}
+                disabled={joining}
+                style={{
+                  width: '100%', padding: '14px',
+                  background: 'var(--pink)', color: '#0d0d0d',
+                  border: 'none', borderRadius: 'var(--radius-full)',
+                  fontFamily: 'var(--font-body)', fontSize: '14px', fontWeight: 800,
+                  cursor: joining ? 'default' : 'pointer', opacity: joining ? 0.5 : 1,
+                  minHeight: '48px',
+                }}
+              >
+                {joining ? '...' : t.academy.joinConfirm}
+              </button>
+            </div>
+          )}
+
+          {/* Success */}
+          {done && (
+            <div style={{ marginTop: '20px', padding: '16px 0' }}>
+              <div style={{ fontSize: '14px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontWeight: 700 }}>
+                ✓ {t.academy.joinSuccess}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 }
-
-const backBtn = {
-  background: 'transparent', border: 'none',
-  color: 'var(--t6)', fontFamily: 'var(--font-body)',
-  fontSize: '12px', cursor: 'pointer',
-  marginBottom: '28px', display: 'block', padding: 0,
-};
-
-const labelStyle = {
-  fontFamily: 'var(--font-body)', fontSize: '12px',
-  color: 'var(--t4)', letterSpacing: '0.1em',
-  textTransform: 'uppercase', marginBottom: '8px',
-};
