@@ -130,6 +130,31 @@ function GoldMotif() {
   );
 }
 
+const AURORA_BANDS = [
+  { w: '40%', color: 'rgba(45,212,160,0.22)',  dur: '9s',  delay: '0s'  },
+  { w: '30%', color: 'rgba(192,132,252,0.24)', dur: '12s', delay: '3s'  },
+  { w: '22%', color: 'rgba(45,212,160,0.16)',  dur: '15s', delay: '6s'  },
+];
+
+function AuroraMotif() {
+  return (
+    <>
+      {AURORA_BANDS.map((b, i) => (
+        <div key={i} className="game-aurora-band" style={{
+          position: 'absolute',
+          top: '-20%',
+          left: 0,
+          width: b.w,
+          height: '150%',
+          background: `linear-gradient(90deg, transparent, ${b.color}, transparent)`,
+          pointerEvents: 'none',
+          animation: `game-aurora-sweep ${b.dur} linear ${b.delay} infinite`,
+        }} />
+      ))}
+    </>
+  );
+}
+
 function MidnightMotif() {
   return (
     <>
@@ -176,6 +201,7 @@ export default function GameThemeBg({ screen }) {
   const motif = theme === 'theme_blood'    ? <BloodMotif />
               : theme === 'theme_gold'     ? <GoldMotif />
               : theme === 'theme_midnight' ? <MidnightMotif />
+              : theme === 'theme_aurora'   ? <AuroraMotif />
               : null;
 
   if (!target || !motif) return null;

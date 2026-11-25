@@ -3,6 +3,7 @@ import { useAuth, isIOSApp } from './AuthContext';
 import { SERVER } from './config.js';
 import { useLang } from './LangContext.jsx';
 import { Users, Zap, Gamepad2 } from 'lucide-react';
+import { ScreenHeader, SectionTitle, StatusText, TextTabs } from './components/ui/index.js';
 
 // ── Helpers ───────────────────────────────────────────────────────
 function relativeDate(d, t) {
@@ -16,14 +17,14 @@ function relativeDate(d, t) {
 
 function tournamentStatus(trn) {
   const now = Date.now();
-  if (new Date(trn.endsAt)   < now) return { type: 'finished', color: 'var(--t5)' };
+  if (new Date(trn.endsAt)   < now) return { type: 'finished', color: 'var(--text-muted)' };
   if (new Date(trn.startsAt) > now) return { type: 'upcoming', color: 'var(--color-neutral)' };
   return                                   { type: 'active',   color: 'var(--green)' };
 }
 
 function assignmentStatus(a) {
   const now = Date.now();
-  if (new Date(a.endsAt)   < now) return { type: 'finished', color: 'var(--t5)' };
+  if (new Date(a.endsAt)   < now) return { type: 'finished', color: 'var(--text-muted)' };
   if (new Date(a.startsAt) > now) return { type: 'upcoming', color: 'var(--color-neutral)' };
   return                                  { type: 'active',  color: 'var(--green)' };
 }
@@ -49,11 +50,7 @@ const PLAN_STYLE = {
 
 // ── Sub-components ────────────────────────────────────────────────
 function Label({ children }) {
-  return (
-    <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '10px' }}>
-      {children}
-    </div>
-  );
+  return <div className="micro-label" style={{ marginBottom: '10px' }}>{children}</div>;
 }
 
 function Btn({ onClick, disabled, children, style = {} }) {
@@ -62,12 +59,12 @@ function Btn({ onClick, disabled, children, style = {} }) {
       onClick={onClick}
       disabled={disabled}
       style={{
-        background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)',
-        borderRadius: '7px', color: 'var(--green)',
-        fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700,
-        letterSpacing: '0.06em', textTransform: 'uppercase',
-        padding: '9px 14px', cursor: disabled ? 'default' : 'pointer',
-        opacity: disabled ? 0.5 : 1, transition: 'opacity 0.15s',
+        width: '100%', padding: '14px',
+        background: 'var(--pink)', color: '#0d0d0d',
+        border: 'none', borderRadius: 'var(--radius-full)',
+        fontFamily: 'var(--font-body)', fontSize: '14px', fontWeight: 800,
+        cursor: disabled ? 'default' : 'pointer',
+        opacity: disabled ? 0.5 : 1, minHeight: '48px',
         ...style,
       }}
     >
@@ -79,19 +76,18 @@ function Btn({ onClick, disabled, children, style = {} }) {
 function FieldInput({ label, type = 'text', value, onChange, placeholder }) {
   return (
     <div>
-      <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px' }}>
-        {label}
-      </div>
+      <div className="micro-label" style={{ marginBottom: '6px' }}>{label}</div>
       <input
         type={type}
         value={value}
         onChange={onChange}
         placeholder={placeholder}
         style={{
-          width: '100%', padding: '11px 12px',
-          background: 'var(--bg-card2)', border: '1px solid var(--bd2)',
-          borderRadius: '6px', color: 'var(--t1)',
-          fontFamily: 'var(--font-body)', fontSize: '12px',
+          width: '100%', padding: '10px 0',
+          background: 'transparent',
+          border: 'none', borderBottom: '1.5px solid var(--border-default)',
+          color: 'var(--text-primary)',
+          fontFamily: 'var(--font-body)', fontSize: '13px',
           outline: 'none', boxSizing: 'border-box',
           colorScheme: type === 'date' ? 'dark' : undefined,
         }}
@@ -147,7 +143,7 @@ function CreateAcademyScreen({ onBack, onCreated }) {
         body:    JSON.stringify({ name: name.trim() }),
       });
       const data = await res.json();
-      if (!res.ok) { setErr(data.error || t.academy.createError); setSubmitting(false); return; }
+      if (!res.ok) { setErr(t.academy.createError); setSubmitting(false); return; }
       onCreated(data);
     } catch { setErr(t.academy.networkError); }
     setSubmitting(false);
@@ -156,56 +152,52 @@ function CreateAcademyScreen({ onBack, onCreated }) {
   return (
     <div id="gtm-root" style={{ background: 'var(--bg-page)', minHeight: '100dvh' }}>
       <div className="scanlines" />
-      <div style={{ padding: '48px 20px 60px', position: 'relative', zIndex: 2 }}>
-        <button onClick={onBack} style={backBtnStyle}>{t.academy.back}</button>
-
-        <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '22px', color: 'var(--t1)', marginBottom: '6px' }}>
-          {t.academy.createTitle}
-        </div>
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', marginBottom: '32px' }}>
-          {t.academy.createSub}
-        </div>
-
-        <div style={{ marginBottom: '14px' }}>
-          <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
-            {t.academy.nameLabel}
+      <div style={{ position: 'relative', zIndex: 2 }}>
+        <ScreenHeader title={t.academy.createTitle} onBack={onBack} />
+        <div style={{ padding: '0 20px 60px' }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', marginBottom: '32px' }}>
+            {t.academy.createSub}
           </div>
-          <input
-            value={name}
-            onChange={e => { setName(e.target.value); setErr(null); }}
-            onKeyDown={e => e.key === 'Enter' && handleCreate()}
-            placeholder={t.academy.namePlaceholder}
-            maxLength={60}
+
+          <div style={{ marginBottom: '20px' }}>
+            <div className="micro-label" style={{ marginBottom: '8px' }}>{t.academy.nameLabel}</div>
+            <input
+              value={name}
+              onChange={e => { setName(e.target.value); setErr(null); }}
+              onKeyDown={e => e.key === 'Enter' && handleCreate()}
+              placeholder={t.academy.namePlaceholder}
+              maxLength={60}
+              style={{
+                width: '100%', padding: '12px 0',
+                background: 'transparent',
+                border: 'none', borderBottom: '1.5px solid var(--border-default)',
+                color: 'var(--text-primary)',
+                fontFamily: 'var(--font-body)', fontSize: '13px',
+                outline: 'none', boxSizing: 'border-box',
+              }}
+            />
+          </div>
+
+          {err && (
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--pink)', marginBottom: '12px' }}>
+              {err}
+            </div>
+          )}
+
+          <button
+            onClick={handleCreate}
+            disabled={submitting}
             style={{
-              width: '100%', padding: '13px 14px',
-              background: 'var(--bg-card)', border: '1px solid var(--bd)',
-              borderRadius: '8px', color: 'var(--t1)',
-              fontFamily: 'var(--font-body)', fontSize: '13px',
-              outline: 'none', boxSizing: 'border-box',
+              width: '100%', padding: '14px',
+              background: 'var(--pink)', color: '#0d0d0d',
+              border: 'none', borderRadius: 'var(--radius-full)',
+              fontFamily: 'var(--font-body)', fontSize: '14px', fontWeight: 800,
+              cursor: submitting ? 'default' : 'pointer', opacity: submitting ? 0.6 : 1, minHeight: '48px',
             }}
-          />
+          >
+            {submitting ? '...' : t.academy.createBtn}
+          </button>
         </div>
-
-        {err && (
-          <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-down)', marginBottom: '12px' }}>
-            {err}
-          </div>
-        )}
-
-        <button
-          onClick={handleCreate}
-          disabled={submitting}
-          style={{
-            width: '100%', padding: '13px',
-            background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)',
-            borderRadius: '8px', color: 'var(--green)',
-            fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700,
-            letterSpacing: '0.06em', textTransform: 'uppercase',
-            cursor: submitting ? 'default' : 'pointer', opacity: submitting ? 0.6 : 1,
-          }}
-        >
-          {submitting ? '...' : t.academy.createBtn}
-        </button>
       </div>
     </div>
   );
@@ -266,13 +258,13 @@ function AcademyDashboard({ academyId, onBack }) {
             updateUser({ academyId: null, isAcademyPro: false });
             return Promise.reject('__ACADEMY_GONE__');
           }
-          return Promise.reject(d.error || 'Error');
+          return Promise.reject(new Error('http:' + r.status));
         });
       })
       .then(data => setAcademy(data))
       .catch(e => {
         if (e === '__ACADEMY_GONE__') { onBack(); return; }
-        setError(String(e));
+        setError(t.common.error);
       })
       .finally(() => setLoading(false));
   }, [academyId]);
@@ -340,7 +332,7 @@ function AcademyDashboard({ academyId, onBack }) {
       });
       const data = await res.json();
       if (data.url) { window.location.href = data.url; return; }
-      setFormErr(data.error || t.academy.activateError);
+      setFormErr(t.academy.activateError);
     } catch { setFormErr(t.academy.networkError); }
     setActivating(null);
   }
@@ -400,7 +392,7 @@ function AcademyDashboard({ academyId, onBack }) {
         body:    JSON.stringify({ name: form.name.trim(), startsAt: form.startsAt, endsAt: form.endsAt }),
       });
       const data = await res.json();
-      if (!res.ok) { setFormErr(data.error || t.academy.createError); setSubmitting(false); return; }
+      if (!res.ok) { setFormErr(t.academy.createError); setSubmitting(false); return; }
       setAcademy(prev => ({ ...prev, tournaments: [data, ...(prev.tournaments || [])] }));
       setModal(false);
       setForm({ name: '', startsAt: '', endsAt: '' });
@@ -433,7 +425,7 @@ function AcademyDashboard({ academyId, onBack }) {
         body:    JSON.stringify(body),
       });
       const data = await res.json();
-      if (!res.ok) { setAsgErr(data.error || t.academy.createError); setAsgSubmitting(false); return; }
+      if (!res.ok) { setAsgErr(t.academy.createError); setAsgSubmitting(false); return; }
       setAssignments(prev => [data, ...prev]);
       setAsgModal(false);
       setAsgForm({ title: '', description: '', mode: 'guess', targetGames: 5, minAccuracy: '', startsAt: '', endsAt: '' });
@@ -452,7 +444,7 @@ function AcademyDashboard({ academyId, onBack }) {
         body:    JSON.stringify({ toId: feedbackModal.studentId, message: feedbackMsg.trim() }),
       });
       const data = await res.json();
-      if (!res.ok) { setFeedbackErr(data.error || t.academy.createError); setFeedbackSending(false); return; }
+      if (!res.ok) { setFeedbackErr(t.academy.createError); setFeedbackSending(false); return; }
       setFeedbackHist(prev => [data, ...prev]);
       setFeedbackMsg('');
     } catch { setFeedbackErr(t.academy.networkError); }
@@ -471,7 +463,7 @@ function AcademyDashboard({ academyId, onBack }) {
         headers: { Authorization: `Bearer ${tok}` },
       });
       const data = await res.json();
-      if (!res.ok) { setDetailErr(data.error || t.academy.createError); setDetailLoading(false); return; }
+      if (!res.ok) { setDetailErr(t.academy.createError); setDetailLoading(false); return; }
       setStudentDetail(data);
     } catch { setDetailErr(t.academy.networkError); }
     setDetailLoading(false);
@@ -497,7 +489,7 @@ function AcademyDashboard({ academyId, onBack }) {
         body:    JSON.stringify({ toId: selectedStudent.id, message: detailFeedbackMsg.trim() }),
       });
       const data = await res.json();
-      if (!res.ok) { setDetailFeedbackErr(data.error || t.academy.createError); setDetailFeedbackSending(false); return; }
+      if (!res.ok) { setDetailFeedbackErr(t.academy.createError); setDetailFeedbackSending(false); return; }
       setStudentDetail(prev => ({ ...prev, feedback: [data, ...(prev.feedback || [])] }));
       setDetailFeedbackMsg('');
     } catch { setDetailFeedbackErr(t.academy.networkError); }
@@ -507,7 +499,7 @@ function AcademyDashboard({ academyId, onBack }) {
   // ── Render: loading / error ──
   if (loading) return (
     <div id="gtm-root" style={{ background: 'var(--bg-page)' }}>
-      <div style={{ padding: '80px 20px', textAlign: 'center', fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)' }}>
+      <div style={{ padding: '80px 20px', textAlign: 'center', fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)' }}>
         {t.academy.loading}
       </div>
     </div>
@@ -515,9 +507,9 @@ function AcademyDashboard({ academyId, onBack }) {
 
   if (error || !academy) return (
     <div id="gtm-root" style={{ background: 'var(--bg-page)' }}>
-      <div style={{ padding: '48px 20px', position: 'relative', zIndex: 2 }}>
-        <button onClick={onBack} style={backBtnStyle}>{t.academy.back}</button>
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-down)', marginTop: '16px' }}>
+      <div style={{ position: 'relative', zIndex: 2 }}>
+        <ScreenHeader title="" onBack={onBack} />
+        <div style={{ padding: '0 20px', fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--pink)' }}>
           {error || t.academy.notFound}
         </div>
       </div>
@@ -537,145 +529,66 @@ function AcademyDashboard({ academyId, onBack }) {
   return (
     <div id="gtm-root" style={{ background: 'var(--bg-page)', minHeight: '100dvh' }}>
       <div className="scanlines" />
-      <div style={{ padding: '48px 20px 80px', position: 'relative', zIndex: 2 }}>
+      <div style={{ position: 'relative', zIndex: 2 }}>
 
-        {/* ── Back ── */}
-        <button onClick={onBack} style={backBtnStyle}>{t.academy.back}</button>
+        <ScreenHeader title={academy.name} onBack={onBack} />
 
-        {/* ── Header ── */}
-        <div style={{ marginBottom: '28px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '6px' }}>
-            <h1 style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '24px', color: 'var(--t1)', margin: 0 }}>
-              {academy.name}
-            </h1>
-            <span style={{
-              fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700,
-              letterSpacing: '0.1em', padding: '3px 8px', borderRadius: '4px',
-              color: plan.color, background: plan.bg,
-              border: `1px solid ${plan.color}40`,
-            }}>
-              {plan.label}
-            </span>
-          </div>
+        <div style={{ padding: '0 20px 80px' }}>
 
-          {/* Paid plan — active */}
+        {/* ── Plan badge + subscription status ── */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '16px' }}>
+          <StatusText color={plan.color}>{plan.label}</StatusText>
           {hasSub && (
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px',
-              padding: '9px 12px', marginBottom: '14px',
-              background: 'rgba(0,229,160,0.06)', border: '1px solid rgba(0,229,160,0.25)',
-              borderRadius: '8px',
-            }}>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--green)' }}>
-                {`✓ ${t.academy.planActive.replace('{plan}', plan.label)}`}
-              </span>
-              <button
-                onClick={handlePortal}
-                style={{
-                  background: 'transparent', border: '1px solid rgba(0,229,160,0.4)',
-                  borderRadius: '5px', color: 'var(--green)',
-                  fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700,
-                  letterSpacing: '0.06em', textTransform: 'uppercase',
-                  padding: '5px 10px', cursor: 'pointer',
-                }}
-              >
-                {t.academy.manage}
-              </button>
-            </div>
-          )}
-
-          {/* Trial active */}
-          {trialActive && (
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px',
-              padding: '9px 12px', marginBottom: '14px',
-              background: 'rgba(232,184,75,0.06)', border: '1px solid rgba(232,184,75,0.25)',
-              borderRadius: '8px',
-            }}>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-neutral)' }}>
-                {t.academy.trialLeft.replace('{days}', daysLeft).replace('{unit}', daysLeft === 1 ? t.academy.day : t.academy.days)}
-              </span>
-              {!isIOSApp() && (
-              <button
-                onClick={() => setPlanModal(true)}
-                style={{
-                  background: 'rgba(232,184,75,0.1)', border: '1px solid rgba(232,184,75,0.4)',
-                  borderRadius: '5px', color: 'var(--color-neutral)',
-                  fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700,
-                  letterSpacing: '0.06em', textTransform: 'uppercase',
-                  padding: '5px 10px', cursor: 'pointer',
-                }}
-              >
-                {t.academy.activatePlan}
-              </button>
-              )}
-            </div>
-          )}
-
-          {/* Trial expired */}
-          {expired && (
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px',
-              padding: '11px 14px', marginBottom: '14px',
-              background: 'rgba(255,126,179,0.08)', border: '1px solid rgba(255,126,179,0.35)',
-              borderRadius: '8px',
-            }}>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-down)', lineHeight: 1.5 }}>
-                {t.academy.trialExpired}
-              </span>
-              {!isIOSApp() && (
-              <button
-                onClick={() => setPlanModal(true)}
-                style={{
-                  flexShrink: 0,
-                  background: 'rgba(255,126,179,0.12)', border: '1px solid rgba(255,126,179,0.5)',
-                  borderRadius: '5px', color: 'var(--color-down)',
-                  fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700,
-                  letterSpacing: '0.06em', textTransform: 'uppercase',
-                  padding: '7px 12px', cursor: 'pointer',
-                }}
-              >
-                {t.academy.activateNow}
-              </button>
-              )}
-            </div>
-          )}
-
-          {/* Join code */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-              {t.academy.accessCode}
-            </span>
-            <span style={{
-              fontFamily: 'var(--font-body)', fontSize: '14px', fontWeight: 700,
-              color: 'var(--green)', letterSpacing: '0.18em',
-              background: 'rgba(0,229,160,0.07)', border: '1px solid rgba(0,229,160,0.25)',
-              padding: '4px 10px', borderRadius: '6px',
-            }}>
-              {academy.joinCode}
-            </span>
-            <button
-              onClick={handleCopy}
-              title={copied ? t.academy.copied : t.academy.copyCode}
-              style={{
-                background: 'transparent', border: 'none', cursor: 'pointer',
-                color: copied ? 'var(--green)' : 'var(--t5)',
-                padding: '4px', display: 'flex', alignItems: 'center',
-                transition: 'color 0.2s',
-              }}
-            >
-              {copied ? (
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-              ) : (
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                </svg>
-              )}
+            <button onClick={handlePortal} style={{ background: 'transparent', border: 'none', color: 'var(--pink)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', padding: 0 }}>
+              {t.academy.manage}
             </button>
+          )}
+          {trialActive && !isIOSApp() && (
+            <button onClick={() => setPlanModal(true)} style={{ background: 'transparent', border: 'none', color: 'var(--pink)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', padding: 0 }}>
+              {t.academy.activatePlan}
+            </button>
+          )}
+          {expired && !isIOSApp() && (
+            <button onClick={() => setPlanModal(true)} style={{ background: 'transparent', border: 'none', color: 'var(--pink)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', padding: 0 }}>
+              {t.academy.activateNow}
+            </button>
+          )}
+        </div>
+
+        {/* Trial / expired inline notice */}
+        {trialActive && (
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-neutral)', marginBottom: '12px' }}>
+            {t.academy.trialLeft.replace('{days}', daysLeft).replace('{unit}', daysLeft === 1 ? t.academy.day : t.academy.days)}
           </div>
+        )}
+        {expired && (
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--pink)', marginBottom: '12px' }}>
+            {t.academy.trialExpired}
+          </div>
+        )}
+
+        {/* ── Join code ── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '28px' }}>
+          <span className="micro-label" style={{ margin: 0 }}>{t.academy.accessCode}</span>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: '14px', fontWeight: 700, color: 'var(--green)', letterSpacing: '0.18em' }}>
+            {academy.joinCode}
+          </span>
+          <button
+            onClick={handleCopy}
+            title={copied ? t.academy.copied : t.academy.copyCode}
+            style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: copied ? 'var(--green)' : 'var(--text-muted)', padding: '4px', display: 'flex', alignItems: 'center' }}
+          >
+            {copied ? (
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            ) : (
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+              </svg>
+            )}
+          </button>
         </div>
 
         {/* ── Expired overlay ── */}
@@ -683,50 +596,38 @@ function AcademyDashboard({ academyId, onBack }) {
         {/* ── Student table ── */}
         <div style={{ marginBottom: '32px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <Label>{t.academy.studentsSection.replace('{n}', students.length)}</Label>
+            <SectionTitle style={{ marginBottom: 0 }}>{t.academy.studentsSection.replace('{n}', students.length)}</SectionTitle>
             {students.length > 0 && (
-              <Btn onClick={handleExport} disabled={exporting} style={{ padding: '6px 11px', fontSize: '12px', marginBottom: '10px' }}>
+              <button onClick={handleExport} disabled={exporting} style={{ background: 'transparent', border: 'none', color: 'var(--pink)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: exporting ? 'default' : 'pointer', padding: 0, opacity: exporting ? 0.5 : 1 }}>
                 {exporting ? '...' : t.academy.exportCsv}
-              </Btn>
+              </button>
             )}
           </div>
           {students.length > 0 && (
-            <div style={{ display: 'flex', gap: '6px', marginBottom: '10px', flexWrap: 'wrap' }}>
-              {[
-                { val: '',          label: 'All' },
-                { val: 'guess',     label: getModeLabel('guess') },
-                { val: 'survival',  label: getModeLabel('survival') },
-                { val: 'daily',     label: getModeLabel('daily') },
-                { val: 'portfolio', label: getModeLabel('portfolio') },
-              ].map(({ val, label }) => (
-                <button
-                  key={val}
-                  onClick={() => setModeFilter(val)}
-                  style={{
-                    padding: '5px 10px', borderRadius: '6px',
-                    fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700,
-                    letterSpacing: '0.06em', cursor: 'pointer',
-                    background: modeFilter === val ? 'rgba(0,229,160,0.12)' : 'transparent',
-                    border: modeFilter === val ? '1px solid rgba(0,229,160,0.5)' : '1px solid var(--bd)',
-                    color: modeFilter === val ? 'var(--green)' : 'var(--t5)',
-                    transition: 'all 0.15s',
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-              {filterLoading && <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', alignSelf: 'center' }}>...</span>}
+            <div style={{ marginBottom: '10px' }}>
+              <TextTabs
+                tabs={[
+                  { val: '',          label: 'All' },
+                  { val: 'guess',     label: getModeLabel('guess') },
+                  { val: 'survival',  label: getModeLabel('survival') },
+                  { val: 'daily',     label: getModeLabel('daily') },
+                  { val: 'portfolio', label: getModeLabel('portfolio') },
+                ].map(({ val, label }) => ({ value: val, label }))}
+                active={modeFilter}
+                onChange={setModeFilter}
+              />
+              {filterLoading && <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', marginLeft: '8px' }}>...</span>}
             </div>
           )}
 
-          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', overflowX: 'auto' }}>
+          <div style={{ overflowX: 'auto' }}>
             {students.length === 0 ? (
-              <div style={{ padding: '40px 20px', textAlign: 'center' }}>
-                <Users size={32} strokeWidth={1.5} aria-hidden style={{ marginBottom: '10px', display: 'block', margin: '0 auto 10px' }} />
-                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '13px', color: 'var(--t3)', marginBottom: '6px' }}>
+              <div style={{ padding: '32px 0', textAlign: 'center' }}>
+                <Users size={28} strokeWidth={1.5} aria-hidden style={{ marginBottom: '10px', display: 'block', margin: '0 auto 10px', color: 'var(--text-muted)' }} />
+                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '6px' }}>
                   {t.academy.noStudents}
                 </div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', lineHeight: 1.6 }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
                   {t.academy.noStudentsSub}
                 </div>
               </div>
@@ -735,13 +636,13 @@ function AcademyDashboard({ academyId, onBack }) {
                 {/* Table header */}
                 <div style={{
                   display: 'grid', gridTemplateColumns: '28px 1fr 36px 42px 36px 44px 64px 64px 52px 32px',
-                  gap: '8px', padding: '8px 14px',
-                  borderBottom: '1px solid var(--bd)',
+                  gap: '8px', padding: '6px 0',
+                  borderBottom: '1px solid var(--border-default)',
                   alignItems: 'center',
                   minWidth: '600px',
                 }}>
                   {['', t.academy.colName, t.academy.colGames, t.academy.colAccuracy, t.academy.colStreak, t.academy.colLast, 'Portfolio', 'P&L', 'P&L %', ''].map((h, i) => (
-                    <div key={i} style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.08em', textAlign: i >= 2 ? 'center' : 'left' }}>
+                    <div key={i} className="micro-label" style={{ margin: 0, textAlign: i >= 2 ? 'center' : 'left' }}>
                       {h}
                     </div>
                   ))}
@@ -754,9 +655,8 @@ function AcademyDashboard({ academyId, onBack }) {
                     onClick={() => openStudentDetail(s)}
                     style={{
                       display: 'grid', gridTemplateColumns: '28px 1fr 36px 42px 36px 44px 64px 64px 52px 32px',
-                      gap: '8px', padding: '10px 14px', alignItems: 'center',
-                      borderBottom: i < students.length - 1 ? '1px solid var(--bd)' : 'none',
-                      background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.012)',
+                      gap: '8px', padding: '10px 0', alignItems: 'center',
+                      borderBottom: '1px solid var(--border-default)',
                       minWidth: '600px',
                       cursor: 'pointer',
                     }}
@@ -764,7 +664,7 @@ function AcademyDashboard({ academyId, onBack }) {
                     {/* Avatar */}
                     <div style={{
                       width: '28px', height: '28px', borderRadius: '50%',
-                      background: 'rgba(0,229,160,0.12)', border: '1px solid rgba(0,229,160,0.25)',
+                      background: 'rgba(0,192,135,0.12)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '12px', color: 'var(--green)',
                       flexShrink: 0,
@@ -774,44 +674,44 @@ function AcademyDashboard({ academyId, onBack }) {
 
                     {/* Name */}
                     <div style={{
-                      fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t1)',
+                      fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-primary)',
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>
                       {s.name}
                     </div>
 
                     {/* Games */}
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t3)', textAlign: 'center' }}>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-secondary)', textAlign: 'center' }}>
                       {s.gamesPlayed}
                     </div>
 
                     {/* Accuracy */}
                     <div style={{
                       fontFamily: 'var(--font-body)', fontSize: '12px', textAlign: 'center',
-                      color: s.avgAccuracy >= 70 ? 'var(--green)' : s.avgAccuracy >= 50 ? 'var(--color-neutral)' : 'var(--t4)',
+                      color: s.avgAccuracy >= 70 ? 'var(--green)' : s.avgAccuracy >= 50 ? 'var(--color-neutral)' : 'var(--text-secondary)',
                     }}>
                       {s.gamesPlayed > 0 ? `${s.avgAccuracy}%` : '—'}
                     </div>
 
                     {/* Streak */}
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)', textAlign: 'center' }}>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-secondary)', textAlign: 'center' }}>
                       {s.currentStreak > 0 ? <><Zap size={14} strokeWidth={2} aria-hidden />{s.currentStreak}</> : '—'}
                     </div>
 
                     {/* Last seen */}
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', textAlign: 'center' }}>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center' }}>
                       {relativeDate(s.lastSeen, t)}
                     </div>
 
                     {/* Portfolio value */}
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t3)', textAlign: 'center' }}>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-secondary)', textAlign: 'center' }}>
                       {fmtUSD(s.portfolioValue)}
                     </div>
 
                     {/* P&L */}
                     <div style={{
                       fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, textAlign: 'center',
-                      color: s.portfolioPnl === null ? 'var(--t5)' : s.portfolioPnl >= 0 ? 'var(--green)' : 'var(--color-down)',
+                      color: s.portfolioPnl === null ? 'var(--text-muted)' : s.portfolioPnl >= 0 ? 'var(--green)' : 'var(--pink)',
                     }}>
                       {fmtPnl(s.portfolioPnl)}
                     </div>
@@ -819,7 +719,7 @@ function AcademyDashboard({ academyId, onBack }) {
                     {/* P&L % */}
                     <div style={{
                       fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, textAlign: 'center',
-                      color: s.portfolioPnlPct === null ? 'var(--t5)' : s.portfolioPnlPct >= 0 ? 'var(--green)' : 'var(--color-down)',
+                      color: s.portfolioPnlPct === null ? 'var(--text-muted)' : s.portfolioPnlPct >= 0 ? 'var(--green)' : 'var(--pink)',
                     }}>
                       {fmtPct(s.portfolioPnlPct)}
                     </div>
@@ -829,7 +729,7 @@ function AcademyDashboard({ academyId, onBack }) {
                       <button
                         onClick={e => { e.stopPropagation(); setFeedbackModal({ studentId: s.id, studentName: s.name }); setFeedbackMsg(''); setFeedbackErr(null); }}
                         title={`${t.academy.messageToStudent}: ${s.name}`}
-                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--t5)', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -845,24 +745,19 @@ function AcademyDashboard({ academyId, onBack }) {
 
         {/* ── Tournaments ── */}
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <Label>{t.academy.privateTournaments}</Label>
-            <Btn onClick={() => { setModal(true); setFormErr(null); }} style={{ padding: '6px 11px', fontSize: '12px', marginBottom: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <SectionTitle style={{ marginBottom: 0 }}>{t.academy.privateTournaments}</SectionTitle>
+            <button onClick={() => { setModal(true); setFormErr(null); }} style={{ background: 'transparent', border: 'none', color: 'var(--pink)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', padding: 0 }}>
               {t.academy.createTournamentBtn}
-            </Btn>
+            </button>
           </div>
 
           {tournaments.length === 0 ? (
-            <div style={{
-              background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px',
-              padding: '32px 20px', textAlign: 'center',
-            }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)' }}>
-                {t.academy.noTournaments}
-              </div>
+            <div style={{ padding: '16px 0', fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)' }}>
+              {t.academy.noTournaments}
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div>
               {tournaments.map(trn => {
                 const status     = tournamentStatus(trn);
                 const isActive   = status.type === 'active';
@@ -879,31 +774,21 @@ function AcademyDashboard({ academyId, onBack }) {
                 const showBoard = (isActive || isFinished) && entries.length > 0;
 
                 return (
-                  <div key={trn._id} style={{
-                    background: 'var(--bg-card)', border: '1px solid var(--bd)',
-                    borderRadius: '8px', overflow: 'hidden',
-                  }}>
+                  <div key={trn._id} style={{ borderTop: '1px solid var(--border-default)', paddingTop: '12px', paddingBottom: '12px' }}>
                     {/* Header */}
-                    <div style={{ padding: '12px 14px' }}>
+                    <div style={{ marginBottom: '4px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
-                        <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '13px', color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '60%' }}>
+                        <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '13px', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '60%' }}>
                           {trn.name}
                         </span>
-                        <span style={{
-                          fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700,
-                          letterSpacing: '0.08em', padding: '3px 7px', borderRadius: '4px',
-                          color: status.color, background: `${status.color}18`,
-                          border: `1px solid ${status.color}40`, flexShrink: 0,
-                        }}>
-                          {badgeLabel}
-                        </span>
+                        <StatusText color={status.color}>{badgeLabel}</StatusText>
                         {isFinished && (
-                          <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', flexShrink: 0 }}>
+                          <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', flexShrink: 0 }}>
                             {new Date(trn.endsAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </span>
                         )}
                       </div>
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)' }}>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)' }}>
                         {new Date(trn.startsAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
                         {' — '}
                         {new Date(trn.endsAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
@@ -913,55 +798,32 @@ function AcademyDashboard({ academyId, onBack }) {
 
                     {/* Podium — finished only */}
                     {isFinished && entries.length > 0 && (
-                      <div style={{ borderTop: '1px solid var(--bd)', padding: '12px 14px 10px' }}>
-                        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px' }}>
-                          {t.academy.podium}
-                        </div>
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                          {entries.slice(0, 3).map((e, i) => (
-                            <div key={i} style={{
-                              flex: 1, padding: '9px 8px', textAlign: 'center',
-                              background: i === 0 ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.015)',
-                              border: `1px solid ${i === 0 ? 'rgba(255,255,255,0.1)' : 'var(--bd)'}`,
-                              borderRadius: '6px',
-                            }}>
-                              <div style={{
-                                fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700,
-                                color: i === 0 ? 'var(--t2)' : i === 1 ? 'var(--t3)' : 'var(--t4)',
-                                marginBottom: '4px',
-                              }}>
-                                {i + 1}º
-                              </div>
-                              <div style={{
-                                fontFamily: 'var(--font-body)', fontWeight: 700,
-                                fontSize: '12px', color: i === 0 ? 'var(--t1)' : 'var(--t3)',
-                                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                              }}>
-                                {e.name}
-                              </div>
-                              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', marginTop: '3px' }}>
-                                {e.score} pts
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+                      <div style={{ marginTop: '10px' }}>
+                        <div className="micro-label" style={{ marginBottom: '8px' }}>{t.academy.podium}</div>
+                        {entries.slice(0, 3).map((e, i) => (
+                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 0', borderBottom: i < 2 ? '1px solid var(--border-default)' : 'none' }}>
+                            <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, color: i === 0 ? 'var(--text-primary)' : 'var(--text-muted)', width: '20px' }}>
+                              {i + 1}º
+                            </span>
+                            <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: 'var(--text-primary)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {e.name}
+                            </span>
+                            <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)' }}>{e.score} pts</span>
+                          </div>
+                        ))}
                       </div>
                     )}
 
                     {/* Full leaderboard */}
                     {showBoard && (
-                      <div style={{ borderTop: '1px solid var(--bd)' }}>
+                      <div style={{ marginTop: '10px' }}>
                         <div style={{
                           display: 'grid', gridTemplateColumns: '26px 1fr 52px 48px',
-                          gap: '8px', padding: '7px 14px',
-                          borderBottom: '1px solid var(--bd)',
+                          gap: '8px', padding: '5px 0',
+                          borderBottom: '1px solid var(--border-default)',
                         }}>
                           {['#', t.academy.colName, t.academy.colScore, t.academy.colPart].map((h, i) => (
-                            <div key={i} style={{
-                              fontFamily: 'var(--font-body)', fontSize: '12px',
-                              color: 'var(--t6)', letterSpacing: '0.08em',
-                              textAlign: i === 0 || i >= 2 ? 'center' : 'left',
-                            }}>
+                            <div key={i} className="micro-label" style={{ margin: 0, textAlign: i === 0 || i >= 2 ? 'center' : 'left' }}>
                               {h}
                             </div>
                           ))}
@@ -969,33 +831,19 @@ function AcademyDashboard({ academyId, onBack }) {
                         {entries.map((e, i) => (
                           <div key={i} style={{
                             display: 'grid', gridTemplateColumns: '26px 1fr 52px 48px',
-                            gap: '8px', padding: '9px 14px', alignItems: 'center',
-                            borderBottom: i < entries.length - 1 ? '1px solid var(--bd)' : 'none',
-                            background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.012)',
+                            gap: '8px', padding: '8px 0', alignItems: 'center',
+                            borderBottom: '1px solid var(--border-default)',
                           }}>
-                            <div style={{
-                              fontFamily: 'var(--font-body)', fontSize: '12px',
-                              color: i === 0 ? 'var(--t2)' : 'var(--t5)',
-                              textAlign: 'center', fontWeight: i === 0 ? 700 : 400,
-                            }}>
+                            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: i === 0 ? 'var(--text-primary)' : 'var(--text-muted)', textAlign: 'center', fontWeight: i === 0 ? 700 : 400 }}>
                               {i + 1}
                             </div>
-                            <div style={{
-                              fontFamily: 'var(--font-body)', fontSize: '12px',
-                              color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                            }}>
+                            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               {e.name}
                             </div>
-                            <div style={{
-                              fontFamily: 'var(--font-body)', fontSize: '12px',
-                              color: 'var(--green)', textAlign: 'center', fontWeight: 700,
-                            }}>
+                            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--green)', textAlign: 'center', fontWeight: 700 }}>
                               {e.score}
                             </div>
-                            <div style={{
-                              fontFamily: 'var(--font-body)', fontSize: '12px',
-                              color: 'var(--t4)', textAlign: 'center',
-                            }}>
+                            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-secondary)', textAlign: 'center' }}>
                               {e.gamesPlayed}
                             </div>
                           </div>
@@ -1011,51 +859,47 @@ function AcademyDashboard({ academyId, onBack }) {
 
         {/* ── Deberes ── */}
         <div style={{ marginTop: '32px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <Label>{t.academy.homeworkLabel}</Label>
-            <Btn onClick={() => { setAsgModal(true); setAsgErr(null); }} style={{ padding: '6px 11px', fontSize: '12px', marginBottom: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <SectionTitle style={{ marginBottom: 0 }}>{t.academy.homeworkLabel}</SectionTitle>
+            <button onClick={() => { setAsgModal(true); setAsgErr(null); }} style={{ background: 'transparent', border: 'none', color: 'var(--pink)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', padding: 0 }}>
               {t.academy.newHomework}
-            </Btn>
+            </button>
           </div>
 
           {assignments.length === 0 ? (
-            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '32px 20px', textAlign: 'center' }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)' }}>
-                {t.academy.noHomeworkYet}
-              </div>
+            <div style={{ padding: '16px 0', fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)' }}>
+              {t.academy.noHomeworkYet}
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div>
               {assignments.map(asg => {
                 const status = assignmentStatus(asg);
                 return (
-                  <div key={asg._id} style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', overflow: 'hidden' }}>
+                  <div key={asg._id} style={{ borderTop: '1px solid var(--border-default)', paddingTop: '12px', paddingBottom: '12px' }}>
                     {/* Header */}
-                    <div style={{ padding: '12px 14px' }}>
+                    <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
-                        <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '13px', color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '45%' }}>
+                        <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '13px', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '45%' }}>
                           {asg.title}
                         </span>
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', padding: '3px 7px', borderRadius: '4px', color: 'var(--t4)', background: 'rgba(100,115,130,0.12)', border: '1px solid rgba(100,115,130,0.3)', flexShrink: 0 }}>
-                          {getModeLabel(asg.mode)}
-                        </span>
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', padding: '3px 7px', borderRadius: '4px', color: status.color, background: `${status.color}18`, border: `1px solid ${status.color}40`, flexShrink: 0 }}>
+                        <StatusText>{getModeLabel(asg.mode)}</StatusText>
+                        <StatusText color={status.color}>
                           {status.type === 'active' ? t.academy.statusActive : status.type === 'finished' ? t.academy.statusFinished : t.academy.statusUpcoming}
-                        </span>
+                        </StatusText>
                       </div>
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)' }}>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)' }}>
                         {new Date(asg.startsAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
                         {' — '}
                         {new Date(asg.endsAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
                         {' · '}{asg.targetGames} {t.academy.gamesUnit}
                         {asg.minAccuracy != null && (
-                          <span style={{ marginLeft: '6px', padding: '1px 6px', borderRadius: '4px', background: 'rgba(232,184,75,0.1)', border: '1px solid rgba(232,184,75,0.3)', color: 'var(--color-neutral)', fontWeight: 700 }}>
+                          <span style={{ marginLeft: '6px', color: 'var(--color-neutral)', fontWeight: 700 }}>
                             {`min ${asg.minAccuracy}% acc`}
                           </span>
                         )}
                       </div>
                       {asg.description && (
-                        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)', marginTop: '4px' }}>
+                        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>
                           {asg.description}
                         </div>
                       )}
@@ -1063,14 +907,14 @@ function AcademyDashboard({ academyId, onBack }) {
 
                     {/* Student progress table */}
                     {(asg.submissions || []).length > 0 && (
-                      <div style={{ borderTop: '1px solid var(--bd)' }}>
+                      <div style={{ marginTop: '10px' }}>
                         <div style={{
                           display: 'grid',
                           gridTemplateColumns: asg.minAccuracy != null ? '1fr 1fr 64px 72px' : '1fr 1fr 72px',
-                          gap: '8px', padding: '7px 14px', borderBottom: '1px solid var(--bd)',
+                          gap: '8px', padding: '5px 0', borderBottom: '1px solid var(--border-default)',
                         }}>
                           {[t.academy.studentLabel, t.academy.colProgress, ...(asg.minAccuracy != null ? ['Acc'] : []), t.academy.colStatus].map((h, i) => (
-                            <div key={i} style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.08em', textAlign: i >= 2 ? 'center' : 'left' }}>
+                            <div key={i} className="micro-label" style={{ margin: 0, textAlign: i >= 2 ? 'center' : 'left' }}>
                               {h}
                             </div>
                           ))}
@@ -1081,24 +925,23 @@ function AcademyDashboard({ academyId, onBack }) {
                             <div key={String(sub.userId)} style={{
                               display: 'grid',
                               gridTemplateColumns: asg.minAccuracy != null ? '1fr 1fr 64px 72px' : '1fr 1fr 72px',
-                              gap: '8px', padding: '9px 14px', alignItems: 'center',
-                              borderBottom: i < asg.submissions.length - 1 ? '1px solid var(--bd)' : 'none',
-                              background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.012)',
+                              gap: '8px', padding: '8px 0', alignItems: 'center',
+                              borderBottom: '1px solid var(--border-default)',
                             }}>
-                              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                 {sub.studentName || '—'}
                               </div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-                                <div style={{ flex: 1, height: '4px', background: 'var(--bd)', borderRadius: '2px' }}>
-                                  <div style={{ width: `${pct}%`, height: '100%', background: sub.completed ? 'var(--green)' : 'rgba(0,229,160,0.45)', borderRadius: '2px' }} />
+                                <div style={{ flex: 1, height: '3px', background: 'var(--border-default)', borderRadius: '2px' }}>
+                                  <div style={{ width: `${pct}%`, height: '100%', background: sub.completed ? 'var(--green)' : 'rgba(0,192,135,0.45)', borderRadius: '2px' }} />
                                 </div>
-                                <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)', whiteSpace: 'nowrap' }}>
+                                <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
                                   {sub.gamesPlayed}/{asg.targetGames}
                                 </span>
                               </div>
                               {asg.minAccuracy != null && (
                                 <div style={{ textAlign: 'center', fontFamily: 'var(--font-body)', fontSize: '12px',
-                                  color: sub.avgAccuracy == null ? 'var(--t6)' : sub.avgAccuracy >= asg.minAccuracy ? 'var(--green)' : 'var(--color-down)',
+                                  color: sub.avgAccuracy == null ? 'var(--text-muted)' : sub.avgAccuracy >= asg.minAccuracy ? 'var(--green)' : 'var(--pink)',
                                 }}>
                                   {sub.avgAccuracy != null ? `${sub.avgAccuracy}%` : '—'}
                                 </div>
@@ -1106,7 +949,7 @@ function AcademyDashboard({ academyId, onBack }) {
                               <div style={{ textAlign: 'center' }}>
                                 {sub.completed
                                   ? <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, color: 'var(--green)' }}>✓</span>
-                                  : <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)' }}>—</span>
+                                  : <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)' }}>—</span>
                                 }
                               </div>
                             </div>
@@ -1123,69 +966,49 @@ function AcademyDashboard({ academyId, onBack }) {
         {/* ── Student Messages (replies to teacher) ── */}
         {teacherInbox.length > 0 && (
           <div style={{ marginTop: '32px' }}>
-            <Label>{t.academy.studentMessagesLabel || 'Student Messages'} ({teacherInbox.filter(m => !m.read).length > 0 ? `${teacherInbox.filter(m => !m.read).length} new` : teacherInbox.length})</Label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {teacherInbox.map(m => (
-                <div key={String(m._id)} style={{
-                  background: 'var(--bg-card)', border: `1px solid ${!m.read ? 'rgba(0,229,160,0.3)' : 'var(--bd)'}`,
-                  borderRadius: '8px', padding: '12px 14px',
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                    <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '13px', color: 'var(--t1)' }}>
-                      {m.senderName || '—'}
-                    </span>
-                    {!m.read && (
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, color: 'var(--green)', background: 'rgba(0,229,160,0.1)', border: '1px solid rgba(0,229,160,0.3)', borderRadius: '4px', padding: '1px 6px' }}>
-                        NEW
-                      </span>
-                    )}
-                  </div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t2)', lineHeight: 1.5, marginBottom: '6px' }}>
-                    {m.message}
-                  </div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)' }}>
-                    {new Date(m.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
-                  </div>
+            <SectionTitle>{t.academy.studentMessagesLabel || 'Student Messages'}</SectionTitle>
+            {teacherInbox.map((m, i) => (
+              <div key={String(m._id)} style={{ borderTop: i === 0 ? '1px solid var(--border-default)' : 'none', borderBottom: '1px solid var(--border-default)', padding: '12px 0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                  <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '13px', color: 'var(--text-primary)', flex: 1 }}>
+                    {m.senderName || '—'}
+                  </span>
+                  {!m.read && <StatusText color="var(--green)">NEW</StatusText>}
                 </div>
-              ))}
-            </div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '4px' }}>
+                  {m.message}
+                </div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)' }}>
+                  {new Date(m.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
         </div>{/* end expired overlay wrapper */}
+        </div>{/* end padding wrapper */}
       </div>
 
       {/* ── Plan selection modal ── */}
       {!isIOSApp() && planModal && (
         <div
           onClick={e => e.target === e.currentTarget && setPlanModal(false)}
-          style={{
-            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: '20px', zIndex: 150,
-          }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', zIndex: 150 }}
         >
-          <div style={{
-            background: 'var(--bg-card)', border: '1px solid var(--bd2)',
-            borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '360px',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
-          }}>
-            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--t1)', marginBottom: '4px' }}>
+          <div style={{ background: 'var(--bg-surface)', borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '360px' }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--text-primary)', marginBottom: '4px' }}>
               {t.academy.activatePlanTitle}
             </div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', marginBottom: '20px' }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', marginBottom: '20px' }}>
               {t.academy.activatePlanSub}
             </div>
 
             {[
-              { id: 'starter', label: t.academy.planStarterLabel, price: '29€/mes', desc: t.academy.planStarterDesc, color: 'var(--t3)', bg: 'rgba(100,115,130,0.08)' },
-              { id: 'pro',     label: t.academy.planProLabel,     price: '59€/mes', desc: t.academy.planProDesc,     color: 'var(--green)', bg: 'rgba(0,229,160,0.06)' },
-            ].map(p => (
-              <div key={p.id} style={{
-                padding: '14px', marginBottom: '10px',
-                background: p.bg, border: `1px solid ${p.color}40`,
-                borderRadius: '8px',
-              }}>
+              { id: 'starter', label: t.academy.planStarterLabel, price: '29€/mes', desc: t.academy.planStarterDesc, color: 'var(--text-secondary)' },
+              { id: 'pro',     label: t.academy.planProLabel,     price: '59€/mes', desc: t.academy.planProDesc,     color: 'var(--green)' },
+            ].map((p, i) => (
+              <div key={p.id} style={{ borderTop: i === 0 ? '1px solid var(--border-default)' : 'none', borderBottom: '1px solid var(--border-default)', padding: '14px 0', marginBottom: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
                   <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: p.color }}>
                     {p.label}
@@ -1194,40 +1017,28 @@ function AcademyDashboard({ academyId, onBack }) {
                     {p.price}
                   </span>
                 </div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', marginBottom: '12px' }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px' }}>
                   {p.desc}
                 </div>
-                <button
+                <Btn
                   onClick={() => handleSubscribe(p.id)}
                   disabled={!!activating}
-                  style={{
-                    width: '100%', padding: '9px',
-                    background: p.bg, border: `1px solid ${p.color}`,
-                    borderRadius: '6px', color: p.color,
-                    fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700,
-                    letterSpacing: '0.06em', textTransform: 'uppercase',
-                    cursor: activating ? 'default' : 'pointer', opacity: activating === p.id ? 0.6 : 1,
-                  }}
+                  style={{ opacity: activating === p.id ? 0.6 : 1 }}
                 >
                   {activating === p.id ? '...' : t.academy.select}
-                </button>
+                </Btn>
               </div>
             ))}
 
             {formErr && (
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-down)', marginTop: '8px' }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--pink)', marginTop: '8px' }}>
                 {formErr}
               </div>
             )}
 
             <button
               onClick={() => setPlanModal(false)}
-              style={{
-                width: '100%', marginTop: '10px', padding: '10px',
-                background: 'transparent', border: '1px solid var(--bd2)',
-                borderRadius: '6px', color: 'var(--t5)',
-                fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer',
-              }}
+              style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', padding: 0, marginTop: '14px', display: 'block' }}
             >
               {t.academy.cancel}
             </button>
@@ -1239,72 +1050,30 @@ function AcademyDashboard({ academyId, onBack }) {
       {modal && (
         <div
           onClick={e => e.target === e.currentTarget && setModal(false)}
-          style={{
-            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: '20px', zIndex: 100,
-          }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', zIndex: 100 }}
         >
-          <div style={{
-            background: 'var(--bg-card)', border: '1px solid var(--bd2)',
-            borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '360px',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
-          }}>
+          <div style={{ background: 'var(--bg-surface)', borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '360px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t1)' }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--text-primary)' }}>
                 {t.academy.newTournament}
               </div>
-              <button
-                onClick={() => setModal(false)}
-                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--t5)', fontSize: '18px', lineHeight: 1 }}
-              >
-                ×
-              </button>
+              <button onClick={() => setModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '18px', lineHeight: 1 }}>×</button>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <FieldInput
-                label={t.academy.tournamentNameLabel}
-                value={form.name}
-                onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                placeholder={t.academy.tournamentNamePlaceholder}
-              />
-              <FieldInput
-                label={t.academy.startDate}
-                type="date"
-                value={form.startsAt}
-                onChange={e => setForm(f => ({ ...f, startsAt: e.target.value }))}
-              />
-              <FieldInput
-                label={t.academy.endDate}
-                type="date"
-                value={form.endsAt}
-                onChange={e => setForm(f => ({ ...f, endsAt: e.target.value }))}
-              />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <FieldInput label={t.academy.tournamentNameLabel} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder={t.academy.tournamentNamePlaceholder} />
+              <FieldInput label={t.academy.startDate} type="date" value={form.startsAt} onChange={e => setForm(f => ({ ...f, startsAt: e.target.value }))} />
+              <FieldInput label={t.academy.endDate} type="date" value={form.endsAt} onChange={e => setForm(f => ({ ...f, endsAt: e.target.value }))} />
             </div>
 
-            {formErr && (
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-down)', marginTop: '12px' }}>
-                {formErr}
-              </div>
-            )}
+            {formErr && <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--pink)', marginTop: '12px' }}>{formErr}</div>}
 
-            <div style={{ display: 'flex', gap: '8px', marginTop: '20px' }}>
-              <button
-                onClick={() => setModal(false)}
-                style={{
-                  flex: 1, padding: '11px', background: 'transparent',
-                  border: '1px solid var(--bd2)', borderRadius: '7px',
-                  color: 'var(--t5)', fontFamily: 'var(--font-body)',
-                  fontSize: '12px', cursor: 'pointer',
-                }}
-              >
-                {t.academy.cancel}
-              </button>
-              <Btn onClick={createTournament} disabled={submitting} style={{ flex: 1, padding: '11px' }}>
-                {submitting ? '...' : t.tournament.create}
-              </Btn>
+            <div style={{ marginTop: '20px' }}>
+              <Btn onClick={createTournament} disabled={submitting}>{submitting ? '...' : t.tournament.create}</Btn>
             </div>
+            <button onClick={() => setModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', padding: 0, marginTop: '12px', display: 'block', width: '100%', textAlign: 'center' }}>
+              {t.academy.cancel}
+            </button>
           </div>
         </div>
       )}
@@ -1315,20 +1084,20 @@ function AcademyDashboard({ academyId, onBack }) {
           onClick={e => e.target === e.currentTarget && setAsgModal(false)}
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', zIndex: 100 }}
         >
-          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '380px', boxShadow: '0 20px 60px rgba(0,0,0,0.6)', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div style={{ background: 'var(--bg-surface)', borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '380px', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t1)' }}>{t.academy.newHomework}</div>
-              <button onClick={() => setAsgModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--t5)', fontSize: '18px', lineHeight: 1 }}>×</button>
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--text-primary)' }}>{t.academy.newHomework}</div>
+              <button onClick={() => setAsgModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '18px', lineHeight: 1 }}>×</button>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <FieldInput label={t.academy.fieldTitle} value={asgForm.title} onChange={e => setAsgForm(f => ({ ...f, title: e.target.value }))} placeholder={t.academy.fieldTitlePlaceholder} />
               <FieldInput label={t.academy.fieldDescription} value={asgForm.description} onChange={e => setAsgForm(f => ({ ...f, description: e.target.value }))} placeholder={t.academy.fieldDescriptionPlaceholder} />
               <div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px' }}>{t.academy.fieldMode}</div>
+                <div className="micro-label" style={{ marginBottom: '6px' }}>{t.academy.fieldMode}</div>
                 <select
                   value={asgForm.mode}
                   onChange={e => setAsgForm(f => ({ ...f, mode: e.target.value }))}
-                  style={{ width: '100%', padding: '11px 12px', background: 'var(--bg-card2)', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t1)', fontFamily: 'var(--font-body)', fontSize: '12px', outline: 'none', boxSizing: 'border-box', colorScheme: 'dark' }}
+                  style={{ width: '100%', padding: '10px 0', background: 'transparent', border: 'none', borderBottom: '1.5px solid var(--border-default)', color: 'var(--text-primary)', fontFamily: 'var(--font-body)', fontSize: '13px', outline: 'none', boxSizing: 'border-box', colorScheme: 'dark' }}
                 >
                   <option value="guess">{t.academy.mode_guess}</option>
                   <option value="survival">{t.academy.mode_survival}</option>
@@ -1336,90 +1105,67 @@ function AcademyDashboard({ academyId, onBack }) {
                   <option value="portfolio">{t.academy.mode_portfolio}</option>
                 </select>
               </div>
-              <FieldInput
-                label={t.academy.fieldTargetGames}
-                type="number"
-                value={String(asgForm.targetGames)}
-                onChange={e => setAsgForm(f => ({ ...f, targetGames: Math.max(1, parseInt(e.target.value) || 1) }))}
-                placeholder="5"
-              />
+              <FieldInput label={t.academy.fieldTargetGames} type="number" value={String(asgForm.targetGames)} onChange={e => setAsgForm(f => ({ ...f, targetGames: Math.max(1, parseInt(e.target.value) || 1) }))} placeholder="5" />
               <FieldInput
                 label={`${t.academy.fieldMinAccuracy || 'Min accuracy %'} (${t.academy.optional || 'optional'})`}
                 type="number"
                 value={String(asgForm.minAccuracy)}
-                onChange={e => {
-                  const v = e.target.value;
-                  setAsgForm(f => ({ ...f, minAccuracy: v === '' ? '' : Math.max(0, Math.min(100, parseInt(v) || 0)) }));
-                }}
+                onChange={e => { const v = e.target.value; setAsgForm(f => ({ ...f, minAccuracy: v === '' ? '' : Math.max(0, Math.min(100, parseInt(v) || 0)) })); }}
                 placeholder="e.g. 60"
               />
               <FieldInput label={t.academy.startDate} type="date" value={asgForm.startsAt} onChange={e => setAsgForm(f => ({ ...f, startsAt: e.target.value }))} />
               <FieldInput label={t.academy.endDate}   type="date" value={asgForm.endsAt}   onChange={e => setAsgForm(f => ({ ...f, endsAt:   e.target.value }))} />
             </div>
-            {asgErr && <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-down)', marginTop: '12px' }}>{asgErr}</div>}
-            <div style={{ display: 'flex', gap: '8px', marginTop: '20px' }}>
-              <button
-                onClick={() => setAsgModal(false)}
-                style={{ flex: 1, padding: '11px', background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '7px', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer' }}
-              >
-                {t.academy.cancel}
-              </button>
-              <Btn onClick={createAssignment} disabled={asgSubmitting} style={{ flex: 1, padding: '11px' }}>
-                {asgSubmitting ? '...' : t.academy.createAssignmentBtn}
-              </Btn>
+            {asgErr && <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--pink)', marginTop: '12px' }}>{asgErr}</div>}
+            <div style={{ marginTop: '20px' }}>
+              <Btn onClick={createAssignment} disabled={asgSubmitting}>{asgSubmitting ? '...' : t.academy.createAssignmentBtn}</Btn>
             </div>
+            <button onClick={() => setAsgModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', padding: 0, marginTop: '12px', display: 'block', width: '100%', textAlign: 'center' }}>
+              {t.academy.cancel}
+            </button>
           </div>
         </div>
       )}
 
       {/* ── Student detail panel ── */}
       {selectedStudent && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)',
-          zIndex: 200, overflowY: 'auto', padding: '20px 16px',
-        }}>
-          <div style={{
-            background: 'var(--bg-card)', border: '1px solid var(--bd2)',
-            borderRadius: '14px', width: '100%', maxWidth: '560px',
-            margin: '0 auto', boxShadow: '0 24px 80px rgba(0,0,0,0.7)',
-          }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', zIndex: 200, overflowY: 'auto', padding: '20px 16px' }}>
+          <div style={{ background: 'var(--bg-surface)', borderRadius: '14px', width: '100%', maxWidth: '560px', margin: '0 auto' }}>
 
             {/* ── Header ── */}
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--bd)', display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-default)', display: 'flex', alignItems: 'center', gap: '14px' }}>
               <div style={{
                 width: '48px', height: '48px', borderRadius: '50%', flexShrink: 0,
-                background: 'rgba(0,229,160,0.12)', border: '2px solid rgba(0,229,160,0.35)',
+                background: 'rgba(0,192,135,0.12)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '18px', color: 'var(--green)',
               }}>
                 {(selectedStudent.name || '?')[0].toUpperCase()}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--t1)', marginBottom: '2px' }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--text-primary)', marginBottom: '2px' }}>
                   {selectedStudent.name}
                 </div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', marginBottom: '8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {selectedStudent.email || '—'}
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                   {selectedStudent.currentStreak > 0 && (
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-neutral)', background: 'rgba(232,184,75,0.08)', border: '1px solid rgba(232,184,75,0.25)', borderRadius: '5px', padding: '2px 8px' }}>
-                      <Zap size={14} strokeWidth={2} aria-hidden /> {selectedStudent.currentStreak}d {t.academy.streakUnit}
-                    </span>
+                    <StatusText color="var(--color-neutral)">
+                      <Zap size={12} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} /> {selectedStudent.currentStreak}d {t.academy.streakUnit}
+                    </StatusText>
                   )}
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--bd)', borderRadius: '5px', padding: '2px 8px' }}>
-                    <Gamepad2 size={14} strokeWidth={2} aria-hidden /> {selectedStudent.gamesPlayed} {t.academy.gamesPlayedUnit}
-                  </span>
+                  <StatusText>
+                    <Gamepad2 size={12} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} /> {selectedStudent.gamesPlayed} {t.academy.gamesPlayedUnit}
+                  </StatusText>
                   {selectedStudent.lastSeen && (
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--bd)', borderRadius: '5px', padding: '2px 8px' }}>
-                      {relativeDate(selectedStudent.lastSeen, t)}
-                    </span>
+                    <StatusText>{relativeDate(selectedStudent.lastSeen, t)}</StatusText>
                   )}
                 </div>
               </div>
               <button
                 onClick={closeDetail}
-                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--t4)', fontSize: '22px', lineHeight: 1, flexShrink: 0, padding: '4px' }}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '22px', lineHeight: 1, flexShrink: 0, padding: '4px' }}
               >
                 ×
               </button>
@@ -1427,12 +1173,12 @@ function AcademyDashboard({ academyId, onBack }) {
 
             {/* ── Loading / error ── */}
             {detailLoading && (
-              <div style={{ padding: '48px 24px', textAlign: 'center', fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)' }}>
+              <div style={{ padding: '48px 24px', textAlign: 'center', fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)' }}>
                 {t.academy.detailLoading}
               </div>
             )}
             {detailErr && (
-              <div style={{ padding: '24px', fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-down)' }}>
+              <div style={{ padding: '24px', fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--pink)' }}>
                 {detailErr}
               </div>
             )}
@@ -1446,21 +1192,21 @@ function AcademyDashboard({ academyId, onBack }) {
                   {/* ── Portfolio ── */}
                   <section>
                     <Label>Portfolio</Label>
-                    <div style={{ display: 'flex', gap: '10px', marginBottom: '14px', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', gap: '24px', marginBottom: '14px', flexWrap: 'wrap' }}>
                       {[
-                        { label: t.academy.portfolioVal, val: fmtUSD(selectedStudent.portfolioValue), color: 'var(--t1)' },
-                        { label: 'P&L',   val: fmtPnl(selectedStudent.portfolioPnl),   color: selectedStudent.portfolioPnl === null ? 'var(--t5)' : selectedStudent.portfolioPnl >= 0 ? 'var(--green)' : 'var(--color-down)' },
-                        { label: 'P&L %', val: fmtPct(selectedStudent.portfolioPnlPct), color: selectedStudent.portfolioPnlPct === null ? 'var(--t5)' : selectedStudent.portfolioPnlPct >= 0 ? 'var(--green)' : 'var(--color-down)' },
+                        { label: t.academy.portfolioVal, val: fmtUSD(selectedStudent.portfolioValue), color: 'var(--text-primary)' },
+                        { label: 'P&L',   val: fmtPnl(selectedStudent.portfolioPnl),   color: selectedStudent.portfolioPnl === null ? 'var(--text-muted)' : selectedStudent.portfolioPnl >= 0 ? 'var(--green)' : 'var(--pink)' },
+                        { label: 'P&L %', val: fmtPct(selectedStudent.portfolioPnlPct), color: selectedStudent.portfolioPnlPct === null ? 'var(--text-muted)' : selectedStudent.portfolioPnlPct >= 0 ? 'var(--green)' : 'var(--pink)' },
                       ].map(({ label, val, color }) => (
-                        <div key={label} style={{ flex: 1, minWidth: '90px', background: 'var(--bg-card2)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '12px 14px' }}>
-                          <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', marginBottom: '4px' }}>{label}</div>
-                          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color }}>{val}</div>
+                        <div key={label}>
+                          <div className="micro-label" style={{ marginBottom: '3px' }}>{label}</div>
+                          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color }}>{val}</div>
                         </div>
                       ))}
                     </div>
                     {studentDetail.portfolioHistory.length >= 2 ? (
-                      <div style={{ background: 'var(--bg-card2)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '12px 14px' }}>
-                        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', marginBottom: '8px' }}>
+                      <div style={{ padding: '12px 0' }}>
+                        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px' }}>
                           {studentDetail.portfolioHistory[0].date} → {studentDetail.portfolioHistory[studentDetail.portfolioHistory.length - 1].date}
                         </div>
                         <MiniChart
@@ -1469,13 +1215,13 @@ function AcademyDashboard({ academyId, onBack }) {
                           color="var(--green)"
                           filled
                         />
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', marginTop: '4px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
                           <span>${Math.min(...studentDetail.portfolioHistory.map(h => h.totalValue)).toLocaleString()}</span>
                           <span>${Math.max(...studentDetail.portfolioHistory.map(h => h.totalValue)).toLocaleString()}</span>
                         </div>
                       </div>
                     ) : (
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', fontStyle: 'italic' }}>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
                         {t.academy.portfolioNoHistory}
                       </div>
                     )}
@@ -1485,24 +1231,17 @@ function AcademyDashboard({ academyId, onBack }) {
                   {activeModes.length > 0 && (
                     <section>
                       <Label>{t.academy.modePerformance}</Label>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '8px' }}>
-                        {activeModes.map(m => (
-                          <div key={m.mode} style={{ background: 'var(--bg-card2)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '12px 14px' }}>
-                            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                              {getModeLabel(m.mode)}
-                            </div>
-                            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: 'var(--t1)', marginBottom: '2px' }}>
-                              {m.gamesPlayed}
-                            </div>
-                            <div style={{
-                              fontFamily: 'var(--font-body)', fontSize: '12px',
-                              color: m.avgAccuracy >= 70 ? 'var(--green)' : m.avgAccuracy >= 50 ? 'var(--color-neutral)' : 'var(--t4)',
-                            }}>
+                      {activeModes.map((m, i) => (
+                        <div key={m.mode} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid var(--border-default)' }}>
+                          <div className="micro-label" style={{ margin: 0 }}>{getModeLabel(m.mode)}</div>
+                          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                            <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '15px', color: 'var(--text-primary)' }}>{m.gamesPlayed}</span>
+                            <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: m.avgAccuracy >= 70 ? 'var(--green)' : m.avgAccuracy >= 50 ? 'var(--color-neutral)' : 'var(--text-secondary)' }}>
                               {m.avgAccuracy}{t.academy.accuracyUnit}
-                            </div>
+                            </span>
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      ))}
                     </section>
                   )}
 
@@ -1510,14 +1249,14 @@ function AcademyDashboard({ academyId, onBack }) {
                   {studentDetail.accuracyTrend.length >= 2 && (
                     <section>
                       <Label>{t.academy.accuracyTrend.replace('{n}', studentDetail.accuracyTrend.length)}</Label>
-                      <div style={{ background: 'var(--bg-card2)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '12px 14px' }}>
+                      <div style={{ padding: '12px 0' }}>
                         <MiniChart
                           values={studentDetail.accuracyTrend.map(g => g.accuracy)}
                           vbH={64}
-                          color="rgba(0,229,160,0.85)"
+                          color="rgba(0,192,135,0.85)"
                           showDots
                         />
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', marginTop: '4px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
                           <span>↑ {Math.max(...studentDetail.accuracyTrend.map(g => g.accuracy))}% máx</span>
                           <span>↓ {Math.min(...studentDetail.accuracyTrend.map(g => g.accuracy))}% mín</span>
                         </div>
@@ -1529,42 +1268,36 @@ function AcademyDashboard({ academyId, onBack }) {
                   {studentDetail.assignments.length > 0 && (
                     <section>
                       <Label>{t.academy.detailAssignments}</Label>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {studentDetail.assignments.map(asg => {
+                      {studentDetail.assignments.map(asg => {
                           const sub = asg.submission || { gamesPlayed: 0, completed: false };
                           const pct = Math.min(100, Math.round(((sub.gamesPlayed || 0) / asg.targetGames) * 100));
                           const aStatus = assignmentStatus(asg);
                           return (
-                            <div key={String(asg._id)} style={{ background: 'var(--bg-card2)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '12px 14px' }}>
+                            <div key={String(asg._id)} style={{ borderBottom: '1px solid var(--border-default)', padding: '10px 0' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                                <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '13px', color: 'var(--t1)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '13px', color: 'var(--text-primary)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                   {asg.title}
                                 </span>
-                                <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', color: 'var(--t4)', background: 'rgba(100,115,130,0.12)', border: '1px solid rgba(100,115,130,0.3)', flexShrink: 0 }}>
-                                  {getModeLabel(asg.mode)}
-                                </span>
+                                <StatusText>{getModeLabel(asg.mode)}</StatusText>
                                 {sub.completed ? (
-                                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', color: 'var(--green)', background: 'rgba(0,229,160,0.08)', border: '1px solid rgba(0,229,160,0.25)', flexShrink: 0 }}>
-                                    {t.academy.assignmentCompletedLabel}
-                                  </span>
+                                  <StatusText color="var(--green)">{t.academy.assignmentCompletedLabel}</StatusText>
                                 ) : (
-                                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', color: aStatus.color, background: `${aStatus.color}18`, border: `1px solid ${aStatus.color}40`, flexShrink: 0 }}>
+                                  <StatusText color={aStatus.color}>
                                     {aStatus.type === 'active' ? t.academy.statusActive : aStatus.type === 'finished' ? t.academy.statusFinished : t.academy.statusUpcoming}
-                                  </span>
+                                  </StatusText>
                                 )}
                               </div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <div style={{ flex: 1, height: '4px', background: 'var(--bd)', borderRadius: '2px' }}>
-                                  <div style={{ width: `${pct}%`, height: '100%', background: sub.completed ? 'var(--green)' : 'rgba(0,229,160,0.45)', borderRadius: '2px', transition: 'width 0.3s' }} />
+                                <div style={{ flex: 1, height: '3px', background: 'var(--border-default)', borderRadius: '2px' }}>
+                                  <div style={{ width: `${pct}%`, height: '100%', background: sub.completed ? 'var(--green)' : 'rgba(0,192,135,0.45)', borderRadius: '2px', transition: 'width 0.3s' }} />
                                 </div>
-                                <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)', whiteSpace: 'nowrap' }}>
+                                <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
                                   {sub.gamesPlayed || 0}/{asg.targetGames}
                                 </span>
                               </div>
                             </div>
                           );
                         })}
-                      </div>
                     </section>
                   )}
 
@@ -1572,26 +1305,24 @@ function AcademyDashboard({ academyId, onBack }) {
                   {studentDetail.tournamentHistory?.length > 0 && (
                     <section>
                       <Label>{t.academy.tournamentHistory || 'Tournament History'}</Label>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        {studentDetail.tournamentHistory.map(trn => (
-                          <div key={`${trn.name}-${trn.startsAt}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-card2)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '10px 14px' }}>
-                            <div>
-                              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '13px', color: 'var(--t1)', marginBottom: '2px' }}>{trn.name}</div>
-                              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)' }}>
-                                {new Date(trn.startsAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
-                              </div>
-                            </div>
-                            <div style={{ textAlign: 'right' }}>
-                              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: trn.rank === 1 ? 'var(--color-neutral)' : 'var(--t1)' }}>
-                                {trn.rank <= 3 ? ['🥇','🥈','🥉'][trn.rank - 1] : `#${trn.rank}`}
-                              </div>
-                              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)' }}>
-                                {trn.score}pts · {trn.totalParticipants} players
-                              </div>
+                      {studentDetail.tournamentHistory.map(trn => (
+                        <div key={`${trn.name}-${trn.startsAt}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid var(--border-default)' }}>
+                          <div>
+                            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '13px', color: 'var(--text-primary)', marginBottom: '2px' }}>{trn.name}</div>
+                            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)' }}>
+                              {new Date(trn.startsAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
                             </div>
                           </div>
-                        ))}
-                      </div>
+                          <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '15px', color: 'var(--text-primary)' }}>
+                              {trn.rank <= 3 ? `#${trn.rank}` : `#${trn.rank}`}
+                            </div>
+                            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)' }}>
+                              {trn.score}pts · {trn.totalParticipants}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </section>
                   )}
 
@@ -1604,29 +1335,31 @@ function AcademyDashboard({ academyId, onBack }) {
                       placeholder={t.academy.messagePlaceholderDetail}
                       rows={3}
                       style={{
-                        width: '100%', padding: '11px 12px', boxSizing: 'border-box',
-                        background: 'var(--bg-card2)', border: '1px solid var(--bd2)',
-                        borderRadius: '6px', color: 'var(--t1)',
+                        width: '100%', padding: '10px 0', boxSizing: 'border-box',
+                        background: 'transparent',
+                        border: 'none', borderBottom: '1.5px solid var(--border-default)',
+                        color: 'var(--text-primary)',
                         fontFamily: 'var(--font-body)', fontSize: '12px',
-                        outline: 'none', resize: 'vertical', marginBottom: '4px',
+                        outline: 'none', resize: 'none', marginBottom: '4px',
                       }}
                     />
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-down)' }}>{detailFeedbackErr || ''}</span>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)' }}>{detailFeedbackMsg.length}/500</span>
-                        <Btn onClick={sendDetailFeedback} disabled={detailFeedbackSending || !detailFeedbackMsg.trim()} style={{ padding: '7px 14px' }}>
-                          {detailFeedbackSending ? '...' : t.academy.sendBtn}
-                        </Btn>
-                      </div>
+                      {detailFeedbackErr ? (
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--pink)' }}>{detailFeedbackErr}</span>
+                      ) : (
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)' }}>{detailFeedbackMsg.length}/500</span>
+                      )}
+                      <button onClick={sendDetailFeedback} disabled={detailFeedbackSending || !detailFeedbackMsg.trim()} style={{ background: 'transparent', border: 'none', color: 'var(--pink)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: (detailFeedbackSending || !detailFeedbackMsg.trim()) ? 'default' : 'pointer', padding: 0, opacity: (detailFeedbackSending || !detailFeedbackMsg.trim()) ? 0.5 : 1 }}>
+                        {detailFeedbackSending ? '...' : t.academy.sendBtn}
+                      </button>
                     </div>
                     {/* Mensajes enviados por el profesor */}
                     {studentDetail.feedback.length > 0 && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {studentDetail.feedback.map(m => (
-                          <div key={String(m._id)} style={{ background: 'var(--bg-card2)', border: '1px solid var(--bd)', borderRadius: '6px', padding: '10px 12px' }}>
-                            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t1)', lineHeight: 1.5, marginBottom: '4px' }}>{m.message}</div>
-                            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)' }}>
+                      <div>
+                        {studentDetail.feedback.map((m, i) => (
+                          <div key={String(m._id)} style={{ borderTop: i === 0 ? '1px solid var(--border-default)' : 'none', borderBottom: '1px solid var(--border-default)', padding: '10px 0' }}>
+                            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-primary)', lineHeight: 1.5, marginBottom: '4px' }}>{m.message}</div>
+                            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)' }}>
                               {new Date(m.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                             </div>
                           </div>
@@ -1635,24 +1368,20 @@ function AcademyDashboard({ academyId, onBack }) {
                     )}
                     {/* Respuestas del alumno */}
                     {studentDetail.studentReplies?.length > 0 && (
-                      <div style={{ marginTop: '12px', borderTop: '1px solid var(--bd)', paddingTop: '12px' }}>
-                        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>
-                          {t.academy.studentRepliesLabel || 'Student replies'}
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                          {studentDetail.studentReplies.map(m => (
-                            <div key={String(m._id)} style={{ background: 'rgba(0,229,160,0.04)', border: '1px solid rgba(0,229,160,0.2)', borderRadius: '6px', padding: '10px 12px' }}>
-                              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t1)', lineHeight: 1.5, marginBottom: '4px' }}>{m.message}</div>
-                              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)' }}>
-                                {new Date(m.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
-                              </div>
+                      <div style={{ marginTop: '12px', borderTop: '1px solid var(--border-default)', paddingTop: '12px' }}>
+                        <div className="micro-label" style={{ marginBottom: '8px' }}>{t.academy.studentRepliesLabel || 'Student replies'}</div>
+                        {studentDetail.studentReplies.map((m, i) => (
+                          <div key={String(m._id)} style={{ borderBottom: '1px solid var(--border-default)', padding: '10px 0' }}>
+                            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-primary)', lineHeight: 1.5, marginBottom: '4px' }}>{m.message}</div>
+                            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)' }}>
+                              {new Date(m.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                             </div>
-                          ))}
-                        </div>
+                          </div>
+                        ))}
                       </div>
                     )}
                     {studentDetail.feedback.length === 0 && !studentDetail.studentReplies?.length && (
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', fontStyle: 'italic' }}>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
                         {t.academy.noMessages}
                       </div>
                     )}
@@ -1671,13 +1400,13 @@ function AcademyDashboard({ academyId, onBack }) {
           onClick={e => { if (e.target === e.currentTarget) { setFeedbackModal(null); setFeedbackMsg(''); setFeedbackErr(null); } }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', zIndex: 100 }}
         >
-          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '380px', boxShadow: '0 20px 60px rgba(0,0,0,0.6)', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div style={{ background: 'var(--bg-surface)', borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '380px', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '18px' }}>
               <div>
-                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t1)' }}>{t.academy.messageToStudent}</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', marginTop: '3px' }}>{feedbackModal.studentName}</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--text-primary)' }}>{t.academy.messageToStudent}</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', marginTop: '3px' }}>{feedbackModal.studentName}</div>
               </div>
-              <button onClick={() => { setFeedbackModal(null); setFeedbackMsg(''); setFeedbackErr(null); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--t5)', fontSize: '18px', lineHeight: 1, flexShrink: 0 }}>×</button>
+              <button onClick={() => { setFeedbackModal(null); setFeedbackMsg(''); setFeedbackErr(null); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '18px', lineHeight: 1, flexShrink: 0 }}>×</button>
             </div>
 
             <textarea
@@ -1685,29 +1414,29 @@ function AcademyDashboard({ academyId, onBack }) {
               onChange={e => setFeedbackMsg(e.target.value.slice(0, 500))}
               placeholder={t.academy.messagePlaceholder}
               rows={4}
-              style={{ width: '100%', padding: '11px 12px', background: 'var(--bg-card2)', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t1)', fontFamily: 'var(--font-body)', fontSize: '12px', outline: 'none', boxSizing: 'border-box', resize: 'vertical' }}
+              style={{ width: '100%', padding: '10px 0', background: 'transparent', border: 'none', borderBottom: '1.5px solid var(--border-default)', color: 'var(--text-primary)', fontFamily: 'var(--font-body)', fontSize: '12px', outline: 'none', boxSizing: 'border-box', resize: 'none' }}
             />
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', textAlign: 'right', marginTop: '3px', marginBottom: '10px' }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', textAlign: 'right', marginTop: '3px', marginBottom: '14px' }}>
               {feedbackMsg.length}/500
             </div>
 
-            {feedbackErr && <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-down)', marginBottom: '10px' }}>{feedbackErr}</div>}
+            {feedbackErr && <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--pink)', marginBottom: '10px' }}>{feedbackErr}</div>}
 
-            <Btn onClick={sendFeedback} disabled={feedbackSending || !feedbackMsg.trim()} style={{ width: '100%', padding: '11px' }}>
+            <Btn onClick={sendFeedback} disabled={feedbackSending || !feedbackMsg.trim()}>
               {feedbackSending ? '...' : t.academy.sendBtn}
             </Btn>
 
             {(feedbackLoading || feedbackHist.length > 0) && (
-              <div style={{ marginTop: '20px', borderTop: '1px solid var(--bd)', paddingTop: '16px' }}>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px' }}>{t.academy.previousMessages}</div>
+              <div style={{ marginTop: '20px', borderTop: '1px solid var(--border-default)', paddingTop: '16px' }}>
+                <div className="micro-label" style={{ marginBottom: '10px' }}>{t.academy.previousMessages}</div>
                 {feedbackLoading ? (
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)' }}>{t.academy.detailLoading}</div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)' }}>{t.academy.detailLoading}</div>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {feedbackHist.map(m => (
-                      <div key={m._id} style={{ background: 'var(--bg-card2)', border: '1px solid var(--bd)', borderRadius: '6px', padding: '10px 12px' }}>
-                        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t1)', lineHeight: 1.5, marginBottom: '4px' }}>{m.message}</div>
-                        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)' }}>
+                  <div>
+                    {feedbackHist.map((m, i) => (
+                      <div key={m._id} style={{ borderBottom: '1px solid var(--border-default)', padding: '10px 0' }}>
+                        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-primary)', lineHeight: 1.5, marginBottom: '4px' }}>{m.message}</div>
+                        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)' }}>
                           {new Date(m.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </div>
                       </div>
@@ -1757,9 +1486,3 @@ export default function TeacherDashboard({ academyId: academyIdProp, onBack }) {
   return <AcademyDashboard academyId={activeId} onBack={onBack} />;
 }
 
-const backBtnStyle = {
-  background: 'transparent', border: 'none',
-  color: 'var(--t6)', fontFamily: 'var(--font-body)',
-  fontSize: '12px', cursor: 'pointer',
-  marginBottom: '28px', display: 'block', padding: 0,
-};

@@ -1,6 +1,6 @@
 // ── Battle Pass Season 1 configuration ───────────────────────────────────────
 // startDate is controlled by SEASON_1_START_DATE env var (ISO string).
-// Duration is fixed at 150 days (~5 months).
+// Duration is fixed at 300 days (~10 months).
 //
 // Progression:
 //   Complete a BP mission  → +300 bp points  (= 1 full level)
@@ -27,7 +27,7 @@ const startDate = process.env.SEASON_1_START_DATE
   ? new Date(process.env.SEASON_1_START_DATE)
   : new Date('2025-10-01T00:00:00Z'); // set SEASON_1_START_DATE env var before launch
 
-const endDate = new Date(startDate.getTime() + 150 * 24 * 60 * 60 * 1000);
+const endDate = new Date(startDate.getTime() + 300 * 24 * 60 * 60 * 1000);
 
 // ── Reward factory helpers ────────────────────────────────────────────────────
 const xp       = (amount)             => ({ type: 'xp',            amount });
@@ -109,7 +109,7 @@ const LEVELS = [
     level: 7,
     freeMission: null,
     freeReward:  null,
-    proMission: mission('bp_s1_l7_pro',  'Racha en Classic',      'Acierta 10 rondas seguidas en Classic',               'classic_streak',             'classic',     10),
+    proMission: mission('bp_s1_l7_pro',  'Racha en Classic',      'Acierta 4 rondas seguidas en Classic',                'classic_streak',             'classic',      4),
     proReward:  xp(1000),
   },
 
@@ -154,7 +154,7 @@ const LEVELS = [
     level: 12,
     freeMission: mission('bp_s1_l12_free', 'Historical Mode',     'Completa un evento en Historical Mode',               'historical_event',           'historical',   1),
     freeReward:  title('title_risk_taker', 'Risk Taker'),
-    proMission: mission('bp_s1_l12_pro', 'Historical Completo',   'Completa todos los eventos de Historical Mode',        'historical_all_events',      'historical',   0),
+    proMission: mission('bp_s1_l12_pro', 'Historical Completo',   'Completa todos los eventos de Historical Mode',        'historical_all_events',      'historical',  50),
     proReward:  ticket('ticket_restore_streak', 'Restauración de Racha'),
   },
 
@@ -172,7 +172,7 @@ const LEVELS = [
     level: 14,
     freeMission: mission('bp_s1_l14_free', 'Ganancia en Trading', 'Cierra una posición con al menos +1% de ganancia',    'trading_close_plus1pct',     'trading_mode', 1, false),
     freeReward:  xp(1000),
-    proMission: mission('bp_s1_l14_pro', 'Racha en Classic',      'Acierta 15 rondas seguidas en Classic',               'classic_streak',             'classic',     15),
+    proMission: mission('bp_s1_l14_pro', 'Classic Consolidado',   'Acierta 15 rondas en Classic',                        'classic_wins',               'classic',     15),
     proReward:  theme('theme_midnight', 'Midnight'),
   },
 
@@ -188,9 +188,9 @@ const LEVELS = [
   // ── Level 16 ─────────────────────────────────────────────────────────────────
   {
     level: 16,
-    freeMission: mission('bp_s1_l16_free', 'Racha en Classic',    'Acierta 5 rondas seguidas en Classic',                'classic_streak',             'classic',      5),
+    freeMission: mission('bp_s1_l16_free', 'Racha en Classic',    'Acierta 3 rondas seguidas en Classic',                'classic_streak',             'classic',      3),
     freeReward:  title('title_bull_runner', 'Bull Runner'),
-    proMission: mission('bp_s1_l16_pro', 'Duelos en Arena',       'Gana 20 duelos en Arena contra jugadores reales',     'arena_wins',                 'arena',       20),
+    proMission: mission('bp_s1_l16_pro', 'Duelos en Arena',       'Gana 3 duelos en Arena contra jugadores reales',      'arena_wins',                 'arena',        3),
     proReward:  color('color_red', 'Rojo', '#e05555'),
   },
 
@@ -226,7 +226,7 @@ const LEVELS = [
     level: 20,
     freeMission: mission('bp_s1_l20_free', 'Survival Medio',      'Sobrevive 50 rondas en Survival',                     'survival_rounds',            'survival',    50),
     freeReward:  title('title_bear_hunter', 'Bear Hunter'),
-    proMission: mission('bp_s1_l20_pro', 'Campeón de Torneo',     'Gana un torneo semanal',                              'win_tournament',             'tournament',   1),
+    proMission: mission('bp_s1_l20_pro', 'Classic Constante',     'Acierta 40 rondas en Classic',                        'classic_wins',               'classic',     40),
     proReward:  mechanic('mechanic_verified_badge', 'Insignia Verificada'),
   },
 
@@ -235,7 +235,7 @@ const LEVELS = [
     level: 21,
     freeMission: null,
     freeReward:  null,
-    proMission: mission('bp_s1_l21_pro', 'Arena Experto',         'Gana 30 duelos en Arena contra jugadores reales',     'arena_wins',                 'arena',       30),
+    proMission: mission('bp_s1_l21_pro', 'Arena Experto',         'Gana 5 duelos en Arena contra jugadores reales',      'arena_wins',                 'arena',        5),
     proReward:  xp(4000),
   },
 
@@ -244,7 +244,7 @@ const LEVELS = [
     level: 22,
     freeMission: mission('bp_s1_l22_free', 'Desafíos Masivos',    'Completa 20 Daily Challenges',                        'complete_daily',             'daily',       20),
     freeReward:  xp(2000),
-    proMission: mission('bp_s1_l22_pro', 'Racha en Classic',      'Acierta 20 rondas seguidas en Classic',               'classic_streak',             'classic',     20),
+    proMission: mission('bp_s1_l22_pro', 'Classic Avanzado',      'Acierta 20 rondas en Classic',                        'classic_wins',               'classic',     20),
     proReward:  theme('theme_aurora', 'Aurora'),
   },
 
@@ -336,8 +336,8 @@ for (const l of LEVELS) {
 }
 
 // Trading Mode missions: Free track at levels 6 and 14; Pro track at levels 5, 11, 17, 26
-const tradingFree = LEVELS.filter(l => l.freeMission && !l.freeMission.enabled).map(l => l.level);
-const tradingPro  = LEVELS.filter(l => !l.proMission.enabled).map(l => l.level);
+const tradingFree = LEVELS.filter(l => l.freeMission && l.freeMission.enabled === false).map(l => l.level);
+const tradingPro  = LEVELS.filter(l => l.proMission && l.proMission.enabled === false).map(l => l.level);
 if (JSON.stringify(tradingFree) !== JSON.stringify([6, 14]))
   throw new Error(`season1: Trading Mode free missions must be at levels [6, 14]. Got: ${tradingFree}`);
 if (JSON.stringify(tradingPro) !== JSON.stringify([5, 11, 17, 26]))

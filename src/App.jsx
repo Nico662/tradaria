@@ -3,7 +3,7 @@ import { io } from 'socket.io-client';
 import { SERVER } from './config.js';
 import Pricing from './Pricing.jsx';
 import { ASSETS } from './assets.js';
-import Chart, { generateCandles } from "./Chart";
+import Chart from "./Chart";
 import Home from "./Home";
 import { useLang } from './LangContext.jsx';
 import Arena from './Arena.jsx';
@@ -25,6 +25,7 @@ import Survival from './Survival.jsx';
 import Shop from './Shop.jsx';
 import Portfolio from './Portfolio.jsx';
 import League from './League.jsx';
+import LeagueList from './LeagueList.jsx';
 import Friends from './Friends.jsx';
 import EffectOverlay from './EffectOverlay.jsx';
 import ChallengeNotification from './ChallengeNotification.jsx';
@@ -41,10 +42,12 @@ import { LevelIcon } from './components/AppIcons.jsx';
 import StudentDashboard from './StudentDashboard.jsx';
 import AppLayout from './components/layout/AppLayout.jsx';
 import ModesPage from './components/ModesPage.jsx';
+import GameThemeBg from './GameThemeBg.jsx';
 import BattlePass from './BattlePass.jsx';
 import TradingMode from './TradingMode.jsx';
 import BattlePassNotification from './BattlePassNotification.jsx';
 import { useBattlePass } from './BattlePassContext.jsx';
+import { TextTabs } from './components/ui';
 import Inventory from './Inventory.jsx';
 
 
@@ -54,6 +57,7 @@ const CATEGORIES = [
   { id: 'forex',       labelKey: 'forex'       },
   { id: 'indices',     labelKey: 'indices'     },
   { id: 'commodities', labelKey: 'commodities' },
+  { id: 'stocks',      labelKey: 'stocks'      },
 ];
 
 function randomAsset(cat = 'all') {
@@ -74,6 +78,7 @@ export default function App() {
     return p.startsWith('/u/') ? p.split('/u/')[1] || null : null;
   });
   const [leagueId, setLeagueId] = useState(null);
+  const [leaguesState, setLeaguesState] = useState({ status: 'idle', list: [] });
   const [prevScreen, setPrevScreen] = useState('home');
   const [academyTournamentCtx, setAcademyTournamentCtx] = useState(null); // { academyId, tournamentId }
   const [showLanding,  setShowLanding]  = useState(() => !localStorage.getItem('tradaria_landing_seen'));
@@ -101,7 +106,12 @@ export default function App() {
   const floatingXPKeyRef = useRef(0);
   const gameStartRef     = useRef(Date.now());
   const wonCatsRef       = useRef(new Set());
+  const sessionTokenRef  = useRef(null);
+  const failCountRef     = useRef(0);
+  const [serverRound,   setServerRound]   = useState(null); // {visible,assetName,interval,roundNum} from /game/round/start
+  const serverRoundRef  = useRef(null);                     // mirror for makeChoice (avoids stale closure)
   const [chartReady, setChartReady] = useState(false);
+  const [chartLoadError, setChartLoadError] = useState(false);
   const [pricingFromTournament, setPricingFromTournament] = useState(false);
   const [shareStatus, setShareStatus] = useState('idle');
 
@@ -109,6 +119,34 @@ export default function App() {
   const { refreshBattlePass } = useBattlePass();
   const { lang, setLang, t } = useLang();
   const chartRef = useRef(null);
+
+  const fetchSessionToken = useCallback(async (mode, category = 'all') => {
+    const tok = localStorage.getItem('tradaria_token');
+    if (!tok) return;
+    try {
+      const r = await fetch(`${SERVER}/game/start`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode }),
+      });
+      const d = await r.json();
+      if (d.sessionToken) {
+        sessionTokenRef.current = d.sessionToken;
+        if (mode === 'guess') {
+          const rr = await fetch(`${SERVER}/game/round/start`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionToken: d.sessionToken, category }),
+          });
+          const rd = await rr.json();
+          if (!rd.error && rd.visible) {
+            serverRoundRef.current = rd;
+            setServerRound(rd);
+          }
+        }
+      }
+    } catch (_) {}
+  }, []);
 
   // ── Challenge socket (global, lives while user is logged in) ──────
   const challengeSocketRef          = useRef(null);
@@ -134,19 +172,101 @@ export default function App() {
     return () => { socket.disconnect(); challengeSocketRef.current = null; setChallengeSocket(null); };
   }, [user?.username]);
 
-  useEffect(() => {
-    if (!user) return;
+  async function loadLeagues(silent = false) {
     const tok = localStorage.getItem('tradaria_token');
     if (!tok) return;
-    fetch(`${SERVER}/leagues/mine`, { headers: { Authorization: `Bearer ${tok}` } })
-      .then(r => r.ok ? r.json() : null)
-      .then(data => { if (Array.isArray(data) && data.length > 0) setLeagueId(data[0]._id); })
-      .catch(() => {});
-  }, [user]);
+    if (!silent) setLeaguesState(s => ({ ...s, status: 'loading' }));
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 15000);
+    try {
+      const r = await fetch(`${SERVER}/leagues/mine`, {
+        headers: { Authorization: `Bearer ${tok}` },
+        signal: controller.signal,
+      });
+      clearTimeout(timer);
+      if (!r.ok) throw new Error('not ok');
+      const data = await r.json();
+      setLeaguesState({ status: 'done', list: Array.isArray(data) ? data : [] });
+    } catch {
+      clearTimeout(timer);
+      setLeaguesState(s => ({ status: s.status === 'done' ? 'done' : 'error', list: s.list }));
+    }
+  }
+
+  useEffect(() => {
+    if (!user) {
+      setLeagueId(null);
+      setLeaguesState({ status: 'idle', list: [] });
+      return;
+    }
+    // Re-sync XP to server's authoritative value to prevent stale XP from a previous account
+    const correctXp = Math.max(user.xp ?? 0, parseInt(localStorage.getItem('tradaria_xp') || '0'));
+    localStorage.setItem('tradaria_xp', String(correctXp));
+    setXp(correctXp);
+    setLeagueId(null);
+    loadLeagues();
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Android back button: detail → list within league screen
+  useEffect(() => {
+    const handlePop = () => {
+      if (screen === 'league' && leagueId) setLeagueId(null);
+    };
+    window.addEventListener('popstate', handlePop);
+    return () => window.removeEventListener('popstate', handlePop);
+  }, [screen, leagueId]);
+
+  // When the server provides a new round, update the asset so Chart renders only visible candles.
+  useEffect(() => {
+    if (!serverRound) return;
+    setChartLoadError(false);
+    failCountRef.current = 0;
+    setChartReady(false);
+    const matchedCat = ASSETS.find(a => a.name === serverRound.assetName)?.cat || 'crypto';
+    setAsset({
+      name: serverRound.assetName,
+      tf:   serverRound.interval,
+      vol:  0.02, cat: matchedCat, candle: null, binance: null, yahoo: null, alphavantage: null,
+      base: () => 0,
+      _dailyVisible: serverRound.visible,
+      _dailyFuture:  [],
+    });
+  }, [serverRound]);
+
+  useEffect(() => {
+    if (screen === 'game') fetchSessionToken('guess');
+  }, [screen]);
+
+  const screenRef = useRef(screen);
+  useEffect(() => { screenRef.current = screen; }, [screen]);
+
+  useEffect(() => {
+    // Don't strip query params if this is an OAuth callback (code= present)
+    if (!new URLSearchParams(window.location.search).has('code')) {
+      window.history.replaceState({ screen: screenRef.current }, '', window.location.pathname);
+    }
+    const onPopState = (e) => {
+      const s = e.state?.screen || 'home';
+      setPrevScreen(screenRef.current);
+      setScreen(s);
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSelect = (newScreen) => {
+    if (newScreen === 'league') {
+      setLeagueId(null);
+      if (leaguesState.status === 'done') {
+        loadLeagues(true); // silent background refresh
+      } else if (leaguesState.status !== 'loading') {
+        loadLeagues(false); // show spinner first time or after error
+      }
+    }
     setPrevScreen(screen);
     setScreen(newScreen);
+    window.scrollTo(0, 0);
+    window.history.pushState({ screen: newScreen }, '', window.location.pathname);
   };
 
   function handleAcceptChallenge() {
@@ -172,9 +292,20 @@ export default function App() {
  useEffect(() => {
      const root = document.getElementById('root');
      if (!root) return;
-     root.classList.remove('theme_matrix', 'theme_blood', 'theme_gold', 'theme_midnight');
+     root.classList.remove('theme_matrix', 'theme_blood', 'theme_gold', 'theme_midnight', 'theme_aurora');
      if (activeCosmetics?.theme) root.classList.add(activeCosmetics.theme);
    }, [activeCosmetics?.theme]);
+
+  useEffect(() => {
+    if (screen !== 'game') return;
+    const userId = user?.id || user?._id;
+    const tKey = userId ? `tradiko_tutorial_seen_${userId}` : 'tradiko_tutorial_seen';
+    if (localStorage.getItem('tradaria_tutorial_done') || parseInt(localStorage.getItem('tradaria_highscore') || '0') > 0) {
+      if (!localStorage.getItem(tKey)) localStorage.setItem(tKey, '1');
+    } else if (!localStorage.getItem(tKey)) {
+      setShowTutorial(true);
+    }
+  }, [screen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!user?.role) return;
@@ -257,19 +388,121 @@ export default function App() {
     if (newStreak >= 100) tryUnlockBadge('streak_100');
   }
 
+  // Shared post-round logic (badges, missions, sounds, XP) — called from both server and client paths.
+  const applyRoundOutcome = useCallback((choice, win, neutral, pts, pctMove, direction, svrStreak, svrScore) => {
+    if (win && !neutral) {
+      if (svrScore > highscore) { setHighscore(svrScore); localStorage.setItem('tradaria_highscore', String(svrScore)); }
+      if (svrStreak >= 3) playStreak(); else playWin();
+      triggerEffect();
+      earnXP(10);
+      localStorage.setItem('tradaria_lose_streak', '0');
+    } else if (win && neutral) {
+      if (svrScore > highscore) { setHighscore(svrScore); localStorage.setItem('tradaria_highscore', String(svrScore)); }
+      playWin();
+      triggerEffect();
+      earnXP(5);
+      localStorage.setItem('tradaria_lose_streak', '0');
+    } else if (!win && !neutral) {
+      playLose();
+      const loseStreak = parseInt(localStorage.getItem('tradaria_lose_streak') || '0') + 1;
+      localStorage.setItem('tradaria_lose_streak', String(loseStreak));
+      if (loseStreak >= 10) tryUnlockBadge('rekt');
+    }
+    if (win && svrStreak >= 5)  tryUnlockBadge('sniper');
+    if (win && svrStreak >= 10) tryUnlockBadge('on_fire');
+    if (choice === 'skip' && win) {
+      const ss = parseInt(localStorage.getItem('tradaria_skip_streak') || '0') + 1;
+      localStorage.setItem('tradaria_skip_streak', String(ss));
+      if (ss >= 3) tryUnlockBadge('diamond_hands');
+    } else {
+      localStorage.setItem('tradaria_skip_streak', '0');
+    }
+    if (asset.name === 'BTC/USD' && win) {
+      const bw = parseInt(localStorage.getItem('tradaria_btc_wins') || '0') + 1;
+      localStorage.setItem('tradaria_btc_wins', String(bw));
+      if (bw >= 10) tryUnlockBadge('bitcoin_maxi');
+    }
+    if (asset.cat === 'forex' && win) {
+      const fs = parseInt(localStorage.getItem('tradaria_forex_streak') || '0') + 1;
+      localStorage.setItem('tradaria_forex_streak', String(fs));
+      if (fs >= 5) tryUnlockBadge('forex_king');
+    } else if (asset.cat === 'forex' && !win) {
+      localStorage.setItem('tradaria_forex_streak', '0');
+    }
+    if (win && asset.base && asset.base() >= 10000) {
+      const ww = parseInt(localStorage.getItem('tradaria_whale_wins') || '0') + 1;
+      localStorage.setItem('tradaria_whale_wins', String(ww));
+      if (ww >= 3) tryUnlockBadge('whale');
+    } else if (!win) {
+      localStorage.setItem('tradaria_whale_wins', '0');
+    }
+    if (win) wonCatsRef.current.add(asset.cat);
+    if (win) {
+      const r1 = incrementMission('correct_10');
+      if (r1.completed) pushMission({ xpEarned: r1.xpEarned, title: r1.mission.title });
+      const wr1 = incrementWeeklyMission('weekly_correct_50');
+      if (wr1.completed) pushMission({ xpEarned: wr1.xpEarned, title: wr1.mission.title });
+      if (svrStreak === 3) { const r2 = incrementMission('play_3_guess', 3); if (r2.completed) pushMission({ xpEarned: r2.xpEarned, title: r2.mission.title }); }
+      if (svrStreak === 5) { const r3 = incrementMission('streak_5', 5);    if (r3.completed) pushMission({ xpEarned: r3.xpEarned, title: r3.mission.title }); }
+      if (choice === 'skip') { const r4 = incrementMission('no_trade_3'); if (r4.completed) pushMission({ xpEarned: r4.xpEarned, title: r4.mission.title }); }
+    }
+  }, [asset, highscore]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const makeChoice = useCallback((choice) => {
     if (phase !== 'choose') return;
+
+    const tok = localStorage.getItem('tradaria_token');
+
+    // ── Server-side path (logged-in users) ────────────────────────
+    if (tok && sessionTokenRef.current && serverRoundRef.current) {
+      updateDailyStreak();
+      playClick();
+      setSelected(choice);
+      setPhase('reveal');
+      setRevealing(true);
+
+      fetch(`${SERVER}/game/round/submit`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionToken: sessionTokenRef.current, choice }),
+      }).then(r => r.json()).then(data => {
+        if (data.error) { setPhase('choose'); setRevealing(false); return; }
+        const { future, win, direction, pctMove, pts, score: svrScore, streak: svrStreak, completed } = data;
+        const neutral = choice === 'skip';
+        setScore(svrScore);
+        setStreak(svrStreak);
+        chartRef.current?.revealFuture(future, () => setRevealing(false));
+        applyRoundOutcome(choice, win, neutral, pts, pctMove, direction, svrStreak, svrScore);
+        const outcome = win && !neutral ? 'win' : !win && !neutral ? 'lose' : 'skip';
+        setHistory(h => [...h, outcome]);
+        const displayPts = pts < 0 ? svrScore - score : pts;
+        setResult({ win, neutral, pts: displayPts, pctMove, direction, choice });
+        if (completed) {
+          if ((Date.now() - gameStartRef.current) / 1000 < 180) tryUnlockBadge('secret_speedrun');
+          setTimeout(() => setGameOver(true), 2000);
+        }
+      }).catch(() => { setPhase('choose'); setRevealing(false); });
+      return;
+    }
+
+    // ── Client-side fallback (anonymous / no session) ─────────────
+    const candles   = chartRef.current.getCandles();
+    const lastClose = candles[candles.length - 1].close;
+    const future    = chartRef.current.getRealReveal?.() ?? null;
+    if (!future || !future.length) {
+      failCountRef.current += 1;
+      if (failCountRef.current >= 2) { setChartLoadError(true); }
+      else { setChartReady(false); setAsset(randomAsset(category)); }
+      return;
+    }
+    failCountRef.current = 0;
+
     updateDailyStreak();
     playClick();
     setSelected(choice);
     setPhase('reveal');
     setRevealing(true);
 
-    const candles    = chartRef.current.getCandles();
-    const lastClose  = candles[candles.length - 1].close;
-    const trend      = (Math.random() - 0.5) * 0.5;
-    const future     = chartRef.current.getRealReveal?.()
-      ?? generateCandles(20, lastClose, asset.vol, trend * 2);
     const lastReveal = future[future.length - 1].close;
     const pctMove    = (lastReveal - lastClose) / lastClose * 100;
     const direction  = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
@@ -286,96 +519,26 @@ export default function App() {
       pts = 100 + streak * 10;
       const newScore = score + pts;
       setScore(newScore);
-      if (newScore > highscore) {
-        setHighscore(newScore);
-        localStorage.setItem('tradaria_highscore', String(newScore));
-      }
       setStreak(s => s + 1);
-      if (streak >= 2) playStreak(); else playWin();
-      triggerEffect();
-      earnXP(10);
-      localStorage.setItem('tradaria_lose_streak', '0');
+      applyRoundOutcome(choice, win, neutral, pts, pctMove, direction, streak + 1, newScore);
     } else if (win && neutral) {
       pts = 50;
       const newScore = score + pts;
       setScore(newScore);
-      if (newScore > highscore) {
-        setHighscore(newScore);
-        localStorage.setItem('tradaria_highscore', String(newScore));
-      }
       setStreak(s => s + 1);
-      playWin();
-      triggerEffect();
-      earnXP(5);
-      localStorage.setItem('tradaria_lose_streak', '0');
+      applyRoundOutcome(choice, win, neutral, pts, pctMove, direction, streak + 1, newScore);
     } else if (!win && !neutral) {
       pts = -50;
       setScore(s => Math.max(0, s + pts));
       setStreak(0);
-      playLose();
-      const loseStreak = parseInt(localStorage.getItem('tradaria_lose_streak') || '0') + 1;
-      localStorage.setItem('tradaria_lose_streak', String(loseStreak));
-      if (loseStreak >= 10) tryUnlockBadge('rekt');
-    }
-
-    if (win && streak + 1 >= 5)  tryUnlockBadge('sniper');
-    if (win && streak + 1 >= 10) tryUnlockBadge('on_fire');
-
-    if (choice === 'skip' && win) {
-      const skipStreak = parseInt(localStorage.getItem('tradaria_skip_streak') || '0') + 1;
-      localStorage.setItem('tradaria_skip_streak', String(skipStreak));
-      if (skipStreak >= 3) tryUnlockBadge('diamond_hands');
-    } else {
-      localStorage.setItem('tradaria_skip_streak', '0');
-    }
-
-    if (asset.name === 'BTC/USD' && win) {
-      const btcWins = parseInt(localStorage.getItem('tradaria_btc_wins') || '0') + 1;
-      localStorage.setItem('tradaria_btc_wins', String(btcWins));
-      if (btcWins >= 10) tryUnlockBadge('bitcoin_maxi');
-    }
-
-    if (asset.cat === 'forex' && win) {
-      const forexStreak = parseInt(localStorage.getItem('tradaria_forex_streak') || '0') + 1;
-      localStorage.setItem('tradaria_forex_streak', String(forexStreak));
-      if (forexStreak >= 5) tryUnlockBadge('forex_king');
-    } else if (asset.cat === 'forex' && !win) {
-      localStorage.setItem('tradaria_forex_streak', '0');
-    }
-
-    if (win && asset.base() >= 10000) {
-      const whaleWins = parseInt(localStorage.getItem('tradaria_whale_wins') || '0') + 1;
-      localStorage.setItem('tradaria_whale_wins', String(whaleWins));
-      if (whaleWins >= 3) tryUnlockBadge('whale');
-    } else if (!win) {
-      localStorage.setItem('tradaria_whale_wins', '0');
-    }
-
-    if (win) wonCatsRef.current.add(asset.cat);
-
-    if (win) {
-      const r1 = incrementMission('correct_10');
-      if (r1.completed) pushMission({ xpEarned: r1.xpEarned, title: r1.mission.title });
-      const wr1 = incrementWeeklyMission('weekly_correct_50');
-      if (wr1.completed) pushMission({ xpEarned: wr1.xpEarned, title: wr1.mission.title });
-      if (streak + 1 === 3) {
-        const r2 = incrementMission('play_3_guess', 3);
-        if (r2.completed) pushMission({ xpEarned: r2.xpEarned, title: r2.mission.title });
-      }
-      if (streak + 1 === 5) {
-        const r3 = incrementMission('streak_5', 5);
-        if (r3.completed) pushMission({ xpEarned: r3.xpEarned, title: r3.mission.title });
-      }
-      if (choice === 'skip') {
-        const r4 = incrementMission('no_trade_3');
-        if (r4.completed) pushMission({ xpEarned: r4.xpEarned, title: r4.mission.title });
-      }
+      applyRoundOutcome(choice, win, neutral, pts, pctMove, direction, 0, Math.max(0, score + pts));
     }
 
     const outcome = win && !neutral ? 'win' : !win && !neutral ? 'lose' : 'skip';
     setHistory(h => [...h, outcome]);
-    setResult({ win, neutral, pts, pctMove, direction, choice });
-  }, [phase, asset, streak, score, highscore]);
+    const effectivePts = pts < 0 ? Math.max(0, score + pts) - score : pts;
+    setResult({ win, neutral, pts: effectivePts, pctMove, direction, choice });
+  }, [phase, asset, streak, score, highscore, applyRoundOutcome]);
 
   useEffect(() => {
     if (!gameOver) return;
@@ -389,49 +552,85 @@ export default function App() {
     fetch(`${SERVER}/stats/game`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode: 'guess', score, correct: wins, wrong: losses, accuracy: acc, streak: maxStr, rounds: history.length }),
+      body: JSON.stringify({ mode: 'guess', score, correct: wins, wrong: losses, accuracy: acc, streak: maxStr, rounds: history.length, sessionToken: sessionTokenRef.current }),
     }).then(r => r.json()).then(data => {
-      if (data?.bpProgress?.awardedMissions?.length > 0) refreshBattlePass();
+      if (data?.ok || data?.bpProgress) refreshBattlePass({ force: true });
       if (data?.bpProgress?.leveledUp) setBpLevelUp(data.bpProgress.newLevel);
     }).catch(() => {});
     fetch(`${SERVER}/stats/personal`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json()).then(setPersonalStats).catch(() => {});
   }, [gameOver]);
 
-  const changeCategory = (cat) => {
+  const changeCategory = async (cat) => {
+    failCountRef.current = 0;
+    setChartLoadError(false);
     setChartReady(false);
     setCategory(cat);
-    setAsset(randomAsset(cat));
     setPhase('choose');
     setResult(null);
     setSelected(null);
+
+    const tok = localStorage.getItem('tradaria_token');
+    if (tok && sessionTokenRef.current) {
+      try {
+        const rr = await fetch(`${SERVER}/game/round/start`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionToken: sessionTokenRef.current, category: cat }),
+        });
+        const rd = await rr.json();
+        if (!rd.error && rd.visible) { serverRoundRef.current = rd; setServerRound(rd); return; }
+      } catch (_) {}
+    }
+    serverRoundRef.current = null;
+    setServerRound(null);
+    setAsset(randomAsset(cat));
   };
 
-  const nextRound = () => {
+  const nextRound = async () => {
+    failCountRef.current = 0;
+    setChartLoadError(false);
     setChartReady(false);
     const mr = incrementMission('play_5_guess');
     if (mr.completed) pushMission({ xpEarned: mr.xpEarned, title: mr.mission.title });
     const modeR = recordModePlayed('guess');
     if (modeR.completed) pushMission({ xpEarned: modeR.xpEarned, title: modeR.mission.title });
     recordWeeklyModePlayed('guess');
-    if (round >= 25) {
-      if ((Date.now() - gameStartRef.current) / 1000 < 180) tryUnlockBadge('secret_speedrun');
-      setGameOver(true);
-      return;
-    }
-    const next = randomAsset(category);
-    setAsset(next);
-    if (next.name === asset.name) {
-      setTimeout(() => chartRef.current?.reshuffleWindow?.(), 50);
-    }
+    setRound(r => r + 1);
     setPhase('choose');
     setResult(null);
     setSelected(null);
-    setRound(r => r + 1);
-    
+
+    const tok = localStorage.getItem('tradaria_token');
+    if (tok && sessionTokenRef.current) {
+      try {
+        const rr = await fetch(`${SERVER}/game/round/start`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionToken: sessionTokenRef.current, category }),
+        });
+        const rd = await rr.json();
+        if (!rd.error && rd.visible) {
+          serverRoundRef.current = rd;
+          setServerRound(rd);
+          return;
+        }
+      } catch (_) {}
+    }
+    // Fallback: client-side random asset (anonymous or server unavailable)
+    const next = randomAsset(category);
+    serverRoundRef.current = null;
+    setServerRound(null);
+    setAsset(next);
   };
 
   const goHome = () => {
+    failCountRef.current = 0;
+    setChartLoadError(false);
+    sessionTokenRef.current = null;
+    serverRoundRef.current  = null;
+    setServerRound(null);
+    fetchSessionToken('guess', 'all');
     setGameOver(false);
     setScreen('home');
     setAsset(randomAsset('all'));
@@ -447,6 +646,8 @@ export default function App() {
   };
 
   const playAgain = () => {
+    failCountRef.current = 0;
+    setChartLoadError(false);
     const wins     = history.filter(h => h === 'win').length;
     const nonSkips = history.filter(h => h !== 'skip').length;
     const acc      = nonSkips > 0 ? Math.round(wins / nonSkips * 100) : 0;
@@ -456,6 +657,10 @@ export default function App() {
     if (wonCatsRef.current.size >= 4) tryUnlockBadge('all_rounder');
     gameStartRef.current = Date.now();
     wonCatsRef.current = new Set();
+    sessionTokenRef.current = null;
+    serverRoundRef.current  = null;
+    setServerRound(null);
+    fetchSessionToken('guess', category);
     setGameOver(false);
     setRound(1);
     setScore(0);
@@ -617,13 +822,18 @@ export default function App() {
 
   // ── Landing ───────────────────────────────────────────────────────
   if (showLanding) {
-    return <Landing onEnter={() => setShowLanding(false)} />;
+    return (
+      <Landing
+        onEnter={() => setShowLanding(false)}
+        onNavigate={(sc) => { setShowLanding(false); setScreen(sc); }}
+      />
+    );
   }
 
   // ── Modes ─────────────────────────────────────────────────────────
   if (screen === 'modes') return (
     <AppLayout currentScreen={screen} onSelect={handleSelect}>
-      <ModesPage onSelect={setScreen} />
+      <ModesPage onSelect={handleSelect} />
     </AppLayout>
   );
 
@@ -655,7 +865,6 @@ export default function App() {
           else if (mode === 'trading')           setScreen('trading');
           else {
             setScreen('game');
-            if (!localStorage.getItem('tradaria_tutorial_done')) setShowTutorial(true);
           }
         }} />
         <NotificationBanner />
@@ -664,7 +873,7 @@ export default function App() {
     );
   }
 
-  if (screen === 'battle_pass') return <BattlePass onBack={() => setScreen('home')} onGoPricing={() => setScreen('pricing')} />;
+  if (screen === 'battle_pass') return <BattlePass onBack={() => { window.scrollTo(0,0); setScreen(prevScreen || 'home'); }} onGoPricing={() => setScreen('pricing')} />;
   if (screen === 'trading')    return <TradingMode onBack={() => setScreen('home')} />;
 
   if (screen === 'arena') return (
@@ -685,10 +894,29 @@ export default function App() {
   if (screen === 'tournament') return <><GameThemeBg screen={screen} /><Tournament onBack={() => { setAcademyTournamentCtx(null); setScreen(academyTournamentCtx ? 'student_dashboard' : 'home'); }} onViewProfile={(uname) => { setPublicProfileUsername(uname); setScreen('public_profile'); window.history.pushState({}, '', `/u/${uname}`); }} onGoPricing={() => { setPricingFromTournament(true); setScreen('pricing'); }} academyTournamentId={academyTournamentCtx?.tournamentId ?? null} academyId={academyTournamentCtx?.academyId ?? null} />{challengeOverlay}</>;
   if (screen === 'survival')   return <><GameThemeBg screen={screen} /><Survival   onBack={() => setScreen('home')} />{challengeOverlay}</>;
   if (screen === 'shop')       return <><Shop       onBack={() => setScreen('home')} />{challengeOverlay}</>;
-  if (screen === 'settings')   return <><Settings   onBack={() => setScreen('home')} />{challengeOverlay}</>;
+  if (screen === 'settings')   return <><Settings   onBack={() => setScreen('home')} onShowTutorial={() => setShowTutorial(true)} />{showTutorial && <Tutorial onDone={() => setShowTutorial(false)} />}{challengeOverlay}</>;
   if (screen === 'inventory')  return <AppLayout currentScreen={screen} onSelect={handleSelect}><Inventory onBack={() => setScreen('stats')} /></AppLayout>;
   if (screen === 'portfolio')  return <AppLayout currentScreen={screen} onSelect={handleSelect}><Portfolio  onBack={() => setScreen('home')} onViewProfile={(uname) => { setPublicProfileUsername(uname); setScreen('public_profile'); window.history.pushState({}, '', `/u/${uname}`); }} onOpenLeague={(id) => { setLeagueId(id); setPrevScreen('portfolio'); setScreen('league'); }} onGoPricing={() => setScreen('pricing')} />{challengeOverlay}</AppLayout>;
-  if (screen === 'league')          return <AppLayout currentScreen={screen} onSelect={handleSelect}><League leagueId={leagueId} onBack={() => setScreen(prevScreen === 'portfolio' ? 'portfolio' : 'home')} />{challengeOverlay}</AppLayout>;
+  if (screen === 'league') return (
+    <AppLayout currentScreen={screen} onSelect={handleSelect}>
+      {leagueId
+        ? <League
+            leagueId={leagueId}
+            onBack={() => { setLeagueId(null); window.history.pushState({ screen: 'league' }, '', window.location.pathname); }}
+            onSwitchLeague={(id) => setLeagueId(id)}
+            onViewProfile={(uname) => { setPublicProfileUsername(uname); setScreen('public_profile'); window.history.pushState({}, '', `/u/${uname}`); }}
+            onLeagueClosed={() => setLeagueId(null)}
+          />
+        : <LeagueList
+            leaguesState={leaguesState}
+            onRefreshLeagues={() => loadLeagues(false)}
+            onOpenLeague={(id) => { setLeagueId(id); window.history.pushState({ screen: 'league', leagueId: id }, '', window.location.pathname); }}
+            onBack={() => setScreen(prevScreen || 'home')}
+          />
+      }
+      {challengeOverlay}
+    </AppLayout>
+  );
   if (screen === 'join_academy')     return <JoinAcademy onBack={() => setScreen('home')} />;
   if (screen === 'student_dashboard') return <StudentDashboard onBack={() => setScreen('home')} onPlayTournament={(aId, tId) => { setAcademyTournamentCtx({ academyId: aId, tournamentId: tId }); setScreen('tournament'); }} />;
   if (screen === 'teacher_dashboard') return user?.role === 'teacher'
@@ -738,33 +966,30 @@ export default function App() {
     <div id="gtm-root" className={activeCosmetics?.theme || ''} style={{ position: 'relative' }}>
 
       {/* Header */}
-      <div style={{ padding: '10px 16px 8px', background: 'var(--bg-surface)', borderBottom: '0.5px solid var(--border-default)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+      <div style={{ padding: '10px 16px 10px', background: 'var(--bg-surface)', borderBottom: '0.5px solid var(--border-default)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
           <button onClick={goHome}
-            style={{ background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 10px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em' }}>
+            style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer', padding: 0 }}>
             {t.game.back}
           </button>
-          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.16em', textTransform: 'uppercase' }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '15px', color: 'var(--text-primary)' }}>
             {t.game.mode}
           </div>
-          <div style={{ display: 'flex', gap: '4px' }}>
-            {['en', 'es', 'de'].map(l => (
-              <button key={l} onClick={() => setLang(l)}
-                style={{ background: lang === l ? 'var(--green-dim)' : 'transparent', color: lang === l ? 'var(--green)' : 'var(--text-muted)', border: `1px solid ${lang === l ? 'var(--border-green)' : 'var(--border-default)'}`, borderRadius: 'var(--radius-sm)', padding: '3px 7px', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer' }}>
-                {l.toUpperCase()}
-              </button>
-            ))}
-          </div>
+          <TextTabs
+            tabs={[{ value: 'en', label: 'EN' }, { value: 'es', label: 'ES' }, { value: 'de', label: 'DE' }]}
+            active={lang}
+            onChange={l => setLang(l)}
+          />
         </div>
-        <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
           {[
             { label: t.game.round,  value: `${round}/25`, color: 'var(--text-primary)' },
             { label: t.game.points, value: score,          color: 'var(--green)'        },
             { label: t.game.streak, value: streak,         color: streak > 0 ? 'var(--pink)' : 'var(--text-muted)' },
           ].map(({ label, value, color }) => (
-            <div key={label} style={{ flex: 1, background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', padding: '6px 8px', textAlign: 'center', border: '0.5px solid var(--border-default)' }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', marginBottom: '2px' }}>{label}</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '16px', fontWeight: 900, color, letterSpacing: '-0.5px', lineHeight: 1 }}>{value}</div>
+            <div key={label} style={{ textAlign: 'center' }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: '18px', fontWeight: 900, color, lineHeight: 1 }}>{value}</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{label}</div>
             </div>
           ))}
         </div>
@@ -797,33 +1022,33 @@ export default function App() {
         </div>
       </div>
 
-      {/* Streak bar */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 16px' }}>
-        {Array.from({ length: 12 }, (_, i) => {
-          const h = recent[i];
+      {/* Streak bar — 25 dots for full Classic game */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 16px', flexWrap: 'wrap' }}>
+        {Array.from({ length: 25 }, (_, i) => {
+          const h = history[i];
           const bg = !h ? 'var(--border-default)' : h === 'win' ? 'var(--green)' : h === 'lose' ? 'var(--pink)' : 'var(--color-neutral)';
           return <div key={i} style={{ width: '8px', height: '8px', borderRadius: '50%', background: bg, flexShrink: 0 }} />;
         })}
         {streak > 1 && <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--pink)', marginLeft: '6px' }}>{streak}× {t.common.streak}</span>}
       </div>
-      {/* Analysis cards */}
-      {phase === 'choose' && chartReady && (() => {
-        const candles  = chartRef.current?.getCandles?.();
-        const analysis = analyzeCandles(candles);
-        if (!analysis) return null;
-        const trendColor = analysis.trend === 'bullish' ? 'var(--green)' : analysis.trend === 'bearish' ? 'var(--pink)' : 'var(--color-neutral)';
-        const trendLabel = analysis.trend === 'bullish' ? t.game.bullish : analysis.trend === 'bearish' ? t.game.bearish : t.game.ranging;
-        const volColor   = analysis.vol === 'low' ? 'var(--green)' : analysis.vol === 'medium' ? 'var(--color-neutral)' : 'var(--pink)';
-        const volLabel   = analysis.vol === 'low' ? t.game.low : analysis.vol === 'medium' ? t.game.medium : t.game.high;
+      {/* Analysis cards — space always reserved to avoid layout shift */}
+      {phase === 'choose' && (() => {
+        const candles  = chartReady ? chartRef.current?.getCandles?.() : null;
+        const analysis = candles ? analyzeCandles(candles) : null;
+        const trendColor = analysis ? (analysis.trend === 'bullish' ? 'var(--green)' : analysis.trend === 'bearish' ? 'var(--pink)' : 'var(--color-neutral)') : 'var(--text-muted)';
+        const trendLabel = analysis ? (analysis.trend === 'bullish' ? t.game.bullish : analysis.trend === 'bearish' ? t.game.bearish : t.game.ranging) : '—';
+        const volColor   = analysis ? (analysis.vol === 'low' ? 'var(--green)' : analysis.vol === 'medium' ? 'var(--color-neutral)' : 'var(--pink)') : 'var(--text-muted)';
+        const volLabel   = analysis ? (analysis.vol === 'low' ? t.game.low : analysis.vol === 'medium' ? t.game.medium : t.game.high) : '—';
+        const rows = [
+          { label: t.game.trend,      value: trendLabel,                                                                      color: trendColor },
+          { label: t.game.last5,      value: analysis ? `${analysis.green}▲ ${analysis.red}▼` : '—',                         color: analysis ? (analysis.green > analysis.red ? 'var(--green)' : 'var(--pink)') : 'var(--text-muted)' },
+          { label: t.game.change,     value: analysis ? `${analysis.change >= 0 ? '+' : ''}${analysis.change.toFixed(1)}%` : '—', color: analysis ? (analysis.change >= 0 ? 'var(--green)' : 'var(--pink)') : 'var(--text-muted)' },
+          { label: t.game.volatility, value: volLabel,                                                                         color: volColor },
+        ];
         return (
-          <div style={{ padding: '6px 16px 0' }}>
+          <div style={{ padding: '6px 16px 0', visibility: analysis ? 'visible' : 'hidden' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-              {[
-                { label: t.game.trend,      value: trendLabel,                                                          color: trendColor },
-                { label: t.game.last5,      value: `${analysis.green}▲ ${analysis.red}▼`,                              color: analysis.green > analysis.red ? 'var(--green)' : 'var(--pink)' },
-                { label: t.game.change,     value: `${analysis.change >= 0 ? '+' : ''}${analysis.change.toFixed(1)}%`, color: analysis.change >= 0 ? 'var(--green)' : 'var(--pink)' },
-                { label: t.game.volatility, value: volLabel,                                                            color: volColor },
-              ].map(s => (
+              {rows.map(s => (
                 <div key={s.label} style={{ background: 'var(--bg-elevated)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', padding: '7px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.10em' }}>{s.label}</span>
                   <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 900, color: s.color }}>{s.value}</span>
@@ -834,24 +1059,32 @@ export default function App() {
         );
       })()}
       {/* Action zone */}
-      {phase === 'choose' && (
+      {phase === 'choose' && chartLoadError && (
+        <div style={{ padding: '16px', textAlign: 'center' }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px' }}>{t.game.chartError}</div>
+          <button className="btn-neutral" onClick={() => { failCountRef.current = 0; setChartLoadError(false); setChartReady(false); setAsset(randomAsset(category)); }} style={{ maxWidth: '160px', margin: '0 auto' }}>
+            {t.game.retry}
+          </button>
+        </div>
+      )}
+      {phase === 'choose' && !chartLoadError && (
         <div style={{ padding: '10px 16px 0' }}>
           <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', textAlign: 'center', marginBottom: '8px' }}>{t.game.whatNext}</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
             <button className={`btn-long${selected === 'long' ? ' selected' : ''}`} onClick={() => makeChoice('long')}>
               <span style={{ fontSize: '18px', lineHeight: 1 }}>↑</span>
               <span>{t.game.long}</span>
-              <span style={{ fontSize: '12px', opacity: 0.7, fontWeight: 700 }}>{t.game.longSub}</span>
+              <span style={{ fontSize: 'clamp(9px, 2.4vw, 12px)', opacity: 0.7, fontWeight: 700 }}>{t.game.longSub}</span>
             </button>
             <button className={`btn-neutral${selected === 'skip' ? ' selected' : ''}`} onClick={() => makeChoice('skip')}>
               <span style={{ fontSize: '18px', lineHeight: 1 }}>—</span>
               <span>{t.game.noTrade}</span>
-              <span style={{ fontSize: '12px', opacity: 0.7, fontWeight: 700 }}>{t.game.noTradeSub}</span>
+              <span style={{ fontSize: 'clamp(9px, 2.4vw, 12px)', opacity: 0.7, fontWeight: 700 }}>{t.game.noTradeSub}</span>
             </button>
             <button className={`btn-short${selected === 'short' ? ' selected' : ''}`} onClick={() => makeChoice('short')}>
               <span style={{ fontSize: '18px', lineHeight: 1 }}>↓</span>
               <span>{t.game.short}</span>
-              <span style={{ fontSize: '12px', opacity: 0.7, fontWeight: 700 }}>{t.game.shortSub}</span>
+              <span style={{ fontSize: 'clamp(9px, 2.4vw, 12px)', opacity: 0.7, fontWeight: 700 }}>{t.game.shortSub}</span>
             </button>
           </div>
         </div>
@@ -897,9 +1130,9 @@ export default function App() {
               ? Math.round(history.filter(h => h === 'win').length / history.filter(h => h !== 'skip').length * 100) + '%'
               : '—', color: 'var(--color-neutral)' },
         ].map(s => (
-          <div key={s.label} style={{ background: 'var(--bg-elevated)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', padding: '8px 10px', textAlign: 'center' }}>
+          <div key={s.label} style={{ textAlign: 'center', padding: '8px 4px' }}>
             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '20px', color: s.color, letterSpacing: '-0.5px', lineHeight: 1 }}>{s.value}</div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.10em', textTransform: 'uppercase', marginTop: '3px' }}>{s.label}</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-muted)', marginTop: '3px' }}>{s.label}</div>
           </div>
         ))}
       </div>

@@ -5,12 +5,15 @@ import { getLevel } from './levels.js';
 import { BADGES } from './badges.js';
 import { SERVER } from './config.js';
 import UserAvatar from './UserAvatar.jsx';
-import FounderBadge, { isFounder } from './FounderBadge.jsx';
+import SpecialBadge, { getSpecialUser } from './SpecialBadge.jsx';
 import { LevelIcon } from './components/AppIcons';
 import { User, Flame, Medal, Briefcase, Zap } from 'lucide-react';
 import { getUsernameColor } from './cosmeticColors';
-import VerifiedBadge from './VerifiedBadge.jsx';
+import TitleBadge from './components/TitleBadge';
+import VerifiedBadge from './VerifiedBadge';
+import EquippedBadge from './components/EquippedBadge';
 import BadgeIcon, { RARITY_COLORS } from './BadgeIcon.jsx';
+import { FlatRow, StatusText } from './components/ui';
 
 export default function PublicProfile({ username, onBack, onChallenge }) {
   const { user } = useAuth();
@@ -92,37 +95,41 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
           <div style={{ marginBottom: '14px' }}>
             <UserAvatar user={profile} size={80} showBadge />
           </div>
-          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '22px', color: getUsernameColor(profile.activeCosmetics) || 'var(--t1)', marginBottom: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '22px', color: getUsernameColor(profile.activeCosmetics) || 'var(--t1)', marginBottom: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: '4px' }}>
             @{profile.username}
-            {isFounder(profile.username) && <FounderBadge size={18} />}
+            <SpecialBadge specialUser={getSpecialUser(profile.googleId)} size={18} />
             {profile.hasVerifiedBadge && <VerifiedBadge size={18} />}
+            <EquippedBadge id={profile.activeCosmetics?.badge} size={16} />
+            <TitleBadge title={profile.activeCosmetics?.title} />
             {profile.isPro && (
-              <span style={{ fontSize: '12px', color: 'var(--green)', background: 'rgba(0,229,160,0.1)', border: '1px solid var(--green)', borderRadius: '20px', padding: '2px 7px', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                <Zap size={12} strokeWidth={2} aria-hidden /> Pro
-              </span>
+              <StatusText color="var(--green)" icon={<Zap size={12} strokeWidth={2} aria-hidden />}>Pro</StatusText>
             )}
           </div>
           <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>{profile.name}</div>
         </div>
 
         {/* Stats: level / streak / badges */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '16px' }}>
-          {[
-            { icon: <LevelIcon id={level.id} size={22} />, value: level.name, sub: `${profile.xp} XP` },
-            { icon: <Flame size={14} strokeWidth={2} aria-hidden />, value: profile.dailyStreak, sub: t.profile.streak },
-            { icon: <Medal size={14} strokeWidth={2} aria-hidden />, value: unlockedBadges.length, sub: t.profile.badges },
-          ].map((s, i) => (
-            <div key={i} style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '14px 10px', textAlign: 'center' }}>
-              <div style={{ marginBottom: '4px', display: 'flex', justifyContent: 'center' }}>{s.icon}</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: typeof s.value === 'number' ? '20px' : '11px', color: 'var(--t1)' }}>{s.value}</div>
-              <div style={{ fontSize: '12px', color: 'var(--t5)', marginTop: '2px' }}>{s.sub}</div>
-            </div>
-          ))}
+        <div style={{ marginBottom: '16px' }}>
+          <FlatRow
+            icon={<LevelIcon id={level.id} size={18} />}
+            title={<span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>{`${profile.xp} XP`}</span>}
+            value={<span style={{ fontWeight: 900, fontSize: '16px', color: 'var(--t1)' }}>{level.name}</span>}
+          />
+          <FlatRow
+            icon={<Flame size={16} strokeWidth={2} style={{ stroke: 'var(--pink)' }} aria-hidden />}
+            title={<span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>{t.profile.streak}</span>}
+            value={<span style={{ fontWeight: 900, fontSize: '16px', color: 'var(--t1)' }}>{profile.dailyStreak}</span>}
+          />
+          <FlatRow
+            icon={<Medal size={16} strokeWidth={2} style={{ stroke: 'var(--color-neutral)' }} aria-hidden />}
+            title={<span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>{t.profile.badges}</span>}
+            value={<span style={{ fontWeight: 900, fontSize: '16px', color: 'var(--t1)' }}>{unlockedBadges.length}</span>}
+          />
         </div>
 
-        {/* Portfolio */}
+        {/* Portfolio A */}
         {profile.portfolioReturn !== null && profile.totalValue !== null && (
-          <div style={{ background: 'var(--bg-card)', border: `1px solid ${profile.portfolioReturn >= 0 ? 'rgba(0,229,160,0.3)' : 'rgba(255,126,179,0.3)'}`, borderRadius: '10px', padding: '16px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ background: 'var(--bg-card)', border: `1px solid ${profile.portfolioReturn >= 0 ? 'rgba(0,229,160,0.3)' : 'rgba(255,126,179,0.3)'}`, borderRadius: '10px', padding: '16px', marginBottom: profile.positions?.length ? '8px' : '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <div style={{ fontSize: '12px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}><Briefcase size={14} strokeWidth={2} aria-hidden /> Portfolio</div>
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t1)' }}>
@@ -138,23 +145,64 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
           </div>
         )}
 
-        {/* Detailed positions — only visible to viewers with mechanic_portfolio_view */}
+        {/* Portfolio A positions (mechanic_portfolio_view) */}
         {profile.positions && profile.positions.length > 0 && (
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '14px', marginBottom: '16px' }}>
-            <div style={{ fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Briefcase size={12} strokeWidth={2} aria-hidden /> {t.profile.positions}
-            </div>
+            <div style={{ fontSize: '11px', color: 'var(--t6)', letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '10px' }}>{t.profile.positions}</div>
             {profile.positions.map((pos, i) => (
-              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: i < profile.positions.length - 1 ? '0.5px solid var(--bd)' : 'none' }}>
+              <div key={pos.symbol} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderTop: i > 0 ? '1px solid var(--bd)' : 'none' }}>
                 <div>
                   <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>{pos.symbol}</div>
-                  <div style={{ fontSize: '11px', color: 'var(--t5)', marginTop: '1px' }}>{pos.qty} × ${pos.currentPrice?.toFixed(2)}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--t5)', marginTop: '2px' }}>{pos.qty} × ${pos.avgPrice.toFixed(2)}</div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: pos.pnl >= 0 ? 'var(--green)' : 'var(--color-down)' }}>
-                    {pos.pnl >= 0 ? '+' : ''}{pos.pnlPct?.toFixed(2)}%
+                    {pos.pnl >= 0 ? '+' : ''}{pos.pnlPct.toFixed(2)}%
                   </div>
-                  <div style={{ fontSize: '11px', color: 'var(--t5)' }}>${pos.currentValue?.toFixed(0)}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--t5)', marginTop: '2px' }}>
+                    {pos.pnl >= 0 ? '+' : ''}${Math.abs(pos.pnl).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Portfolio B (mechanic_portfolio_double on target user) */}
+        {profile.portfolio2Return !== null && profile.totalValue2 !== null && (
+          <div style={{ background: 'var(--bg-card)', border: `1px solid ${profile.portfolio2Return >= 0 ? 'rgba(0,229,160,0.3)' : 'rgba(255,126,179,0.3)'}`, borderRadius: '10px', padding: '16px', marginBottom: profile.positions2?.length ? '8px' : '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ fontSize: '12px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}><Briefcase size={14} strokeWidth={2} aria-hidden /> Portfolio B</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t1)' }}>
+                ${profile.totalValue2.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: profile.portfolio2Return >= 0 ? 'var(--green)' : 'var(--color-down)' }}>
+                {profile.portfolio2Return >= 0 ? '+' : ''}{profile.portfolio2Return.toFixed(2)}%
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--t5)' }}>{t.profile.vsInitial}</div>
+            </div>
+          </div>
+        )}
+
+        {/* Portfolio B positions (mechanic_portfolio_view) */}
+        {profile.positions2 && profile.positions2.length > 0 && (
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '14px', marginBottom: '16px' }}>
+            <div style={{ fontSize: '11px', color: 'var(--t6)', letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '10px' }}>{t.profile.positions} (B)</div>
+            {profile.positions2.map((pos, i) => (
+              <div key={pos.symbol} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderTop: i > 0 ? '1px solid var(--bd)' : 'none' }}>
+                <div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>{pos.symbol}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--t5)', marginTop: '2px' }}>{pos.qty} × ${pos.avgPrice.toFixed(2)}</div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: pos.pnl >= 0 ? 'var(--green)' : 'var(--color-down)' }}>
+                    {pos.pnl >= 0 ? '+' : ''}{pos.pnlPct.toFixed(2)}%
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--t5)', marginTop: '2px' }}>
+                    {pos.pnl >= 0 ? '+' : ''}${Math.abs(pos.pnl).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </div>
                 </div>
               </div>
             ))}

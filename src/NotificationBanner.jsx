@@ -22,22 +22,16 @@ export default function NotificationBanner() {
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ ...sub.toJSON(), userId: user?.id, lang }),
       });
-    } catch (err) {
-      console.log('Push error:', err);
-    }
+    } catch (_) {}
   }
 
   async function allow() {
    setShow(false);
    try {
-    console.log('Requesting permission...');
     const permission = await Notification.requestPermission();
-    console.log('Permission result:', permission);
     if (permission !== 'granted') return;
     await subscribeUser();
-  } catch (err) {
-    console.log('Push error:', err);
-  }
+  } catch (_) {}
 }
 
   function dismiss() {
@@ -83,7 +77,7 @@ export default function NotificationBanner() {
         </div>
       </div>
       <div style={{ display: 'flex', gap: '8px', marginTop: '14px' }}>
-        <button onClick={() => { console.log('Allow clicked'); allow(); }}
+        <button onClick={allow}
           style={{ flex: 1, padding: '10px', background: 'rgba(0,229,160,0.1)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>
              Allow
         </button>

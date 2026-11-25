@@ -78,6 +78,13 @@ export const BADGES = [
   { id: 'secret_broke',      rarity: 'rare',   name: '???',            desc: 'Nobody knows... (lose all money in portfolio)',  secret: true },
   { id: 'secret_speedrun',   rarity: 'epic',   name: '???',            desc: 'Nobody knows... (finish Guess in under 3 min)', secret: true },
   { id: 'secret_comeback',   rarity: 'legend', name: '???',            desc: 'Nobody knows... (recover from -$5000 to profit)', secret: true },
+
+  // Trader Pass Season 1
+  { id: 'bp_s1_early_trader', rarity: 'rare',   name: 'Early Trader',      desc: 'Reach level 2 on the Trader Pass',          secret: false },
+  { id: 'bp_s1_elite',        rarity: 'epic',   name: 'Elite',             desc: 'Reach level 6 on the Trader Pass',          secret: false },
+  { id: 'bp_s1_season1_pro',  rarity: 'epic',   name: 'Season 1 Pro',      desc: 'Reach level 12 on the Trader Pass (Pro)',   secret: false },
+  { id: 'bp_s1_season1',      rarity: 'legend', name: 'Season 1',          desc: 'Complete the free Trader Pass track',       secret: false },
+  { id: 'bp_s1_champion',     rarity: 'legend', name: 'Season 1 Champion', desc: 'Complete the full Trader Pass (Pro)',       secret: false },
 ];
 
 export function getUnlocked() {

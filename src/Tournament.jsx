@@ -8,7 +8,7 @@ import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
 import { Trophy, Clipboard } from 'lucide-react';
 import EffectOverlay from './EffectOverlay.jsx';
-import FounderBadge, { isFounder } from './FounderBadge.jsx';
+import SpecialBadge, { getSpecialUserByUsername } from './SpecialBadge.jsx';
 
 import { SERVER } from './config.js';
 import UserAvatar from './UserAvatar.jsx';
@@ -16,6 +16,7 @@ import { incrementMission, recordModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
 import { getUsernameColor } from './cosmeticColors';
 import VerifiedBadge from './VerifiedBadge.jsx';
+import { ScreenHeader } from './components/ui';
 
 export default function Tournament({ onBack, onViewProfile, onGoPricing, academyTournamentId = null, academyId = null }) {
   const { user, syncProgress, activeCosmetics } = useAuth();
@@ -150,6 +151,10 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
   async function makeChoice(choice) {
     if (result || revealing) return;
 
+    const cur    = rounds[round];
+    let future   = cur.future ?? null;
+    let win, pts, pctMove, direction;
+
     const token = localStorage.getItem('tradaria_token');
     if (!academyTournamentId && token) {
       try {
@@ -160,19 +165,27 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
         });
         const data = await res.json();
         if (data.alreadyPlayed) return;
+        future    = data.future ?? future;
+        win       = data.win;
+        pts       = data.pts;
+        pctMove   = data.pctMove;
+        direction = data.direction;
       } catch {}
     }
 
-    const cur        = rounds[round];
-    const future     = cur.future;
-    const lastClose  = cur.visible[cur.visible.length - 1].close;
-    const lastFuture = future[future.length - 1].close;
-    const pctMove    = (lastFuture - lastClose) / lastClose * 100;
-    const direction  = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
-    const win = (choice === 'long'  && direction === 'up')
-             || (choice === 'short' && direction === 'down')
-             || (choice === 'skip'  && direction === 'flat');
-    const pts = win && choice !== 'skip' ? 100 : win && choice === 'skip' ? 50 : 0;
+    if (win === undefined) {
+      if (!future || !future.length) return;
+      const lastClose  = cur.visible[cur.visible.length - 1].close;
+      const lastFuture = future[future.length - 1].close;
+      pctMove   = (lastFuture - lastClose) / lastClose * 100;
+      direction = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
+      win = (choice === 'long'  && direction === 'up')
+         || (choice === 'short' && direction === 'down')
+         || (choice === 'skip'  && direction === 'flat');
+      pts = win && choice !== 'skip' ? 100 : win && choice === 'skip' ? 50 : 0;
+    }
+
+    if (!future || !future.length) return;
     if (win) triggerEffect();
     setScore(s => s + pts);
     setHistory(h => [...h, { choice, win, pts }]);
@@ -344,7 +357,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                     <UserAvatar user={entry} size={24} showBadge style={{ marginLeft: '8px' }} />
                     <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
                       <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: isMe ? 'var(--green)' : (getUsernameColor(entry.activeCosmetics) || 'var(--text-primary)'), overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{displayName}</span>
-                      {isFounder(entry.username) && <FounderBadge size={11} />}
+                      <SpecialBadge specialUser={getSpecialUserByUsername(entry.username)} size={11} />
                       {entry.hasVerifiedBadge && <VerifiedBadge size={11} />}
                       {isMe && <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>{t.common.you}</span>}
                     </div>
@@ -409,27 +422,16 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
   return (
     <div id="gtm-root" style={{ position: 'relative' }}>
       <div className="scanlines" />
-      <div className="header" style={{ display: 'grid', gridTemplateColumns: '80px 1fr 80px', alignItems: 'center', padding: '12px 20px 10px' }}>
-        <button onClick={onBack}
-          style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', letterSpacing: '0.06em', padding: 0, textAlign: 'left', transition: 'color 0.15s' }}
-          onMouseEnter={e => e.target.style.color = 'var(--text-primary)'}
-          onMouseLeave={e => e.target.style.color = 'var(--text-muted)'}
-        >{t.game.menu}</button>
-
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--text-primary)', letterSpacing: '0.08em', lineHeight: 1 }}>
-            <Trophy size={16} strokeWidth={2} aria-hidden style={{ display: 'inline', verticalAlign: 'middle' }} /> {t.home.mode3.toUpperCase()}
+      <ScreenHeader
+        title={t.home.mode3}
+        onBack={onBack}
+        action={
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '18px', color: 'var(--color-neutral)', lineHeight: 1 }}>{score}</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{round + 1}/10</div>
           </div>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: 'var(--font-body)' }}>
-            {t.tournament.mode}
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
-          <span style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.06em' }}>{round + 1}/10</span>
-          <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--color-neutral)', textShadow: '0 0 14px rgba(232,184,75,0.35)' }}>{score}</span>
-        </div>
-      </div>
+        }
+      />
 
       <div className="asset-bar">
         <div className="asset-name">{currentRound.asset}</div>

@@ -7,12 +7,12 @@ import BadgeNotification from './BadgeNotification.jsx';
 import { addXP, getXP } from './levels.js';
 import { useLang } from './LangContext.jsx';
 import { useAuth } from './AuthContext';
+import { useBattlePass } from './BattlePassContext.jsx';
 import EffectOverlay from './EffectOverlay.jsx';
 import { incrementMission, recordModePlayed, incrementWeeklyMission, recordWeeklyModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
-import BattlePassNotification from './BattlePassNotification.jsx';
-import { useBattlePass } from './BattlePassContext.jsx';
 import { Calendar, Clipboard } from 'lucide-react';
+import { ScreenHeader, TextTabs } from './components/ui';
 
 function ShareButton({ onShare, shareStatus }) {
   const { t } = useLang();
@@ -30,7 +30,6 @@ export default function Daily({ onBack }) {
   const { t, lang, setLang } = useLang();
   const { activeCosmetics, user, checkLevelUp, syncProgress } = useAuth();
   const { refreshBattlePass } = useBattlePass();
-  const [bpLevelUp, setBpLevelUp] = useState(null);
   const [activeEffect, setActiveEffect] = useState(false);
   function triggerEffect() { setActiveEffect(true); clearTimeout(effectTimerRef.current); effectTimerRef.current = setTimeout(() => setActiveEffect(false), 1500); }
   const [phase, setPhase]           = useState('loading');
@@ -97,7 +96,8 @@ export default function Daily({ onBack }) {
     if (fetchedRef.current) return;
     fetchedRef.current = true;
 
-    fetch(`${SERVER}/daily`)
+    const tok = localStorage.getItem('tradaria_token');
+    fetch(`${SERVER}/daily`, { headers: tok ? { Authorization: `Bearer ${tok}` } : {} })
       .then(r => r.json())
       .then(data => {
         setDailyAsset({
@@ -199,8 +199,7 @@ export default function Daily({ onBack }) {
         localStorage.setItem('tradaria_daily_streak', String(data.dailyStreak));
         localStorage.setItem('tradaria_daily_last', new Date().toISOString().split('T')[0]);
       }
-      if (data?.bpProgress?.awardedMissions?.length > 0) refreshBattlePass();
-      if (data?.bpProgress?.leveledUp) setBpLevelUp(data.bpProgress.newLevel);
+      if (data.bpProgress) refreshBattlePass({ force: true });
     } catch (e) {
       console.error('Daily sync error:', e);
     }
@@ -231,32 +230,19 @@ export default function Daily({ onBack }) {
       <div className="scanlines" />
       <div style={{ padding: '20px 28px 32px', position: 'relative', zIndex: 2 }}>
 
-        {/* Header row: back | lang */}
-        <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr 80px', alignItems: 'center', marginBottom: '20px' }}>
-          <button onClick={onBack}
-            style={{ background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-          >{t.daily.back}</button>
-
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--text-primary)', letterSpacing: '0.08em', lineHeight: 1 }}>
-              <Calendar size={18} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} /> {t.daily.title}
-            </div>
-            <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: 'var(--font-body)' }}>
-              {t.daily.mode}
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
-            <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', letterSpacing: '0.06em' }}>{new Date().toISOString().split('T')[0]}</span>
-            <div className="lang-selector" style={{ marginTop: '2px' }}>
-              {['en', 'es', 'de'].map(l => (
-                <button key={l} className={`lang-btn${lang === l ? ' active' : ''}`} onClick={() => setLang(l)}>
-                  {l.toUpperCase()}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+        {/* Header */}
+        <ScreenHeader
+          title={t.daily.title}
+          subtitle={new Date().toISOString().split('T')[0]}
+          onBack={onBack}
+          action={
+            <TextTabs
+              tabs={[{ value: 'en', label: 'EN' }, { value: 'es', label: 'ES' }, { value: 'de', label: 'DE' }]}
+              active={lang}
+              onChange={l => setLang(l)}
+            />
+          }
+        />
 
         <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '24px', textAlign: 'center' }}>
           {t.daily.next} {timeLeft}
@@ -289,15 +275,15 @@ export default function Daily({ onBack }) {
                 <div className="buttons-row" style={{ padding: '0 20px' }}>
                   <button className="btn-long" onClick={() => makeChoice('long')}>
                     <span className="btn-icon">▲</span><span>{t.game.long}</span>
-                    <span className="btn-sublabel">{t.game.longSub}</span>
+                    <span className="btn-sublabel" style={{ fontSize: 'clamp(9px, 2.4vw, 12px)' }}>{t.game.longSub}</span>
                   </button>
                   <button className="btn-neutral" onClick={() => makeChoice('skip')}>
                     <span className="btn-icon">—</span><span>{t.game.noTrade}</span>
-                    <span className="btn-sublabel">{t.game.noTradeSub}</span>
+                    <span className="btn-sublabel" style={{ fontSize: 'clamp(9px, 2.4vw, 12px)' }}>{t.game.noTradeSub}</span>
                   </button>
                   <button className="btn-short" onClick={() => makeChoice('short')}>
                     <span className="btn-icon">▼</span><span>{t.game.short}</span>
-                    <span className="btn-sublabel">{t.game.shortSub}</span>
+                    <span className="btn-sublabel" style={{ fontSize: 'clamp(9px, 2.4vw, 12px)' }}>{t.game.shortSub}</span>
                   </button>
                 </div>
               </>
@@ -386,7 +372,6 @@ export default function Daily({ onBack }) {
       </div>
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
       {missionToast[0] && <MissionNotification data={missionToast[0]} onDone={() => setMissionToast(q => q.slice(1))} />}
-      {bpLevelUp && <BattlePassNotification level={bpLevelUp} onDone={() => setBpLevelUp(null)} />}
       <EffectOverlay effect={activeCosmetics?.effect} active={activeEffect} />
     </div>
   );

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { copyToClipboard } from './utils/share.js';
 import EffectOverlay from './EffectOverlay.jsx';
 import { ASSETS } from './assets.js';
-import Chart, { generateCandles } from "./Chart";
+import Chart from "./Chart";
 import { useLang } from './LangContext.jsx';
 import { playWin, playLose, playClick, playStreak } from './sounds.js';
 import { BADGES, unlockBadge } from './badges.js';
@@ -11,9 +11,9 @@ import BadgeNotification from './BadgeNotification.jsx';
 import { addXP, getXP, getLevel } from './levels.js';
 import { incrementMission, recordModePlayed, incrementWeeklyMission, recordWeeklyModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
-import BattlePassNotification from './BattlePassNotification.jsx';
 import { useAuth } from './AuthContext';
 import { useBattlePass } from './BattlePassContext.jsx';
+import { ScreenHeader } from './components/ui';
 import { SERVER } from './config.js';
 
 
@@ -25,7 +25,6 @@ export default function Survival({ onBack }) {
   const { t, lang } = useLang();
   const { syncProgress, activeCosmetics, checkLevelUp, isPro } = useAuth();
   const { refreshBattlePass } = useBattlePass();
-  const [bpLevelUp, setBpLevelUp] = useState(null);
   const MAX_LIVES = isPro ? 5 : 3;
 
   const [phase,       setPhase]      = useState('choose');
@@ -49,8 +48,28 @@ export default function Survival({ onBack }) {
   const floatingXPKeyRef = useRef(0);
   const highscoreRef   = useRef(parseInt(localStorage.getItem('tradaria_survival_highscore') || '0'));
   const effectTimerRef = useRef(null);
+  const sessionTokenRef = useRef(null);
+  const failCountRef   = useRef(0);
+  const [serverRound,  setServerRound]  = useState(null);
+  const serverRoundRef = useRef(null);
+  const [chartLoadError, setChartLoadError] = useState(false);
   const [activeEffect,setActiveEffect] = useState(false);
   const chartRef = useRef(null);
+
+  // When the server provides a new round, update asset so Chart renders only visible candles.
+  useEffect(() => {
+    if (!serverRound) return;
+    setChartLoadError(false);
+    failCountRef.current = 0;
+    setAsset({
+      name: serverRound.assetName,
+      tf:   serverRound.interval,
+      vol:  0.02, cat: 'crypto', candle: null, binance: null, yahoo: null, alphavantage: null,
+      base: () => 0,
+      _dailyVisible: serverRound.visible,
+      _dailyFuture:  [],
+    });
+  }, [serverRound]);
 
   function tryUnlockBadge(id) {
     const unlocked = unlockBadge(id);
@@ -84,16 +103,75 @@ export default function Survival({ onBack }) {
 
   const makeChoice = useCallback((choice) => {
     if (phase !== 'choose') return;
+
+    const tok = localStorage.getItem('tradaria_token');
+
+    // ── Server-side path (logged-in users) ────────────────────────
+    if (tok && sessionTokenRef.current && serverRoundRef.current) {
+      playClick();
+      setSelected(choice);
+      setPhase('reveal');
+      setRevealing(true);
+
+      fetch(`${SERVER}/game/round/submit`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionToken: sessionTokenRef.current, choice }),
+      }).then(r => r.json()).then(data => {
+        if (data.error) { setPhase('choose'); setRevealing(false); return; }
+        const { future, win, direction, pctMove, pts, score: svrScore, streak: svrStreak, lives: svrLives, completed } = data;
+        const neutral  = choice === 'skip';
+        const newLives = svrLives ?? lives;
+
+        setStreak(svrStreak);
+        setScore(() => {
+          if (svrScore > highscoreRef.current) {
+            highscoreRef.current = svrScore;
+            setHighscore(svrScore);
+            localStorage.setItem('tradaria_survival_highscore', String(svrScore));
+          }
+          return svrScore;
+        });
+        setLives(newLives);
+
+        chartRef.current?.revealFuture(future, () => setRevealing(false));
+
+        if (win && !neutral) { if (svrStreak >= 3) playStreak(); else playWin(); triggerEffect(); earnXP(10); }
+        else if (win && neutral) { playWin(); triggerEffect(); earnXP(5); }
+        else if (!win && !neutral) { playLose(); setLiveLost(true); setTimeout(() => setLiveLost(false), 600); }
+
+        if (win && svrStreak >= 5)  tryUnlockBadge('sniper');
+        if (win && svrStreak >= 10) tryUnlockBadge('on_fire');
+        if (round >= 20)            tryUnlockBadge('survivor');
+        if (round >= 50 && newLives === MAX_LIVES) tryUnlockBadge('immortal');
+        if (newLives === 0 && !win && !neutral)    tryUnlockBadge('last_stand');
+
+        const outcome = win && !neutral ? 'win' : !win && !neutral ? 'lose' : 'skip';
+        setHistory(h => [...h, outcome]);
+        setResult({ win, neutral, pts, pctMove, direction, choice, livesLeft: newLives });
+
+        if (completed) setTimeout(() => setGameOver(true), 2000);
+      }).catch(() => { setPhase('choose'); setRevealing(false); });
+      return;
+    }
+
+    // ── Client-side fallback (anonymous / no session) ─────────────
+    const candles   = chartRef.current.getCandles();
+    const lastClose = candles[candles.length - 1].close;
+    const future    = chartRef.current.getRealReveal?.() ?? null;
+    if (!future || !future.length) {
+      failCountRef.current += 1;
+      if (failCountRef.current >= 2) { setChartLoadError(true); }
+      else { setAsset(randomAsset()); }
+      return;
+    }
+    failCountRef.current = 0;
+
     playClick();
     setSelected(choice);
     setPhase('reveal');
     setRevealing(true);
 
-    const candles    = chartRef.current.getCandles();
-    const lastClose  = candles[candles.length - 1].close;
-    const trend      = (Math.random() - 0.5) * 0.5;
-    const future     = chartRef.current.getRealReveal?.()
-      ?? generateCandles(20, lastClose, asset.vol, trend * 2);
     const lastReveal = future[future.length - 1].close;
     const pctMove    = (lastReveal - lastClose) / lastClose * 100;
     const direction  = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
@@ -147,7 +225,6 @@ export default function Survival({ onBack }) {
       setTimeout(() => setLiveLost(false), 600);
     }
 
-    // Pro: regenerate 1 life after a correct round if lives < MAX_LIVES
     if (isPro && win && !neutral && newLives < MAX_LIVES) {
       setLives(l => Math.min(l + 1, MAX_LIVES));
     }
@@ -167,8 +244,9 @@ export default function Survival({ onBack }) {
     }
   }, [phase, asset, streak, lives]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const nextRound = () => {
-    setAsset(randomAsset());
+  const nextRound = async () => {
+    failCountRef.current = 0;
+    setChartLoadError(false);
     setPhase('choose');
     setResult(null);
     setSelected(null);
@@ -182,9 +260,53 @@ export default function Survival({ onBack }) {
     const modeR = recordModePlayed('survival');
     if (modeR.completed) pushMission({ xpEarned: modeR.xpEarned, title: modeR.mission.title });
     recordWeeklyModePlayed('survival');
+
+    const tok = localStorage.getItem('tradaria_token');
+    if (tok && sessionTokenRef.current) {
+      try {
+        const rr = await fetch(`${SERVER}/game/round/start`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionToken: sessionTokenRef.current }),
+        });
+        const rd = await rr.json();
+        if (!rd.error && rd.visible) { serverRoundRef.current = rd; setServerRound(rd); return; }
+      } catch (_) {}
+    }
+    serverRoundRef.current = null;
+    setServerRound(null);
+    setAsset(randomAsset());
   };
 
   const playAgain = () => {
+    failCountRef.current = 0;
+    setChartLoadError(false);
+    sessionTokenRef.current = null;
+    serverRoundRef.current  = null;
+    setServerRound(null);
+    const tok = localStorage.getItem('tradaria_token');
+    if (tok) {
+      (async () => {
+        try {
+          const r = await fetch(`${SERVER}/game/start`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mode: 'survival' }),
+          });
+          const d = await r.json();
+          if (d.sessionToken) {
+            sessionTokenRef.current = d.sessionToken;
+            const rr = await fetch(`${SERVER}/game/round/start`, {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ sessionToken: d.sessionToken }),
+            });
+            const rd = await rr.json();
+            if (!rd.error && rd.visible) { serverRoundRef.current = rd; setServerRound(rd); }
+          }
+        } catch (_) {}
+      })();
+    }
     setGameOver(false);
     setPhase('choose');
     setAsset(randomAsset());
@@ -208,6 +330,31 @@ export default function Survival({ onBack }) {
   }, []);
 
   useEffect(() => {
+    const tok = localStorage.getItem('tradaria_token');
+    if (!tok) return;
+    (async () => {
+      try {
+        const r = await fetch(`${SERVER}/game/start`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mode: 'survival' }),
+        });
+        const d = await r.json();
+        if (d.sessionToken) {
+          sessionTokenRef.current = d.sessionToken;
+          const rr = await fetch(`${SERVER}/game/round/start`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionToken: d.sessionToken }),
+          });
+          const rd = await rr.json();
+          if (!rd.error && rd.visible) { serverRoundRef.current = rd; setServerRound(rd); }
+        }
+      } catch (_) {}
+    })();
+  }, []);
+
+  useEffect(() => {
     if (!gameOver) return;
     const token = localStorage.getItem('tradaria_token');
     if (!token) return;
@@ -217,11 +364,8 @@ export default function Survival({ onBack }) {
     fetch(`${SERVER}/stats/game`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode: 'survival', score, correct: wins, wrong: losses, accuracy: acc, streak, rounds: history.length }),
-    }).then(r => r.json()).then(data => {
-      if (data?.bpProgress?.awardedMissions?.length > 0) refreshBattlePass();
-      if (data?.bpProgress?.leveledUp) setBpLevelUp(data.bpProgress.newLevel);
-    }).catch(() => {});
+      body: JSON.stringify({ mode: 'survival', score, correct: wins, wrong: losses, accuracy: acc, streak, rounds: history.length, sessionToken: sessionTokenRef.current }),
+    }).then(r => r.json()).then(data => { if (data?.bpProgress) refreshBattlePass({ force: true }); }).catch(() => {});
     fetch(`${SERVER}/stats/personal`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json()).then(setPersonalStats).catch(() => {});
   }, [gameOver]);
@@ -333,28 +477,16 @@ export default function Survival({ onBack }) {
     <div id="gtm-root" style={{ position: 'relative' }}>
       <div className="scanlines" />
 
-      <div className="header" style={{ display: 'grid', gridTemplateColumns: '80px 1fr 80px', alignItems: 'center', padding: '12px 20px 10px' }}>
-        {/* Back */}
-        <button onClick={onBack}
-          style={{ background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-        >{t.survival.back}</button>
-
-        {/* Centered title */}
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--text-primary)', letterSpacing: '0.08em', lineHeight: 1 }}>
-            <Skull size={18} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} /> {t.survival.title}
+      <ScreenHeader
+        title={t.survival.title}
+        onBack={onBack}
+        action={
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '18px', color: 'var(--color-neutral)', lineHeight: 1 }}>{score}</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{t.game.score}</div>
           </div>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: 'var(--font-body)' }}>
-            {t.survival.mode}
-          </div>
-        </div>
-
-        {/* Stats right */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
-          <span style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.06em' }}>{t.game.score}</span>
-          <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--color-neutral)', textShadow: '0 0 14px rgba(232,184,75,0.35)' }}>{score}</span>
-        </div>
-      </div>
+        }
+      />
 
       <div className="asset-bar">
         <div className="asset-name">{asset.name}</div>
@@ -373,15 +505,15 @@ export default function Survival({ onBack }) {
         </div>
       </div>
 
-      <div className="streak-bar">
-        {Array.from({ length: 12 }, (_, i) => (
-          <div key={i} className={`streak-dot${recent[i] ? ' ' + recent[i] : ''}`} />
+      <div className="streak-bar" style={{ flexWrap: 'wrap', gap: '4px' }}>
+        {history.map((h, i) => (
+          <div key={i} className={`streak-dot ${h}`} />
         ))}
         {streak > 1 && <span className="streak-label">{streak}x {t.survival.streakLabel}</span>}
       </div>
       {/* Lives below chart */}
       <div style={{ padding: '8px 20px 4px', position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px' }}>
-        <span style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: 'var(--font-body)' }}>{t.survival.lives}</span>
+        <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)' }}>{t.survival.lives}</span>
         <div style={{ display: 'flex', gap: '10px' }}>
           {Array.from({ length: MAX_LIVES }, (_, i) => (
             <span key={i} style={{
@@ -393,24 +525,32 @@ export default function Survival({ onBack }) {
             }}><Heart size={16} strokeWidth={2} aria-hidden style={{ color: 'var(--color-down)' }} /></span>
           ))}
         </div>
-        <span style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.18em', fontFamily: 'var(--font-body)' }}>R·{round}</span>
+        <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)' }}>R·{round}</span>
       </div>
 
-      <div style={{ padding: '6px 20px 0', position: 'relative', zIndex: 2, display: 'flex', gap: '6px' }}>
-        <div style={{ flex: 1, background: 'var(--bg-surface)', border: '1px solid var(--border-default)', borderRadius: '6px', padding: '7px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t.game.round}</span>
-          <span style={{ fontSize: '12px', color: 'var(--text-primary)', fontWeight: 700 }}>{round}</span>
+      <div style={{ padding: '6px 20px 0', position: 'relative', zIndex: 2, display: 'flex', gap: '16px', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '18px', color: 'var(--text-primary)', lineHeight: 1 }}>{round}</div>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{t.game.round}</div>
         </div>
-        <div style={{ flex: 1, background: 'var(--bg-surface)', border: '1px solid var(--border-default)', borderRadius: '6px', padding: '7px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t.game.score}</span>
-          <span style={{ fontSize: '12px', color: 'var(--color-neutral)', fontWeight: 700 }}>{score}</span>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '18px', color: 'var(--color-neutral)', lineHeight: 1 }}>{score}</div>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{t.game.score}</div>
         </div>
-        <div style={{ flex: 1, background: 'var(--bg-surface)', border: '1px solid var(--border-default)', borderRadius: '6px', padding: '7px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t.survival.best}</span>
-          <span style={{ fontSize: '12px', color: 'var(--green)', fontWeight: 700 }}>{highscore}</span>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '18px', color: 'var(--green)', lineHeight: 1 }}>{highscore}</div>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{t.survival.best}</div>
         </div>
       </div>
-      {phase === 'choose' && (
+      {phase === 'choose' && chartLoadError && (
+        <div className="action-zone" style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px' }}>{t.game.chartError}</div>
+          <button className="btn-neutral" onClick={() => { failCountRef.current = 0; setChartLoadError(false); setAsset(randomAsset()); }} style={{ maxWidth: '160px', margin: '0 auto' }}>
+            {t.game.retry}
+          </button>
+        </div>
+      )}
+      {phase === 'choose' && !chartLoadError && (
         <div className="action-zone">
           <div className="prompt-text">{t.game.whatNext}</div>
           <div className="buttons-row">
@@ -464,15 +604,15 @@ export default function Survival({ onBack }) {
         </div>
       )}
 
-      <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border-default)', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', position: 'relative', zIndex: 2 }}>
+      <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border-default)', display: 'flex', justifyContent: 'center', gap: '24px', position: 'relative', zIndex: 2 }}>
         {[
           { label: t.game.correct, value: history.filter(h => h === 'win').length,  color: 'var(--green)' },
           { label: t.game.wrong,   value: history.filter(h => h === 'lose').length, color: 'var(--color-down)' },
           { label: t.survival.best, value: highscore,                               color: 'var(--color-neutral)' },
         ].map(s => (
-          <div key={s.label} style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-default)', borderRadius: '8px', padding: '10px 8px', textAlign: 'center' }}>
-            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: s.color }}>{s.value}</div>
-            <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: '2px' }}>{s.label}</div>
+          <div key={s.label} style={{ textAlign: 'center' }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '20px', color: s.color, lineHeight: 1 }}>{s.value}</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '3px' }}>{s.label}</div>
           </div>
         ))}
       </div>
@@ -491,7 +631,6 @@ export default function Survival({ onBack }) {
 
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
       {missionToast[0] && <MissionNotification data={missionToast[0]} onDone={() => setMissionToast(q => q.slice(1))} />}
-      {bpLevelUp && <BattlePassNotification level={bpLevelUp} onDone={() => setBpLevelUp(null)} />}
 
       <EffectOverlay effect={activeCosmetics.effect} active={activeEffect} />
     </div>

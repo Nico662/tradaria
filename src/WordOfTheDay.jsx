@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { Lightbulb, BookOpen } from 'lucide-react';
 import { GLOSSARY } from './tradingGlossary.js';
 import { CHARTS } from './glossaryCharts.jsx';
 import { useLang } from './LangContext.jsx';
+import ScreenHeader from './components/ui/ScreenHeader.jsx';
+import SectionTitle from './components/ui/SectionTitle.jsx';
+import FlatRow from './components/ui/FlatRow.jsx';
+import { ChevronRight } from 'lucide-react';
 
 const ACCENTS = ['var(--green)', 'var(--color-neutral)', 'var(--text-secondary)'];
 
@@ -18,269 +21,264 @@ function getWordForOffset(offset) {
   return GLOSSARY[getUTCDoy(offset) % GLOSSARY.length];
 }
 
-function getAccentForOffset(offset) {
-  return ACCENTS[getUTCDoy(offset) % ACCENTS.length];
+function getTodayAccent() {
+  return ACCENTS[getUTCDoy(0) % ACCENTS.length];
 }
 
-function formatDate(offset, lang) {
-  const date = new Date();
-  date.setDate(date.getDate() + offset);
-  return date.toLocaleDateString(
-    lang === 'es' ? 'es-ES' : lang === 'de' ? 'de-DE' : 'en-GB',
-    { day: 'numeric', month: 'short' }
-  );
+function accentForIndex(i) {
+  return ACCENTS[i % ACCENTS.length];
 }
 
-const LABELS = {
-  header:   { en: '— WORD OF DAY —',              es: '— CONCEPTO DEL DÍA —',       de: '— WORT DES TAGES —'       },
-  more:     { en: 'learn more →',                 es: 'saber más →',                de: 'mehr erfahren →'          },
-  back:     { en: '← back',                       es: '← volver',                   de: '← zurück'                 },
-  example:  { en: 'Example',                      es: 'Ejemplo',                    de: 'Beispiel'                 },
-  context:  { en: 'More context',                 es: 'Más contexto',               de: 'Mehr Kontext'             },
-  soon:     { en: 'Chart · coming soon',          es: 'Gráfico · próximamente',     de: 'Chart · demnächst'        },
-  today:    { en: 'TODAY',                        es: 'HOY',                        de: 'HEUTE'                    },
-  yesterday:{ en: 'YESTERDAY',                    es: 'AYER',                       de: 'GESTERN'                  },
-  previous: { en: 'PREVIOUS WORDS',               es: 'PALABRAS ANTERIORES',        de: 'FRÜHERE WÖRTER'           },
-};
+// ─── Word Detail ──────────────────────────────────────────────────────────────
 
-// ─── Detail Screen ────────────────────────────────────────────────────────────
+function WordDetail({ index, onIndexChange, onBack }) {
+  const { lang, t } = useLang();
 
-function DetailScreen({ dayOffset, onOffsetChange, onClose }) {
-  const { lang } = useLang();
-
-  const entry  = getWordForOffset(dayOffset);
-  const accent = getAccentForOffset(dayOffset);
+  const entry  = GLOSSARY[index];
+  const accent = accentForIndex(index);
 
   const word       = entry.word[lang]       || entry.word.en;
   const definition = entry.definition[lang] || entry.definition.en;
   const example    = entry.example?.[lang]  || entry.example?.en;
   const extra      = entry.extra?.[lang]    || entry.extra?.en;
 
-  const dayLabel = dayOffset === 0
-    ? LABELS.today[lang]
-    : dayOffset === -1
-      ? LABELS.yesterday[lang]
-      : formatDate(dayOffset, lang).toUpperCase();
+  const ChartComponent = entry.chartId ? CHARTS[entry.chartId] : null;
 
-  const navBtn = {
-    background: 'transparent', border: 'none',
-    color: 'var(--text-muted)', fontFamily: 'var(--font-body)',
-    fontSize: '14px', cursor: 'pointer', padding: '4px 8px', lineHeight: 1,
-  };
+  const hasPrev = index > 0;
+  const hasNext = index < GLOSSARY.length - 1;
 
   return (
-    createPortal(<div style={{ position: 'fixed', inset: 0, background: 'var(--bg-base)', zIndex: 9999, overflowY: 'auto' }}>
-      <div style={{ padding: 'max(20px, calc(env(safe-area-inset-top) + 12px)) 28px 48px', maxWidth: '480px', margin: '0 auto' }}>
+    <div style={{ position: 'fixed', inset: 0, background: 'var(--bg-base)', zIndex: 10000, overflowY: 'auto' }}>
+      <div style={{ maxWidth: '480px', margin: '0 auto', paddingTop: 'env(safe-area-inset-top, 0px)' }}>
 
-        {/* Back */}
-        <button
-          onClick={onClose}
-          style={{ background: 'transparent', border: '0.5px solid var(--border-default)', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer', borderRadius: 'var(--radius-sm)', padding: '5px 10px', marginBottom: '24px', display: 'block' }}
-          onMouseEnter={e => e.currentTarget.style.color = accent}
-          onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
-        >
-          {LABELS.back[lang]}
-        </button>
+        <ScreenHeader title={t.wotd.back} onBack={onBack} />
 
-        {/* Day navigation */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', background: 'var(--bg-surface)', border: '1px solid var(--border-default)', borderRadius: '8px', padding: '6px 4px' }}>
-          <button
-            onClick={() => onOffsetChange(o => Math.max(o - 1, -30))}
-            style={navBtn}
-            onMouseEnter={e => e.currentTarget.style.color = accent}
-            onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
-          >←</button>
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-secondary)', letterSpacing: '0.12em' }}>
-            {dayLabel}
-          </span>
-          <button
-            onClick={() => onOffsetChange(o => Math.min(o + 1, 0))}
-            disabled={dayOffset === 0}
-            style={{ ...navBtn, color: dayOffset === 0 ? 'var(--border-subtle)' : 'var(--text-muted)', cursor: dayOffset === 0 ? 'default' : 'pointer' }}
-            onMouseEnter={e => { if (dayOffset < 0) e.currentTarget.style.color = accent; }}
-            onMouseLeave={e => { if (dayOffset < 0) e.currentTarget.style.color = 'var(--text-muted)'; }}
-          >→</button>
-        </div>
+        <div style={{ padding: '0 20px 60px' }}>
 
-        {/* Label */}
-        <div style={{ fontSize: '12px', color: 'var(--border-subtle)', letterSpacing: '0.22em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '18px' }}>
-          {LABELS.header[lang]}
-        </div>
-
-        {/* Icon + Word */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-          <BookOpen size={36} strokeWidth={1.5} color="var(--text-secondary)" aria-hidden style={{ flexShrink: 0 }} />
-          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '24px', color: accent, lineHeight: 1.1, letterSpacing: '-0.01em', overflowWrap: 'break-word', wordBreak: 'break-word' }}>
+          {/* Word title */}
+          <div style={{
+            fontFamily: 'var(--font-body)', fontWeight: 800,
+            fontSize: 'var(--font-size-title)', color: accent,
+            lineHeight: 1.1, letterSpacing: '-0.01em',
+            overflowWrap: 'break-word', wordBreak: 'break-word',
+            marginBottom: '16px',
+          }}>
             {word}
           </div>
+
+          {/* Definition */}
+          <p style={{ fontSize: '15px', color: 'var(--text-primary)', lineHeight: 1.6, margin: '0 0 24px' }}>
+            {definition}
+          </p>
+
+          {/* Example */}
+          {example && (
+            <div style={{
+              background: `${accent}0d`,
+              borderLeft: `3px solid ${accent}`,
+              borderRadius: '0 6px 6px 0',
+              padding: '12px 16px', marginBottom: '24px',
+            }}>
+              <div style={{ fontSize: '12px', color: accent, fontWeight: 800, fontFamily: 'var(--font-body)', marginBottom: '6px' }}>
+                {t.wotd.example}
+              </div>
+              <p style={{ fontSize: '13px', color: 'var(--text-secondary)', fontStyle: 'italic', margin: 0, lineHeight: 1.6 }}>
+                {example}
+              </p>
+            </div>
+          )}
+
+          {/* More context */}
+          {extra && (
+            <div style={{ marginBottom: '32px' }}>
+              <SectionTitle>{t.wotd.context}</SectionTitle>
+              <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.75, margin: 0 }}>{extra}</p>
+            </div>
+          )}
+
+          {/* Chart */}
+          {ChartComponent && (
+            <div style={{ marginBottom: '32px', borderRadius: '10px', overflow: 'hidden' }}>
+              <ChartComponent />
+            </div>
+          )}
+
+          {/* Prev / Next text navigation */}
+          <div style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            borderTop: '1px solid var(--border-default)', paddingTop: '20px', marginBottom: '8px',
+          }}>
+            <button
+              onClick={() => onIndexChange(index - 1)}
+              disabled={!hasPrev}
+              style={{
+                background: 'transparent', border: 'none',
+                color: hasPrev ? 'var(--text-secondary)' : 'var(--border-default)',
+                fontFamily: 'var(--font-body)', fontSize: '13px',
+                cursor: hasPrev ? 'pointer' : 'default', padding: '4px 0',
+              }}
+            >
+              {hasPrev ? `← ${(GLOSSARY[index - 1].word[lang] || GLOSSARY[index - 1].word.en)}` : ''}
+            </button>
+            <button
+              onClick={() => onIndexChange(index + 1)}
+              disabled={!hasNext}
+              style={{
+                background: 'transparent', border: 'none',
+                color: hasNext ? 'var(--text-secondary)' : 'var(--border-default)',
+                fontFamily: 'var(--font-body)', fontSize: '13px',
+                cursor: hasNext ? 'pointer' : 'default', padding: '4px 0', textAlign: 'right',
+              }}
+            >
+              {hasNext ? `${(GLOSSARY[index + 1].word[lang] || GLOSSARY[index + 1].word.en)} →` : ''}
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Glossary Browser ─────────────────────────────────────────────────────────
+
+function GlossaryBrowser({ onClose }) {
+  const { lang, t } = useLang();
+  const [search,        setSearch]        = useState('');
+  const [selectedIndex, setSelectedIndex] = useState(null);
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return GLOSSARY.map((e, i) => ({ e, i }));
+    return GLOSSARY
+      .map((e, i) => ({ e, i }))
+      .filter(({ e }) => {
+        const w = (e.word[lang] || e.word.en).toLowerCase();
+        const d = (e.definition[lang] || e.definition.en).toLowerCase();
+        return w.includes(q) || d.includes(q);
+      });
+  }, [search, lang]);
+
+  if (selectedIndex !== null) {
+    return createPortal(
+      <WordDetail
+        index={selectedIndex}
+        onIndexChange={setSelectedIndex}
+        onBack={() => setSelectedIndex(null)}
+      />,
+      document.body
+    );
+  }
+
+  return createPortal(
+    <div style={{ position: 'fixed', inset: 0, background: 'var(--bg-base)', zIndex: 9999, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ maxWidth: '480px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', height: '100%', paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+
+        <ScreenHeader title={t.wotd.header} onBack={onClose} />
+
+        {/* Search input */}
+        <div style={{ padding: '0 20px 12px', flexShrink: 0 }}>
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder={'Search...'}
+            autoComplete="off"
+            spellCheck={false}
+            style={{
+              width: '100%', padding: '10px 0',
+              background: 'transparent', border: 'none',
+              borderBottom: '1.5px solid var(--border-default)',
+              color: 'var(--text-primary)',
+              fontFamily: 'var(--font-body)', fontSize: '14px',
+              outline: 'none', boxSizing: 'border-box',
+            }}
+          />
         </div>
 
-        {/* Divider */}
-        <div style={{ height: '1px', background: 'var(--bg-elevated)', marginBottom: '20px' }} />
+        {/* Term count */}
+        <div style={{ padding: '0 20px 8px', flexShrink: 0 }}>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)' }}>
+            {filtered.length} {filtered.length === 1 ? 'term' : 'terms'}
+          </span>
+        </div>
 
-        {/* Definition */}
-        <p style={{ fontSize: '13px', color: '#c8d4e0', lineHeight: 1.7, margin: '0 0 24px' }}>
-          {definition}
-        </p>
-
-        {/* Example */}
-        {example && (
-          <div style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accent}22`, borderLeft: `3px solid ${accent}`, borderRadius: '0 6px 6px 0', padding: '12px 16px', marginBottom: '24px' }}>
-            <div style={{ fontSize: '12px', color: accent, letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '6px', opacity: 0.7 }}>
-              {LABELS.example[lang]}
-            </div>
-            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', fontStyle: 'italic', margin: 0, lineHeight: 1.6 }}>{example}</p>
-          </div>
-        )}
-
-        {/* Extra */}
-        {extra && (
-          <div style={{ marginBottom: '32px' }}>
-            <div style={{ fontSize: '12px', color: 'var(--border-subtle)', letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '10px' }}>
-              {LABELS.context[lang]}
-            </div>
-            <p style={{ fontSize: '12px', color: '#5a6a7d', lineHeight: 1.75, margin: 0 }}>{extra}</p>
-          </div>
-        )}
-
-        {/* Chart */}
-        {(() => {
-          const ChartComponent = entry.chartId ? CHARTS[entry.chartId] : null;
-          return ChartComponent ? (
-            <div style={{ marginBottom: '32px', borderRadius: '10px', overflow: 'hidden' }}><ChartComponent /></div>
-          ) : null;
-        })()}
-
-        {/* Previous words */}
-        <div style={{ borderTop: '1px solid var(--border-default)', paddingTop: '20px' }}>
-          <div style={{ fontSize: '12px', color: 'var(--border-subtle)', letterSpacing: '0.2em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '12px' }}>
-            {LABELS.previous[lang]}
-          </div>
-          {[-1, -2, -3, -4, -5].map(offset => {
-            const e      = getWordForOffset(offset);
-            const ac     = getAccentForOffset(offset);
-            const lbl    = offset === -1 ? LABELS.yesterday[lang] : formatDate(offset, lang);
-            const isSelected = offset === dayOffset;
+        {/* List */}
+        <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+          {filtered.map(({ e, i }) => {
+            const word       = e.word[lang]       || e.word.en;
+            const definition = e.definition[lang] || e.definition.en;
+            const accent     = accentForIndex(i);
             return (
-              <div
-                key={offset}
-                onClick={() => onOffsetChange(offset)}
-                style={{
-                  padding: '10px 12px', marginBottom: '6px',
-                  background: isSelected ? `${ac}0f` : 'var(--bg-base)',
-                  border: `1px solid ${isSelected ? ac + '55' : 'var(--border-default)'}`,
-                  borderRadius: '8px', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', gap: '12px',
-                  transition: 'border-color 0.15s',
-                }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = ac + '55'}
-                onMouseLeave={e => e.currentTarget.style.borderColor = isSelected ? ac + '55' : 'var(--border-default)'}
-              >
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ fontSize: '12px', color: isSelected ? ac : 'var(--text-primary)', fontFamily: 'var(--font-body)', fontWeight: 800, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
-                    {e.word[lang] || e.word.en}
-                  </div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px', fontFamily: 'var(--font-body)' }}>{lbl}</div>
-                </div>
-                {isSelected && <span style={{ fontSize: '12px', color: ac, flexShrink: 0 }}>●</span>}
-              </div>
+              <FlatRow
+                key={i}
+                title={word}
+                subtitle={definition}
+                onClick={() => setSelectedIndex(i)}
+                value={
+                  <ChevronRight size={14} strokeWidth={2} style={{ color: 'var(--text-hint)', flexShrink: 0 }} />
+                }
+                style={{ '--flat-row-title-color': accent }}
+              />
             );
           })}
         </div>
 
       </div>
-    </div>, document.body)
+    </div>,
+    document.body
   );
 }
 
 // ─── Compact Card ─────────────────────────────────────────────────────────────
 
 export default function WordOfTheDay() {
-  const { lang } = useLang();
-  const [showDetail, setShowDetail] = useState(false);
-  const [dayOffset,  setDayOffset]  = useState(0);
+  const { lang, t } = useLang();
+  const [showGlossary, setShowGlossary] = useState(false);
 
-  const entry  = getWordForOffset(dayOffset);
-  const accent = getAccentForOffset(dayOffset);
+  const entry      = getWordForOffset(0);
+  const accent     = getTodayAccent();
   const word       = entry.word[lang]       || entry.word.en;
   const definition = entry.definition[lang] || entry.definition.en;
 
-  const dayLabel = dayOffset === 0
-    ? LABELS.today[lang]
-    : dayOffset === -1
-      ? LABELS.yesterday[lang]
-      : formatDate(dayOffset, lang).toUpperCase();
-
-  const navBtn = (disabled) => ({
-    background: 'transparent', border: 'none',
-    color: disabled ? 'var(--border-subtle)' : 'var(--text-muted)',
-    fontSize: '12px', cursor: disabled ? 'default' : 'pointer',
-    padding: '0 2px', lineHeight: 1, flexShrink: 0,
-  });
-
   return (
     <>
-      {showDetail && (
-        <DetailScreen
-          dayOffset={dayOffset}
-          onOffsetChange={setDayOffset}
-          onClose={() => setShowDetail(false)}
-        />
-      )}
+      {showGlossary && <GlossaryBrowser onClose={() => setShowGlossary(false)} />}
 
-      <div style={{
-        flex: 1, minWidth: 0, alignSelf: 'stretch',
-        background: 'var(--bg-surface)',
-        border: '1px solid var(--border-default)',
-        borderTop: `2px solid ${accent}`,
-        borderRadius: '8px',
-        padding: '10px 12px 12px',
-        display: 'flex', flexDirection: 'column',
-      }}>
+      <div style={{ flex: 1, minWidth: 0, alignSelf: 'stretch', display: 'flex', flexDirection: 'column' }}>
 
-        {/* Header + day nav */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px', gap: '4px' }}>
-          <button
-            onClick={() => setDayOffset(d => Math.max(d - 1, -30))}
-            style={navBtn(false)}
-            onMouseEnter={e => e.currentTarget.style.color = accent}
-            onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
-          >←</button>
-          <span style={{ fontSize: '12px', color: '#888', letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', textAlign: 'center', flex: 1 }}>
-            {dayLabel}
-          </span>
-          <button
-            onClick={() => setDayOffset(d => Math.min(d + 1, 0))}
-            disabled={dayOffset === 0}
-            style={navBtn(dayOffset === 0)}
-            onMouseEnter={e => { if (dayOffset < 0) e.currentTarget.style.color = accent; }}
-            onMouseLeave={e => { if (dayOffset < 0) e.currentTarget.style.color = 'var(--text-muted)'; }}
-          >→</button>
-        </div>
+        <SectionTitle onClick={() => setShowGlossary(true)}>{t.home.sectionWordOfDay}</SectionTitle>
 
         {/* Word */}
         <div style={{ marginBottom: '7px' }}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <BookOpen size={16} strokeWidth={1.5} color="var(--text-secondary)" aria-hidden style={{ flexShrink: 0, marginRight: '6px' }} />
-            <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: 'white', lineHeight: 1.25, minWidth: 0, flex: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-              {word}
-            </span>
-          </div>
+          <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: accent, lineHeight: 1.25 }}>
+            {word}
+          </span>
         </div>
 
         {/* Definition — truncated */}
-        <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0', lineHeight: 1.5, flex: 1, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical' }}>
+        <p style={{
+          fontSize: '13px', color: 'var(--text-secondary)',
+          margin: '0', lineHeight: 1.5, flex: 1, overflow: 'hidden',
+          display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical',
+        }}>
           {definition}
         </p>
 
         {/* Button */}
         <button
-          onClick={() => setShowDetail(true)}
-          style={{ marginTop: '9px', background: 'transparent', border: `1px solid ${accent}33`, borderRadius: '4px', padding: '3px 7px', color: accent, fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', letterSpacing: '0.06em', width: '100%', textAlign: 'center' }}
+          onClick={() => setShowGlossary(true)}
+          style={{
+            marginTop: '9px', background: 'transparent',
+            border: `1px solid ${accent}33`, borderRadius: '4px',
+            padding: '3px 7px', color: accent,
+            fontFamily: 'var(--font-body)', fontSize: '12px',
+            cursor: 'pointer', letterSpacing: '0.06em',
+            width: '100%', textAlign: 'center',
+          }}
           onMouseEnter={e => { e.currentTarget.style.borderColor = accent + '88'; e.currentTarget.style.background = accent + '11'; }}
           onMouseLeave={e => { e.currentTarget.style.borderColor = accent + '33'; e.currentTarget.style.background = 'transparent'; }}
         >
-          {LABELS.more[lang]}
+          {t.wotd.more}
         </button>
       </div>
     </>

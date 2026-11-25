@@ -5,6 +5,7 @@ import upscaleLogo from './assets/upscale-logo.png';
 import { createChart, CandlestickSeries } from 'lightweight-charts';
 import { useLang } from './LangContext';
 import { useAuth, isIOSApp } from './AuthContext';
+import SimulationNotice from './SimulationNotice.jsx';
 import { SERVER } from './config';
 import { ASSETS } from './assets.js';
 import {
@@ -325,13 +326,13 @@ function TradingChart({ symbol, timeframe, position, chartRef, onPositionSaved }
       });
       const data = await res.json();
       if (!res.ok) {
-        setSaveErr({ type, msg: data.error ?? 'Error' });
+        setSaveErr({ type, msg: t.common.error });
         setTimeout(() => setSaveErr(null), 2500);
       } else {
         onPositionSaved(pos.id, type === 'sl' ? { stopLoss: price } : { takeProfit: price });
       }
     } catch {
-      setSaveErr({ type, msg: 'Error de red' });
+      setSaveErr({ type, msg: t.common.error });
       setTimeout(() => setSaveErr(null), 2500);
     }
     setTimeout(() => setSaving(null), 800);
@@ -450,6 +451,59 @@ function TradingChart({ symbol, timeframe, position, chartRef, onPositionSaved }
   );
 }
 
+// ── Tutorial overlay ─────────────────────────────────────────────────────────
+function TradingTutorial({ t, onClose }) {
+  const [step, setStep] = useState(0);
+  const tr = t.trading ?? {};
+  if (!t.trading) return null;
+  const steps = [
+    { title: tr.tutStep1title, body: tr.tutStep1 },
+    { title: tr.tutStep2title, body: tr.tutStep2 },
+    { title: tr.tutStep3title, body: tr.tutStep3 },
+    { title: tr.tutStep4title, body: tr.tutStep4 },
+    { title: tr.tutStep5title, body: tr.tutStep5 },
+  ];
+  const isLast = step === steps.length - 1;
+  const icons = ['📦', '⚡', '🏦', '📊', '🛑'];
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)', zIndex: 1000, display: 'flex', alignItems: 'flex-end' }}>
+      <div style={{ width: '100%', maxWidth: 480, margin: '0 auto', background: 'var(--bg-elevated)', borderRadius: '20px 20px 0 0', padding: '28px 24px 40px', border: '0.5px solid var(--border-default)', borderBottom: 'none' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 17, color: 'var(--text-primary)' }}>{tr.tutTitle}</div>
+          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 4 }}>
+            <X size={20} />
+          </button>
+        </div>
+        <div style={{ display: 'flex', gap: 4, marginBottom: 24 }}>
+          {steps.map((_, i) => (
+            <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: i <= step ? 'var(--green)' : 'var(--border-default)', transition: 'background 0.3s' }} />
+          ))}
+        </div>
+        <div style={{ textAlign: 'center', marginBottom: 20 }}>
+          <div style={{ fontSize: 48, marginBottom: 12 }}>{icons[step]}</div>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 18, color: 'var(--text-primary)', marginBottom: 10 }}>
+            {steps[step].title}
+          </div>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 600, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+            {steps[step].body}
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button onClick={onClose}
+            style={{ flex: 1, padding: '12px', background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
+            {tr.tutSkip}
+          </button>
+          <button
+            onClick={() => { if (isLast) { onClose(); } else setStep(s => s + 1); }}
+            style={{ flex: 2, padding: '12px', background: 'var(--gradient-brand)', border: 'none', borderRadius: 'var(--radius-md)', color: '#0d0d0d', fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 13, cursor: 'pointer' }}>
+            {isLast ? tr.tutDone : tr.tutNext}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function TradingMode({ onBack }) {
@@ -746,13 +800,13 @@ export default function TradingMode({ onBack }) {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setOrderError(data.error ?? 'Error al cerrar posición');
+        setOrderError(t.common.error);
         return;
       }
       setPositionsKey(k => k + 1);
       refreshAccountOnce();
     } catch (_) {
-      setOrderError('Error de conexión');
+      setOrderError(t.common.error);
     } finally {
       setOrderPending(false);
     }
@@ -768,11 +822,11 @@ export default function TradingMode({ onBack }) {
         body: JSON.stringify({ username: challengeInput.trim() }),
       });
       const data = await res.json();
-      if (!res.ok) { setSocialError(data.error ?? 'Error al retar'); return; }
+      if (!res.ok) { setSocialError(t.common.error); return; }
       setChallengeInput('');
       const actRes = await fetch(`${SERVER}/api/trading/duel/active`, { headers: { Authorization: `Bearer ${token}` } });
       if (actRes.ok) setActiveDuel(await actRes.json());
-    } catch (_) { setSocialError('Error de conexión'); }
+    } catch (_) { setSocialError(t.common.error); }
     finally { setSocialPending(false); }
   }
 
@@ -782,14 +836,14 @@ export default function TradingMode({ onBack }) {
       const res = await fetch(`${SERVER}/api/trading/duel/accept/${duelId}`, {
         method: 'POST', headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) { const d = await res.json().catch(() => ({})); setSocialError(d.error ?? 'Error'); return; }
+      if (!res.ok) { setSocialError(t.common.error); return; }
       const [actRes, pendRes] = await Promise.all([
         fetch(`${SERVER}/api/trading/duel/active`,  { headers: { Authorization: `Bearer ${token}` } }),
         fetch(`${SERVER}/api/trading/duel/pending`, { headers: { Authorization: `Bearer ${token}` } }),
       ]);
       if (actRes.ok)  setActiveDuel(await actRes.json());
       if (pendRes.ok) setPendingDuels(await pendRes.json());
-    } catch (_) { setSocialError('Error de conexión'); }
+    } catch (_) { setSocialError(t.common.error); }
     finally { setSocialPending(false); }
   }
 
@@ -819,12 +873,12 @@ export default function TradingMode({ onBack }) {
         body: JSON.stringify({ name: leagueNameInput.trim() }),
       });
       const data = await res.json();
-      if (!res.ok) { setSocialError(data.error ?? 'Error al crear liga'); return; }
+      if (!res.ok) { setSocialError(t.common.error); return; }
       setLeagueNameInput('');
       const mineRes = await fetch(`${SERVER}/api/trading/leagues/mine`, { headers: { Authorization: `Bearer ${token}` } });
       if (mineRes.ok) setMyLeagues(await mineRes.json());
       handleViewLeague(data.leagueId);
-    } catch (_) { setSocialError('Error de conexión'); }
+    } catch (_) { setSocialError(t.common.error); }
     finally { setSocialPending(false); }
   }
 
@@ -838,12 +892,12 @@ export default function TradingMode({ onBack }) {
         body: JSON.stringify({ code: leagueCodeInput.trim().toUpperCase() }),
       });
       const data = await res.json();
-      if (!res.ok) { setSocialError(data.error ?? 'Error al unirse'); return; }
+      if (!res.ok) { setSocialError(t.common.error); return; }
       setLeagueCodeInput('');
       const mineRes = await fetch(`${SERVER}/api/trading/leagues/mine`, { headers: { Authorization: `Bearer ${token}` } });
       if (mineRes.ok) setMyLeagues(await mineRes.json());
       handleViewLeague(data.leagueId);
-    } catch (_) { setSocialError('Error de conexión'); }
+    } catch (_) { setSocialError(t.common.error); }
     finally { setSocialPending(false); }
   }
 
@@ -910,6 +964,8 @@ export default function TradingMode({ onBack }) {
             </button>
           </div>
         </div>
+
+        <SimulationNotice />
 
         {/* Category filter */}
         <div style={{ display: 'flex', gap: 6, padding: '7px 12px', overflowX: 'auto', scrollbarWidth: 'none', borderBottom: '1px solid var(--border-subtle)', flexShrink: 0 }}>
@@ -1112,14 +1168,14 @@ export default function TradingMode({ onBack }) {
         });
         const data = await res.json();
         if (!res.ok) {
-          setOrderError(data.error ?? 'Error al abrir posición');
+          setOrderError(t.common.error);
           return;
         }
         setPositionsKey(k => k + 1);
         refreshAccountOnce();
         setTab('positions');
       } catch (_) {
-        setOrderError('Error de conexión');
+        setOrderError(t.common.error);
       } finally {
         setOrderPending(false);
       }
@@ -1213,6 +1269,8 @@ export default function TradingMode({ onBack }) {
             </div>
           </button>
         </div>
+
+        <SimulationNotice showLeverage />
 
         {/* Error from backend (insufficient margin, market closed, etc.) */}
         {orderError && (

@@ -19,6 +19,9 @@ const { Redis }      = require('@upstash/redis');
 const { ApnsClient, Notification } = require('apns2');
 const Season      = require('./models/Season');
 const season1Cfg  = require('./config/season1');
+const VALID_HISTORICAL_EVENT_IDS = require('./config/historicalEvents');
+const { fetchKrakenCandles } = require('./providers/kraken');
+const { fetchYahooCandles }  = require('./providers/yahoo');
 
 const apnsClient = new ApnsClient({
   team: 'KA99F6SRW4',
@@ -32,6 +35,7 @@ const apnsClient = new ApnsClient({
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) { console.error('FATAL: JWT_SECRET env var is not set'); process.exit(1); }
 const ADMIN_SECRET = process.env.ADMIN_SECRET; // protects /push/send against spam
+const PUSH_ENABLED = !!process.env.RAILWAY_ENVIRONMENT_NAME || process.env.PUSH_ENABLED === 'true';
 
 const VALID_BADGE_IDS = new Set([
   'first_trade','sniper','on_fire','diamond_hands','consistent','dedicated','legend',
@@ -48,7 +52,77 @@ const VALID_BADGE_IDS = new Set([
 ]);
 
 const VALID_GAME_MODES = new Set(['guess', 'survival', 'daily', 'arena', 'tournament', 'historical', 'portfolio']);
+const SESSION_REQUIRED_MODES = new Set(['guess', 'survival', 'historical']);
+// Maximum rounds accepted per mode. Prevents crafted requests from completing
+// all survival missions in a single API call (real sessions can't exceed these).
+const MODE_ROUND_CAPS = { survival: 300, guess: 200, historical: 1, arena: 30, portfolio: 50, tournament: 50, daily: 50 };
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+
+// ── /candles allowlist & helpers ──────────────────────────────────
+const CANDLES_SYMBOL_MAP = new Map([
+  // Crypto → Kraken
+  ['BTCUSD',   'kraken'], ['ETHUSD',   'kraken'], ['SOLUSD',  'kraken'],
+  ['XRPUSD',   'kraken'], ['BNBUSD',   'kraken'], ['DOGEUSD', 'kraken'],
+  ['LINKUSD',  'kraken'], ['AVAXUSD',  'kraken'], ['ADAUSD',  'kraken'],
+  ['DOTUSD',   'kraken'],
+  // Forex → Yahoo
+  ['EURUSD=X', 'yahoo'], ['GBPUSD=X', 'yahoo'], ['JPY=X',   'yahoo'],
+  ['CHF=X',    'yahoo'], ['AUDUSD=X', 'yahoo'], ['CAD=X',   'yahoo'],
+  // Indices → Yahoo
+  ['^GSPC', 'yahoo'], ['^IXIC', 'yahoo'], ['^DJI',   'yahoo'],
+  ['^GDAXI', 'yahoo'], ['^FTSE', 'yahoo'], ['^N225',  'yahoo'],
+  // Commodities → Yahoo
+  ['GC=F', 'yahoo'], ['SI=F', 'yahoo'], ['CL=F', 'yahoo'],
+  ['NG=F', 'yahoo'], ['HG=F', 'yahoo'],
+  // Stocks → Yahoo
+  ['AAPL', 'yahoo'], ['TSLA', 'yahoo'], ['MSFT',  'yahoo'], ['AMZN', 'yahoo'],
+  ['GOOGL', 'yahoo'], ['META', 'yahoo'], ['NVDA',  'yahoo'],
+  // Historical-only symbols → Yahoo
+  ['BTC-USD', 'yahoo'], ['ETH-USD', 'yahoo'], ['GME', 'yahoo'], ['NFLX', 'yahoo'],
+]);
+
+const VALID_CANDLE_INTERVALS = new Set(['1m', '5m', '15m', '1h', '1d']);
+const CANDLES_TTL   = { '1m': 60, '5m': 120, '15m': 300, '1h': 600, '1d': 3600 };
+const INTERVAL_SECS = { '1m': 60, '5m': 300, '15m': 900, '1h': 3600, '1d': 86400 };
+
+function dropUnclosedCandle(candles, interval) {
+  if (!candles.length) return candles;
+  const last = candles[candles.length - 1];
+  const secs = INTERVAL_SECS[interval] || 3600;
+  if (last.time + secs > Math.floor(Date.now() / 1000)) return candles.slice(0, -1);
+  return candles;
+}
+
+// Clip wicks that exceed 6x the batch median range AND >0.8% of mid-price.
+// Trims proportionally so the body is always preserved intact.
+// Never applied to historical data (oil negative candles, etc.).
+function clipAnomalousWicks(candles) {
+  if (candles.length < 10) return candles;
+  const ranges = candles.map(c => c.high - c.low).sort((a, b) => a - b);
+  const medianRange = ranges[Math.floor(ranges.length / 2)];
+  const maxRange = medianRange * 6;
+  return candles.map(c => {
+    const body  = Math.abs(c.close - c.open);
+    const range = c.high - c.low;
+    const mid   = (c.high + c.low) / 2;
+    if (mid <= 0 || range <= maxRange || range <= mid * 0.008) return c;
+    const allowedRange = Math.max(maxRange, body * 1.1);
+    const upper = c.high - Math.max(c.open, c.close);
+    const lower = Math.min(c.open, c.close) - c.low;
+    const totalWicks = upper + lower;
+    if (totalWicks <= 0) return c;
+    const wickBudget = Math.max(0, allowedRange - body);
+    const scale = wickBudget / totalWicks;
+    return {
+      time:  c.time,
+      open:  c.open,
+      high:  Math.max(c.open, c.close) + upper * scale,
+      low:   Math.min(c.open, c.close) - lower * scale,
+      close: c.close,
+    };
+  });
+}
+
 const GOOGLE_CLIENT_ID     = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const MONGODB_URI          = process.env.MONGODB_URI;
@@ -114,6 +188,7 @@ mongoose.connect(MONGODB_URI, { autoIndex: false })
       { upsert: true, setDefaultsOnInsert: true }
     );
     console.log('Season 1 seeded (or already present)');
+
   })
   .catch(err => console.error('MongoDB error:', err));
 
@@ -159,7 +234,9 @@ const UserSchema = new mongoose.Schema({
     seasonId:             { type: Number,   default: null },
     bpPoints:             { type: Number,   default: 0 },
     completedMissions:    { type: [String], default: [] }, // mission IDs (e.g. 'bp_s1_l1')
-    claimedRewards:       { type: [Number], default: [] }, // level numbers claimed (e.g. [2, 4])
+    claimedRewards:       { type: [Number], default: [] }, // legacy flat array — kept for idempotency check; do not remove
+    claimedFreeRewards:   { type: [Number], default: [] }, // levels where free reward was claimed
+    claimedProRewards:    { type: [Number], default: [] }, // levels where pro reward was claimed
     // ── Phase 5A counters ───────────────────────────────────────────────────────
     survivalRoundsTotal:       { type: Number, default: 0 }, // total rounds survived in Survival
     classicMaxStreak:          { type: Number, default: 0 }, // best consecutive streak in Classic
@@ -171,6 +248,9 @@ const UserSchema = new mongoose.Schema({
     completedEventIds:         { type: [String], default: [] }, // unique historical event IDs
     // ── Phase 5D counters ───────────────────────────────────────────────────────
     arenaWinsTotal:            { type: Number, default: 0 }, // real-time + async arena wins
+    // ── Phase 5E baselines ──────────────────────────────────────────────────────
+    missionBaselines:          { type: Map, of: Number, default: new Map() }, // per-mission counter baseline at unlock
+    missionStreakCounters:     { type: Map, of: Number, default: new Map() }, // best post-unlock streak per classic_streak mission
   },
   // Mechanics unlocked through the Battle Pass (e.g. portfolio view, verified badge).
   // Stored as an array of mechanic IDs. Effects are applied elsewhere; this field
@@ -183,6 +263,8 @@ const UserSchema = new mongoose.Schema({
     itemId: { type: String,  required: true },
     used:   { type: Boolean, default: false },
   }],
+  ageConfirmedAt:      { type: Date,   default: null },
+  ageConfirmedVersion: { type: Number, default: null },
 });
 
 const TournamentSchema = new mongoose.Schema({
@@ -226,7 +308,8 @@ const StatsSchema = new mongoose.Schema({
   daily: { type: Number, default: 0 },
 });
 const PortfolioSchema = new mongoose.Schema({
-  userId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
+  userId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  slot:      { type: Number, default: 0, enum: [0, 1] },
   cash:      { type: Number, default: 50000 },
   positions: [{
     symbol:    { type: String, required: true },
@@ -247,12 +330,14 @@ const PortfolioSchema = new mongoose.Schema({
  }],
   createdAt: { type: Date, default: Date.now },
 });
+PortfolioSchema.index({ userId: 1, slot: 1 }, { unique: true });
 const PortfolioHistorySchema = new mongoose.Schema({
   userId:     { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  slot:       { type: Number, default: 0, enum: [0, 1] },
   date:       { type: String, required: true },
   totalValue: { type: Number, required: true },
 });
-PortfolioHistorySchema.index({ userId: 1, date: 1 }, { unique: true });
+PortfolioHistorySchema.index({ userId: 1, slot: 1, date: 1 }, { unique: true });
 const PortfolioHistory = mongoose.model('PortfolioHistory', PortfolioHistorySchema);
 
 const PriceAlertSchema = new mongoose.Schema({
@@ -328,6 +413,7 @@ const GameHistorySchema = new mongoose.Schema({
   accuracy:  { type: Number, default: 0 },
   streak:    { type: Number, default: 0 },
   rounds:    { type: Number, default: 0 },
+  gameId:    { type: String, index: true, sparse: true }, // optional UUID for network-retry deduplication
   createdAt: { type: Date, default: Date.now },
 });
 const GameHistory = mongoose.model('GameHistory', GameHistorySchema);
@@ -379,7 +465,7 @@ require('./models/PortfolioOrder');
 
 // ── VAPID / Push ──────────────────────────────────────────────────
 webpush.setVapidDetails(
-  'mailto:nicolasvidalcorrecher@tradaria.dev',
+  'mailto:support@tradiko.dev',
   process.env.VAPID_PUBLIC_KEY,
   process.env.VAPID_PRIVATE_KEY
 );
@@ -410,6 +496,7 @@ loadSubscriptions().then(subs => {
 });
 
 async function sendPushToUser(userId, payload) {
+  if (!PUSH_ENABLED) { console.log(`[push] PUSH_ENABLED=false — skipping sendPushToUser for userId=${userId}`); return; }
   const title = payload.title || '⚡ Tradiko';
   const body = payload.body || '';
   const url = payload.url || 'https://tradiko.dev';
@@ -427,6 +514,7 @@ async function sendPushToUser(userId, payload) {
         data: { url }
       });
       await apnsClient.send(notification).catch(err => {
+        if (err.reason === 'BadDeviceToken' || err.reason === 'Unregistered') redis.del(`apns_token:${userId}`).catch(() => {});
         console.log('APNs error:', err.message);
       });
     } catch (err) {
@@ -449,36 +537,17 @@ async function sendPushToUser(userId, payload) {
   }
 }
 
-// ── Push notification strings (en / es) ──────────────────────────
-const NOTIF_STRINGS = {
-  en: {
-    dailyChallenge: { title: '⚡ Daily Challenge', body: "Can you call today's chart? One chart, one shot." },
-    marketOpen:     { title: '📈 Markets are open', body: 'NYSE & NASDAQ just opened. Check your portfolio.' },
-    marketClose:    { title: '🔔 Markets closed',   body: 'How did your portfolio do today?' },
-    streakAtRisk:       (n) => ({ title: '🔥 Your streak is at risk!', body: `${n}-day streak on the line. Play before midnight.` }),
-    weeklyTournament:   { title: '🏆 New weekly tournament!', body: "This week's tournament is live — jump in and climb the ranking." },
-    orderExecuted: ({ type, name, qty, price }) => ({ title: '✅ Order executed', body: `Your ${type} order for ${qty} units of ${name} was executed at $${price}.` }),
-    orderCancelled: ({ name, reason }) => ({ title: '❌ Order cancelled', body: `Your order for ${name} was cancelled: ${reason}` }),
-    orderPartialExecution: ({ type, name, qty, executedQty, price }) => ({ title: '⚠️ Order partially executed', body: `Your ${type} order for ${qty} units of ${name} was partially filled: ${executedQty} units at $${price}.` }),
-  },
-  es: {
-    dailyChallenge:     { title: '⚡ Reto Diario', body: '¿Puedes predecir el gráfico de hoy? Un gráfico, una oportunidad.' },
-    marketOpen:         { title: '📈 Mercados abiertos', body: 'NYSE y NASDAQ acaban de abrir. Revisa tu portfolio.' },
-    marketClose:        { title: '🔔 Mercados cerrados', body: '¿Cómo ha ido tu portfolio hoy?' },
-    streakAtRisk:       (n) => ({ title: '🔥 ¡Tu racha está en peligro!', body: `Llevas ${n} días seguidos. Juega antes de medianoche.` }),
-    weeklyTournament:   { title: '🏆 ¡Nuevo torneo semanal!', body: 'El torneo de esta semana ya está activo — entra y sube en el ranking.' },
-    orderExecuted: ({ type, name, qty, price }) => ({ title: '✅ Orden ejecutada', body: `Tu orden de ${type === 'buy' ? 'compra' : 'venta'} de ${qty} unidades de ${name} se ejecutó a $${price}.` }),
-    orderCancelled: ({ name, reason }) => ({ title: '❌ Orden cancelada', body: `Tu orden de ${name} fue cancelada: ${reason}` }),
-    orderPartialExecution: ({ type, name, qty, executedQty, price }) => ({ title: '⚠️ Orden ejecutada parcialmente', body: `Tu orden de ${type === 'buy' ? 'compra' : 'venta'} de ${qty} unidades de ${name} se ejecutó parcialmente: ${executedQty} unidades a $${price}.` }),
-  },
+// Español fijo — NO reintroducir i18n/NOTIF_STRINGS/getUserLang aquí sin avisar. Se hizo y se deshizo sin querer en 88d853b / 971ff0c.
+const NOTIF_ES = {
+  dailyChallenge:        { title: '⚡ Reto Diario', body: '¿Puedes predecir el gráfico de hoy? Un gráfico, una oportunidad.' },
+  marketOpen:            { title: '📈 Mercados abiertos', body: 'NYSE y NASDAQ acaban de abrir. Revisa tu portfolio.' },
+  marketClose:           { title: '🔔 Mercados cerrados', body: '¿Cómo ha ido tu portfolio hoy?' },
+  weeklyTournament:      { title: '🏆 ¡Nuevo torneo semanal!', body: 'El torneo de esta semana ya está activo — entra y sube en el ranking.' },
+  streakAtRisk:          (n) => ({ title: '🔥 ¡Tu racha está en peligro!', body: `Llevas ${n} días seguidos. Juega antes de medianoche.` }),
+  orderExecuted:         ({ type, name, qty, price }) => ({ title: '✅ Orden ejecutada', body: `Tu orden de ${type === 'buy' ? 'compra' : 'venta'} de ${qty} unidades de ${name} se ejecutó a $${price}.` }),
+  orderCancelled:        ({ name, reason }) => ({ title: '❌ Orden cancelada', body: `Tu orden de ${name} fue cancelada: ${reason}` }),
+  orderPartialExecution: ({ type, name, qty, executedQty, price }) => ({ title: '⚠️ Orden ejecutada parcialmente', body: `Tu orden de ${type === 'buy' ? 'compra' : 'venta'} de ${qty} unidades de ${name} se ejecutó parcialmente: ${executedQty} unidades a $${price}.` }),
 };
-
-async function getUserLang(userId) {
-  try {
-    const l = await redis.get(`push_user_lang:${userId}`);
-    return (l && NOTIF_STRINGS[l]) ? l : 'en';
-  } catch { return 'en'; }
-}
 
 // ── Cache ─────────────────────────────────────────────────────────
 async function cachedFetch(key, ttlSeconds, fetchFn) {
@@ -615,7 +684,7 @@ async function getPrice(asset) {
 app.use(cors({
   origin: (origin, cb) => {
     const allowed = ['https://tradiko.dev', 'https://www.tradiko.dev'];
-    if (!origin || allowed.includes(origin) || /^http:\/\/localhost(:\d+)?$/.test(origin)) {
+    if (!origin || origin === 'null' || allowed.includes(origin) || /^http:\/\/localhost(:\d+)?$/.test(origin)) {
       cb(null, true);
     } else {
       cb(new Error('Not allowed by CORS'));
@@ -644,18 +713,19 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // ── Rate limiters ─────────────────────────────────────────────────
+const rateLimitMessage = { error: 'rate_limit' };
 const generalLimiter = rateLimit({
   windowMs: 60 * 1000, max: 100,
-  message: { error: 'Too many requests, slow down.' },
+  message: rateLimitMessage,
   standardHeaders: true, legacyHeaders: false,
 });
-const dailyLimiter   = rateLimit({ windowMs: 60 * 1000, max: 10,  message: { error: 'Too many requests for daily challenge.' } });
-const candlesLimiter = rateLimit({ windowMs: 60 * 1000, max: 30,  message: { error: 'Too many candle requests.' } });
-const tradeLimiter   = rateLimit({ windowMs: 60 * 1000, max: 20,  message: { error: 'Too many trade requests.' } });
-const authLimiter    = rateLimit({ windowMs: 60 * 1000, max: 10,  message: { error: 'Too many auth requests.' } });
-const shareLimiter   = rateLimit({ windowMs: 60 * 1000, max: 5,   message: { error: 'Too many share requests.' } });
-const syncLimiter    = rateLimit({ windowMs: 60 * 1000, max: 30,  message: { error: 'Too many sync requests.' } });
-const writeLimiter   = rateLimit({ windowMs: 60 * 1000, max: 10,  message: { error: 'Too many requests, slow down.' } });
+const dailyLimiter   = rateLimit({ windowMs: 60 * 1000, max: 10,  message: rateLimitMessage, standardHeaders: true, legacyHeaders: false });
+const candlesLimiter = rateLimit({ windowMs: 60 * 1000, max: 30,  message: rateLimitMessage, standardHeaders: true, legacyHeaders: false });
+const tradeLimiter   = rateLimit({ windowMs: 60 * 1000, max: 20,  message: rateLimitMessage, standardHeaders: true, legacyHeaders: false });
+const authLimiter    = rateLimit({ windowMs: 60 * 1000, max: 10,  message: rateLimitMessage, standardHeaders: true, legacyHeaders: false });
+const shareLimiter   = rateLimit({ windowMs: 60 * 1000, max: 5,   message: rateLimitMessage, standardHeaders: true, legacyHeaders: false });
+const syncLimiter    = rateLimit({ windowMs: 60 * 1000, max: 30,  message: rateLimitMessage, standardHeaders: true, legacyHeaders: false });
+const writeLimiter   = rateLimit({ windowMs: 60 * 1000, max: 10,  message: rateLimitMessage, standardHeaders: true, legacyHeaders: false });
 
 app.use(generalLimiter);
 app.use('/daily',              dailyLimiter);
@@ -744,7 +814,7 @@ app.post('/auth/exchange', async (req, res) => {
     });
     res.json({ token });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
@@ -807,6 +877,8 @@ app.post('/auth/logout', async (req, res) => {
     const decoded = jwt.verify(token, JWT_SECRET);
     const ttl = decoded.exp - Math.floor(Date.now() / 1000);
     if (ttl > 0) await redis.set(`blacklist:${token}`, '1', { ex: ttl });
+    await redis.del(`apns_token:${decoded.id}`);
+    await redis.del(`push_user_sub:${decoded.id}`);
   } catch {}
   res.json({ ok: true });
 });
@@ -850,9 +922,27 @@ app.get('/auth/me', async (req, res) => {
       isAcademyPro,
       battlePassItems:     user.battlePassItems     || [],
       battlePassMechanics: user.battlePassMechanics || [],
+      ageConfirmedAt:      user.ageConfirmedAt      || null,
     });
   } catch (err) {
     res.status(401).json({ error: 'Invalid token' });
+  }
+});
+
+app.post('/user/confirm-age', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const { accept } = req.body;
+    if (!accept) return res.status(400).json({ error: 'accept must be true' });
+    await User.findByIdAndUpdate(decoded.id, {
+      $set: { ageConfirmedAt: new Date(), ageConfirmedVersion: 1 },
+    }, { new: true });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('confirm-age error:', err.message);
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
@@ -861,51 +951,111 @@ app.post('/daily/complete', async (req, res) => {
   if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
 
   const { xp, badges, dailyResult } = req.body;
-  const user = await User.findById(decoded.id);
-  if (!user) return res.status(404).json({ error: 'User not found' });
 
-  const today = new Date().toISOString().split('T')[0];
-  const lastPlayed = user.lastPlayed
-    ? new Date(user.lastPlayed).toISOString().split('T')[0]
-    : null;
+  const startOfToday = new Date();
+  startOfToday.setUTCHours(0, 0, 0, 0);
+  const startOfYesterday = new Date(startOfToday);
+  startOfYesterday.setUTCDate(startOfYesterday.getUTCDate() - 1);
+  const todayStr = startOfToday.toISOString().slice(0, 10);
 
-  if (lastPlayed === today) {
-    return res.json({ dailyStreak: user.dailyStreak, lastPlayed: user.lastPlayed, alreadyPlayed: true });
-  }
+  const safeXp = Math.max(0, Math.min(Number(xp) || 0, 1000000));
+  const safeBadges = Array.isArray(badges)
+    ? badges.filter(b => VALID_BADGE_IDS.has(b))
+    : [];
 
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = yesterday.toISOString().split('T')[0];
-
-  const streakContinues = lastPlayed === yesterdayStr;
-  const newStreak = streakContinues ? user.dailyStreak + 1 : 1;
-
-  const dailyUpdate = {
-    dailyStreak: newStreak,
-    lastPlayed: new Date(),
-    xp: Math.max(user.xp || 0, xp || 0),
-    badges: [...new Set([...(user.badges || []), ...(badges || [])])],
-    dailyResult,
+  // Resolve $lastPlayed to a BSON Date for comparison regardless of whether it is
+  // stored as a String ("YYYY-MM-DD", original schema) or as a Date (set by $$NOW
+  // before this fix was applied). Without this, cross-type BSON ordering (String < Date)
+  // made $gte/$lt always wrong when comparing a string field against a Date literal.
+  const lastPlayedAsDate = {
+    $cond: {
+      if: { $eq: [{ $type: '$lastPlayed' }, 'date'] },
+      then: '$lastPlayed',
+      else: {
+        $cond: {
+          if: { $ne: [{ $ifNull: ['$lastPlayed', null] }, null] },
+          then: { $dateFromString: { dateString: '$lastPlayed', onError: null, onNull: null } },
+          else: null,
+        },
+      },
+    },
   };
-  // Snapshot current streak before it resets so a restore ticket can recover it
-  if (!streakContinues && user.dailyStreak > 1) {
-    dailyUpdate.streakBeforeLoss = user.dailyStreak;
+
+  try {
+    const updatedUser = await User.findOneAndUpdate(
+      {
+        _id: decoded.id,
+        $or: [
+          { lastPlayed: { $exists: false } },
+          { lastPlayed: null },
+          // String-type lastPlayed (normal case, original schema): lexicographic comparison works
+          { lastPlayed: { $type: 'string', $lt: todayStr } },
+          // Date-type lastPlayed (written by the buggy $$NOW before this fix): Date comparison
+          { lastPlayed: { $type: 'date', $lt: startOfToday } },
+        ],
+      },
+      [
+        {
+          $set: {
+            lastPlayed: todayStr,
+            dailyStreak: {
+              $cond: {
+                if: {
+                  $and: [
+                    { $ne: [{ $ifNull: ['$lastPlayed', null] }, null] },
+                    { $gte: [lastPlayedAsDate, startOfYesterday] },
+                  ],
+                },
+                then: { $add: ['$dailyStreak', 1] },
+                else: 1,
+              },
+            },
+            streakBeforeLoss: {
+              $cond: {
+                if: {
+                  $and: [
+                    { $gt: ['$dailyStreak', 1] },
+                    {
+                      $or: [
+                        { $eq: [{ $ifNull: ['$lastPlayed', null] }, null] },
+                        { $lt: [lastPlayedAsDate, startOfYesterday] },
+                      ],
+                    },
+                  ],
+                },
+                then: '$dailyStreak',
+                else: { $ifNull: ['$streakBeforeLoss', 0] },
+              },
+            },
+            xp: { $max: ['$xp', safeXp] },
+            badges: { $setUnion: [{ $ifNull: ['$badges', []] }, safeBadges] },
+            dailyResult: dailyResult,
+          },
+        },
+      ],
+      { new: true, updatePipeline: true }
+    );
+
+    if (!updatedUser) {
+      const user = await User.findById(decoded.id).select('dailyStreak lastPlayed');
+      return res.json({
+        dailyStreak: user?.dailyStreak || 0,
+        lastPlayed: user?.lastPlayed || null,
+        alreadyPlayed: true,
+      });
+    }
+
+    const bpProgress = await processDailyBpProgress(decoded.id, { newStreak: updatedUser.dailyStreak }).catch(() => null);
+
+    res.json({
+      dailyStreak: updatedUser.dailyStreak,
+      lastPlayed: updatedUser.lastPlayed,
+      alreadyPlayed: false,
+      bpProgress,
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'internal_error' });
   }
-
-  const updatedUser = await User.findByIdAndUpdate(
-    decoded.id,
-    dailyUpdate,
-    { new: true, returnDocument: 'after' }
-  );
-
-  const bpProgress = await processDailyBpProgress(decoded.id, { newStreak }).catch(() => null);
-
-  res.json({
-    dailyStreak:  updatedUser.dailyStreak,
-    lastPlayed:   updatedUser.lastPlayed,
-    alreadyPlayed: false,
-    bpProgress,
-  });
 });
 
 app.post('/auth/sync', async (req, res) => {
@@ -914,7 +1064,7 @@ app.post('/auth/sync', async (req, res) => {
   try {
     const current = await User.findById(decoded.id);
     if (!current) return res.status(404).json({ error: 'User not found' });
-    const { xp, badges, dailyStreak, lastPlayed, dailyResult } = req.body;
+    const { xp, badges, dailyResult } = req.body;
 
     // XP: only allow increase, cap delta at 2000 per sync
     const newXP = Number(xp);
@@ -929,19 +1079,11 @@ app.post('/auth/sync', async (req, res) => {
       ...incomingBadges.filter(b => typeof b === 'string' && VALID_BADGE_IDS.has(b)),
     ])];
 
-    // Streak: non-negative integer, max 3650
-    const newStreak = Number(dailyStreak);
-    const safeStreak = Number.isFinite(newStreak) && newStreak >= 0 && newStreak <= 3650
-      ? newStreak
-      : current.dailyStreak || 0;
-
-    // lastPlayed: must be YYYY-MM-DD
-    const safeLastPlayed = typeof lastPlayed === 'string' && DATE_REGEX.test(lastPlayed)
-      ? lastPlayed : current.lastPlayed;
+    // dailyStreak and lastPlayed are intentionally NOT accepted here.
+    // They are only written by /daily/complete (atomic, idempotent) and
+    // /tickets/use, preventing stale client data from overwriting the server.
 
     const update = { xp: safeXP, badges: safeBadges };
-    if (dailyStreak !== undefined) update.dailyStreak = safeStreak;
-    if (lastPlayed  !== undefined) update.lastPlayed  = safeLastPlayed;
     if (dailyResult !== undefined) {
       const dr = dailyResult && typeof dailyResult === 'object' ? dailyResult : {};
       update.dailyResult = {
@@ -982,16 +1124,25 @@ app.post('/auth/cosmetics', async (req, res) => {
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
     const { activeCosmetics } = req.body;
-    const user = await User.findById(decoded.id).select('purchases');
+    const user = await User.findById(decoded.id).select('purchases badges');
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const VALID_TYPES = new Set(['theme', 'frame', 'avatar', 'effect', 'username_color']);
+    const VALID_TYPES = new Set(['theme', 'frame', 'avatar', 'effect', 'username_color', 'title', 'badge']);
+    const BP_BADGE_IDS = new Set(['bp_s1_early_trader', 'bp_s1_elite', 'bp_s1_season1_pro', 'bp_s1_season1', 'bp_s1_champion']);
     const owned = new Set(user.purchases);
     const safe = {};
     if (activeCosmetics && typeof activeCosmetics === 'object' && !Array.isArray(activeCosmetics)) {
       for (const [type, itemId] of Object.entries(activeCosmetics)) {
         if (!VALID_TYPES.has(type)) continue;
-        if (typeof itemId !== 'string' || !SHOP_ITEMS[itemId] || !owned.has(itemId)) continue;
+        if (typeof itemId !== 'string') continue;
+        if (type === 'title') {
+          if (!BP_TITLES.has(itemId) || !owned.has(itemId)) continue;
+        } else if (type === 'badge') {
+          if (!BP_BADGE_IDS.has(itemId) || !(user.badges || []).includes(itemId)) continue;
+        } else {
+          if (!SHOP_ITEMS[itemId] && !BP_COSMETICS[itemId]) continue;
+          if (!owned.has(itemId)) continue;
+        }
         safe[type] = itemId;
       }
     }
@@ -999,7 +1150,7 @@ app.post('/auth/cosmetics', async (req, res) => {
     await User.findByIdAndUpdate(decoded.id, { activeCosmetics: safe });
     res.json({ ok: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
@@ -1010,34 +1161,72 @@ app.post('/tickets/use', async (req, res) => {
     const user = await User.findById(decoded.id);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    // Must have at least one unused streak-restore ticket
+    // Ticket must exist and be unused
     const ticketIdx = (user.battlePassItems || []).findIndex(
       t => !t.used && t.itemId === 'ticket_restore_streak'
     );
     if (ticketIdx === -1) return res.status(400).json({ error: 'No tickets available' });
 
-    // Must have a streak worth restoring
-    const snapshot = user.streakBeforeLoss || 0;
-    if (snapshot === 0 || snapshot <= user.dailyStreak) {
+    // Date helpers (UTC) — same convention as /daily/complete
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+    const todayStr     = today.toISOString().slice(0, 10);
+    const yd           = new Date(today);
+    yd.setUTCDate(today.getUTCDate() - 1);
+    const yesterdayStr = yd.toISOString().slice(0, 10);
+
+    // Compute snapshot.
+    // Prefer streakBeforeLoss (set by /daily/complete when streak resets).
+    // If 0, infer from dailyStreak when streak is currently broken but the daily
+    // hasn't been played today yet — covers USE pressed before today's /daily/complete.
+    let snapshot = user.streakBeforeLoss || 0;
+    if (snapshot === 0) {
+      const lpDate = user.lastPlayed instanceof Date
+        ? user.lastPlayed
+        : (user.lastPlayed ? new Date(user.lastPlayed + 'T00:00:00Z') : null);
+      const streakBroken = !lpDate || lpDate < yd;
+      if (user.dailyStreak > 1 && streakBroken) {
+        snapshot = user.dailyStreak;
+      } else {
+        return res.status(400).json({ error: 'NO_STREAK_TO_RESTORE' });
+      }
+    } else if (snapshot <= user.dailyStreak) {
       return res.status(400).json({ error: 'NO_STREAK_TO_RESTORE' });
     }
 
-    // Compute yesterday string for lastPlayed adjustment
-    const yd = new Date();
-    yd.setDate(yd.getDate() - 1);
-    const yesterdayStr = yd.toISOString().split('T')[0];
+    // lastPlayed: keep today if the daily was already played today so tomorrow's
+    // /daily/complete still sees a consecutive play and increments the streak.
+    // Otherwise set to yesterday so today's daily can still extend the restored streak.
+    const lpStr = user.lastPlayed instanceof Date
+      ? user.lastPlayed.toISOString().slice(0, 10)
+      : (user.lastPlayed || null);
+    const newLastPlayed = lpStr === todayStr ? todayStr : yesterdayStr;
 
-    // Atomically restore streak, consume ticket, clear snapshot
-    user.battlePassItems[ticketIdx].used = true;
-    user.dailyStreak      = snapshot;
-    user.lastPlayed       = yesterdayStr;
-    user.streakBeforeLoss = 0;
-    await user.save();
+    // Atomically consume the ticket and apply the restore.
+    // The $elemMatch condition re-checks that the ticket is still unused,
+    // preventing double-use if two requests race.
+    const updated = await User.findOneAndUpdate(
+      {
+        _id:             decoded.id,
+        battlePassItems: { $elemMatch: { itemId: 'ticket_restore_streak', used: false } },
+      },
+      {
+        $set: {
+          'battlePassItems.$.used': true,
+          dailyStreak:              snapshot,
+          lastPlayed:               newLastPlayed,
+          streakBeforeLoss:         0,
+        },
+      },
+      { new: true }
+    );
 
-    const remaining = user.battlePassItems.filter(t => !t.used).length;
-    res.json({ success: true, restoredTo: snapshot, remaining });
+    if (!updated) return res.status(400).json({ error: 'No tickets available' });
+
+    const remaining = (updated.battlePassItems || []).filter(t => !t.used).length;
+    res.json({ success: true, restoredTo: snapshot, lastPlayed: updated.lastPlayed, remaining });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
@@ -1050,7 +1239,7 @@ app.get('/auth/username/check/:username', async (req, res) => {
     const existing = await User.findOne({ username: username.toLowerCase() });
     res.json({ available: !existing });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
@@ -1068,7 +1257,7 @@ app.post('/auth/username/set', async (req, res) => {
     await User.findByIdAndUpdate(decoded.id, { username: username.toLowerCase() });
     res.json({ ok: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
@@ -1102,6 +1291,27 @@ const SHOP_ITEMS = {
   effect_explosion: { name: 'Explosion Effect', price: 299 },
   effect_stars:     { name: 'Stars Effect',      price: 199 },
 };
+
+const BP_COSMETICS = {
+  color_green:   { type: 'username_color' },
+  color_gold:    { type: 'username_color' },
+  color_red:     { type: 'username_color' },
+  color_purple:  { type: 'username_color' },
+  avatar_fox:    { type: 'avatar' },
+  avatar_dragon: { type: 'avatar' },
+  frame_season1: { type: 'frame' },
+  theme_aurora:  { type: 'theme' },
+};
+
+const BP_TITLES = new Set([
+  'title_market_watcher',
+  'title_chart_reader',
+  'title_risk_taker',
+  'title_bull_runner',
+  'title_bear_hunter',
+  'title_survivor',
+  'title_veteran',
+]);
 // ── Shop routes ───────────────────────────────────────────────────
 app.post('/shop/checkout', async (req, res) => {
   const auth = req.headers.authorization;
@@ -1139,7 +1349,7 @@ app.post('/shop/webhook', express.raw({ type: 'application/json' }), async (req,
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (err) {
-    return res.status(400).json({ error: err.message });
+    return res.status(400).json({ error: 'internal_error' });
   }
 
   if (event.type === 'checkout.session.completed') {
@@ -1185,18 +1395,9 @@ app.post('/shop/webhook', express.raw({ type: 'application/json' }), async (req,
       } catch (err) { console.error('Academy activation error:', err.message); }
     }
 
-    // Paid tournament entry
-    if (metaType === 'tournament_entry' && userId && tournamentId) {
-      try {
-        const pt = await PaidTournament.findById(tournamentId);
-        if (pt && pt.status === 'waiting' && !pt.players.some(p => String(p.userId) === userId)) {
-          pt.players.push({ userId, paymentIntentId: session.payment_intent });
-          if (pt.players.length >= pt.maxPlayers) {
-            pt.status = 'active';
-          }
-          await pt.save();
-        }
-      } catch (err) { console.error('Tournament entry error:', err.message); }
+    // Paid tournament entry — feature disabled; log for manual review
+    if (metaType === 'tournament_entry') {
+      console.warn('[IGNORED] tournament_entry webhook received for session', session.id, '— paid tournaments are disabled; requires manual review');
     }
   }
 
@@ -1268,7 +1469,7 @@ app.post('/pro/cancel', async (req, res) => {
       await stripe.subscriptions.cancel(user.stripeSubscriptionId);
     } catch (stripeErr) {
       console.error(`Pro cancel Stripe error for user ${decoded.id}:`, stripeErr.message);
-      return res.status(502).json({ error: `Error de Stripe: ${stripeErr.message}` });
+      return res.status(502).json({ error: 'stripe_error' });
     }
     await User.findByIdAndUpdate(decoded.id, { isPro: false, stripeSubscriptionId: null });
     console.log(`Pro cancelled for user ${decoded.id}`);
@@ -1279,43 +1480,13 @@ app.post('/pro/cancel', async (req, res) => {
   }
 });
 
-// ── Paid tournament routes ────────────────────────────────────────
-app.post('/tournament/paid/create', async (req, res) => {
-  const auth = req.headers.authorization;
-  if (!auth) return res.status(401).json({ error: 'No token' });
-  try {
-    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const { maxParticipants } = req.body;
-    const n = Number(maxParticipants);
-    if (!Number.isInteger(n) || n < 2 || n > 10) {
-      return res.status(400).json({ error: 'maxParticipants must be an integer between 2 and 10' });
-    }
-    const entryFee = 2;
-    const totalPot = entryFee * n;
-    const prize    = totalPot / 2;
-    const pt = await PaidTournament.create({ entryFee, maxPlayers: n, totalPot, prize, createdBy: decoded.id });
-    res.json({ ok: true, tournament: pt });
-  } catch (err) {
-    console.error('Create tournament error:', err.message);
-    res.status(500).json({ error: 'Create failed' });
-  }
+// ── Paid tournament routes — DISABLED (410) ──────────────────────
+app.post('/tournament/paid/create', (req, res) => {
+  res.status(410).json({ error: 'feature_disabled', message: 'Paid tournaments are no longer available' });
 });
 
-app.delete('/tournament/paid/:tournamentId', async (req, res) => {
-  const auth = req.headers.authorization;
-  if (!auth) return res.status(401).json({ error: 'No token' });
-  try {
-    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const pt = await PaidTournament.findById(req.params.tournamentId);
-    if (!pt) return res.status(404).json({ error: 'Torneo no encontrado' });
-    if (String(pt.createdBy) !== String(decoded.id)) return res.status(403).json({ error: 'No autorizado' });
-    if (pt.players.length > 0) return res.status(400).json({ error: 'No puedes borrar un torneo con jugadores ya inscritos' });
-    await pt.deleteOne();
-    res.json({ success: true });
-  } catch (err) {
-    console.error('Delete tournament error:', err.message);
-    res.status(500).json({ error: 'Error al borrar el torneo' });
-  }
+app.delete('/tournament/paid/:tournamentId', (req, res) => {
+  res.status(410).json({ error: 'feature_disabled', message: 'Paid tournaments are no longer available' });
 });
 
 app.get('/tournaments', async (req, res) => {
@@ -1324,85 +1495,22 @@ app.get('/tournaments', async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(5)
       .lean();
-    // Auto-create a waiting paid tournament if none exist
-    if (paid.filter(t => t.status === 'waiting').length === 0) {
-      const created = await PaidTournament.create({});
-      paid.unshift(created.toObject());
-    }
     res.json({ paid });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
-app.post('/tournament/paid/join', async (req, res) => {
-  const auth = req.headers.authorization;
-  if (!auth) return res.status(401).json({ error: 'No token' });
-  try {
-    const decoded      = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const { tournamentId } = req.body;
-    const pt = await PaidTournament.findById(tournamentId);
-    if (!pt) return res.status(404).json({ error: 'Tournament not found' });
-    if (pt.status !== 'waiting') return res.status(400).json({ error: 'Tournament not open' });
-    if (pt.players.some(p => p.userId.toString() === String(decoded.id)))
-      return res.status(400).json({ error: 'Already joined' });
-
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [{
-        price_data: {
-          currency: 'eur',
-          product_data: { name: `Torneo Tradiko — entrada €${pt.entryFee}`, description: `Premio al ganador: €${pt.prize}` },
-          unit_amount: pt.entryFee * 100,
-        },
-        quantity: 1,
-      }],
-      mode: 'payment',
-      success_url: `${CLIENT_URL}?tournament=success`,
-      cancel_url:  `${CLIENT_URL}?tournament=cancelled`,
-      metadata: { userId: String(decoded.id), type: 'tournament_entry', tournamentId: String(pt._id) },
-    });
-    res.json({ url: session.url });
-  } catch (err) {
-    console.error('Tournament join error:', err.message);
-    res.status(500).json({ error: 'Join failed' });
-  }
+app.post('/tournament/paid/join', (req, res) => {
+  res.status(410).json({ error: 'feature_disabled', message: 'Paid tournaments are no longer available' });
 });
 
-app.post('/tournament/paid/:tournamentId/leave', async (req, res) => {
-  const auth = req.headers.authorization;
-  if (!auth) return res.status(401).json({ error: 'No token' });
-  try {
-    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const { tournamentId } = req.params;
-    const pt = await PaidTournament.findById(tournamentId);
-    if (!pt) return res.status(404).json({ error: 'Torneo no encontrado' });
-    if (pt.status !== 'waiting') return res.status(400).json({ error: 'El torneo ya ha comenzado, no puedes salir' });
-    const playerEntry = pt.players.find(p => p.userId.toString() === decoded.id.toString());
-    if (!playerEntry) return res.status(404).json({ error: 'No estás en este torneo' });
-    await PaidTournament.updateOne(
-      { _id: tournamentId },
-      { $pull: { players: { userId: decoded.id } } }
-    );
-    res.json({ success: true });
-  } catch (err) {
-    console.error('Tournament leave error:', err.message);
-    res.status(500).json({ error: 'Error al salir del torneo' });
-  }
+app.post('/tournament/paid/:tournamentId/leave', (req, res) => {
+  res.status(410).json({ error: 'feature_disabled', message: 'Paid tournaments are no longer available' });
 });
 
-app.post('/tournament/paid/:id/winner', async (req, res) => {
-  const key = req.headers['x-admin-secret'];
-  if (!ADMIN_SECRET || key !== ADMIN_SECRET) return res.status(403).json({ error: 'forbidden' });
-  try {
-    const { userId } = req.body;
-    const pt = await PaidTournament.findByIdAndUpdate(req.params.id, {
-      winner: userId, status: 'finished', payoutStatus: 'pending',
-    }, { new: true });
-    res.json({ ok: true, tournament: pt });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+app.post('/tournament/paid/:id/winner', (req, res) => {
+  res.status(410).json({ error: 'feature_disabled', message: 'Paid tournaments are no longer available' });
 });
 
 app.get('/shop/purchases', async (req, res) => {
@@ -1419,15 +1527,22 @@ app.get('/shop/purchases', async (req, res) => {
 
 app.post('/shop/iap-confirm', async (req, res) => {
   const IAP_SHARED_SECRET = process.env.IAP_SHARED_SECRET;
-  if (!IAP_SHARED_SECRET) return res.status(500).json({ error: 'IAP not configured on server' });
+  if (!IAP_SHARED_SECRET) {
+    console.error('[iap-confirm] IAP_SHARED_SECRET not set');
+    return res.status(500).json({ error: 'internal_error' });
+  }
 
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'Unauthorized' });
   try {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const userId = String(decoded.id);
     const { itemId, receiptData } = req.body;
     if (!itemId) return res.status(400).json({ error: 'Missing itemId' });
-    if (!receiptData) return res.status(400).json({ error: 'Missing receiptData' });
+    if (!receiptData) {
+      console.log('[iap-confirm] missing_receiptData', { userId, itemId });
+      return res.status(400).json({ error: 'Missing receiptData' });
+    }
 
     const expectedProductId = itemId === 'pro'
       ? 'dev.tradiko.pro.monthly'
@@ -1447,6 +1562,7 @@ app.post('/shop/iap-confirm', async (req, res) => {
       result = await verifyWithApple('https://sandbox.itunes.apple.com/verifyReceipt');
     }
     if (result.status !== 0) {
+      console.log('[iap-confirm] apple_rejected', { userId, itemId, appleStatus: result.status });
       return res.status(400).json({ error: 'Receipt verification failed', appleStatus: result.status });
     }
 
@@ -1454,6 +1570,7 @@ app.post('/shop/iap-confirm', async (req, res) => {
     const latestInfo = result.latest_receipt_info || [];
     const validPurchase = [...inApp, ...latestInfo].some(p => p.product_id === expectedProductId);
     if (!validPurchase) {
+      console.log('[iap-confirm] product_mismatch', { userId, itemId, expectedProductId });
       return res.status(400).json({ error: 'Receipt does not contain expected product' });
     }
 
@@ -1461,13 +1578,177 @@ app.post('/shop/iap-confirm', async (req, res) => {
       ? { isPro: true, $addToSet: { purchases: itemId } }
       : { $addToSet: { purchases: itemId } };
     await User.findByIdAndUpdate(decoded.id, update);
+    console.log('[iap-confirm] granted', { userId, itemId });
     res.json({ success: true });
-  } catch {
+  } catch (err) {
+    console.error('[iap-confirm] exception', { err: err?.message });
     res.status(401).json({ error: 'Invalid token' });
   }
 });
 
 // ── Stats routes ──────────────────────────────────────────────────
+
+// Session tokens are required for BP-critical client-submitted modes: guess, survival, historical.
+// Exempt modes and their validation approach:
+//   arena      — server controls game via Socket.IO; BP credit from processArenaWinBpProgress
+//   daily      — /daily/complete handles BP; /stats/game call is history-only
+//   tournament — Socket.IO managed; scoring via Score model
+//   portfolio  — no BP missions tied to portfolio gameplay
+app.post('/game/start', async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'No token' });
+  const { mode } = req.body;
+  if (!mode || !VALID_GAME_MODES.has(mode)) return res.status(400).json({ error: 'Invalid mode' });
+  try {
+    // Per-user rate limit: max 10 game starts per minute via Redis counter
+    const rateKey = `game_start_rate:${decoded.id}`;
+    const calls = await redis.incr(rateKey);
+    if (calls === 1) await redis.expire(rateKey, 60);
+    if (calls > 10) return res.status(429).set('Retry-After', '60').json({ error: 'rate_limit' });
+
+    const sessionToken = require('crypto').randomUUID();
+    const sessionData = {
+      userId: String(decoded.id), mode,
+      score: 0, correct: 0, wrong: 0, streak: 0, maxStreak: 0, roundsPlayed: 0, completed: false,
+    };
+    if (mode === 'survival') {
+      const u = await User.findById(decoded.id).select('isPro').lean();
+      const maxLives = u?.isPro ? 5 : 3;
+      sessionData.lives    = maxLives;
+      sessionData.maxLives = maxLives;
+    }
+    await redis.set(`game_session:${sessionToken}`, JSON.stringify(sessionData), { ex: 1800 });
+    res.json({ sessionToken });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create session' });
+  }
+});
+
+// ── Server-side rounds for Classic (guess) and Survival ───────────────────────
+// Returns only visible candles; stores future in Redis so the client never sees it.
+app.post('/game/round/start', async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'No token' });
+  const { sessionToken, category } = req.body;
+  if (!sessionToken || typeof sessionToken !== 'string') return res.status(400).json({ error: 'SESSION_REQUIRED' });
+
+  try {
+    const sessionKey = `game_session:${sessionToken}`;
+    const sessionRaw = await redis.get(sessionKey);
+    if (!sessionRaw) return res.status(400).json({ error: 'INVALID_SESSION' });
+    const session = typeof sessionRaw === 'string' ? JSON.parse(sessionRaw) : sessionRaw;
+    if (session.userId !== String(decoded.id)) return res.status(403).json({ error: 'SESSION_USER_MISMATCH' });
+    if (!['guess', 'survival'].includes(session.mode)) return res.status(400).json({ error: 'INVALID_MODE' });
+    if (session.completed) return res.status(409).json({ error: 'GAME_COMPLETED' });
+    if (session.mode === 'guess'    && session.roundsPlayed >= 25) return res.status(409).json({ error: 'MAX_ROUNDS_REACHED' });
+    if (session.mode === 'survival' && (session.lives ?? 1) <= 0)  return res.status(409).json({ error: 'NO_LIVES' });
+
+    // Return the pending unanswered round if one exists (client retry / page reload).
+    const roundKey   = `game_round:${sessionToken}`;
+    const pendingRaw = await redis.get(roundKey);
+    if (pendingRaw) {
+      const p = typeof pendingRaw === 'string' ? JSON.parse(pendingRaw) : pendingRaw;
+      return res.json({ visible: p.visible, assetName: p.assetName, interval: p.interval, roundNum: p.roundNum });
+    }
+
+    // Pick a random asset from the requested category.
+    const catFilter = (category && category !== 'all') ? category : null;
+    const pool      = catFilter ? CLASSIC_ASSETS.filter(a => a.cat === catFilter) : CLASSIC_ASSETS;
+    const shuffled  = [...pool].sort(() => Math.random() - 0.5);
+
+    for (const asset of shuffled) {
+      try {
+        const candles = await fetchCandlesForRound(asset);
+        if (!candles || candles.length < 100) continue;
+        const clean = candles.filter(c => c && c.open > 0 && c.high > 0 && c.low > 0 && c.close > 0);
+        if (clean.length < 100) continue;
+        const win      = randomWindow(clean);
+        const roundNum = (session.roundsPlayed || 0) + 1;
+        await redis.set(roundKey, JSON.stringify({
+          visible:   win.visible,
+          future:    win.future,
+          assetName: asset.name,
+          interval:  asset.interval,
+          roundNum,
+        }), { ex: 600 });
+        return res.json({ visible: win.visible, assetName: asset.name, interval: asset.interval, roundNum });
+      } catch (e) { console.log('[round/start] error', asset.name, e.message); }
+    }
+    res.status(503).json({ error: 'CANDLES_UNAVAILABLE' });
+  } catch (err) {
+    res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+// Client sends its choice; server validates against stored future and updates session stats.
+app.post('/game/round/submit', async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'No token' });
+  const { sessionToken, choice } = req.body;
+  if (!sessionToken || typeof sessionToken !== 'string') return res.status(400).json({ error: 'SESSION_REQUIRED' });
+  if (!['long', 'short', 'skip'].includes(choice)) return res.status(400).json({ error: 'INVALID_CHOICE' });
+
+  try {
+    const sessionKey = `game_session:${sessionToken}`;
+    const sessionRaw = await redis.get(sessionKey);
+    if (!sessionRaw) return res.status(400).json({ error: 'INVALID_SESSION' });
+    const session = typeof sessionRaw === 'string' ? JSON.parse(sessionRaw) : sessionRaw;
+    if (session.userId !== String(decoded.id)) return res.status(403).json({ error: 'SESSION_USER_MISMATCH' });
+
+    const roundKey   = `game_round:${sessionToken}`;
+    const pendingRaw = await redis.get(roundKey);
+    if (!pendingRaw) return res.status(404).json({ error: 'NO_PENDING_ROUND' });
+    const pending = typeof pendingRaw === 'string' ? JSON.parse(pendingRaw) : pendingRaw;
+
+    const { visible, future, assetName, interval, roundNum } = pending;
+    const lastClose  = visible[visible.length - 1].close;
+    const lastFuture = future[future.length - 1].close;
+    const pctMove    = (lastFuture - lastClose) / lastClose * 100;
+    const direction  = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
+    const neutral    = choice === 'skip';
+    const win = (choice === 'long'  && direction === 'up')
+             || (choice === 'short' && direction === 'down')
+             || (choice === 'skip'  && direction === 'flat');
+
+    // Point calculation mirrors the client: Classic has -50 penalty, Survival does not.
+    const curStreak = session.streak || 0;
+    let pts;
+    if (win && !neutral)       pts = 100 + curStreak * 10;
+    else if (win && neutral)   pts = 50;
+    else if (!neutral)         pts = session.mode === 'guess' ? -50 : 0; // Classic penalty
+    else                       pts = 0; // wrong skip
+
+    const newScore     = Math.max(0, (session.score || 0) + pts);
+    const newStreak    = win ? curStreak + 1 : 0;
+    const newMaxStreak = Math.max(session.maxStreak || 0, newStreak);
+    const newCorrect   = (session.correct || 0) + (win && !neutral ? 1 : 0);
+    const newWrong     = (session.wrong   || 0) + (!win && !neutral ? 1 : 0);
+    const newRounds    = (session.roundsPlayed || 0) + 1;
+
+    let newLives = session.lives ?? null;
+    if (session.mode === 'survival') {
+      if (!win && !neutral)                                        newLives = (newLives || 1) - 1;
+      else if (win && !neutral && newLives < (session.maxLives || 3)) newLives = Math.min(newLives + 1, session.maxLives || 3);
+    }
+
+    const completed = (session.mode === 'guess' && newRounds >= 25)
+                   || (session.mode === 'survival' && (newLives ?? 1) <= 0);
+
+    const updatedSession = {
+      ...session,
+      score: newScore, correct: newCorrect, wrong: newWrong,
+      streak: newStreak, maxStreak: newMaxStreak,
+      roundsPlayed: newRounds, lives: newLives, completed,
+    };
+    await redis.set(sessionKey, JSON.stringify(updatedSession), { ex: 1800 });
+    await redis.del(roundKey);
+
+    res.json({ future, win, direction, pctMove, pts, score: newScore, streak: newStreak, lives: newLives, completed, assetName, interval, roundNum });
+  } catch (err) {
+    res.status(500).json({ error: 'internal_error' });
+  }
+});
+
 app.get('/stats', (req, res) => {
   try {
     res.json({ online: io.engine?.clientsCount || 0, gamesPlayed: totalGamesPlayed || 0 });
@@ -1494,20 +1775,69 @@ app.post('/stats/game', async (req, res) => {
   const decoded = verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });
   try {
-    const { mode, score, correct, wrong, accuracy, streak, rounds, eventId } = req.body;
+    const { mode, score, correct, wrong, accuracy, streak, rounds, eventId, sessionToken } = req.body;
     if (!VALID_GAME_MODES.has(mode)) return res.status(400).json({ error: 'Invalid mode' });
-    const safeScore    = Math.max(0, Math.min(Number(score)    || 0, 100000));
-    const safeCorrect  = Math.max(0, Math.min(Number(correct)  || 0, 10000));
-    const safeWrong    = Math.max(0, Math.min(Number(wrong)    || 0, 10000));
-    const safeAccuracy = Math.max(0, Math.min(Number(accuracy) || 0, 100));
-    const safeStreak   = Math.max(0, Math.min(Number(streak)   || 0, 10000));
-    const safeRounds   = Math.max(0, Math.min(Number(rounds)   || 0, 10000));
-    const safeEventId  = (typeof eventId === 'string' && /^[a-z0-9_]{1,60}$/.test(eventId)) ? eventId : null;
-    await GameHistory.create({ userId: decoded.id, mode, score: safeScore, correct: safeCorrect, wrong: safeWrong, accuracy: safeAccuracy, streak: safeStreak, rounds: safeRounds });
-    const bpProgress = await processGameBpProgress(decoded.id, { mode, streak: safeStreak, rounds: safeRounds, correct: safeCorrect, eventId: safeEventId });
+
+    // Session token validation (required for BP-critical modes)
+    let sessionStatsOverride = null; // populated for guess/survival from server-authoritative session
+    if (SESSION_REQUIRED_MODES.has(mode)) {
+      if (!sessionToken || typeof sessionToken !== 'string') {
+        return res.status(400).json({ error: 'SESSION_REQUIRED' });
+      }
+      const sessionKey = `game_session:${sessionToken}`;
+      const sessionRaw = await redis.get(sessionKey);
+      if (!sessionRaw) return res.status(400).json({ error: 'INVALID_SESSION' });
+      const session = typeof sessionRaw === 'string' ? JSON.parse(sessionRaw) : sessionRaw;
+      if (session.userId !== String(decoded.id)) return res.status(403).json({ error: 'SESSION_USER_MISMATCH' });
+      if (session.mode !== mode) return res.status(400).json({ error: 'SESSION_MODE_MISMATCH' });
+      const deleted = await redis.del(sessionKey);
+      if (deleted === 0) return res.status(409).json({ error: 'SESSION_ALREADY_USED' });
+
+      // For guess and survival, ignore client-provided stats — use the server-tracked values.
+      if ((mode === 'guess' || mode === 'survival') && session.roundsPlayed > 0) {
+        const sRounds  = session.roundsPlayed || 0;
+        const sCorrect = session.correct      || 0;
+        const sWrong   = session.wrong        || 0;
+        const nonSkips = sCorrect + sWrong;
+        sessionStatsOverride = {
+          score:    session.score    || 0,
+          correct:  sCorrect,
+          wrong:    sWrong,
+          accuracy: nonSkips > 0 ? Math.round(sCorrect / nonSkips * 100) : 0,
+          streak:   session.maxStreak || 0,
+          rounds:   sRounds,
+        };
+      }
+    }
+
+    const roundCap = MODE_ROUND_CAPS[mode] ?? 100;
+    let safeScore, safeCorrect, safeWrong, safeAccuracy, safeStreak, safeRounds;
+    if (sessionStatsOverride) {
+      // Server-authoritative values — still clamp to prevent DB corruption from bugs.
+      safeScore    = Math.max(0, Math.min(sessionStatsOverride.score,    200000));
+      safeCorrect  = Math.max(0, Math.min(sessionStatsOverride.correct,  roundCap));
+      safeWrong    = Math.max(0, Math.min(sessionStatsOverride.wrong,    roundCap));
+      safeAccuracy = Math.max(0, Math.min(sessionStatsOverride.accuracy, 100));
+      safeStreak   = Math.max(0, Math.min(sessionStatsOverride.streak,   roundCap));
+      safeRounds   = Math.max(0, Math.min(sessionStatsOverride.rounds,   roundCap));
+    } else {
+      safeScore    = Math.max(0, Math.min(Number(score)    || 0, 100000));
+      safeCorrect  = Math.max(0, Math.min(Number(correct)  || 0, roundCap));
+      safeWrong    = Math.max(0, Math.min(Number(wrong)    || 0, roundCap));
+      safeAccuracy = Math.max(0, Math.min(Number(accuracy) || 0, 100));
+      safeStreak   = Math.max(0, Math.min(Number(streak)   || 0, roundCap));
+      safeRounds   = Math.max(0, Math.min(Number(rounds)   || 0, roundCap));
+    }
+    const safeEventId = (typeof eventId === 'string' && VALID_HISTORICAL_EVENT_IDS.has(eventId))
+      ? eventId : null;
+
+    const finalStreak = (mode === 'guess' && safeRounds > 0) ? Math.min(safeStreak, safeRounds) : safeStreak;
+
+    await GameHistory.create({ userId: decoded.id, mode, score: safeScore, correct: safeCorrect, wrong: safeWrong, accuracy: safeAccuracy, streak: finalStreak, rounds: safeRounds, gameId: sessionToken || null });
+    const bpProgress = await processGameBpProgress(decoded.id, { mode, streak: finalStreak, rounds: safeRounds, correct: safeCorrect, eventId: safeEventId });
     res.json({ ok: true, bpProgress });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
@@ -1539,37 +1869,46 @@ app.get('/stats/personal', async (req, res) => {
     const betterThan = avgAccuracy >= globalAvg ? Math.round(((avgAccuracy - globalAvg) / (100 - globalAvg)) * 50 + 50) : Math.round((avgAccuracy / globalAvg) * 50);
     res.json({ totalGames, totalCorrect, totalWrong, avgAccuracy, bestScore, bestStreak, favoriteMode, winRate, dailyStreak, gamesThisWeek, accuracyTrend, betterThan: Math.min(99, Math.max(1, betterThan)), modeCounts });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
 // ── Candles route ─────────────────────────────────────────────────
 app.get('/candles', async (req, res) => {
-  const { symbol, interval, from, to } = req.query;
-  if (!symbol || !/^[A-Z0-9\-\.=^/]{1,20}$/i.test(symbol)) return res.status(400).json({ error: 'Invalid symbol' });
+  const { symbol, interval = '1h', from, to } = req.query;
+  const limit = Math.min(Math.max(parseInt(req.query.limit) || 700, 1), 1000);
+
+  if (!symbol) return res.status(400).json({ error: 'symbol is required' });
+  const provider = CANDLES_SYMBOL_MAP.get(symbol);
+  if (!provider) return res.status(400).json({ error: 'Unknown symbol: ' + symbol });
+  if (!VALID_CANDLE_INTERVALS.has(interval)) return res.status(400).json({ error: 'Invalid interval: ' + interval });
   if (from && !DATE_REGEX.test(from)) return res.status(400).json({ error: 'Invalid from date' });
   if (to   && !DATE_REGEX.test(to))   return res.status(400).json({ error: 'Invalid to date' });
+
+  const isHistorical = !!(from && to);
+  const cacheKey = isHistorical
+    ? 'cv2:' + symbol + ':' + interval + ':' + from + ':' + to
+    : 'cv2:' + symbol + ':' + interval;
+  const ttl = isHistorical ? 86400 : (CANDLES_TTL[interval] || 600);
+
   try {
-    let period1, period2;
-    if (from && to) {
-      period1 = from; period2 = to;
-    } else if (interval === '1h') {
-      const d = new Date(); d.setDate(d.getDate() - 29);
-      period1 = d.toISOString().split('T')[0];
-    } else {
-      const d = new Date(); d.setFullYear(d.getFullYear() - 2);
-      period1 = d.toISOString().split('T')[0];
+    let candles = await cachedFetch(cacheKey, ttl, async () => {
+      const raw = provider === 'kraken'
+        ? await fetchKrakenCandles(symbol, interval)
+        : await fetchYahooCandles(symbol, interval, { from: from, to: to });
+      return isHistorical ? raw : clipAnomalousWicks(raw);
+    });
+
+    if (!isHistorical) candles = dropUnclosedCandle(candles, interval);
+
+    if (!isHistorical && candles.length < 100) {
+      return res.status(502).json({ error: 'Provider returned insufficient candles: ' + candles.length });
     }
-    const result  = await yf.chart(symbol, { interval: interval === '1h' ? '1h' : '1d', period1, ...(period2 ? { period2 } : {}) });
-    const quotes  = result.quotes.filter(q => q.open && q.high && q.low && q.close);
-    const candles = quotes.slice(-500).map(q => ({
-      time:  Math.floor(new Date(q.date).getTime() / 1000),
-      open:  q.open, high: q.high, low: q.low, close: q.close,
-    }));
-    res.json(candles);
+
+    res.json(candles.slice(-limit));
   } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ error: err.message });
+    console.error('[/candles] ' + symbol + ' ' + interval + ':', err.message);
+    res.status(502).json({ error: 'Data provider error' });
   }
 });
 
@@ -1621,7 +1960,7 @@ app.get('/daily', async (req, res) => {
       visible:  challenge.visible,
       future:   challenge.future,
     });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: 'internal_error' }); }
 });
 
 // ── Tournament routes ─────────────────────────────────────────────
@@ -1640,6 +1979,67 @@ const ASSETS = [
   { name: 'USD/JPY',  source: 'yahoo',  symbol: 'JPY=X',    interval: '1h'  },
   { name: 'AUD/USD',  source: 'yahoo',  symbol: 'AUDUSD=X', interval: '1h'  },
 ];
+
+// ── Classic / Survival server-side rounds ─────────────────────────────────────
+// Mirrors client assets.js but uses server-side symbols (same as CANDLES_SYMBOL_MAP).
+// Source 'kraken' → fetchKrakenCandles; source 'yahoo' → fetchYahooCandles.
+// Shares the cv2: Redis cache with the /candles endpoint to avoid redundant fetches.
+const CLASSIC_ASSETS = [
+  // Crypto
+  { name: 'BTC/USD',  source: 'kraken', symbol: 'BTCUSD',   interval: '15m', cat: 'crypto'      },
+  { name: 'ETH/USD',  source: 'kraken', symbol: 'ETHUSD',   interval: '15m', cat: 'crypto'      },
+  { name: 'SOL/USD',  source: 'kraken', symbol: 'SOLUSD',   interval: '15m', cat: 'crypto'      },
+  { name: 'XRP/USD',  source: 'kraken', symbol: 'XRPUSD',   interval: '15m', cat: 'crypto'      },
+  { name: 'DOGE/USD', source: 'kraken', symbol: 'DOGEUSD',  interval: '15m', cat: 'crypto'      },
+  { name: 'LINK/USD', source: 'kraken', symbol: 'LINKUSD',  interval: '15m', cat: 'crypto'      },
+  { name: 'AVAX/USD', source: 'kraken', symbol: 'AVAXUSD',  interval: '15m', cat: 'crypto'      },
+  { name: 'ADA/USD',  source: 'kraken', symbol: 'ADAUSD',   interval: '15m', cat: 'crypto'      },
+  { name: 'DOT/USD',  source: 'kraken', symbol: 'DOTUSD',   interval: '15m', cat: 'crypto'      },
+  // Forex
+  { name: 'EUR/USD',  source: 'yahoo',  symbol: 'EURUSD=X', interval: '1h',  cat: 'forex'       },
+  { name: 'GBP/USD',  source: 'yahoo',  symbol: 'GBPUSD=X', interval: '1h',  cat: 'forex'       },
+  { name: 'USD/JPY',  source: 'yahoo',  symbol: 'JPY=X',    interval: '1h',  cat: 'forex'       },
+  { name: 'USD/CHF',  source: 'yahoo',  symbol: 'CHF=X',    interval: '1h',  cat: 'forex'       },
+  { name: 'AUD/USD',  source: 'yahoo',  symbol: 'AUDUSD=X', interval: '1h',  cat: 'forex'       },
+  { name: 'USD/CAD',  source: 'yahoo',  symbol: 'CAD=X',    interval: '1h',  cat: 'forex'       },
+  // Indices
+  { name: 'S&P 500',  source: 'yahoo',  symbol: '^GSPC',    interval: '1h',  cat: 'indices'     },
+  { name: 'NASDAQ',   source: 'yahoo',  symbol: '^IXIC',    interval: '1h',  cat: 'indices'     },
+  { name: 'DOW',      source: 'yahoo',  symbol: '^DJI',     interval: '1h',  cat: 'indices'     },
+  { name: 'GER40',    source: 'yahoo',  symbol: '^GDAXI',   interval: '1h',  cat: 'indices'     },
+  { name: 'UK100',    source: 'yahoo',  symbol: '^FTSE',    interval: '1h',  cat: 'indices'     },
+  { name: 'JPN225',   source: 'yahoo',  symbol: '^N225',    interval: '1h',  cat: 'indices'     },
+  // Commodities
+  { name: 'GOLD',     source: 'yahoo',  symbol: 'GC=F',     interval: '1h',  cat: 'commodities' },
+  { name: 'SILVER',   source: 'yahoo',  symbol: 'SI=F',     interval: '1h',  cat: 'commodities' },
+  { name: 'OIL/USD',  source: 'yahoo',  symbol: 'CL=F',     interval: '1h',  cat: 'commodities' },
+  { name: 'NGAS',     source: 'yahoo',  symbol: 'NG=F',     interval: '1h',  cat: 'commodities' },
+  { name: 'COPPER',   source: 'yahoo',  symbol: 'HG=F',     interval: '1h',  cat: 'commodities' },
+  // Stocks
+  { name: 'AAPL',     source: 'yahoo',  symbol: 'AAPL',     interval: '1d',  cat: 'stocks'      },
+  { name: 'TSLA',     source: 'yahoo',  symbol: 'TSLA',     interval: '1d',  cat: 'stocks'      },
+  { name: 'MSFT',     source: 'yahoo',  symbol: 'MSFT',     interval: '1d',  cat: 'stocks'      },
+  { name: 'AMZN',     source: 'yahoo',  symbol: 'AMZN',     interval: '1d',  cat: 'stocks'      },
+  { name: 'GOOGL',    source: 'yahoo',  symbol: 'GOOGL',    interval: '1d',  cat: 'stocks'      },
+  { name: 'META',     source: 'yahoo',  symbol: 'META',     interval: '1d',  cat: 'stocks'      },
+  { name: 'NVDA',     source: 'yahoo',  symbol: 'NVDA',     interval: '1d',  cat: 'stocks'      },
+];
+
+// Fetches candles for a Classic/Survival round, sharing the cv2: cache with /candles.
+async function fetchCandlesForRound(asset) {
+  const interval = asset.interval || '1h';
+  const cacheKey = `cv2:${asset.symbol}:${interval}`;
+  const ttl      = CANDLES_TTL[interval] || 600;
+  return cachedFetch(cacheKey, ttl, async () => {
+    if (asset.source === 'kraken') {
+      const raw = await fetchKrakenCandles(asset.symbol, interval);
+      return clipAnomalousWicks(raw);
+    } else {
+      const raw = await fetchYahooCandles(asset.symbol, interval);
+      return clipAnomalousWicks(raw);
+    }
+  });
+}
 
 function getWeekId() {
   const now    = new Date();
@@ -1678,7 +2078,7 @@ app.get('/tournament', async (req, res) => {
     }
     res.json({ weekId: tournament.weekId, rounds });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
@@ -1707,7 +2107,7 @@ app.get('/tournament/leaderboard', async (req, res) => {
     }
     res.json({ weekId, scores: top10, userPosition });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
@@ -1739,7 +2139,7 @@ app.post('/tournament/score', async (req, res) => {
     await TournamentSession.findOneAndUpdate({ weekId, userId: user._id }, { completed: true });
     res.json({ ok: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
@@ -1781,14 +2181,14 @@ app.get('/tournament/session', async (req, res) => {
 
     res.json({
       weekId:       session.weekId,
-      rounds:       session.rounds,
+      rounds:       session.rounds.map(r => ({ asset: r.asset, interval: r.interval, visible: r.visible })),
       currentRound: session.currentRound,
       score:        session.score,
       history:      session.history,
       completed:    session.completed,
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
@@ -1831,9 +2231,9 @@ app.post('/tournament/progress/round', async (req, res) => {
       { currentRound: roundIndex + 1, score: newScore, history: newHistory },
     );
 
-    res.json({ ok: true, win, pts, pctMove, direction });
+    res.json({ ok: true, win, pts, pctMove, direction, future: roundData.future });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
@@ -1887,7 +2287,7 @@ app.post('/arena/async/create', async (req, res) => {
     });
     res.json({ code: duel.code, charts: duel.charts, challengerName });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
@@ -1925,7 +2325,7 @@ app.get('/arena/async/my-duels', async (req, res) => {
     });
     res.json({ duels: result });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
@@ -1951,7 +2351,7 @@ app.get('/arena/async/:code', async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
@@ -2041,7 +2441,7 @@ app.post('/arena/async/:code/submit', async (req, res) => {
       rival:      { name: updated.rival.name,       score: updated.rival.score,       answers: updated.rival.answers },
     }});
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
@@ -2051,7 +2451,7 @@ app.get('/arena/async/:code/status', async (req, res) => {
     if (!duel) return res.status(404).json({ error: 'Not found' });
     res.json({ status: duel.status, expiresAt: duel.expiresAt });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
@@ -2069,7 +2469,6 @@ app.post('/push/subscribe', async (req, res) => {
     await saveSubscriptions(pushSubscriptions);
   }
   await redis.set(`push_user_sub:${decoded.id}`, JSON.stringify(sub));
-  if (lang && NOTIF_STRINGS[lang]) await redis.set(`push_user_lang:${decoded.id}`, lang);
   res.json({ ok: true });
 });
 
@@ -2086,25 +2485,9 @@ app.post('/push/unsubscribe', async (req, res) => {
   res.json({ ok: true });
 });
 
-app.post('/push/send', async (req, res) => {
-  const key = req.headers['x-admin-secret'];
-  if (!ADMIN_SECRET || key !== ADMIN_SECRET) return res.status(403).json({ error: 'Forbidden' });
-  pushSubscriptions = await loadSubscriptions();
-  const payload = JSON.stringify({
-    title: '⚡ Daily Challenge',
-    body:  "Can you call today's chart? One chart, one shot.",
-    url:   'https://tradiko.dev',
-  });
-  const promises = pushSubscriptions.map(sub =>
-    webpush.sendNotification(sub, payload).catch(async err => {
-      if (err.statusCode === 410) {
-        pushSubscriptions = pushSubscriptions.filter(s => s.endpoint !== sub.endpoint);
-        await saveSubscriptions(pushSubscriptions);
-      }
-    })
-  );
-  await Promise.all(promises);
-  res.json({ ok: true, sent: pushSubscriptions.length });
+app.post('/push/send', (req, res) => {
+  // Deprecated 2026-10-05: bypasaba sendPushToUser, los cron_lock y el idioma. Usar el cron de daily challenge.
+  res.status(410).json({ error: 'Gone — endpoint desactivado, usar cron' });
 });
 
 app.post('/push/apns-register', async (req, res) => {
@@ -2112,8 +2495,15 @@ app.post('/push/apns-register', async (req, res) => {
   if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
   const { deviceToken, lang } = req.body;
   if (!deviceToken) return res.status(400).json({ error: 'No token' });
+  // Remove the token from any other userId that already holds it — one token, one user.
+  const allApnsKeys = await redis.keys('apns_token:*');
+  for (const k of allApnsKeys) {
+    const otherId = k.replace('apns_token:', '');
+    if (otherId === decoded.id) continue;
+    const existing = await redis.get(k);
+    if (existing === deviceToken) await redis.del(k);
+  }
   await redis.set(`apns_token:${decoded.id}`, deviceToken);
-  if (lang && NOTIF_STRINGS[lang]) await redis.set(`push_user_lang:${decoded.id}`, lang);
   res.json({ ok: true });
 });
 
@@ -2127,6 +2517,7 @@ app.get('/push/apns-token', async (req, res) => {
 app.post('/push/send-apns', async (req, res) => {
   const key = req.headers['x-admin-secret'];
   if (!ADMIN_SECRET || key !== ADMIN_SECRET) return res.status(403).json({ error: 'Forbidden' });
+  if (!PUSH_ENABLED) { console.log('[push] PUSH_ENABLED=false — skipping /push/send-apns'); return res.status(503).json({ error: 'Push disabled in this environment' }); }
 
   const { title, body, userId } = req.body;
 
@@ -2144,7 +2535,7 @@ app.post('/push/send-apns', async (req, res) => {
     await apnsClient.send(notification);
     res.json({ ok: true, token: tokenRaw.substring(0, 10) + '...' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
@@ -2248,7 +2639,8 @@ function resolveRound(roomId) {
     setTimeout(() => {
       io.to(roomId).emit('game:over', { scores: room.scores, names: room.names });
       finishedRooms[roomId] = { ...room };
-      // 5D: award arena win BP progress to the higher-scoring player
+      // 5D: award arena win BP progress to the higher-scoring player.
+      // Tie (s1 === s2): no winner, neither player is credited.
       const [p1, p2] = room.players;
       const s1 = room.scores[p1] ?? 0;
       const s2 = room.scores[p2] ?? 0;
@@ -2256,7 +2648,12 @@ function resolveRound(roomId) {
         const winnerSocketId = s1 > s2 ? p1 : p2;
         const winnerSocket   = io.sockets.sockets.get(winnerSocketId);
         if (winnerSocket?.userId) {
-          processArenaWinBpProgress(winnerSocket.userId).catch(() => {});
+          console.log(`[Arena BP] Crediting arena win for userId: ${winnerSocket.userId}`);
+          processArenaWinBpProgress(winnerSocket.userId)
+            .then(() => { winnerSocket.emit('bp:updated'); })
+            .catch(err => console.error('[Arena BP] Error crediting arena win:', err));
+        } else {
+          console.warn(`[Arena BP] Winner socket ${winnerSocketId} has no userId — arena win not credited`);
         }
       }
       delete rooms[roomId];
@@ -2314,11 +2711,14 @@ function generateCode() {
   return privateLobby[code] ? generateCode() : code;
 }
 
+const { verifySocketToken } = require('./utils/socketAuth');
+
 io.on('connection', (socket) => {
   console.log('Connected:', socket.id);
 
-  socket.on('matchmaking:join', ({ name }) => {
+  socket.on('matchmaking:join', ({ name, token }) => {
     socket.playerName = name || 'Player';
+    if (!socket.userId) socket.userId = verifySocketToken(token) || undefined;
     if (waiting && waiting.id !== socket.id) {
       const opponent = waiting; waiting = null;
       startRoom(opponent, socket);
@@ -2350,16 +2750,18 @@ io.on('connection', (socket) => {
       socket.to(socket.roomId).emit('chat:message', { msg, from: socket.playerName });
   });
 
-  socket.on('room:create', ({ name }) => {
+  socket.on('room:create', ({ name, token }) => {
     socket.playerName = name || 'Player';
+    if (!socket.userId) socket.userId = verifySocketToken(token) || undefined;
     const code = generateCode();
     privateLobby[code] = { host: socket, name };
     socket.roomCode = code;
     socket.emit('room:created', { code });
   });
 
-  socket.on('room:join', ({ name, code }) => {
+  socket.on('room:join', ({ name, code, token }) => {
     socket.playerName = name || 'Player';
+    if (!socket.userId) socket.userId = verifySocketToken(token) || undefined;
     const lobby = privateLobby[code.toUpperCase()];
     if (!lobby) { socket.emit('room:error', { message: 'Sala no encontrada' }); return; }
     if (!lobby.host.connected) { socket.emit('room:error', { message: 'El host se desconectó' }); delete privateLobby[code]; return; }
@@ -2466,8 +2868,9 @@ io.on('connection', (socket) => {
     delete challengeRooms[roomCode];
   });
 
-  socket.on('challenge:join', ({ name, code }) => {
+  socket.on('challenge:join', ({ name, code, token }) => {
     socket.playerName = name || 'Player';
+    if (!socket.userId) socket.userId = verifySocketToken(token) || undefined;
     const challenge = challengeRooms[code];
     if (!challenge?.accepted) {
       socket.emit('room:error', { message: 'Reto no encontrado o expirado' });
@@ -2519,6 +2922,7 @@ async function warmPriceCache() {
 warmPriceCache();
 cron.schedule('*/5 * * * *', warmPriceCache);
 
+if (PUSH_ENABLED) {
 // ── Price alerts cron (every 15 min) ──────────────────────────────
 cron.schedule('*/15 * * * *', async () => {
   try {
@@ -2552,7 +2956,13 @@ cron.schedule('*/15 * * * *', async () => {
 });
 
 // ── Cron ──────────────────────────────────────────────────────────
-cron.schedule('0 8 * * *', async () => {
+cron.schedule('0 9 * * *', async () => {
+  console.log(`[daily-challenge-cron] START ${new Date().toISOString()} pid=${process.pid} replica=${process.env.RAILWAY_REPLICA_ID || 'none'} deploy=${process.env.RAILWAY_DEPLOYMENT_ID || 'none'}`);
+  const lockDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid' }).format(new Date());
+  const lockKey  = `cron_lock:dailyChallenge:${lockDate}`;
+  const acquired = await redis.set(lockKey, '1', { nx: true, ex: 93600 });
+  if (!acquired) { console.log(`[daily-challenge-cron] ${lockKey} ya enviado, saltando`); return; }
+
   const userSubKeys = await redis.keys('push_user_sub:*');
   for (const key of userSubKeys) {
     const userId = key.replace('push_user_sub:', '');
@@ -2560,30 +2970,36 @@ cron.schedule('0 8 * * *', async () => {
     const subRaw = await redis.get(key);
     if (!subRaw) continue;
     try {
-      const sub  = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
-      const lang = await getUserLang(userId);
-      const s    = NOTIF_STRINGS[lang].dailyChallenge;
-      await webpush.sendNotification(sub, JSON.stringify({ ...s, url: 'https://tradiko.dev' })).catch(async err => {
+      const sub = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
+      await webpush.sendNotification(sub, JSON.stringify({ ...NOTIF_ES.dailyChallenge, url: 'https://tradiko.dev' })).catch(async err => {
         if (err.statusCode === 410) await redis.del(key);
       });
     } catch {}
   }
   const apnsKeys = await redis.keys('apns_token:*');
+  const sentTokens = new Set();
   for (const key of apnsKeys) {
-    const userId = key.replace('apns_token:', '');
     const deviceToken = await redis.get(key);
-    if (!deviceToken) continue;
+    if (!deviceToken || sentTokens.has(deviceToken)) continue;
+    sentTokens.add(deviceToken);
     try {
-      const lang = await getUserLang(userId);
-      const s    = NOTIF_STRINGS[lang].dailyChallenge;
-      await apnsClient.send(new Notification(deviceToken, { alert: { title: s.title, body: s.body }, sound: 'default', badge: 1 })).catch(() => {});
+      const s = NOTIF_ES.dailyChallenge;
+      await apnsClient.send(new Notification(deviceToken, { alert: { title: s.title, body: s.body }, sound: 'default', badge: 1 })).catch(err => {
+        if (err.reason === 'BadDeviceToken' || err.reason === 'Unregistered') redis.del(key).catch(() => {});
+      });
     } catch {}
   }
   console.log('[daily-challenge-cron] done');
-});
+}, { timezone: 'Europe/Madrid' });
 
 // Market open — 9:30 AM New York (timezone handles DST automatically)
 cron.schedule('30 9 * * 1-5', async () => {
+  console.log(`[market-open-cron] START ${new Date().toISOString()} pid=${process.pid} replica=${process.env.RAILWAY_REPLICA_ID || 'none'} deploy=${process.env.RAILWAY_DEPLOYMENT_ID || 'none'}`);
+  const lockDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
+  const lockKey  = `cron_lock:marketOpen:${lockDate}`;
+  const acquired = await redis.set(lockKey, '1', { nx: true, ex: 93600 });
+  if (!acquired) { console.log(`[market-open-cron] ${lockKey} ya enviado, saltando`); return; }
+
   const userSubKeys = await redis.keys('push_user_sub:*');
   for (const key of userSubKeys) {
     const userId = key.replace('push_user_sub:', '');
@@ -2591,23 +3007,23 @@ cron.schedule('30 9 * * 1-5', async () => {
     const subRaw = await redis.get(key);
     if (!subRaw) continue;
     try {
-      const sub  = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
-      const lang = await getUserLang(userId);
-      const s    = NOTIF_STRINGS[lang].marketOpen;
-      await webpush.sendNotification(sub, JSON.stringify({ ...s, url: 'https://tradiko.dev' })).catch(async err => {
+      const sub = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
+      await webpush.sendNotification(sub, JSON.stringify({ ...NOTIF_ES.marketOpen, url: 'https://tradiko.dev' })).catch(async err => {
         if (err.statusCode === 410) await redis.del(key);
       });
     } catch {}
   }
   const apnsKeys = await redis.keys('apns_token:*');
+  const sentTokens = new Set();
   for (const key of apnsKeys) {
-    const userId = key.replace('apns_token:', '');
     const deviceToken = await redis.get(key);
-    if (!deviceToken) continue;
+    if (!deviceToken || sentTokens.has(deviceToken)) continue;
+    sentTokens.add(deviceToken);
     try {
-      const lang = await getUserLang(userId);
-      const s    = NOTIF_STRINGS[lang].marketOpen;
-      await apnsClient.send(new Notification(deviceToken, { alert: { title: s.title, body: s.body }, sound: 'default', badge: 1 })).catch(() => {});
+      const s = NOTIF_ES.marketOpen;
+      await apnsClient.send(new Notification(deviceToken, { alert: { title: s.title, body: s.body }, sound: 'default', badge: 1 })).catch(err => {
+        if (err.reason === 'BadDeviceToken' || err.reason === 'Unregistered') redis.del(key).catch(() => {});
+      });
     } catch {}
   }
   console.log('[market-open-cron] done');
@@ -2615,6 +3031,12 @@ cron.schedule('30 9 * * 1-5', async () => {
 
 // Market close — 4:00 PM New York (timezone handles DST automatically)
 cron.schedule('0 16 * * 1-5', async () => {
+  console.log(`[market-close-cron] START ${new Date().toISOString()} pid=${process.pid} replica=${process.env.RAILWAY_REPLICA_ID || 'none'} deploy=${process.env.RAILWAY_DEPLOYMENT_ID || 'none'}`);
+  const lockDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
+  const lockKey  = `cron_lock:marketClose:${lockDate}`;
+  const acquired = await redis.set(lockKey, '1', { nx: true, ex: 93600 });
+  if (!acquired) { console.log(`[market-close-cron] ${lockKey} ya enviado, saltando`); return; }
+
   const userSubKeys = await redis.keys('push_user_sub:*');
   for (const key of userSubKeys) {
     const userId = key.replace('push_user_sub:', '');
@@ -2622,23 +3044,23 @@ cron.schedule('0 16 * * 1-5', async () => {
     const subRaw = await redis.get(key);
     if (!subRaw) continue;
     try {
-      const sub  = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
-      const lang = await getUserLang(userId);
-      const s    = NOTIF_STRINGS[lang].marketClose;
-      await webpush.sendNotification(sub, JSON.stringify({ ...s, url: 'https://tradiko.dev' })).catch(async err => {
+      const sub = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
+      await webpush.sendNotification(sub, JSON.stringify({ ...NOTIF_ES.marketClose, url: 'https://tradiko.dev' })).catch(async err => {
         if (err.statusCode === 410) await redis.del(key);
       });
     } catch {}
   }
   const apnsKeys = await redis.keys('apns_token:*');
+  const sentTokens = new Set();
   for (const key of apnsKeys) {
-    const userId = key.replace('apns_token:', '');
     const deviceToken = await redis.get(key);
-    if (!deviceToken) continue;
+    if (!deviceToken || sentTokens.has(deviceToken)) continue;
+    sentTokens.add(deviceToken);
     try {
-      const lang = await getUserLang(userId);
-      const s    = NOTIF_STRINGS[lang].marketClose;
-      await apnsClient.send(new Notification(deviceToken, { alert: { title: s.title, body: s.body }, sound: 'default', badge: 1 })).catch(() => {});
+      const s = NOTIF_ES.marketClose;
+      await apnsClient.send(new Notification(deviceToken, { alert: { title: s.title, body: s.body }, sound: 'default', badge: 1 })).catch(err => {
+        if (err.reason === 'BadDeviceToken' || err.reason === 'Unregistered') redis.del(key).catch(() => {});
+      });
     } catch {}
   }
   console.log('[market-close-cron] done');
@@ -2646,6 +3068,12 @@ cron.schedule('0 16 * * 1-5', async () => {
 
 // Weekly tournament creation — Monday 00:05 Madrid time
 cron.schedule('5 0 * * 1', async () => {
+  console.log(`[tournament-cron] START ${new Date().toISOString()} pid=${process.pid} replica=${process.env.RAILWAY_REPLICA_ID || 'none'} deploy=${process.env.RAILWAY_DEPLOYMENT_ID || 'none'}`);
+  const lockDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid' }).format(new Date());
+  const lockKey  = `cron_lock:weeklyTournament:${lockDate}`;
+  const acquired = await redis.set(lockKey, '1', { nx: true, ex: 172800 });
+  if (!acquired) { console.log(`[tournament-cron] ${lockKey} ya enviado, saltando`); return; }
+
   try {
     const { created } = await ensureWeeklyTournament();
     if (!created) {
@@ -2660,23 +3088,23 @@ cron.schedule('5 0 * * 1', async () => {
       const subRaw = await redis.get(key);
       if (!subRaw) continue;
       try {
-        const sub  = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
-        const lang = await getUserLang(userId);
-        const s    = NOTIF_STRINGS[lang].weeklyTournament;
-        await webpush.sendNotification(sub, JSON.stringify({ ...s, url: 'https://tradiko.dev' })).catch(async err => {
+        const sub = typeof subRaw === 'string' ? JSON.parse(subRaw) : subRaw;
+        await webpush.sendNotification(sub, JSON.stringify({ ...NOTIF_ES.weeklyTournament, url: 'https://tradiko.dev' })).catch(async err => {
           if (err.statusCode === 410) await redis.del(key);
         });
       } catch {}
     }
     const apnsKeys = await redis.keys('apns_token:*');
+    const sentTokens = new Set();
     for (const key of apnsKeys) {
-      const userId = key.replace('apns_token:', '');
       const deviceToken = await redis.get(key);
-      if (!deviceToken) continue;
+      if (!deviceToken || sentTokens.has(deviceToken)) continue;
+      sentTokens.add(deviceToken);
       try {
-        const lang = await getUserLang(userId);
-        const s    = NOTIF_STRINGS[lang].weeklyTournament;
-        await apnsClient.send(new Notification(deviceToken, { alert: { title: s.title, body: s.body }, sound: 'default', badge: 1 })).catch(() => {});
+        const s = NOTIF_ES.weeklyTournament;
+        await apnsClient.send(new Notification(deviceToken, { alert: { title: s.title, body: s.body }, sound: 'default', badge: 1 })).catch(err => {
+          if (err.reason === 'BadDeviceToken' || err.reason === 'Unregistered') redis.del(key).catch(() => {});
+        });
       } catch {}
     }
     console.log('[tournament-cron] Notifications sent.');
@@ -2686,11 +3114,17 @@ cron.schedule('5 0 * * 1', async () => {
 }, { timezone: 'Europe/Madrid' });
 
 cron.schedule('0 7 * * 0', async () => {
+  console.log(`[portfolio-recap-cron] START ${new Date().toISOString()} pid=${process.pid} replica=${process.env.RAILWAY_REPLICA_ID || 'none'} deploy=${process.env.RAILWAY_DEPLOYMENT_ID || 'none'}`);
+  const lockDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid' }).format(new Date());
+  const lockKey  = `cron_lock:portfolioRecap:${lockDate}`;
+  const acquired = await redis.set(lockKey, '1', { nx: true, ex: 93600 });
+  if (!acquired) { console.log(`[portfolio-recap-cron] ${lockKey} ya enviado, saltando`); return; }
+
   const now        = new Date();
   const dayOfWeek  = now.getDay(); // 0=domingo, 6=sábado
   const isWeekend  = dayOfWeek === 0 || dayOfWeek === 6;
 
-  const portfolios = await Portfolio.find({}).populate('userId', 'name');
+  const portfolios = await Portfolio.find({ slot: { $in: [0, null] } }).populate('userId', 'name');
   for (const portfolio of portfolios) {
     try {
       if (!portfolio.userId) continue;
@@ -2705,13 +3139,13 @@ cron.schedule('0 7 * * 0', async () => {
         const mondayDate = new Date(Date.now() - mondayOffset * 86400000).toISOString().split('T')[0];
         histEnd = await PortfolioHistory.findOne({ userId: portfolio.userId._id, date: fridayDate });
         histRef = await PortfolioHistory.findOne({ userId: portfolio.userId._id, date: mondayDate });
-        title   = '📊 Weekly recap';
+        title   = '📊 Resumen semanal';
       } else {
         const today     = new Date().toISOString().split('T')[0];
         const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
         histEnd = await PortfolioHistory.findOne({ userId: portfolio.userId._id, date: today });
         histRef = await PortfolioHistory.findOne({ userId: portfolio.userId._id, date: yesterday });
-        title   = '📊 Portfolio update';
+        title   = '📊 Actualización de portfolio';
       }
 
       if (!histEnd || !histRef) continue;
@@ -2720,7 +3154,7 @@ cron.schedule('0 7 * * 0', async () => {
       const sign      = change >= 0 ? '+' : '';
       await sendPushToUser(portfolio.userId._id, {
         title,
-        body:  `${sign}${changePct}% (${sign}${change.toFixed(0)}) · Total value: ${histEnd.totalValue.toFixed(0)}`,
+        body:  `${sign}${changePct}% (${sign}${change.toFixed(0)}) · Valor total: ${histEnd.totalValue.toFixed(0)}`,
         url:   'https://tradiko.dev',
       });
     } catch (e) {
@@ -2730,6 +3164,12 @@ cron.schedule('0 7 * * 0', async () => {
 }, { timezone: 'Europe/Madrid' });
 
 cron.schedule('0 21 * * *', async () => {
+  console.log(`[streak-cron] START ${new Date().toISOString()} pid=${process.pid} replica=${process.env.RAILWAY_REPLICA_ID || 'none'} deploy=${process.env.RAILWAY_DEPLOYMENT_ID || 'none'}`);
+  const lockDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid' }).format(new Date());
+  const lockKey  = `cron_lock:streakRisk:${lockDate}`;
+  const acquired = await redis.set(lockKey, '1', { nx: true, ex: 93600 });
+  if (!acquired) { console.log(`[streak-cron] ${lockKey} ya enviado, saltando`); return; }
+
   const now = new Date();
   const todayMadrid = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Madrid' })).toISOString().split('T')[0];
   console.log(`[streak-cron] Fired at ${now.toISOString()} — today (Madrid): ${todayMadrid}`);
@@ -2751,9 +3191,7 @@ cron.schedule('0 21 * * *', async () => {
       const apnsRaw = await redis.get(`apns_token:${user._id}`);
       console.log(`[streak-cron] user=${user._id} streak=${user.dailyStreak} lastPlayed=${user.lastPlayed} hasSub=${!!subRaw} hasApns=${!!apnsRaw}`);
       if (!subRaw && !apnsRaw) continue;
-      const lang = await getUserLang(user._id);
-      const streakStrings = NOTIF_STRINGS[lang].streakAtRisk(user.dailyStreak);
-      await sendPushToUser(user._id, { ...streakStrings, url: 'https://tradiko.dev' });
+      await sendPushToUser(user._id, { ...NOTIF_ES.streakAtRisk(user.dailyStreak), url: 'https://tradiko.dev' });
       sent++;
     } catch (e) {
       console.error(`[streak-cron] Error for user ${user._id}:`, e.message);
@@ -2762,6 +3200,7 @@ cron.schedule('0 21 * * *', async () => {
 
   console.log(`[streak-cron] Done — sent ${sent}/${usersAtRisk.length}`);
 }, { timezone: 'Europe/Madrid' });
+} // end if (PUSH_ENABLED)
 
 cron.schedule('0 0 * * *', async () => {
   const today = new Date().toISOString().split('T')[0];
@@ -2778,38 +3217,50 @@ cron.schedule('0 0 * * *', async () => {
 });
 
 // ── Portfolio pending orders execution (fires every minute, executes once at market open) ─
-let lastOrderExecutionDate = null;
+// Uses a Redis distributed lock so only one replica runs this per day, plus
+// atomic per-order claiming (pending → processing) to prevent double execution
+// on concurrent invocations.
 cron.schedule('* * * * 1-5', async () => {
   if (!isPortfolioMarketOpen('stock')) return;
-  const todayNY = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
-  if (lastOrderExecutionDate === todayNY) return;
-  lastOrderExecutionDate = todayNY;
 
+  const todayNY  = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
+  const lockKey  = `cron_lock:portfolioOrders:${todayNY}`;
+  const acquired = await redis.set(lockKey, '1', { nx: true, ex: 7200 });
+  if (!acquired) return; // another replica already running / already ran today
+
+  console.log(`[portfolio-orders-cron] START ${new Date().toISOString()} pid=${process.pid} replica=${process.env.RAILWAY_REPLICA_ID || 'none'}`);
   const PortfolioOrder = mongoose.model('PortfolioOrder');
   try {
-    const pendingOrders = await PortfolioOrder.find({ status: 'pending' });
-    if (!pendingOrders.length) {
+    const pendingIds = await PortfolioOrder.distinct('_id', { status: 'pending' });
+    if (!pendingIds.length) {
       console.log('[portfolio-orders-cron] No pending orders at market open');
       return;
     }
-    console.log(`[portfolio-orders-cron] Executing ${pendingOrders.length} pending order(s)`);
+    console.log(`[portfolio-orders-cron] Executing ${pendingIds.length} pending order(s)`);
 
     async function cancelOrder(order, reason) {
       order.status = 'cancelled';
       order.cancelReason = reason;
       await order.save();
-      const lang = await getUserLang(order.userId);
-      const s = NOTIF_STRINGS[lang] || NOTIF_STRINGS.en;
-      await sendPushToUser(order.userId, { ...s.orderCancelled({ name: order.name, reason }), url: 'https://tradiko.dev' });
+      await sendPushToUser(order.userId, { ...NOTIF_ES.orderCancelled({ name: order.name, reason }), url: 'https://tradiko.dev' });
     }
 
-    for (const order of pendingOrders) {
+    for (const orderId of pendingIds) {
+      // Atomically claim: only one replica/process can change pending → processing
+      const order = await PortfolioOrder.findOneAndUpdate(
+        { _id: orderId, status: 'pending' },
+        { $set: { status: 'processing' } },
+        { new: true }
+      );
+      if (!order) continue; // already claimed by another invocation
+
       try {
         const asset = PORTFOLIO_ASSETS.find(a => a.symbol === order.symbol);
         if (!asset) { await cancelOrder(order, 'asset_not_found'); continue; }
         const priceData = await getPrice(asset);
         const execPrice = priceData.price;
-        const portfolio = await Portfolio.findOne({ userId: order.userId });
+        const orderSlot = order.slot ?? 0;
+        const portfolio = await Portfolio.findOne(portfolioFilter(order.userId, orderSlot));
         if (!portfolio) { await cancelOrder(order, 'portfolio_not_found'); continue; }
 
         if (order.type === 'buy') {
@@ -2820,6 +3271,7 @@ cron.schedule('* * * * 1-5', async () => {
             execQty = Math.floor((portfolio.cash / execPrice) * 10000) / 10000;
             if (execQty < 0.0001) {
               await portfolio.save();
+              redis.del(`portfolio:${order.userId}:${orderSlot}`).catch(() => {});
               redis.del(`portfolio:${order.userId}`).catch(() => {});
               await cancelOrder(order, 'insufficient_funds_at_open');
               continue;
@@ -2836,22 +3288,21 @@ cron.schedule('* * * * 1-5', async () => {
           }
           portfolio.transactions.push({ symbol: order.symbol, name: asset.name, type: asset.type, action: 'buy', qty: execQty, price: execPrice, total });
           await portfolio.save();
+          redis.del(`portfolio:${order.userId}:${orderSlot}`).catch(() => {});
           redis.del(`portfolio:${order.userId}`).catch(() => {});
           order.status = 'executed';
           order.executedAt = new Date();
           order.executedPrice = execPrice;
           order.executedQty = execQty;
           await order.save();
-          const lang = await getUserLang(order.userId);
-          const s = NOTIF_STRINGS[lang] || NOTIF_STRINGS.en;
           const isPartial = execQty < order.qty;
           await sendPushToUser(order.userId, {
             ...(isPartial
-              ? s.orderPartialExecution({ type: order.type, name: order.name, qty: parseFloat(order.qty.toFixed(4)), executedQty: parseFloat(execQty.toFixed(4)), price: execPrice.toFixed(2) })
-              : s.orderExecuted({ type: order.type, name: order.name, qty: order.qty, price: execPrice.toFixed(2) })),
+              ? NOTIF_ES.orderPartialExecution({ type: order.type, name: order.name, qty: parseFloat(order.qty.toFixed(4)), executedQty: parseFloat(execQty.toFixed(4)), price: execPrice.toFixed(2) })
+              : NOTIF_ES.orderExecuted({ type: order.type, name: order.name, qty: order.qty, price: execPrice.toFixed(2) })),
             url: 'https://tradiko.dev',
           });
-          console.log(`[portfolio-orders-cron] Executed buy ${execQty}/${order.qty}x${order.symbol} @ $${execPrice} for userId=${order.userId}`);
+          console.log(`[portfolio-orders-cron] Executed buy ${execQty}/${order.qty}x${order.symbol} @ $${execPrice} for userId=${order.userId} slot=${orderSlot}`);
         } else {
           // sell
           const position = portfolio.positions.find(p => p.symbol === order.symbol);
@@ -2862,21 +3313,22 @@ cron.schedule('* * * * 1-5', async () => {
           if (position.qty < 0.0001) portfolio.positions = portfolio.positions.filter(p => p.symbol !== order.symbol);
           portfolio.transactions.push({ symbol: order.symbol, name: asset.name, type: asset.type, action: 'sell', qty: order.qty, price: execPrice, total });
           await portfolio.save();
+          redis.del(`portfolio:${order.userId}:${orderSlot}`).catch(() => {});
           redis.del(`portfolio:${order.userId}`).catch(() => {});
           order.status = 'executed';
           order.executedAt = new Date();
           order.executedPrice = execPrice;
           order.executedQty = order.qty;
           await order.save();
-          const lang = await getUserLang(order.userId);
-          const s = NOTIF_STRINGS[lang] || NOTIF_STRINGS.en;
           await sendPushToUser(order.userId, {
-            ...s.orderExecuted({ type: order.type, name: order.name, qty: order.qty, price: execPrice.toFixed(2) }),
+            ...NOTIF_ES.orderExecuted({ type: order.type, name: order.name, qty: order.qty, price: execPrice.toFixed(2) }),
             url: 'https://tradiko.dev',
           });
-          console.log(`[portfolio-orders-cron] Executed sell ${order.qty}x${order.symbol} @ $${execPrice} for userId=${order.userId}`);
+          console.log(`[portfolio-orders-cron] Executed sell ${order.qty}x${order.symbol} @ $${execPrice} for userId=${order.userId} slot=${orderSlot}`);
         }
       } catch (err) {
+        // Revert to pending so a manual retry or future run can recover it
+        await PortfolioOrder.updateOne({ _id: order._id }, { $set: { status: 'pending' } }).catch(() => {});
         console.error(`[portfolio-orders-cron] Error on order ${order._id}:`, err.message);
       }
     }
@@ -2926,7 +3378,6 @@ cron.schedule('55 23 * * 0', async () => {
       { id: 'bp_s1_l19_pro', threshold: 10 },
       { id: 'bp_s1_l24_pro', threshold: 5  },
       { id: 'bp_s1_l29_pro', threshold: 3  },
-      { id: 'bp_s1_l20_pro', threshold: 1  }, // win_tournament: champion only
     ];
 
     let processed = 0, awarded = 0;
@@ -2958,22 +3409,58 @@ const ADMIN_STATS_CORS = {
 
 app.options('/stats/dashboard', (req, res) => res.set(ADMIN_STATS_CORS).sendStatus(200));
 app.options('/stats/revenue',   (req, res) => res.set(ADMIN_STATS_CORS).sendStatus(200));
+app.options('/stats/diag',      (req, res) => res.set(ADMIN_STATS_CORS).sendStatus(200));
+
+// Diagnostic endpoint (read-only) — verifica si createdAt está congelada o es correcto,
+// y muestra la fecha UTC vs. Europe/Berlin de los últimos 20 usuarios.
+app.get('/stats/diag', async (req, res) => {
+  res.set(ADMIN_STATS_CORS);
+  const key = req.headers['x-admin-secret'];
+  if (!ADMIN_SECRET || key !== ADMIN_SECRET) return res.status(403).json({ error: 'Forbidden' });
+  try {
+    const now = new Date();
+    const recent = await User.aggregate([
+      { $sort: { _id: -1 } },
+      { $limit: 20 },
+      { $project: {
+        _id: 1,
+        createdAt: 1,
+        dateUTC:    { $dateToString: { format: '%Y-%m-%d %H:%M', date: '$createdAt' } },
+        dateBerlin: { $dateToString: { format: '%Y-%m-%d %H:%M', date: '$createdAt', timezone: 'Europe/Berlin' } },
+        oidTimestamp: { $dateToString: { format: '%Y-%m-%d %H:%M', date: { $toDate: '$_id' } } },
+      }},
+    ]);
+    res.json({
+      serverNowUTC:    now.toISOString(),
+      serverNowBerlin: new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Berlin', hour: '2-digit', minute: '2-digit', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now),
+      recentUsers: recent,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 app.get('/stats/dashboard', async (req, res) => {
   res.set(ADMIN_STATS_CORS);
   const key = req.headers['x-admin-secret'];
   if (!ADMIN_SECRET || key !== ADMIN_SECRET) return res.status(403).json({ error: 'Forbidden' });
   try {
+    const todayBerlin = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin' }).format(new Date());
     const users  = await User.aggregate([
+      { $match: { createdAt: { $ne: null } } },
       { $group: {
-        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt', timezone: 'Europe/Berlin' } },
         count: { $sum: 1 }
       }},
       { $sort: { _id: 1 } }
     ]);
+    // Garantiza que hoy (hora Berlín) siempre aparece aunque nadie se haya registrado todavía
+    if (!users.length || users[users.length - 1]._id < todayBerlin) {
+      users.push({ _id: todayBerlin, count: 0 });
+    }
     const scores = await Score.aggregate([
       { $group: {
-        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt', timezone: 'Europe/Berlin' } },
         count: { $sum: 1 },
         avgScore: { $avg: '$score' }
       }},
@@ -2992,7 +3479,7 @@ app.get('/stats/dashboard', async (req, res) => {
     ]);
     res.json({ users, scores, purchases, totalUsers, totalScores, totalPurchases: totalPurchases[0]?.total || 0 });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
@@ -3043,11 +3530,26 @@ app.get('/stats/revenue', async (req, res) => {
     revenueCacheAt = Date.now();
     res.json(revenueCache);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
 // ── Portfolio routes ──────────────────────────────────────────────
+
+function getMondayStr(now = new Date()) {
+  const day  = now.getUTCDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  const mon  = new Date(now);
+  mon.setUTCDate(now.getUTCDate() + diff);
+  mon.setUTCHours(0, 0, 0, 0);
+  return mon.toISOString().split('T')[0];
+}
+
+function portfolioFilter(userId, slot) {
+  return slot === 1
+    ? { userId, slot: 1 }
+    : { userId, slot: { $in: [0, null] } };
+}
 
 // Obtener todos los precios
 app.get('/portfolio/prices', async (req, res) => {
@@ -3073,7 +3575,7 @@ app.get('/portfolio/prices', async (req, res) => {
       })();
     }
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 // Obtener portfolio del usuario
@@ -3082,14 +3584,20 @@ app.get('/portfolio', async (req, res) => {
   if (!auth) return res.status(401).json({ error: 'No token' });
   try {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const cacheKey = `portfolio:${decoded.id}`;
+    const slot = Number(req.query?.slot) === 1 ? 1 : 0;
+    const cacheKey = `portfolio:${decoded.id}:${slot}`;
     try {
       const cached = await redis.get(cacheKey);
       if (cached) return res.json(typeof cached === 'string' ? JSON.parse(cached) : cached);
     } catch {}
-    let portfolio = await Portfolio.findOne({ userId: decoded.id });
+    let portfolio = await Portfolio.findOne(portfolioFilter(decoded.id, slot));
     if (!portfolio) {
-      portfolio = await Portfolio.create({ userId: decoded.id, cash: 50000, positions: [], transactions: [] });
+      if (slot === 1) {
+        const u = await User.findById(decoded.id).select('battlePassMechanics');
+        if (!u?.battlePassMechanics?.includes('mechanic_portfolio_double'))
+          return res.status(403).json({ error: 'Portfolio B requires mechanic_portfolio_double' });
+      }
+      portfolio = await Portfolio.create({ userId: decoded.id, slot, cash: 50000, positions: [], transactions: [] });
     }
     const user = await User.findById(decoded.id).select('portfolioTutorialSeen');
     const obj = portfolio.toObject();
@@ -3097,7 +3605,7 @@ app.get('/portfolio', async (req, res) => {
     redis.set(cacheKey, JSON.stringify(obj), { ex: 30 }).catch(() => {});
     res.json(obj);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
@@ -3109,7 +3617,7 @@ app.post('/portfolio/tutorial-seen', async (req, res) => {
     await User.findByIdAndUpdate(decoded.id, { portfolioTutorialSeen: true });
     res.json({ ok: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
@@ -3133,7 +3641,36 @@ app.post('/academias/tutorial-seen', async (req, res) => {
     await User.findByIdAndUpdate(decoded.id, { academiasTutorialSeen: true });
     res.json({ ok: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+app.post('/admin/reset-portfolio/:username', async (req, res) => {
+  const key = req.headers['x-admin-secret'];
+  if (!ADMIN_SECRET || key !== ADMIN_SECRET) return res.status(403).json({ error: 'Forbidden' });
+  try {
+    const user = await User.findOne({ username: req.params.username.toLowerCase() });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    const PortfolioOrder = mongoose.model('PortfolioOrder');
+    // Cancel any pending/processing orders (return reserved cash is irrelevant after reset)
+    await PortfolioOrder.updateMany(
+      { userId: user._id, status: { $in: ['pending', 'processing'] } },
+      { $set: { status: 'cancelled', cancelReason: 'admin_portfolio_reset' } }
+    );
+    // Reset portfolio to initial state
+    await Portfolio.findOneAndUpdate(
+      { userId: user._id, slot: { $in: [0, null] } },
+      { $set: { cash: 50000, positions: [], transactions: [] } },
+      { upsert: true }
+    );
+    // Remove all history snapshots so no stale baseline survives
+    await PortfolioHistory.deleteMany({ userId: user._id, slot: { $in: [0, null] } });
+    redis.del(`portfolio:${user._id}`).catch(() => {});
+    redis.del(`portfolio:${user._id}:0`).catch(() => {});
+    console.log(`[admin] Portfolio reset to $50k for username=${req.params.username} userId=${user._id}`);
+    res.json({ ok: true, username: req.params.username, cash: 50000 });
+  } catch (err) {
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
@@ -3145,7 +3682,7 @@ app.post('/admin/reset-portfolio-tutorial/:username', async (req, res) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
     res.json({ ok: true, username: req.params.username });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
@@ -3157,7 +3694,7 @@ app.post('/admin/reset-academias/:username', async (req, res) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
     res.json({ ok: true, username: req.params.username });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
@@ -3187,7 +3724,7 @@ app.get('/admin/portfolio/:username', async (req, res) => {
     const totalValue = portfolio.cash + invested;
     const portfolioReturn = ((totalValue - 50000) / 50000) * 100;
     res.json({ username: user.username, name: user.name, cash: portfolio.cash, invested, totalValue, portfolioReturn, positions, transactions: portfolio.transactions.slice(-20) });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: 'internal_error' }); }
 });
 
 // ── Ligas ─────────────────────────────────────────────────────────────────────
@@ -3215,7 +3752,7 @@ app.post('/leagues/create', async (req, res) => {
       startDate: today, endDate: endDate || null,
     });
     res.json({ leagueId: league._id, code });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: 'internal_error' }); }
 });
 
 app.post('/leagues/join', async (req, res) => {
@@ -3232,7 +3769,7 @@ app.post('/leagues/join', async (req, res) => {
     league.members.push({ userId: decoded.id, startValue, joinedAt: new Date() });
     await league.save();
     res.json({ leagueId: league._id, name: league.name });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: 'internal_error' }); }
 });
 
 app.get('/leagues/mine', async (req, res) => {
@@ -3240,18 +3777,49 @@ app.get('/leagues/mine', async (req, res) => {
   if (!auth) return res.status(401).json({ error: 'No token' });
   try {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const leagues  = await League.find({ 'members.userId': decoded.id });
-    res.json(leagues.map(l => ({
-      _id: l._id, name: l.name, code: l.code, owner: l.owner,
-      memberCount: l.members.length, startDate: l.startDate, endDate: l.endDate,
-      isOwner: l.owner.toString() === decoded.id,
-    })));
-  } catch (err) { res.status(500).json({ error: err.message }); }
+    const myLeagues = await League.find({ 'members.userId': decoded.id });
+    if (myLeagues.length === 0) return res.json([]);
+    const priceMap = {};
+    await Promise.all(PORTFOLIO_ASSETS.map(async a => {
+      try {
+        const c = await redis.get(`price_v2:${a.symbol}`);
+        if (c) { const p = typeof c === 'string' ? JSON.parse(c) : c; priceMap[p.symbol] = p.price; }
+      } catch {}
+    }));
+    const allIds = [...new Set(myLeagues.flatMap(l => l.members.map(m => m.userId.toString())))];
+    const portfolios = await Portfolio.find({ userId: { $in: allIds } });
+    const pMap = {};
+    portfolios.forEach(p => { pMap[p.userId.toString()] = p; });
+    res.json(myLeagues.map(l => {
+      const ranked = l.members.map(m => {
+        const uid = m.userId.toString();
+        const port = pMap[uid];
+        let totalValue = m.startValue;
+        if (port) {
+          const invested = port.positions.reduce((s, pos) => s + (priceMap[pos.symbol] || pos.avgPrice) * pos.qty, 0);
+          totalValue = port.cash + invested;
+        }
+        return { uid, totalValue, returnPct: ((totalValue - m.startValue) / m.startValue) * 100 };
+      }).sort((a, b) => b.returnPct - a.returnPct);
+      const myIdx = ranked.findIndex(r => r.uid === decoded.id);
+      const me = ranked[myIdx] || { totalValue: 0, returnPct: 0 };
+      return {
+        _id: l._id, name: l.name, code: l.code, owner: l.owner,
+        memberCount: l.members.length, startDate: l.startDate, endDate: l.endDate,
+        isOwner: l.owner.toString() === decoded.id,
+        myRank: myIdx + 1,
+        myReturnPct: me.returnPct,
+        myTotalValue: me.totalValue,
+      };
+    }));
+  } catch (err) { res.status(500).json({ error: 'internal_error' }); }
 });
 
 app.get('/leagues/:leagueId/ranking', async (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'No token' });
+  if (!mongoose.isValidObjectId(req.params.leagueId))
+    return res.status(404).json({ error: 'Liga no encontrada' });
   try {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
     const league  = await League.findById(req.params.leagueId);
@@ -3300,14 +3868,17 @@ app.get('/leagues/:leagueId/ranking', async (req, res) => {
     res.json({
       _id: league._id, name: league.name, code: league.code,
       owner: league.owner, startDate: league.startDate, endDate: league.endDate,
-      isOwner: league.owner.toString() === decoded.id, ranking: top10, userPosition,
+      isOwner: league.owner.toString() === decoded.id,
+      memberCount: league.members.length, ranking: top10, userPosition,
     });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: 'internal_error' }); }
 });
 
 app.post('/leagues/:leagueId/leave', async (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'No token' });
+  if (!mongoose.isValidObjectId(req.params.leagueId))
+    return res.status(404).json({ error: 'Liga no encontrada' });
   try {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
     const league  = await League.findById(req.params.leagueId);
@@ -3317,12 +3888,14 @@ app.post('/leagues/:leagueId/leave', async (req, res) => {
     league.members = league.members.filter(m => m.userId.toString() !== decoded.id);
     await league.save();
     res.json({ ok: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: 'internal_error' }); }
 });
 
 app.delete('/leagues/:leagueId', async (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'No token' });
+  if (!mongoose.isValidObjectId(req.params.leagueId))
+    return res.status(404).json({ error: 'Liga no encontrada' });
   try {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
     const league  = await League.findById(req.params.leagueId);
@@ -3331,7 +3904,7 @@ app.delete('/leagues/:leagueId', async (req, res) => {
       return res.status(403).json({ error: 'Solo el owner puede eliminar la liga' });
     await League.findByIdAndDelete(req.params.leagueId);
     res.json({ ok: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: 'internal_error' }); }
 });
 
 // Comprar
@@ -3340,15 +3913,21 @@ app.post('/portfolio/buy', async (req, res) => {
   if (!auth) return res.status(401).json({ error: 'No token' });
   try {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const { symbol, qty } = req.body;
+    const { symbol, qty, slot: rawSlot } = req.body;
+    const slot = Number(rawSlot) === 1 ? 1 : 0;
+    if (slot === 1) {
+      const u = await User.findById(decoded.id).select('battlePassMechanics');
+      if (!u?.battlePassMechanics?.includes('mechanic_portfolio_double'))
+        return res.status(403).json({ error: 'Portfolio B requires mechanic_portfolio_double' });
+    }
     if (!qty || qty <= 0 || !Number.isFinite(qty)) return res.status(400).json({ error: 'Invalid quantity' });
     const asset    = PORTFOLIO_ASSETS.find(a => a.symbol === symbol);
     if (!asset) return res.status(400).json({ error: 'Asset not found' });
     const priceData = await getPrice(asset);
     const price     = priceData.price;
     const total     = price * qty;
-    let portfolio   = await Portfolio.findOne({ userId: decoded.id });
-    if (!portfolio) portfolio = await Portfolio.create({ userId: decoded.id, cash: 50000, positions: [], transactions: [] });
+    let portfolio   = await Portfolio.findOne(portfolioFilter(decoded.id, slot));
+    if (!portfolio) portfolio = await Portfolio.create({ userId: decoded.id, slot, cash: 50000, positions: [], transactions: [] });
     if (portfolio.cash < total) return res.status(400).json({ error: 'Insufficient funds' });
     portfolio.cash -= total;
     const existing = portfolio.positions.find(p => p.symbol === symbol);
@@ -3360,7 +3939,8 @@ app.post('/portfolio/buy', async (req, res) => {
     }
     portfolio.transactions.push({ symbol, name: asset.name, type: asset.type, action: 'buy', qty, price, total });
     await portfolio.save();
-    redis.del(`portfolio:${decoded.id}`).catch(() => {});
+    redis.del(`portfolio:${decoded.id}:${slot}`).catch(() => {});
+    redis.del(`portfolio:${decoded.id}`).catch(() => {});  // legacy key
     res.json({ ok: true, cash: portfolio.cash });
   } catch (err) {
     console.error('Buy error:', err.message);
@@ -3374,11 +3954,17 @@ app.post('/portfolio/sell', async (req, res) => {
   if (!auth) return res.status(401).json({ error: 'No token' });
   try {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const { symbol, qty } = req.body;
+    const { symbol, qty, slot: rawSlot } = req.body;
+    const slot = Number(rawSlot) === 1 ? 1 : 0;
+    if (slot === 1) {
+      const u = await User.findById(decoded.id).select('battlePassMechanics');
+      if (!u?.battlePassMechanics?.includes('mechanic_portfolio_double'))
+        return res.status(403).json({ error: 'Portfolio B requires mechanic_portfolio_double' });
+    }
     if (!qty || qty <= 0 || !Number.isFinite(qty)) return res.status(400).json({ error: 'Invalid quantity' });
     const asset    = PORTFOLIO_ASSETS.find(a => a.symbol === symbol);
     if (!asset) {
-      const portfolio = await Portfolio.findOne({ userId: decoded.id });
+      const portfolio = await Portfolio.findOne(portfolioFilter(decoded.id, slot));
       if (!portfolio) return res.status(404).json({ error: 'Portfolio not found' });
       const position = portfolio.positions.find(p => p.symbol === symbol);
       if (!position) return res.status(404).json({ error: 'Position not found' });
@@ -3387,13 +3973,14 @@ app.post('/portfolio/sell', async (req, res) => {
       portfolio.positions = portfolio.positions.filter(p => p.symbol !== symbol);
       portfolio.transactions.push({ symbol, name: position.name, type: position.type, action: 'sell', qty: position.qty, price: position.avgPrice, total: refund });
       await portfolio.save();
-      redis.del(`portfolio:${decoded.id}`).catch(() => {});
+      redis.del(`portfolio:${decoded.id}:${slot}`).catch(() => {});
+      redis.del(`portfolio:${decoded.id}`).catch(() => {});  // legacy key
       return res.json({ ok: true, cash: portfolio.cash, refunded: true });
     }
     const priceData = await getPrice(asset);
     const price     = priceData.price;
     const total     = price * qty;
-    const portfolio = await Portfolio.findOne({ userId: decoded.id });
+    const portfolio = await Portfolio.findOne(portfolioFilter(decoded.id, slot));
     if (!portfolio) return res.status(404).json({ error: 'Portfolio not found' });
     const position  = portfolio.positions.find(p => p.symbol === symbol);
     if (!position || position.qty < qty) return res.status(400).json({ error: 'Insufficient position' });
@@ -3404,7 +3991,8 @@ app.post('/portfolio/sell', async (req, res) => {
     }
     portfolio.transactions.push({ symbol, name: asset.name, type: asset.type, action: 'sell', qty, price, total, avgPrice: position?.avgPrice ?? price });
     await portfolio.save();
-    redis.del(`portfolio:${decoded.id}`).catch(() => {});
+    redis.del(`portfolio:${decoded.id}:${slot}`).catch(() => {});
+    redis.del(`portfolio:${decoded.id}`).catch(() => {});  // legacy key
     res.json({ ok: true, cash: portfolio.cash });
   } catch (err) {
     console.error('Sell error:', err.message);
@@ -3434,15 +4022,16 @@ app.post('/portfolio/order', async (req, res) => {
   if (!auth) return res.status(401).json({ error: 'No token' });
   try {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const { symbol, type, qty } = req.body;
+    const { symbol, type, qty, slot: rawSlot } = req.body;
+    const slot = Number(rawSlot) === 1 ? 1 : 0;
     if (!qty || qty <= 0 || !Number.isFinite(qty)) return res.status(400).json({ error: 'Invalid quantity' });
     if (type !== 'buy' && type !== 'sell') return res.status(400).json({ error: 'Invalid type' });
     const asset = PORTFOLIO_ASSETS.find(a => a.symbol === symbol);
     if (!asset) return res.status(400).json({ error: 'Asset not found' });
     if (isPortfolioMarketOpen(asset.type)) return res.status(400).json({ error: 'Market is open — use the regular buy/sell flow' });
     const PortfolioOrder = mongoose.model('PortfolioOrder');
-    let portfolio = await Portfolio.findOne({ userId: decoded.id });
-    if (!portfolio) portfolio = await Portfolio.create({ userId: decoded.id, cash: 50000, positions: [], transactions: [] });
+    let portfolio = await Portfolio.findOne(portfolioFilter(decoded.id, slot));
+    if (!portfolio) portfolio = await Portfolio.create({ userId: decoded.id, slot, cash: 50000, positions: [], transactions: [] });
     let reservedCash = 0;
     if (type === 'buy') {
       const priceData = await getPrice(asset);
@@ -3450,12 +4039,13 @@ app.post('/portfolio/order', async (req, res) => {
       if (portfolio.cash < reservedCash) return res.status(400).json({ error: 'Insufficient funds' });
       portfolio.cash -= reservedCash;
       await portfolio.save();
-      redis.del(`portfolio:${decoded.id}`).catch(() => {});
+      redis.del(`portfolio:${decoded.id}:${slot}`).catch(() => {});
+      redis.del(`portfolio:${decoded.id}`).catch(() => {});  // legacy key
     } else {
       const position = portfolio.positions.find(p => p.symbol === symbol);
       if (!position || position.qty < qty) return res.status(400).json({ error: 'Insufficient position' });
     }
-    const order = await PortfolioOrder.create({ userId: decoded.id, symbol, name: asset.name, type, qty, reservedCash });
+    const order = await PortfolioOrder.create({ userId: decoded.id, slot, symbol, name: asset.name, type, qty, reservedCash });
     res.json({ ok: true, orderId: order._id });
   } catch (err) {
     console.error('Portfolio order error:', err.message);
@@ -3472,7 +4062,7 @@ app.get('/portfolio/orders', async (req, res) => {
     const orders = await PortfolioOrder.find({ userId: decoded.id }).sort({ createdAt: -1 }).limit(20);
     res.json(orders);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
@@ -3499,7 +4089,7 @@ app.delete('/portfolio/order/:orderId', async (req, res) => {
     }
     res.json({ ok: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
@@ -3530,7 +4120,7 @@ app.post('/admin/refund-unlisted/:username', async (req, res) => {
 
     res.json({ ok: true, refundedSymbols: stuck.map(p => p.symbol), refund: refund.toFixed(2), newCash: portfolio.cash.toFixed(2) });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
@@ -3559,7 +4149,7 @@ app.post('/portfolio/refund-delisted', async (req, res) => {
     }
     res.json({ ok: true, usersAffected, totalRefunded: totalRefunded.toFixed(2) });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
@@ -3598,24 +4188,45 @@ app.get('/portfolio/candles/:symbol', async (req, res) => {
     }
     res.json(candles);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
+const MIN_PORTFOLIO_SNAPSHOT_VALUE = 100; // below $100 is always a bug; initial capital is $50k
+
 app.post('/portfolio/snapshot', async (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'No token' });
+  let decoded, slot;
   try {
-    const decoded    = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const totalValue = await getPortfolioValue(decoded.id);
+    decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    slot = Number(req.body?.slot ?? req.query?.slot) === 1 ? 1 : 0;
+
+    // Guard: skip if portfolio hasn't been initialized yet — avoids storing $50k fallback as a real baseline.
+    const portfolioExists = !!(await Portfolio.exists(portfolioFilter(decoded.id, slot)));
+    if (!portfolioExists) return res.json({ ok: true, skipped: true });
+
+    const totalValue = await getPortfolioValue(decoded.id, slot);
+    if (!Number.isFinite(totalValue)) {
+      console.warn(`[snapshot] Non-finite totalValue (${totalValue}) for userId=${decoded.id} slot=${slot} — skipping; possible data corruption`);
+      return res.json({ ok: true, skipped: true });
+    }
+    if (totalValue < MIN_PORTFOLIO_SNAPSHOT_VALUE) {
+      console.warn(`[snapshot] Skipped suspiciously low equity $${totalValue.toFixed(4)} for userId=${decoded.id} slot=${slot}`);
+      return res.json({ ok: true, skipped: true });
+    }
+
     const date = new Date().toISOString().split('T')[0];
-    await PortfolioHistory.findOneAndUpdate(
-      { userId: decoded.id, date },
-      { totalValue },
-      { upsert: true }
-    );
+
+    // PortfolioHistory: always overwrite (used for the chart, not for weekly %)
+    const histFilter = slot === 1
+      ? { userId: decoded.id, date, slot: 1 }
+      : { userId: decoded.id, date, slot: { $in: [0, null] } };
+    await PortfolioHistory.findOneAndUpdate(histFilter, { $set: { totalValue, slot } }, { upsert: true });
+
     res.json({ ok: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(`[snapshot] userId=${decoded?.id} slot=${slot} error: ${err.message}\n${err.stack}`);
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
@@ -3624,10 +4235,14 @@ app.get('/portfolio/history', async (req, res) => {
   if (!auth) return res.status(401).json({ error: 'No token' });
   try {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const history = await PortfolioHistory.find({ userId: decoded.id }).sort({ date: 1 });
+    const slot = Number(req.query?.slot) === 1 ? 1 : 0;
+    const histQuery = slot === 1
+      ? { userId: decoded.id, slot: 1 }
+      : { userId: decoded.id, slot: { $in: [0, null] } };
+    const history = await PortfolioHistory.find(histQuery).sort({ date: 1 });
     res.json(history);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 app.get('/portfolio/clear-cache', async (req, res) => {
@@ -3642,83 +4257,20 @@ app.get('/portfolio/clear-cache', async (req, res) => {
     await Promise.all(keys.map(k => redis.del(k)));
     res.json({ ok: true, cleared: keys.length });
   } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-app.get('/portfolio/weekly/leaderboard', async (req, res) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  try {
-    const now   = new Date();
-    const day   = now.getUTCDay();
-    const diff  = (day === 0) ? -6 : 1 - day;
-    const monday = new Date(now);
-    monday.setUTCDate(now.getUTCDate() + diff);
-    monday.setUTCHours(0, 0, 0, 0);
-    const mondayStr = monday.toISOString().split('T')[0];
-
-    const activeUserIds = await PortfolioHistory.distinct('userId', { date: { $gte: mondayStr } });
-    if (activeUserIds.length === 0) {
-      return res.json({ leaderboard: [], userPosition: null });
-    }
-
-    // Weekly baseline: last snapshot BEFORE Monday for each active user
-    const baselineHistory = await PortfolioHistory.aggregate([
-      { $match: { userId: { $in: activeUserIds }, date: { $lt: mondayStr } } },
-      { $sort: { date: -1 } },
-      { $group: { _id: '$userId', totalValue: { $first: '$totalValue' } } },
-    ]);
-    const baselineMap = {};
-    baselineHistory.forEach(h => { baselineMap[String(h._id)] = h.totalValue; });
-
-    const portfolios = await Portfolio.find({ userId: { $in: activeUserIds } })
-      .populate('userId', 'name avatar customAvatar username activeCosmetics');
-    const prices     = await Promise.all(PORTFOLIO_ASSETS.map(a => getPrice(a).catch(() => null)));
-    const priceMap   = {};
-    prices.filter(Boolean).forEach(p => { priceMap[p.symbol] = p.price; });
-
-    const allLeaderboard = portfolios.map(p => {
-      const invested   = p.positions.reduce((s, pos) => s + (priceMap[pos.symbol] || pos.avgPrice) * pos.qty, 0);
-      const totalValue = p.cash + invested;
-      const baseline   = baselineMap[String(p.userId?._id)] ?? 50000;
-      const returnPct  = ((totalValue - baseline) / baseline) * 100;
-      return {
-        userId:          String(p.userId?._id || ''),
-        name:            p.userId?.username || p.userId?.name || 'Anonymous',
-        username:        p.userId?.username || null,
-        avatar:          p.userId?.avatar || null,
-        customAvatar:    p.userId?.customAvatar || null,
-        activeCosmetics: p.userId?.activeCosmetics || {},
-        totalValue,
-        returnPct,
-        cash:            p.cash,
-      };
-    }).sort((a, b) => b.returnPct - a.returnPct);
-
-    const top10 = allLeaderboard.slice(0, 10);
-    let userPosition = null;
-    const { userId } = req.query;
-    if (userId) {
-      const idx = allLeaderboard.findIndex(p => p.userId === String(userId));
-      if (idx >= 10) {
-        const u = allLeaderboard[idx];
-        userPosition = { rank: idx + 1, returnPct: u.returnPct, totalValue: u.totalValue, name: u.name, username: u.username, avatar: u.avatar, customAvatar: u.customAvatar, activeCosmetics: u.activeCosmetics };
-      }
-    }
-    res.json({ leaderboard: top10, userPosition });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
 
 app.get('/portfolio/leaderboard', async (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
   try {
-    const portfolios = await Portfolio.find({}).populate('userId', 'name avatar customAvatar username activeCosmetics');
+    const portfolios = await Portfolio.find({}).populate('userId', 'name avatar customAvatar username activeCosmetics battlePassMechanics');
     const prices     = await Promise.all(PORTFOLIO_ASSETS.map(a => getPrice(a).catch(() => null)));
     const priceMap   = {};
     prices.filter(Boolean).forEach(p => { priceMap[p.symbol] = p.price; });
 
     const allLeaderboard = portfolios.map(p => {
+      const slotNum = p.slot ?? 0;
       const invested = p.positions.reduce((s, pos) => {
         const price = priceMap[pos.symbol] || pos.avgPrice;
         return s + price * pos.qty;
@@ -3726,51 +4278,66 @@ app.get('/portfolio/leaderboard', async (req, res) => {
       const totalValue = p.cash + invested;
       const returnPct  = ((totalValue - 50000) / 50000) * 100;
       return {
-        userId:          String(p.userId?._id || ''),
-        name:            p.userId?.username || p.userId?.name || 'Anonymous',
-        username:        p.userId?.username || null,
-        avatar:          p.userId?.avatar || null,
-        customAvatar:    p.userId?.customAvatar || null,
-        activeCosmetics: p.userId?.activeCosmetics || {},
+        userId:           String(p.userId?._id || ''),
+        name:             p.userId?.username || p.userId?.name || 'Anonymous',
+        username:         p.userId?.username || null,
+        avatar:           p.userId?.avatar || null,
+        customAvatar:     p.userId?.customAvatar || null,
+        activeCosmetics:  p.userId?.activeCosmetics || {},
+        hasVerifiedBadge: p.userId?.battlePassMechanics?.includes('mechanic_verified_badge') || false,
         totalValue,
         returnPct,
-        cash:            p.cash,
+        cash:             p.cash,
+        slot:             slotNum,
       };
     })
     .filter(p => p.totalValue !== 50000)
-    .sort((a, b) => b.returnPct - a.returnPct);
+    .sort((a, b) => {
+      if (b.returnPct !== a.returnPct) return b.returnPct - a.returnPct;
+      if (b.totalValue !== a.totalValue) return b.totalValue - a.totalValue;
+      return a.userId < b.userId ? -1 : 1;
+    });
 
     const top10 = allLeaderboard.slice(0, 10);
     let userPosition = null;
     const { userId } = req.query;
     if (userId) {
-      const idx = allLeaderboard.findIndex(p => p.userId === String(userId));
-      if (idx >= 10) {
-        const u = allLeaderboard[idx];
-        userPosition = { rank: idx + 1, returnPct: u.returnPct, totalValue: u.totalValue, name: u.name, username: u.username, avatar: u.avatar, customAvatar: u.customAvatar, activeCosmetics: u.activeCosmetics };
+      const allEntries = allLeaderboard.map((e, idx) => ({ ...e, rank: idx + 1 }));
+      const outsideTop10 = allEntries.filter(e => e.userId === String(userId) && e.rank > 10);
+      if (outsideTop10.length > 0) {
+        const best = outsideTop10.reduce((a, b) => a.rank < b.rank ? a : b);
+        userPosition = { rank: best.rank, returnPct: best.returnPct, totalValue: best.totalValue, name: best.name, username: best.username, avatar: best.avatar, customAvatar: best.customAvatar, activeCosmetics: best.activeCosmetics, hasVerifiedBadge: best.hasVerifiedBadge, slot: best.slot };
       }
     }
     res.json({ leaderboard: top10, userPosition });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal_error' });
   }
 });
-async function getPortfolioValue(userId) {
+async function getPortfolioValue(userId, slot = 0) {
   try {
-    const portfolio = await Portfolio.findOne({ userId });
+    const portfolio = await Portfolio.findOne(portfolioFilter(userId, slot));
     if (!portfolio) return 50000;
     const priceMap = {};
+    // Use getPrice() so we always get a live price even if Redis is cold (e.g. Monday 00:05 UTC cron).
+    // Reading only from Redis caused the weekly snapshot to save cost-basis ($50k) instead of
+    // market value when the price cache had expired overnight.
     await Promise.all(PORTFOLIO_ASSETS.map(async a => {
       try {
-        const c = await redis.get(`price_v2:${a.symbol}`);
-        if (c) { const p = typeof c === 'string' ? JSON.parse(c) : c; priceMap[p.symbol] = p.price; }
+        const p = await getPrice(a);
+        if (p) priceMap[p.symbol] = p.price;
       } catch {}
     }));
+    // Include cash reserved for pending buy orders — without this, an all-in
+    // user with no positions yet shows near-zero equity and corrupts the snapshot baseline.
+    const PortfolioOrder = mongoose.model('PortfolioOrder');
+    const orderSlotFilter = slot === 1 ? { slot: 1 } : { slot: { $in: [0, null] } };
+    const pendingBuys = await PortfolioOrder.find({ userId, ...orderSlotFilter, type: 'buy', status: { $in: ['pending', 'processing'] } });
+    const reservedCash = pendingBuys.reduce((s, o) => s + (o.reservedCash || 0), 0);
     const invested = portfolio.positions.reduce((s, pos) => s + (priceMap[pos.symbol] || pos.avgPrice) * pos.qty, 0);
-    return portfolio.cash + invested;
+    return portfolio.cash + reservedCash + invested;
   } catch { return 50000; }
 }
-
 
 // ── Portfolio duels ───────────────────────────────────────────────
 app.post('/portfolio/duel/challenge', async (req, res) => {
@@ -3792,7 +4359,7 @@ app.post('/portfolio/duel/challenge', async (req, res) => {
     if (existing) return res.status(400).json({ error: 'Already have an active duel' });
     const duel = await PortfolioDuel.create({ challenger: decoded.id, opponent: target._id });
     res.json({ ok: true, duelId: duel._id });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: 'internal_error' }); }
 });
 
 app.post('/portfolio/duel/accept/:duelId', async (req, res) => {
@@ -3809,7 +4376,7 @@ app.post('/portfolio/duel/accept/:duelId', async (req, res) => {
     duel.challengerStartValue = cVal; duel.opponentStartValue = oVal;
     await duel.save();
     res.json({ ok: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: 'internal_error' }); }
 });
 
 app.post('/portfolio/duel/reject/:duelId', async (req, res) => {
@@ -3818,7 +4385,7 @@ app.post('/portfolio/duel/reject/:duelId', async (req, res) => {
   try {
     await PortfolioDuel.findOneAndDelete({ _id: req.params.duelId, opponent: decoded.id, status: 'pending' });
     res.json({ ok: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: 'internal_error' }); }
 });
 
 app.get('/portfolio/duel/pending', async (req, res) => {
@@ -3832,7 +4399,7 @@ app.get('/portfolio/duel/pending', async (req, res) => {
       challenger: { name: d.challenger.name, username: d.challenger.username, avatar: d.challenger.avatar, customAvatar: d.challenger.customAvatar || null },
       createdAt:  d.createdAt,
     })));
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: 'internal_error' }); }
 });
 
 app.get('/portfolio/duel/active', async (req, res) => {
@@ -3854,7 +4421,7 @@ app.get('/portfolio/duel/active', async (req, res) => {
       opponent:   { name: duel.opponent.name,   username: duel.opponent.username,   avatar: duel.opponent.avatar,   customAvatar: duel.opponent.customAvatar,   returnPct: ((oVal - duel.opponentStartValue)   / duel.opponentStartValue)   * 100, currentValue: oVal },
       startDate: duel.startDate, endDate: duel.endDate, daysLeft,
     });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: 'internal_error' }); }
 });
 
 // ── Auth helpers ──────────────────────────────────────────────────
@@ -3898,7 +4465,7 @@ app.post('/friends/request', async (req, res) => {
     if (existing) return res.status(400).json({ error: existing.status === 'accepted' ? 'Already friends' : 'Request already sent' });
     await Friendship.create({ requester: decoded.id, recipient: recipient._id });
     res.json({ ok: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: 'internal_error' }); }
 });
 
 app.post('/friends/accept', async (req, res) => {
@@ -3911,7 +4478,7 @@ app.post('/friends/accept', async (req, res) => {
     friendship.status = 'accepted';
     await friendship.save();
     res.json({ ok: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: 'internal_error' }); }
 });
 
 app.post('/friends/reject', async (req, res) => {
@@ -3923,7 +4490,7 @@ app.post('/friends/reject', async (req, res) => {
     if (!friendship) return res.status(404).json({ error: 'Request not found' });
     await friendship.deleteOne();
     res.json({ ok: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: 'internal_error' }); }
 });
 
 app.get('/friends/list', async (req, res) => {
@@ -3941,7 +4508,7 @@ app.get('/friends/list', async (req, res) => {
       return { friendshipId: f._id, id: friend._id, name: friend.name, avatar: friend.avatar, customAvatar: friend.customAvatar || null, activeCosmetics: friend.activeCosmetics || {}, username: friend.username, xp: friend.xp, badges: friend.badges, hasVerifiedBadge: friend.battlePassMechanics?.includes('mechanic_verified_badge') || false };
     });
     res.json(friends);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: 'internal_error' }); }
 });
 
 app.get('/friends/pending', async (req, res) => {
@@ -3964,7 +4531,28 @@ app.get('/friends/pending', async (req, res) => {
       hasVerifiedBadge: f.requester.battlePassMechanics?.includes('mechanic_verified_badge') || false,
     }));
     res.json(requests);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: 'internal_error' }); }
+});
+
+app.delete('/friends/:userId', writeLimiter, async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'No token' });
+  try {
+    const { userId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(userId)) return res.status(400).json({ error: 'Invalid user id' });
+    if (decoded.id === userId) return res.status(400).json({ error: 'Cannot remove yourself' });
+    const myId    = new mongoose.Types.ObjectId(decoded.id);
+    const theirId = new mongoose.Types.ObjectId(userId);
+    await Friendship.deleteOne({
+      $or: [{ requester: myId, recipient: theirId }, { requester: theirId, recipient: myId }],
+      status: 'accepted',
+    });
+    await PortfolioDuel.deleteMany({
+      $or: [{ challenger: myId, opponent: theirId }, { challenger: theirId, opponent: myId }],
+      status: 'pending',
+    });
+    res.json({ ok: true });
+  } catch (err) { res.status(500).json({ error: 'internal_error' }); }
 });
 
 app.get('/friends/profile/:username', async (req, res) => {
@@ -4006,7 +4594,7 @@ app.get('/friends/profile/:username', async (req, res) => {
       friendshipId: friendship?._id || null,
       isRequester: friendship ? friendship.requester.equals(decoded.id) : null,
     });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: 'internal_error' }); }
 });
 
 app.get('/u/:username', async (req, res) => {
@@ -4016,8 +4604,9 @@ app.get('/u/:username', async (req, res) => {
     if (!target) return res.status(404).json({ error: 'User not found' });
 
     let portfolioReturn = null, totalValue = null, enrichedPositions = null;
+    let portfolio2Return = null, totalValue2 = null, enrichedPositions2 = null;
     try {
-      const portfolio = await Portfolio.findOne({ userId: target._id });
+      const portfolio = await Portfolio.findOne(portfolioFilter(target._id, 0));
       if (portfolio) {
         const priceMap = {};
         await Promise.all(PORTFOLIO_ASSETS.map(async a => {
@@ -4036,6 +4625,24 @@ app.get('/u/:username', async (req, res) => {
           const pnl          = currentValue - costBasis;
           return { symbol: pos.symbol, name: pos.name, type: pos.type, qty: pos.qty, avgPrice: pos.avgPrice, currentPrice, currentValue, pnl, pnlPct: costBasis > 0 ? (pnl / costBasis) * 100 : 0 };
         });
+
+        if (target.battlePassMechanics?.includes('mechanic_portfolio_double')) {
+          try {
+            const portfolio2 = await Portfolio.findOne({ userId: target._id, slot: 1 });
+            if (portfolio2) {
+              const invested2 = portfolio2.positions.reduce((s, pos) => s + (priceMap[pos.symbol] || pos.avgPrice) * pos.qty, 0);
+              totalValue2 = portfolio2.cash + invested2;
+              portfolio2Return = ((totalValue2 - 50000) / 50000) * 100;
+              enrichedPositions2 = portfolio2.positions.map(pos => {
+                const currentPrice = priceMap[pos.symbol] || pos.avgPrice;
+                const currentValue = currentPrice * pos.qty;
+                const costBasis = pos.avgPrice * pos.qty;
+                const pnl = currentValue - costBasis;
+                return { symbol: pos.symbol, name: pos.name, type: pos.type, qty: pos.qty, avgPrice: pos.avgPrice, currentPrice, currentValue, pnl, pnlPct: costBasis > 0 ? (pnl / costBasis) * 100 : 0 };
+              });
+            }
+          } catch {}
+        }
       }
     } catch {}
 
@@ -4056,23 +4663,28 @@ app.get('/u/:username', async (req, res) => {
     }
 
     res.json({
-      username:        target.username,
-      name:            target.name,
-      avatar:          target.avatar,
-      customAvatar:    target.customAvatar || null,
-      activeCosmetics: target.activeCosmetics || {},
-      xp:              target.xp,
-      badges:          target.badges,
-      dailyStreak:     target.dailyStreak,
+      username:         target.username,
+      googleId:         target.googleId,
+      name:             target.name,
+      avatar:           target.avatar,
+      customAvatar:     target.customAvatar || null,
+      activeCosmetics:  target.activeCosmetics || {},
+      hasVerifiedBadge: target.battlePassMechanics?.includes('mechanic_verified_badge') || false,
+      xp:               target.xp,
+      badges:           target.badges,
+      dailyStreak:      target.dailyStreak,
       portfolioReturn,
       totalValue,
-      positions:       requesterMechanics.includes('mechanic_portfolio_view') ? enrichedPositions : null,
+      positions:        requesterMechanics.includes('mechanic_portfolio_view') ? enrichedPositions : null,
+      portfolio2Return,
+      totalValue2,
+      positions2:      requesterMechanics.includes('mechanic_portfolio_view') ? enrichedPositions2 : null,
       joinedAt:        target.createdAt,
       friendshipStatus,
       isPro:           target.isPro || false,
       hasVerifiedBadge: target.battlePassMechanics?.includes('mechanic_verified_badge') || false,
     });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: 'internal_error' }); }
 });
 
 app.use('/academy', require('./routes/academy'));
@@ -4163,7 +4775,7 @@ app.get('/api/portfolio/notes', async (req, res) => {
     if (!user?.isPro) return res.status(403).json({ error: 'Pro required' });
     const notes = await PositionNote.find({ userId: decoded.id });
     res.json(notes);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: 'internal_error' }); }
 });
 
 app.post('/api/portfolio/note', async (req, res) => {
@@ -4180,7 +4792,7 @@ app.post('/api/portfolio/note', async (req, res) => {
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
     res.json({ ok: true, note: saved });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: 'internal_error' }); }
 });
 
 app.delete('/api/portfolio/note/:ticker', async (req, res) => {
@@ -4189,7 +4801,7 @@ app.delete('/api/portfolio/note/:ticker', async (req, res) => {
   try {
     await PositionNote.deleteOne({ userId: decoded.id, ticker: req.params.ticker });
     res.json({ ok: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: 'internal_error' }); }
 });
 
 // ── Portfolio compare vs #1 (Pro) ─────────────────────────────────
@@ -4252,21 +4864,17 @@ app.get('/api/portfolio/compare', async (req, res) => {
         return { symbol: s, name: pos?.name || s, type: pos?.type, myReturn: calcReturn(s, myPortfolio.positions) };
       }),
     });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: 'internal_error' }); }
 });
 
 app.get('/', (req, res) => res.json({ status: 'ok' }));
 
-// ── Trading Mode — price adapter + routes ────────────────────────
-const { priceRouter }       = require('./trading/priceProvider');
-const { StubPriceProvider } = require('./trading/stubProvider');
+// ── Trading Mode — price adapter + routes (Fase 1-2) ─────────────
+const { priceRouter }         = require('./trading/priceProvider');
+const { StubPriceProvider }   = require('./trading/stubProvider');
 const tradingStub = new StubPriceProvider(redis);
 priceRouter.register('stub', tradingStub);
-console.log('[trading] StubPriceProvider registered');
 
-// Feature flag: USE_UPSCALE_PRICES=true activa precios reales de Upscale.
-// Por defecto es false — sin cambio de comportamiento, todo en StubPriceProvider.
-// No activar hasta tener UPSCALE_API_KEY y permiso escrito de Upscale.
 if (process.env.USE_UPSCALE_PRICES === 'true') {
   const apiKey = process.env.UPSCALE_API_KEY;
   if (!apiKey) {
@@ -4389,9 +4997,22 @@ cron.schedule('5 0 * * *', async () => {
   }
 });
 
+// ── 404 JSON for unknown routes ───────────────────────────────────
+app.use((req, res) => {
+  res.status(404).json({ error: 'not_found' });
+});
+
+// ── Global error middleware ───────────────────────────────────────
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  console.error('[unhandled error]', err.message);
+  res.status(500).json({ error: 'internal_error' });
+});
+
 // ── Start ─────────────────────────────────────────────────────────
 httpServer.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`PUSH_ENABLED=${PUSH_ENABLED}, RAILWAY_ENVIRONMENT_NAME=${process.env.RAILWAY_ENVIRONMENT_NAME || '(unset)'}, pid=${process.pid}`);
   // Remove scores that exceed the maximum possible tournament score
   const maxScore = TOTAL_ROUNDS * 100;
   Score.deleteMany({ weekId: getWeekId(), score: { $gt: maxScore } })

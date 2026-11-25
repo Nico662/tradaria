@@ -211,37 +211,25 @@ export function AuthProvider({ children }) {
         const merged = [...new Set([...data.badges, ...localBadges])];
         localStorage.setItem('tradaria_badges', JSON.stringify(merged));
 
-        // Sincronizar streak
-        const serverStreak     = data.dailyStreak || 0;
-        const serverLastPlayed = data.lastPlayed || null;
-        const localStreak      = parseInt(localStorage.getItem('tradaria_daily_streak') || '0');
-        const bestStreak       = serverStreak > 0 ? serverStreak : localStreak;
-        localStorage.setItem('tradaria_daily_streak', String(bestStreak));
-
-        // Normalizar y unificar fechas
-        const localLast1 = normalizeDateStr(localStorage.getItem('tradaria_daily_last'));
-        const localLast2 = normalizeDateStr(localStorage.getItem('tradaria_last_played'));
-        const bestLast   = normalizeDateStr(serverLastPlayed) || localLast1 || localLast2 || null;
-        if (bestLast) {
-          localStorage.setItem('tradaria_daily_last', bestLast);
-          localStorage.setItem('tradaria_last_played', bestLast);
-          const todayISO = new Date().toISOString().split('T')[0];
-          if (bestLast === todayISO) {
-            localStorage.setItem('tradaria_daily_played', todayISO);
+        // Streak: server is the source of truth — always overwrite localStorage
+        localStorage.setItem('tradaria_daily_streak', String(data.dailyStreak || 0));
+        if (data.lastPlayed) {
+          localStorage.setItem('tradaria_daily_last', data.lastPlayed);
+          localStorage.setItem('tradaria_last_played', data.lastPlayed);
+          if (data.lastPlayed === new Date().toISOString().split('T')[0]) {
+            localStorage.setItem('tradaria_daily_played', data.lastPlayed);
           }
         }
 
-        // Sincronizar con servidor si hay diferencias
-        const needsSync = merged.length > data.badges.length || bestStreak > serverStreak;
+        // Sync to server only when local badges exceed server badges
+        const needsSync = merged.length > data.badges.length;
         if (needsSync) {
           await fetch(`${SERVER}/auth/sync`, {
             method: 'POST',
             headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              xp:          Math.max(data.xp, localXP),
-              badges:      merged,
-              dailyStreak: bestStreak,
-              lastPlayed:  bestLast,
+              xp:     Math.max(data.xp, localXP),
+              badges: merged,
             }),
           });
         }
@@ -256,12 +244,10 @@ export function AuthProvider({ children }) {
     const token = localStorage.getItem('tradaria_token');
     if (!token) return;
     try {
-      const dailyStreak = parseInt(localStorage.getItem('tradaria_daily_streak') || '0');
-      const lastPlayed  = localStorage.getItem('tradaria_daily_last') || null;
       await fetch(`${SERVER}/auth/sync`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ xp, badges, dailyStreak, lastPlayed }),
+        body: JSON.stringify({ xp, badges }),
       });
     } catch (e) {}
   }
@@ -271,19 +257,13 @@ export function AuthProvider({ children }) {
   }
 
   function loginWithApple(identityToken, fullName) {
-    console.log('loginWithApple START, token length:', identityToken?.length);
-    console.log('fullName:', JSON.stringify(fullName));
     return fetch(`${SERVER}/auth/apple`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ identityToken, fullName }),
     })
-      .then(r => {
-        console.log('auth/apple status:', r.status, r.ok);
-        return r.json();
-      })
+      .then(r => r.json())
       .then(data => {
-        console.log('auth/apple response:', JSON.stringify(data));
         if (!data.token) throw new Error('No token in response');
         localStorage.setItem('tradaria_token', data.token);
         fetchUser(data.token);
@@ -304,6 +284,13 @@ export function AuthProvider({ children }) {
     }
     localStorage.removeItem('tradaria_token');
     localStorage.removeItem('tradaria_cosmetics');
+    // Clear user-specific cached data so the next login starts with a clean slate
+    localStorage.removeItem('tradaria_xp');
+    localStorage.removeItem('tradaria_badges');
+    localStorage.removeItem('tradaria_daily_streak');
+    localStorage.removeItem('tradaria_daily_last');
+    localStorage.removeItem('tradaria_last_played');
+    localStorage.removeItem('tradaria_daily_played');
     setUser(null);
     setPurchases([]);
     setActiveCosmetics({});
@@ -313,10 +300,29 @@ export function AuthProvider({ children }) {
     setUser(prev => prev ? { ...prev, ...updates } : prev);
   }
 
+  function mergeUser(updates) {
+    if (updates.badges) {
+      const local = JSON.parse(localStorage.getItem('tradaria_badges') || '[]');
+      const merged = [...new Set([...updates.badges, ...local])];
+      localStorage.setItem('tradaria_badges', JSON.stringify(merged));
+    }
+    if (updates.purchases !== undefined) setPurchases(updates.purchases);
+    if (updates.activeCosmetics && Object.keys(updates.activeCosmetics).length > 0) {
+      setActiveCosmetics(updates.activeCosmetics);
+      localStorage.setItem('tradaria_cosmetics', JSON.stringify(updates.activeCosmetics));
+    }
+    setUser(prev => prev ? { ...prev, ...updates } : prev);
+  }
+
+  async function refreshUser() {
+    const token = localStorage.getItem('tradaria_token');
+    if (token) await fetchUser(token);
+  }
+
   const isPro = user?.isPro || false;
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, loginWithApple, logout, syncProgress, purchases, refreshPurchases, activeCosmetics, equipCosmetic, unequipCosmetic, updateUser, checkLevelUp, isPro }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithApple, logout, syncProgress, purchases, refreshPurchases, refreshUser, activeCosmetics, equipCosmetic, unequipCosmetic, updateUser, mergeUser, checkLevelUp, isPro }}>
       {children}
       {levelUpData && <LevelUpOverlay {...levelUpData} onClose={() => setLevelUpData(null)} />}
     </AuthContext.Provider>

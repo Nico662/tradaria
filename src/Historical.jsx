@@ -8,11 +8,11 @@ import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
 import { Scroll } from 'lucide-react';
 import { useAuth } from './AuthContext';
+import { useBattlePass } from './BattlePassContext.jsx';
 import EffectOverlay from './EffectOverlay.jsx';
 import { incrementMission, recordModePlayed, recordWeeklyModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
-import { useBattlePass } from './BattlePassContext.jsx';
-import BattlePassNotification from './BattlePassNotification.jsx';
+import { ScreenHeader, TextTabs } from './components/ui';
 
 function EventIcon({ event, size = 32 }) {
   return (
@@ -38,9 +38,8 @@ function EventIcon({ event, size = 32 }) {
 
 export default function Historical({ onBack }) {
   const { t, lang, setLang } = useLang();
-  const { activeCosmetics }  = useAuth();
+  const { activeCosmetics, user } = useAuth();
   const { refreshBattlePass } = useBattlePass();
-  const [bpLevelUp, setBpLevelUp] = useState(null);
   const [activeEffect, setActiveEffect] = useState(false);
   function triggerEffect() { setActiveEffect(true); clearTimeout(effectTimerRef.current); effectTimerRef.current = setTimeout(() => setActiveEffect(false), 1500); }
   const [phase, setPhase]         = useState('select');
@@ -57,8 +56,21 @@ export default function Historical({ onBack }) {
   const floatingXPKeyRef = useRef(0);
   const effectTimerRef   = useRef(null);
   const chartRef = useRef(null);
+  const sessionTokenRef  = useRef(null);
 
   useEffect(() => () => clearTimeout(effectTimerRef.current), []);
+
+  useEffect(() => {
+    const tok = localStorage.getItem('tradaria_token');
+    if (!tok) return;
+    fetch(`${SERVER}/game/start`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode: 'historical' }),
+    }).then(r => r.json()).then(d => {
+      if (d.sessionToken) sessionTokenRef.current = d.sessionToken;
+    }).catch(() => {});
+  }, []);
 
   function tryUnlockHistoricalBadge(id) {
     const unlocked = unlockBadge(id);
@@ -118,23 +130,40 @@ export default function Historical({ onBack }) {
     }
     if (completed.length >= 10) tryUnlockHistoricalBadge('historian');
     if (completed.length >= 50) tryUnlockHistoricalBadge('time_traveler');
+
+    if (user) {
+      const token = localStorage.getItem('tradaria_token');
+      if (token) {
+        fetch(`${SERVER}/stats/game`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({
+            mode: 'historical', rounds: 1, eventId: event.id,
+            score: win ? 1 : 0, correct: win ? 1 : 0, wrong: win ? 0 : 1,
+            accuracy: win ? 100 : 0, streak: 0,
+            sessionToken: sessionTokenRef.current,
+          }),
+        }).then(r => r.json()).then(data => {
+          if (data?.bpProgress) refreshBattlePass({ force: true });
+          return data;
+        }).then(() => {
+          // Pre-fetch session token for the next historical event
+          fetch(`${SERVER}/game/start`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mode: 'historical' }),
+          }).then(r => r.json()).then(d => {
+            if (d.sessionToken) sessionTokenRef.current = d.sessionToken;
+          }).catch(() => {});
+        }).catch(() => {});
+      }
+    }
+
     const mr = incrementMission('play_historical');
     if (mr.completed) pushMission({ xpEarned: mr.xpEarned, title: mr.mission.title });
     const modeR = recordModePlayed('historical');
     if (modeR.completed) pushMission({ xpEarned: modeR.xpEarned, title: modeR.mission.title });
     recordWeeklyModePlayed('historical');
-
-    const token = localStorage.getItem('tradaria_token');
-    if (token) {
-      fetch(`${SERVER}/stats/game`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode: 'historical', eventId: event.id, correct: win ? 1 : 0, wrong: win ? 0 : 1, score: win ? 15 : 5, accuracy: win ? 100 : 0, streak: 0, rounds: 1 }),
-      }).then(r => r.json()).then(data => {
-        if (data?.bpProgress?.awardedMissions?.length > 0) refreshBattlePass();
-        if (data?.bpProgress?.leveledUp) setBpLevelUp(data.bpProgress.newLevel);
-      }).catch(() => {});
-    }
   };
 
   const shareResult = () => {
@@ -148,54 +177,50 @@ export default function Historical({ onBack }) {
 
   const resultColor = result?.win ? 'var(--green)' : 'var(--color-down)';
 
+  const completedEvents = JSON.parse(localStorage.getItem('tradaria_historical_completed') || '[]');
+
   // ── Select ───────────────────────────────────────────────────────
   if (phase === 'select') return (
     <div id="gtm-root" style={{ position: 'relative' }}>
       <div className="scanlines" />
       <div style={{ padding: '12px 20px 32px', position: 'relative', zIndex: 2 }}>
 
-        <div className="header" style={{ display: 'grid', gridTemplateColumns: '80px 1fr 80px', alignItems: 'center', padding: '0 0 12px', borderBottom: '1px solid var(--bd)', marginBottom: '24px', background: 'none' }}>
-          <button onClick={onBack}
-            style={{ background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-          >{t.historical.back}</button>
-
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--color-neutral)', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(232,184,75,0.2)' }}>
-              <Scroll size={18} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} /> {t.historical.title}
-            </div>
-            <div style={{ fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: 'var(--font-body)' }}>
-              {t.historical.mode}
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <div className="lang-selector">
-              {['en', 'es', 'de'].map(l => (
-                <button key={l} className={`lang-btn${lang === l ? ' active' : ''}`} onClick={() => setLang(l)}>
-                  {l.toUpperCase()}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+        <ScreenHeader
+          title={t.historical.title}
+          subtitle={t.historical.mode}
+          onBack={onBack}
+          action={
+            <TextTabs
+              tabs={[{ value: 'en', label: 'EN' }, { value: 'es', label: 'ES' }, { value: 'de', label: 'DE' }]}
+              active={lang}
+              onChange={l => setLang(l)}
+            />
+          }
+        />
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {HISTORICAL_EVENTS.map(ev => (
-            <button key={ev.id} onClick={() => loadEvent(ev)}
-              style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '12px 16px', textAlign: 'left', cursor: 'pointer', transition: 'border-color 0.15s' }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--green)'}
-              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--bd)'}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <EventIcon event={ev} size={32} />
-                <div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '12px', color: 'var(--t1)' }}>{ev.title}</div>
-                  <div style={{ fontSize: '12px', color: 'var(--t5)', marginTop: '2px' }}>{ev.name} · {ev.from}</div>
+          {HISTORICAL_EVENTS.map(ev => {
+            const done = completedEvents.includes(ev.id);
+            return (
+              <button key={ev.id} onClick={() => loadEvent(ev)}
+                style={{ background: 'var(--bg-card)', border: `1px solid ${done ? 'rgba(0,192,135,0.3)' : 'var(--bd)'}`, borderRadius: '8px', padding: '12px 16px', textAlign: 'left', cursor: 'pointer', transition: 'border-color 0.15s', opacity: done ? 0.65 : 1 }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--green)'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = done ? 'rgba(0,192,135,0.3)' : 'var(--bd)'}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <EventIcon event={ev} size={32} />
+                  <div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '12px', color: 'var(--t1)' }}>{ev.title}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--t5)', marginTop: '2px' }}>{ev.name} · {ev.from}</div>
+                  </div>
+                  {done
+                    ? <span style={{ marginLeft: 'auto', color: 'var(--green)', fontSize: '14px', fontWeight: 800 }}>✓</span>
+                    : <span style={{ marginLeft: 'auto', color: 'var(--green)', fontSize: '14px' }}>→</span>
+                  }
                 </div>
-                <span style={{ marginLeft: 'auto', color: 'var(--green)', fontSize: '14px' }}>→</span>
-              </div>
-            </button>
-          ))}
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -219,22 +244,11 @@ export default function Historical({ onBack }) {
       <div className="scanlines" />
       <div style={{ padding: '0 0 32px', position: 'relative', zIndex: 2 }}>
 
-        <div className="header" style={{ display: 'grid', gridTemplateColumns: '80px 1fr 80px', alignItems: 'center', padding: '12px 20px 10px', marginBottom: '12px' }}>
-          <button onClick={() => { setPhase('select'); setResult(null); setCandles(null); setFuture(null); }}
-            style={{ background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-          >{t.historical.eventsBack}</button>
-
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--color-neutral)', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(232,184,75,0.2)' }}>
-              <Scroll size={18} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} /> {t.historical.title}
-            </div>
-            <div style={{ fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: 'var(--font-body)' }}>
-              {t.historical.mode}
-            </div>
-          </div>
-
-          <div />
-        </div>
+        <ScreenHeader
+          title={t.historical.title}
+          subtitle={t.historical.mode}
+          onBack={() => { setPhase('select'); setResult(null); setCandles(null); setFuture(null); }}
+        />
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', padding: '0 20px' }}>
           {event && <EventIcon event={event} size={32} />}
@@ -330,7 +344,6 @@ export default function Historical({ onBack }) {
 
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
       {missionToast[0] && <MissionNotification data={missionToast[0]} onDone={() => setMissionToast(q => q.slice(1))} />}
-      {bpLevelUp && <BattlePassNotification level={bpLevelUp} onDone={() => setBpLevelUp(null)} />}
       <EffectOverlay effect={activeCosmetics?.effect} active={activeEffect} />
     </div>
   );

@@ -17,7 +17,12 @@ npm run lint      # ESLint
 cd server && npm start   # node index.js
 ```
 
-There are no automated tests in this repo.
+### Tests (`server/tests/`)
+```bash
+cd server && npx jest              # run all tests (403 as of Block E)
+cd server && npx jest --no-coverage tests/<file>.test.js  # single file
+```
+Jest + MongoMemoryServer. Test helpers in `server/tests/helpers/testApp.js`. Run tests before each commit.
 
 ## Architecture
 
@@ -72,6 +77,13 @@ Single-file Express monolith. Key dependencies:
 - **web-push** — push notifications
 
 Required env vars for the server: `JWT_SECRET`, `MONGODB_URI`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `UPSTASH_REDIS_URL`, `UPSTASH_REDIS_TOKEN`, `STRIPE_SECRET_KEY`, `FINNHUB_KEY`, `ADMIN_SECRET`.
+
+### Legal compliance (audit closed Nov 2026)
+- **Paid tournaments**: all 5 endpoints return 410. `GET /tournaments` does not auto-create. Stripe `tournament_entry` webhooks are ignored gracefully (200 + warn). Audit script: `server/scripts/listPaidTournaments.js`.
+- **Analytics consent**: GA and Vercel Analytics only load after user accepts via cookie banner (`src/CookieBanner.jsx`). Consent stored in `localStorage` as `tradaria_consent`. Module: `src/analytics.js`. Settings has a "Cookies / Privacy" reset link.
+- **Age confirmation**: `ageConfirmedAt` + `ageConfirmedVersion` on User schema. New users confirm during UsernameModal. Existing users without confirmation see `AgeConfirmModal` on Home. Minimum age: 14.
+- **Account deletion inventory**: `server/scripts/deleteAccountDryRun.js` (read-only, zero writes). Deletion service: `server/services/accountDeletion.js` (not wired to any route — wire it to `DELETE /auth/account` after legal sign-off).
+- **Simulation notice**: `src/SimulationNotice.jsx` shown in Portfolio and TradingMode (with leverage warning on the execution panel).
 
 ### Styling
 - No CSS modules — global `src/index.css` with CSS custom properties + inline styles everywhere.

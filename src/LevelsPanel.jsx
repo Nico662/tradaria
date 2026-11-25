@@ -2,6 +2,7 @@ import { X, Check } from 'lucide-react';
 import { LEVELS, getXP, getLevel, getNextLevel, getProgress } from './levels.js';
 import { LevelIcon } from './components/AppIcons.jsx';
 import { useLang } from './LangContext';
+import { StatusText } from './components/ui';
 
 const TIER_COLOR = {
   rookie:      '#9ca3af',
@@ -213,19 +214,7 @@ export default function LevelsPanel({ onClose }) {
                   }}>
                     {l.name}
                     {isCurrent && (
-                      <span style={{
-                        fontSize: '9px',
-                        fontWeight: 700,
-                        color: c,
-                        background: `${c}20`,
-                        border: `1px solid ${c}50`,
-                        borderRadius: '3px',
-                        padding: '1px 5px',
-                        letterSpacing: '0.1em',
-                        textTransform: 'uppercase',
-                      }}>
-                        {tr.current}
-                      </span>
+                      <StatusText style={{ color: c }}>{tr.current}</StatusText>
                     )}
                   </div>
                   <div style={{

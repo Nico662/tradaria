@@ -11,7 +11,7 @@ import {
   TrendingUp, Rocket, TrendingDown, Activity,
   UserPlus, Users, Trophy, Dumbbell,
   Ghost, Moon, Heart, Banknote, RotateCcw,
-  Sword,
+  Sword, Star,
 } from 'lucide-react';
 
 const BADGE_ICONS = {
@@ -62,6 +62,11 @@ const BADGE_ICONS = {
   streak_100:         Crown,
   arena_streak_3:     Swords,
   arena_streak_5:     Sword,
+  bp_s1_early_trader: TrendingUp,
+  bp_s1_elite:        Swords,
+  bp_s1_season1_pro:  Crown,
+  bp_s1_season1:      Medal,
+  bp_s1_champion:     Trophy,
   ghost:              Ghost,
   rekt:               Skull,
   secret_night:       Moon,
@@ -76,6 +81,10 @@ export const RARITY_COLORS = {
   rare:   '#5dc9f0',
   epic:   '#a855f7',
   legend: '#e0a955',
+};
+
+export const BADGE_COLOR_OVERRIDES = {
+  bp_s1_elite: '#e05555',
 };
 
 export default function BadgeIcon({ id, size = 24 }) {

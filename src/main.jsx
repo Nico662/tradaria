@@ -7,11 +7,23 @@ import { LangProvider } from './LangContext.jsx';
 import { AuthProvider } from './AuthContext.jsx';
 import { BattlePassProvider } from './BattlePassContext.jsx';
 import MaintenanceBanner from './MaintenanceBanner.jsx';
+import UpdateBanner from './UpdateBanner.jsx';
+import ErrorBoundary from './components/ErrorBoundary.jsx';
+import CookieBanner from './CookieBanner.jsx';
 import { SERVER } from './config.js';
-import { inject } from '@vercel/analytics';
-inject();
+import { loadAnalytics } from './analytics.js';
+loadAnalytics();
+
+window.addEventListener('unhandledrejection', (e) => {
+  e.preventDefault();
+  console.error('[unhandledrejection suppressed]', e.reason);
+});
 
 if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    window.dispatchEvent(new CustomEvent('swUpdated'));
+  });
+
   window.addEventListener('load', async () => {
     try {
       // Migrar token de Tradaria a Tradiko
@@ -21,10 +33,14 @@ if ('serviceWorker' in navigator) {
       }
 
       await navigator.serviceWorker.register('/sw.js');
-      console.log('SW registered');
 
       // Forzar re-suscripción push para usuarios con suscripciones antiguas
       const reg = await navigator.serviceWorker.ready;
+
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') reg.update();
+      });
+
       const existingSub = await reg.pushManager.getSubscription();
       if (existingSub && existingSub.endpoint.includes('tradara')) {
         await existingSub.unsubscribe();
@@ -48,20 +64,22 @@ if ('serviceWorker' in navigator) {
         body:    JSON.stringify({ ...sub.toJSON(), lang }),
       });
 
-      console.log('Push subscribed');
-    } catch (err) {
-      console.log('SW error:', err);
+    } catch (_) {
     }
   });
 }
 
 createRoot(document.getElementById('root')).render(
-  <AuthProvider>
-    <LangProvider>
-      <BattlePassProvider>
-        <MaintenanceBanner />
-        <App />
-      </BattlePassProvider>
-    </LangProvider>
-  </AuthProvider>
+  <ErrorBoundary>
+    <AuthProvider>
+      <LangProvider>
+        <BattlePassProvider>
+          <UpdateBanner />
+          <MaintenanceBanner />
+          <App />
+          <CookieBanner onNavigatePrivacy={() => window.dispatchEvent(new CustomEvent('navigate-privacy'))} />
+        </BattlePassProvider>
+      </LangProvider>
+    </AuthProvider>
+  </ErrorBoundary>
 )

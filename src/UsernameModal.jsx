@@ -2,13 +2,14 @@ import { useState, useRef } from 'react';
 import { SERVER } from './config.js';
 import { useLang } from './LangContext.jsx';
 
-export default function UsernameModal({ onDone }) {
+export default function UsernameModal({ onDone, onNavigate }) {
   const { t } = useLang();
-  const [username, setUsername]   = useState('');
-  const [status,   setStatus]     = useState('');
-  const [checking, setChecking]   = useState(false);
-  const [available, setAvailable] = useState(null);
-  const [saving,   setSaving]     = useState(false);
+  const [username, setUsername]       = useState('');
+  const [status,   setStatus]         = useState('');
+  const [checking, setChecking]       = useState(false);
+  const [available, setAvailable]     = useState(null);
+  const [saving,   setSaving]         = useState(false);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
   const debounceRef = useRef(null);
 
   function checkUsername(val) {
@@ -32,16 +33,23 @@ export default function UsernameModal({ onDone }) {
   }
 
   async function save() {
-    if (!available || saving) return;
+    if (!available || saving || !ageConfirmed) return;
     setSaving(true);
     try {
       const token = localStorage.getItem('tradaria_token');
-      const res   = await fetch(`${SERVER}/auth/username/set`, {
-        method:  'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ username }),
-      });
-      const data = await res.json();
+      const [usernameRes, ageRes] = await Promise.all([
+        fetch(`${SERVER}/auth/username/set`, {
+          method:  'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ username }),
+        }),
+        fetch(`${SERVER}/user/confirm-age`, {
+          method:  'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ accept: true }),
+        }),
+      ]);
+      const data = await usernameRes.json();
       if (data.ok) onDone(username);
       else setStatus(data.error);
     } catch {
@@ -49,6 +57,8 @@ export default function UsernameModal({ onDone }) {
     }
     setSaving(false);
   }
+
+  const canSubmit = available && ageConfirmed && !saving;
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
@@ -75,10 +85,38 @@ export default function UsernameModal({ onDone }) {
           </div>
         )}
 
+        {/* Age confirmation checkbox */}
+        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '20px', cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            checked={ageConfirmed}
+            onChange={e => setAgeConfirmed(e.target.checked)}
+            style={{ marginTop: '2px', flexShrink: 0, accentColor: 'var(--green)', width: '16px', height: '16px', cursor: 'pointer' }}
+          />
+          <span style={{ fontSize: '12px', color: 'var(--t4)', lineHeight: 1.6, fontFamily: 'var(--font-body)' }}>
+            {t.username.ageConfirm}{' '}
+            <button
+              type="button"
+              onClick={() => onNavigate && onNavigate('legal')}
+              style={{ background: 'none', border: 'none', padding: 0, color: 'var(--green)', fontSize: '12px', cursor: 'pointer', textDecoration: 'underline', fontFamily: 'var(--font-body)' }}
+            >
+              {t.username.terms}
+            </button>
+            {' '}{t.username.and}{' '}
+            <button
+              type="button"
+              onClick={() => onNavigate && onNavigate('privacy')}
+              style={{ background: 'none', border: 'none', padding: 0, color: 'var(--green)', fontSize: '12px', cursor: 'pointer', textDecoration: 'underline', fontFamily: 'var(--font-body)' }}
+            >
+              {t.username.privacyPolicy}
+            </button>
+          </span>
+        </label>
+
         <button
           onClick={save}
-          disabled={!available || saving}
-          style={{ width: '100%', padding: '14px', background: available ? 'rgba(0,229,160,0.08)' : 'var(--bg-page)', border: `1px solid ${available ? 'var(--green)' : 'var(--bd2)'}`, borderRadius: '6px', color: available ? 'var(--green)' : 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: available ? 'pointer' : 'not-allowed' }}>
+          disabled={!canSubmit}
+          style={{ width: '100%', padding: '14px', background: canSubmit ? 'rgba(0,229,160,0.08)' : 'var(--bg-page)', border: `1px solid ${canSubmit ? 'var(--green)' : 'var(--bd2)'}`, borderRadius: '6px', color: canSubmit ? 'var(--green)' : 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: canSubmit ? 'pointer' : 'not-allowed' }}>
           {saving ? '...' : t.username.confirm}
         </button>
       </div>

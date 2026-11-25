@@ -12,3 +12,13 @@ export function getUsernameColor(activeCosmetics) {
   const id = activeCosmetics?.username_color;
   return (id && USERNAME_COLORS[id]?.hex) || null;
 }
+
+export const TITLE_LABELS = {
+  title_market_watcher: 'Market Watcher',
+  title_chart_reader:   'Chart Reader',
+  title_risk_taker:     'Risk Taker',
+  title_bull_runner:    'Bull Runner',
+  title_bear_hunter:    'Bear Hunter',
+  title_survivor:       'Survivor',
+  title_veteran:        'Veteran',
+};

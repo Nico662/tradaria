@@ -7,16 +7,13 @@ import { LANGS } from './i18n.js';
 import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
 import { useAuth } from './AuthContext';
+import { useBattlePass } from './BattlePassContext.jsx';
 import EffectOverlay from './EffectOverlay.jsx';
-import { Swords, Lock, Clock, Target, Camera, Bot, MessageCircle, Zap } from 'lucide-react';
+import { Swords, Lock, Clock, Target, Camera, Bot, MessageCircle, Zap, Handshake } from 'lucide-react';
 
 import { SERVER } from './config.js';
 import { incrementMission, recordModePlayed, incrementWeeklyMission, recordWeeklyModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
-import BattlePassNotification from './BattlePassNotification.jsx';
-import { useBattlePass } from './BattlePassContext.jsx';
-import { getUsernameColor } from './cosmeticColors';
-import VerifiedBadge from './VerifiedBadge.jsx';
 const SOCKET_URL = SERVER;
 
 const BOT_NAMES = ['AlgoBot', 'TradeAI', 'MarketBot', 'CryptoBot', 'NeuralBot'];
@@ -69,7 +66,6 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
   const { t, lang, setLang } = useLang();
   const { activeCosmetics, user } = useAuth();
   const { refreshBattlePass } = useBattlePass();
-  const [bpLevelUp, setBpLevelUp] = useState(null);
   const [activeEffect, setActiveEffect] = useState(false);
   function triggerEffect() { setActiveEffect(true); clearTimeout(effectTimerRef.current); effectTimerRef.current = setTimeout(() => setActiveEffect(false), 1500); }
   const [screen,    setScreen]   = useState('lobby');
@@ -102,6 +98,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
   const botInnerTimerRef  = useRef(null);
   const effectTimerRef    = useRef(null);
   const isBotGameRef      = useRef(false);
+  const gameIdRef         = useRef(null);
 
   const [isBotGame,        setIsBotGame]        = useState(false);
   const [botName,          setBotName]           = useState('');
@@ -161,11 +158,8 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
     fetch(`${SERVER}/stats/game`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode: 'arena', score: myScore, correct: won, wrong: 1 - won, accuracy: won * 100, streak: 0, rounds: total }),
-    }).then(r => r.json()).then(data => {
-      if (data?.bpProgress?.awardedMissions?.length > 0) refreshBattlePass();
-      if (data?.bpProgress?.leveledUp) setBpLevelUp(data.bpProgress.newLevel);
-    }).catch(() => {});
+      body: JSON.stringify({ mode: 'arena', score: myScore, correct: won, wrong: 1 - won, accuracy: won * 100, streak: 0, rounds: total, gameId: gameIdRef.current }),
+    }).then(r => r.json()).then(data => { if (data?.bpProgress) refreshBattlePass({ force: true }); }).catch(() => {});
     fetch(`${SERVER}/stats/personal`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json()).then(setPersonalStats).catch(() => {});
   }, [screen]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -175,7 +169,11 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
     if (!asyncDuelCode) return;
     (async () => {
       try {
-        const res  = await fetch(`${SERVER}/arena/async/${asyncDuelCode}`);
+        const token = localStorage.getItem('tradaria_token');
+        if (!token) return; // user must be logged in to access a duel
+        const res  = await fetch(`${SERVER}/arena/async/${asyncDuelCode}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         const data = await res.json();
         if (!data.duel) return;
         setAsyncCode(asyncDuelCode);
@@ -212,8 +210,9 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
     setName(playerName);
     setStatus('JOINING_CHALLENGE');
     setScreen('waiting');
+    const token  = localStorage.getItem('tradaria_token');
     const socket = initSocket(playerName);
-    const doJoin = () => socket.emit('challenge:join', { name: playerName, code: challengeRoomCode });
+    const doJoin = () => socket.emit('challenge:join', { name: playerName, code: challengeRoomCode, token });
     socket.on('connect', doJoin);
     if (socket.connected) doJoin();
   }, [challengeRoomCode]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -352,10 +351,11 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
     socketRef.current = socket;
 
     socket.on('connect_error',             () => setStatus(t.arena.connError));
+    socket.on('bp:updated',               () => refreshBattlePass({ force: true }));
     socket.on('matchmaking:waiting',       () => { setScreen('waiting'); setStatus(t.arena.searching); });
     socket.on('room:created',         (d) => { setRoomCode(d.code); setScreen('waiting'); setStatus('waiting_for_friend'); });
     socket.on('room:error',           (d) => setStatus(d.message));
-    socket.on('game:start',           (d) => { setGameData(d); setRound(d.round); setTotal(d.total); setOpponent(d.opponent); setScreen('game'); setPhase('choose'); setResult(null); startTimer(); });
+    socket.on('game:start',           (d) => { gameIdRef.current = crypto.randomUUID(); setGameData(d); setRound(d.round); setTotal(d.total); setOpponent(d.opponent); setScreen('game'); setPhase('choose'); setResult(null); startTimer(); });
     socket.on('game:opponent_chose',       () => setStatus(t.arena.opponentChose));
     socket.on('game:round_result',    (d) => { clearInterval(timerRef.current); setScores(d.scores); setNames(d.names); setResult(d); setPhase('result'); if (d.results?.[socket.id]?.win) triggerEffect(); });
     socket.on('game:next_round',      (d) => { setGameData(d); setRound(d.round); setResult(null); setPhase('choose'); setStatus(''); startTimer(); });
@@ -438,16 +438,18 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
 
   function findRandom() {
     if (!name.trim()) return;
+    const token  = localStorage.getItem('tradaria_token');
     const socket = initSocket(name.trim());
-    socket.on('connect', () => socket.emit('matchmaking:join', { name: name.trim() }));
-    if (socket.connected) socket.emit('matchmaking:join', { name: name.trim() });
+    socket.on('connect', () => socket.emit('matchmaking:join', { name: name.trim(), token }));
+    if (socket.connected) socket.emit('matchmaking:join', { name: name.trim(), token });
   }
 
   function createRoom() {
     if (!name.trim()) return;
+    const token  = localStorage.getItem('tradaria_token');
     const socket = initSocket(name.trim());
-    socket.on('connect', () => socket.emit('room:create', { name: name.trim() }));
-    if (socket.connected) socket.emit('room:create', { name: name.trim() });
+    socket.on('connect', () => socket.emit('room:create', { name: name.trim(), token }));
+    if (socket.connected) socket.emit('room:create', { name: name.trim(), token });
     tryUnlockArenaBadge('recruiter');
   }
 
@@ -488,9 +490,10 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
 
   function joinRoom() {
     if (!name.trim() || !joinCode.trim()) return;
+    const token  = localStorage.getItem('tradaria_token');
     const socket = initSocket(name.trim());
-    socket.on('connect', () => socket.emit('room:join', { name: name.trim(), code: joinCode.trim().toUpperCase() }));
-    if (socket.connected) socket.emit('room:join', { name: name.trim(), code: joinCode.trim().toUpperCase() });
+    socket.on('connect', () => socket.emit('room:join', { name: name.trim(), code: joinCode.trim().toUpperCase(), token }));
+    if (socket.connected) socket.emit('room:join', { name: name.trim(), code: joinCode.trim().toUpperCase(), token });
   }
 
   function sendChat(msg) {
@@ -579,8 +582,11 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
   }
 
   async function openMyDuel(code) {
+    const token = localStorage.getItem('tradaria_token');
     try {
-      const res  = await fetch(`${SERVER}/arena/async/${code}`);
+      const res  = await fetch(`${SERVER}/arena/async/${code}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       const data = await res.json();
       if (!data.duel) return;
       setAsyncCode(code);
@@ -999,7 +1005,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
         ) : status !== 'JOINING_CHALLENGE' ? (
           <>
             <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '32px' }}>
-              {t.arena.playingAs} <span style={{ color: getUsernameColor(activeCosmetics) || 'var(--green)' }}>{name}</span>{user?.battlePassMechanics?.includes('mechanic_verified_badge') && <VerifiedBadge size={11} />}
+              {t.arena.playingAs} <span style={{ color: 'var(--green)' }}>{name}</span>
             </div>
             <div style={{ marginBottom: '24px', padding: '20px', background: 'var(--bg-surface)', border: '1px solid var(--bd2)', borderRadius: '10px' }}>
               <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '12px' }}>{t.arena.noOpponents}</div>
@@ -1046,7 +1052,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-            <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{t.game.round.toLowerCase()} {round}/{total}</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{t.game.round.toLowerCase()} {round}/{total}</div>
             {phase === 'choose' && !isAsyncGame && (
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: timeLeft <= 5 ? 'var(--color-down)' : 'var(--color-neutral)' }}>
                 {timeLeft}s
@@ -1351,7 +1357,6 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
         </div>
         {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
         {missionToast[0] && <MissionNotification data={missionToast[0]} onDone={() => setMissionToast(q => q.slice(1))} />}
-        {bpLevelUp && <BattlePassNotification level={bpLevelUp} onDone={() => setBpLevelUp(null)} />}
       </div>
     );
   }

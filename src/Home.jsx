@@ -1,17 +1,21 @@
 import { useLang } from './LangContext';
 import { useState, useEffect, useRef } from 'react';
-import { ShoppingBag, Users, Settings, Trophy, Briefcase, Zap, User, Camera, Ticket, CandlestickChart } from 'lucide-react';
+import { useBattlePass } from './BattlePassContext.jsx';
+import { ShoppingBag, Users, Settings, Trophy, Briefcase, Zap, User, Camera, Ticket, CandlestickChart, Volume2, VolumeX } from 'lucide-react';
+import { isSoundEnabled, setSoundEnabled } from './sounds.js';
 import { ModeIcon, StreakIcon, ProIcon, LevelIcon } from './components/AppIcons';
 import MissionsCard from './MissionsCard.jsx';
 import WordOfTheDay from './WordOfTheDay.jsx';
+import { FlatRow, StatusText } from './components/ui';
 import { SERVER } from './config.js';
 import { getUnlocked } from './badges.js';
 import { getXP, getLevel } from './levels.js';
 import { useAuth, isIOSApp } from './AuthContext';
 import UsernameModal from './UsernameModal.jsx';
+import AgeConfirmModal from './AgeConfirmModal.jsx';
 import { FRAME_STYLES } from './UserAvatar.jsx';
 import { AvatarSVG } from './components/AvatarSVGs.jsx';
-import FounderBadge, { isFounder } from './FounderBadge.jsx';
+import SpecialBadge, { getSpecialUserByUsername } from './SpecialBadge.jsx';
 import SpainGarland from './SpainGarland.jsx';
 import LevelsPanel from './LevelsPanel.jsx';
 const TOURNAMENT_SUB = {
@@ -20,6 +24,7 @@ const TOURNAMENT_SUB = {
   de: 'Wöchentlich · Globales Ranking · 10 Runden',
 };
 
+const TOP_BUTTON_LABELS = { shop: { en: 'Shop', es: 'Tienda', de: 'Shop' }, friends: { en: 'Friends', es: 'Amigos', de: 'Freunde' }, settings: { en: 'Settings', es: 'Ajustes', de: 'Einstellungen' } };
 const TOP_BUTTONS = [
   { id: 'shop',     Icon: ShoppingBag, hover: 'var(--color-neutral)'  },
   { id: 'friends',  Icon: Users,       hover: 'var(--green)'          },
@@ -28,6 +33,7 @@ const TOP_BUTTONS = [
 
 export default function Home({ onSelect }) {
   const { lang, t } = useLang();
+  const { hasClaimableRewards } = useBattlePass();
   const [dailyStreak] = useState(() => parseInt(localStorage.getItem('tradaria_daily_streak') || '0'));
   const unlockedCount = getUnlocked().length;
   const xp    = getXP();
@@ -39,6 +45,13 @@ export default function Home({ onSelect }) {
   const [academyName, setAcademyName] = useState(() => localStorage.getItem('academy_name') || null);
   const [hasPendingFriends, setHasPendingFriends] = useState(false);
   const [showLevels, setShowLevels] = useState(false);
+  const [soundOn, setSoundOn] = useState(() => isSoundEnabled());
+
+  function toggleSound() {
+    const next = !soundOn;
+    setSoundEnabled(next);
+    setSoundOn(next);
+  }
 
   useEffect(() => {
     if (!user?.academyId || !user?.isAcademyPro || academyName) return;
@@ -126,7 +139,10 @@ export default function Home({ onSelect }) {
   return (
     <div id="gtm-root">
       {showUsernameModal && (
-        <UsernameModal onDone={handleUsernameDone} />
+        <UsernameModal onDone={handleUsernameDone} onNavigate={onSelect} />
+      )}
+      {!showUsernameModal && user && user.ageConfirmedAt === null && (
+        <AgeConfirmModal onDone={() => updateUser({ ageConfirmedAt: new Date().toISOString() })} onNavigate={onSelect} />
       )}
       {showLevels && <LevelsPanel onClose={() => setShowLevels(false)} />}
 
@@ -139,6 +155,7 @@ export default function Home({ onSelect }) {
               <div key={id} style={{ position: 'relative', flexShrink: 0 }}>
                 <button
                   onClick={() => { if (id === 'friends') setHasPendingFriends(false); onSelect(id); }}
+                  aria-label={TOP_BUTTON_LABELS[id]?.[lang] ?? id}
                   style={{ background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'border-color 0.15s' }}
                   onMouseEnter={e => e.currentTarget.style.borderColor = hover}
                   onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-default)'}
@@ -154,6 +171,7 @@ export default function Home({ onSelect }) {
               href="https://discord.gg/NSwHdPKrt8"
               target="_blank"
               rel="noopener noreferrer"
+              aria-label="Discord"
               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', borderRadius: '50%', border: '0.5px solid var(--border-default)', background: 'transparent', color: '#5865F2', textDecoration: 'none', flexShrink: 0, transition: 'border-color 0.15s' }}
               onMouseEnter={e => e.currentTarget.style.borderColor = '#5865F2'}
               onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-default)'}
@@ -162,11 +180,23 @@ export default function Home({ onSelect }) {
                 <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.001.022.015.043.031.054a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/>
               </svg>
             </a>
+            <button
+              onClick={toggleSound}
+              aria-label={soundOn ? t.common.soundOn : t.common.soundOff}
+              style={{ background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'border-color 0.15s', flexShrink: 0 }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--text-muted)'}
+              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-default)'}
+            >
+              {soundOn
+                ? <Volume2 size={16} strokeWidth={1.8} style={{ stroke: 'var(--text-muted)' }} aria-hidden="true" />
+                : <VolumeX  size={16} strokeWidth={1.8} style={{ stroke: 'var(--text-muted)' }} aria-hidden="true" />
+              }
+            </button>
             {user?.role === 'teacher' && (
               <button onClick={() => onSelect('teacher_dashboard')}
-                style={{ background: 'rgba(0,229,160,0.07)', border: '1px solid rgba(0,229,160,0.35)', borderRadius: '6px', padding: '4px 9px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,229,160,0.14)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,229,160,0.07)'}
+                style={{ background: 'transparent', border: 'none', padding: '4px 6px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 600, cursor: 'pointer', letterSpacing: '0.04em', textTransform: 'uppercase', flexShrink: 0 }}
+                onMouseEnter={e => e.currentTarget.style.color = 'var(--text-secondary)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
               >
                 {t.home.academy}
               </button>
@@ -174,17 +204,17 @@ export default function Home({ onSelect }) {
             {user && user.role !== 'teacher' && (
               user.academyId ? (
                 <button onClick={() => onSelect('student_dashboard')}
-                  style={{ background: 'rgba(0,229,160,0.07)', border: '1px solid rgba(0,229,160,0.35)', borderRadius: '6px', padding: '4px 9px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,229,160,0.14)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,229,160,0.07)'}
+                  style={{ background: 'transparent', border: 'none', padding: '4px 6px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 600, cursor: 'pointer', letterSpacing: '0.04em', textTransform: 'uppercase', flexShrink: 0 }}
+                  onMouseEnter={e => e.currentTarget.style.color = 'var(--text-secondary)'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
                 >
                   {t.home.myAcademy}
                 </button>
               ) : (
                 <button onClick={() => onSelect('join_academy')}
-                  style={{ background: 'rgba(0,229,160,0.07)', border: '1px solid rgba(0,229,160,0.35)', borderRadius: '6px', padding: '4px 9px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,229,160,0.14)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,229,160,0.07)'}
+                  style={{ background: 'transparent', border: 'none', padding: '4px 6px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 600, cursor: 'pointer', letterSpacing: '0.04em', textTransform: 'uppercase', flexShrink: 0 }}
+                  onMouseEnter={e => e.currentTarget.style.color = 'var(--text-secondary)'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
                 >
                   {t.home.joinAcademy}
                 </button>
@@ -193,9 +223,7 @@ export default function Home({ onSelect }) {
           </div>
 
           {isPro ? (
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '5px 12px', background: 'var(--green-dim)', border: '0.5px solid var(--border-green)', borderRadius: 'var(--radius-full)', fontSize: '12px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontWeight: 800, letterSpacing: '0.06em' }}>
-              <ProIcon size={12} style={{ stroke: 'var(--green)' }} /> Pro
-            </div>
+            <StatusText color="var(--green)" icon={<ProIcon size={12} style={{ stroke: 'var(--green)' }} />}>Pro</StatusText>
           ) : (
             <button onClick={() => onSelect('pricing')}
               style={{ background: 'var(--gradient-brand)', border: 'none', borderRadius: 'var(--radius-full)', padding: '6px 16px', color: '#0d0d0d', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 900, cursor: 'pointer', letterSpacing: '0.06em' }}>
@@ -230,7 +258,7 @@ export default function Home({ onSelect }) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                   <span style={{ fontSize: '12px', color: 'var(--t3)', fontFamily: 'var(--font-body)', display: 'inline-flex', alignItems: 'center' }}>
                     {user.username ? `@${user.username}` : user.name}
-                    {isFounder(user.username) && <FounderBadge size={12} />}
+                    <SpecialBadge specialUser={getSpecialUserByUsername(user.username)} size={12} />
                   </span>
                   {activeCosmetics.avatar && (
                     <AvatarSVG id={activeCosmetics.avatar} size={22} />
@@ -242,9 +270,7 @@ export default function Home({ onSelect }) {
                   </span>
                 )}
                 {user.academyId && user.isAcademyPro && academyName && (
-                  <span style={{ fontSize: '12px', color: 'var(--green)', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', background: 'rgba(0,229,160,0.08)', border: '1px solid rgba(0,229,160,0.2)', borderRadius: '4px', padding: '2px 6px', alignSelf: 'flex-start' }}>
-                    {t.home.student} — {academyName}
-                  </span>
+                  <StatusText color="var(--green)">{t.home.student} — {academyName}</StatusText>
                 )}
               </div>
               {!user.username && (
@@ -354,17 +380,17 @@ export default function Home({ onSelect }) {
           </div>
           <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px' }}>
             {dailyStreak > 0 && (
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'var(--pink-dim)', border: '0.5px solid var(--border-pink)', borderRadius: 'var(--radius-full)', padding: '4px 10px' }}>
-                <StreakIcon size={12} style={{ stroke: 'var(--pink)' }} />
-                <span style={{ fontSize: '12px', color: 'var(--pink)', fontFamily: 'var(--font-body)', fontWeight: 800, letterSpacing: '0.06em' }}>{dailyStreak} {t.common.days}</span>
-              </div>
+              <StatusText color="var(--pink)" icon={<StreakIcon size={12} style={{ stroke: 'var(--pink)' }} />}>
+                {dailyStreak} {dailyStreak === 1 ? (t.common.day ?? t.common.days) : t.common.days}
+              </StatusText>
             )}
             <button
               onClick={() => setShowLevels(true)}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'var(--green-dim)', border: '0.5px solid var(--border-green)', borderRadius: 'var(--radius-full)', padding: '4px 10px', cursor: 'pointer' }}
+              style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
             >
-              <LevelIcon id={level.id} size={12} style={{ stroke: 'var(--green)' }} />
-              <span style={{ fontSize: '12px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontWeight: 800, letterSpacing: '0.06em' }}>{level.name} · {xp} XP</span>
+              <StatusText color="var(--green)" icon={<LevelIcon id={level.id} size={12} style={{ stroke: 'var(--green)' }} />}>
+                {level.name} · {xp} XP
+              </StatusText>
             </button>
           </div>
         </div>
@@ -375,7 +401,7 @@ export default function Home({ onSelect }) {
         </div>
 
         {/* Mode cards */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
 
           {/* Hero: Copa del Mundo (world cup week only) */}
           {new Date() >= new Date('2026-07-20') && new Date() <= new Date('2026-07-27') && (
@@ -396,82 +422,60 @@ export default function Home({ onSelect }) {
             </button>
           )}
 
-          {/* Trader Pass */}
+          {/* Trader Pass — activo */}
           <button
             onClick={() => onSelect('battle_pass')}
-            style={{ width: '100%', background: 'transparent', border: '1px solid rgba(0,192,135,0.2)', borderRadius: 'var(--radius-lg)', padding: '18px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.03s both' }}
+            style={{ width: '100%', background: 'var(--bg-surface)', border: '1px solid rgba(0,192,135,0.2)', borderRadius: 'var(--radius-lg)', padding: '18px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.03s both' }}
+            onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
+            onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+            onTouchStart={e => e.currentTarget.style.transform = 'scale(0.98)'}
+            onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
           >
-            <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-md)', background: 'rgba(0,192,135,0.08)', border: '1px solid rgba(0,192,135,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Ticket size={22} strokeWidth={2} aria-hidden style={{ stroke: '#00c087' }} /></div>
+            <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-md)', background: 'rgba(0,192,135,0.08)', border: '1px solid rgba(0,192,135,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, position: 'relative' }}>
+              <Ticket size={22} strokeWidth={2} aria-hidden style={{ stroke: '#00c087' }} />
+              {hasClaimableRewards && (
+                <div style={{ position: 'absolute', top: -3, right: -3, width: 10, height: 10, borderRadius: '50%', background: '#e05585', boxShadow: '0 0 0 2px var(--bg-surface), 0 0 0 3.5px #e05585', pointerEvents: 'none' }} />
+              )}
+            </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '15px', color: '#ffffff', marginBottom: '3px' }}>{t.home.traderPass}</div>
               <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: '#00c087' }}>{t.home.traderPassSub}</div>
             </div>
-            <span style={{ color: 'var(--t4)', fontSize: '18px', flexShrink: 0 }}>›</span>
+            <StatusText color="var(--green)">{t.academy?.newBadgeLabel ?? 'NEW'}</StatusText>
           </button>
 
-          {/* Trading Mode */}
-          <button
-            onClick={() => onSelect('trading')}
-            style={{ width: '100%', background: 'transparent', border: '1px solid rgba(224,85,133,0.2)', borderRadius: 'var(--radius-lg)', padding: '18px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.05s both' }}
-          >
-            <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-md)', background: 'rgba(224,85,133,0.08)', border: '1px solid rgba(224,85,133,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><CandlestickChart size={22} strokeWidth={2} aria-hidden style={{ stroke: '#e05585' }} /></div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '15px', color: '#ffffff', marginBottom: '3px' }}>{t.home.tradingMode}</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: '#e05585' }}>{t.home.tradingModeSub}</div>
-            </div>
-            <span style={{ color: 'var(--t4)', fontSize: '18px', flexShrink: 0 }}>›</span>
-          </button>
+          {/* Trading Mode — próximamente */}
+          <FlatRow
+            icon={<div className="flat-row-icon" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(96,165,250,0.3)' }}><CandlestickChart size={20} strokeWidth={2} aria-hidden style={{ stroke: '#6a6a6a' }} /></div>}
+            title={t.home.tradingMode}
+            subtitle={t.home.tradingModeSub}
+            dimmed
+            value={<StatusText>{t.home.comingSoon}</StatusText>}
+          />
 
-          {/* Hero: Portfolio */}
-          <button
+          {/* Portfolio */}
+          <FlatRow
+            icon={<div className="flat-row-icon" style={{ background: 'rgba(55,138,221,0.15)', border: '1px solid rgba(55,138,221,0.3)' }}><Briefcase size={20} strokeWidth={2} aria-hidden style={{ stroke: '#378ADD' }} /></div>}
+            title={t.portfolio?.title ?? 'Portfolio Mode'}
+            subtitle={t.portfolio?.sub ?? '$50,000 virtual · real prices'}
             onClick={() => onSelect('portfolio')}
-            style={{ width: '100%', background: 'var(--gradient-surface)', border: '0.5px solid var(--border-pink)', borderRadius: 'var(--radius-lg)', padding: '18px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', transition: 'transform 0.1s', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.07s both' }}
-            onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
-            onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
-            onTouchStart={e => e.currentTarget.style.transform = 'scale(0.98)'}
-            onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
-          >
-            <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-md)', background: 'rgba(55,138,221,0.15)', border: '1px solid rgba(55,138,221,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Briefcase size={22} strokeWidth={2} aria-hidden style={{ stroke: '#378ADD' }} /></div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '15px', color: 'var(--text-primary)', marginBottom: '3px' }}>{t.portfolio?.title ?? 'Portfolio Mode'}</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>{t.portfolio?.sub ?? '$50,000 virtual · real prices'}</div>
-            </div>
-            <span style={{ color: 'var(--text-primary)', fontSize: '18px', flexShrink: 0 }}>›</span>
-          </button>
+          />
 
-          {/* Hero: Daily */}
-          <button
+          {/* Daily */}
+          <FlatRow
+            icon={<div className="flat-row-icon" style={{ background: 'rgba(232,184,75,0.12)', border: '1px solid rgba(232,184,75,0.3)' }}><Zap size={20} strokeWidth={2} aria-hidden style={{ stroke: '#e8b84b' }} /></div>}
+            title={t.home.mode4}
+            subtitle={t.home.mode4sub}
             onClick={() => onSelect('daily')}
-            style={{ width: '100%', background: 'var(--gradient-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-lg)', padding: '18px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', transition: 'transform 0.1s', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.10s both' }}
-            onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
-            onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
-            onTouchStart={e => e.currentTarget.style.transform = 'scale(0.98)'}
-            onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
-          >
-            <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-md)', background: 'rgba(232,184,75,0.12)', border: '1px solid rgba(232,184,75,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Zap size={22} strokeWidth={2} aria-hidden style={{ stroke: '#e8b84b' }} /></div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '15px', color: 'var(--text-primary)', marginBottom: '3px' }}>{t.home.mode4}</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>{t.home.mode4sub}</div>
-            </div>
-            <span style={{ color: 'var(--text-primary)', fontSize: '18px', flexShrink: 0 }}>›</span>
-          </button>
+          />
 
           {/* Torneos */}
-          <button
+          <FlatRow
+            icon={<div className="flat-row-icon" style={{ background: 'rgba(248,113,113,0.12)', border: '1px solid rgba(248,113,113,0.3)' }}><ModeIcon id="tournament" size={20} style={{ stroke: '#f87171' }} /></div>}
+            title={t.home.mode3}
+            subtitle={TOURNAMENT_SUB[lang]}
             onClick={() => onSelect('tournament')}
-            style={{ width: '100%', background: 'linear-gradient(135deg, rgba(248,113,113,0.10), var(--bg-surface))', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-lg)', padding: '18px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', transition: 'transform 0.1s', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.13s both', boxShadow: '0 0 16px rgba(248,113,113,0.08)' }}
-            onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
-            onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
-            onTouchStart={e => e.currentTarget.style.transform = 'scale(0.98)'}
-            onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
-          >
-            <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-md)', background: 'rgba(248,113,113,0.12)', border: '1px solid rgba(248,113,113,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><ModeIcon id="tournament" size={22} style={{ stroke: '#f87171' }} /></div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '15px', color: 'var(--text-primary)', marginBottom: '3px' }}>{t.home.mode3}</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>{TOURNAMENT_SUB[lang]}</div>
-            </div>
-            <span style={{ color: 'var(--text-primary)', fontSize: '18px', flexShrink: 0 }}>›</span>
-          </button>
+          />
 
         </div>
 

@@ -1,4 +1,5 @@
-import { Lock, Award, Droplet, Tag, Ticket, CircleUser, Palette, Square, Eye, TrendingUp, Clock } from 'lucide-react';
+import { Lock, Award, Droplet, Tag, Ticket, CircleUser, Palette, Square, Eye, TrendingUp, Check } from 'lucide-react';
+import { StatusText } from './ui';
 
 const REWARD_ICONS = {
   xp:             TrendingUp,
@@ -35,70 +36,128 @@ function getSwatchHex(reward) {
 
 // Props:
 //   reward          — reward object from season1Config, or null
-//   mission         — mission object { title, desc, enabled } or null
-//   state           — 'empty' | 'locked' | 'claimable' | 'claimed' | 'pro_locked'
+//   mission         — mission object { title, desc, enabled } or null (ignored for pro_locked)
+//   state           — 'empty' | 'locked' | 'claimable' | 'claimed' | 'pro_locked' | 'mission_pending'
 //   track           — 'free' | 'pro'
 //   isActive        — true when this card is at the user's current level
-//   missionProgress — { current, target } | null — shows progress bar at active level
+//   missionProgress — { current, target } | null — shows progress bar when non-null
 //   isClaiming      — true while the claim request is in-flight
-//   onClaim         — called when the user taps the ribbon
+//   onClaim         — called when the user taps the claim button
 //   t               — translation object (needs t.traderPass)
-//   onGoPricing     — called when free user taps the PRO lock button
+//   onGoPricing     — called when free user taps the pro-locked card
 export default function RewardCard({
-  reward, mission, state, track, isActive, missionProgress,
+  reward, mission, state, track, missionProgress,
   animate, isClaiming, onClaim, t, onGoPricing,
 }) {
   const isProTrack = track === 'pro';
   const swatchHex  = getSwatchHex(reward);
+  const Icon       = reward ? REWARD_ICONS[reward.type] : null;
+  const isXp       = reward?.type === 'xp';
 
   if (state === 'empty') {
+    return <div style={{ flex: 1, width: '100%', minHeight: 68 }} />;
+  }
+
+  // ── Pro-locked: real reward visible, dimmed; static "unlocked with Pro" line ──
+  if (state === 'pro_locked') {
     return (
-      <div style={{
-        flex: 1, width: '100%', minHeight: 68,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
+      <div
+        onClick={onGoPricing ?? undefined}
+        style={{
+          flex: 1, width: '100%', position: 'relative',
+          borderRadius: '12px',
+          background: 'rgba(224,85,133,0.05)',
+          border: '1px solid rgba(224,85,133,0.18)',
+          display: 'flex', flexDirection: 'column', overflow: 'hidden',
+          opacity: 0.68,
+          cursor: onGoPricing ? 'pointer' : 'default',
+          userSelect: 'none',
+        }}
+      >
+        <div style={{ padding: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+            <div style={{
+              width: 32, height: 32, flexShrink: 0, borderRadius: '8px',
+              background: 'rgba(224,85,133,0.14)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              {swatchHex ? (
+                <div style={{
+                  width: 12, height: 12, borderRadius: '50%',
+                  background: swatchHex,
+                  border: '1.5px solid rgba(255,255,255,0.25)',
+                }} />
+              ) : Icon ? (
+                <Icon size={15} color="#e05585" strokeWidth={2.5} />
+              ) : null}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              {isXp ? (
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 3, lineHeight: 1 }}>
+                  <span style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '15px', color: 'var(--text-primary)' }}>
+                    +{reward.amount.toLocaleString()}
+                  </span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '10px', color: '#e05585' }}>
+                    XP
+                  </span>
+                </div>
+              ) : reward?.name ? (
+                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '11px', color: 'var(--text-primary)', lineHeight: 1.2 }}>
+                  {t.season1?.rewardName?.[reward.name] ?? reward.name}
+                </div>
+              ) : null}
+              <p style={{
+                margin: '4px 0 0',
+                fontFamily: 'var(--font-body)', fontSize: '9px',
+                color: '#e05585', fontWeight: 600, lineHeight: 1.35,
+              }}>
+                {t.traderPass?.unlockedWithPro ?? 'Unlocked with Pro'}
+              </p>
+            </div>
+          </div>
+        </div>
         <div style={{
-          width: 4, height: 4, borderRadius: '50%',
-          background: isActive ? 'rgba(0,192,135,0.5)' : 'var(--border-default)',
-          transition: 'background 0.2s',
-        }} />
+          position: 'absolute', top: 5, right: 5,
+          display: 'flex', alignItems: 'center', gap: 2,
+        }}>
+          <Lock size={9} color="#e05585" strokeWidth={2} />
+          <span style={{
+            fontFamily: 'var(--font-body)', fontSize: '7px', fontWeight: 800,
+            color: '#e05585', letterSpacing: '0.05em',
+          }}>
+            PRO
+          </span>
+        </div>
       </div>
     );
   }
 
-  const isClaimable = state === 'claimable';
-  const isClaimed   = state === 'claimed';
-  const isLocked    = state === 'locked';
-  const isProLocked = state === 'pro_locked';
+  const isClaimable      = state === 'claimable';
+  const isClaimed        = state === 'claimed';
+  const isLocked         = state === 'locked';
+  const isMissionPending = state === 'mission_pending';
 
   const trackColor = isProTrack ? '#e05585' : '#00c087';
 
-  // Fondo de tarjeta — tintado suave, menos oscuro que antes
   const cardBg = isClaimable
-    ? (isProTrack ? 'rgba(224,85,133,0.13)' : 'rgba(0,192,135,0.12)')
+    ? (isProTrack ? 'rgba(224,85,133,0.08)' : 'rgba(0,192,135,0.07)')
     : isClaimed
       ? (isProTrack ? 'rgba(224,85,133,0.05)' : 'rgba(0,192,135,0.05)')
-      : (isLocked || isProLocked)
+      : isLocked
         ? 'var(--bg-elevated)'
-        : (isProTrack ? 'rgba(224,85,133,0.08)' : 'rgba(0,192,135,0.07)');
+        : (isProTrack ? 'rgba(224,85,133,0.06)' : 'rgba(0,192,135,0.05)');
 
-  // Fondo del cuadrado de icono — un poco más saturado que el fondo de la tarjeta
   const iconBg = isProTrack
-    ? 'rgba(224,85,133,0.22)'
-    : 'rgba(0,192,135,0.18)';
+    ? 'rgba(224,85,133,0.18)'
+    : 'rgba(0,192,135,0.15)';
 
   const cardBorder = isClaimable
-    ? (isProTrack ? 'rgba(224,85,133,0.6)'  : 'rgba(0,192,135,0.6)')
+    ? (isProTrack ? 'rgba(224,85,133,0.5)'  : 'rgba(0,192,135,0.5)')
     : isClaimed
       ? (isProTrack ? 'rgba(224,85,133,0.15)' : 'rgba(0,192,135,0.15)')
-      : (isProTrack ? 'rgba(224,85,133,0.25)' : 'rgba(0,192,135,0.22)');
+      : (isProTrack ? 'rgba(224,85,133,0.22)' : 'rgba(0,192,135,0.2)');
 
-  const hasComingSoon = mission && mission.enabled === false;
-  const showProgress  = isActive && !!missionProgress && !hasComingSoon;
-  const showRibbon    = isClaimable && !hasComingSoon;
-
-  const Icon = reward ? REWARD_ICONS[reward.type] : null;
-  const isXp = reward?.type === 'xp';
+  const showProgress = !isClaimed && !!missionProgress;
 
   return (
     <div style={{
@@ -107,28 +166,20 @@ export default function RewardCard({
       position: 'relative',
       borderRadius: '12px',
       background: cardBg,
-      border: `1px ${hasComingSoon ? 'dashed' : 'solid'} ${cardBorder}`,
+      border: `1px solid ${cardBorder}`,
       display: 'flex',
       flexDirection: 'column',
       overflow: 'hidden',
       opacity: isLocked ? 0.45 : 1,
-      transition: 'border-color 0.2s, box-shadow 0.2s',
-      '--anim-glow': isProTrack ? 'rgba(224,85,133,0.8)' : 'rgba(0,192,135,0.8)',
+      transition: 'border-color 0.2s',
       animation: animate ? 'claimPop 0.55s ease-out' : 'none',
     }}>
 
-      {/* Contenido principal — difuminado cuando pro_locked */}
-      <div style={{
-        padding: '8px 8px 8px 8px',
-        filter: isProLocked ? 'blur(9px)' : 'none',
-        opacity: isProLocked ? 0.2 : 1,
-        userSelect: isProLocked ? 'none' : 'auto',
-        pointerEvents: isProLocked ? 'none' : 'auto',
-      }}>
-        {/* Fila: cuadrado de icono + contenido */}
+      <div style={{ padding: '8px', flex: 1 }}>
+        {/* Icon + reward text row */}
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
 
-          {/* Cuadrado de icono */}
+          {/* Icon square */}
           <div style={{
             width: 32, height: 32, flexShrink: 0,
             borderRadius: '8px',
@@ -139,17 +190,15 @@ export default function RewardCard({
               <div style={{
                 width: 12, height: 12, borderRadius: '50%',
                 background: swatchHex,
-                border: '1.5px solid rgba(255,255,255,0.3)',
-                boxShadow: `0 0 6px ${swatchHex}88`,
+                border: '1.5px solid rgba(255,255,255,0.25)',
               }} />
             ) : Icon ? (
               <Icon size={15} color={trackColor} strokeWidth={2.5} />
             ) : null}
           </div>
 
-          {/* Texto */}
+          {/* Text */}
           <div style={{ flex: 1, minWidth: 0 }}>
-            {/* Recompensa: cantidad/nombre */}
             {isXp ? (
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 3, lineHeight: 1 }}>
                 <span style={{
@@ -170,22 +219,22 @@ export default function RewardCard({
                 fontFamily: 'var(--font-body)', fontWeight: 800,
                 fontSize: '11px', color: 'var(--text-primary)', lineHeight: 1.2,
               }}>
-                {reward.name}
+                {t.season1?.rewardName?.[reward.name] ?? reward.name}
               </div>
             ) : null}
 
-            {/* Descripción de misión */}
+            {/* Mission description */}
             {mission && (
               <p style={{
                 margin: '4px 0 0',
                 fontFamily: 'var(--font-body)', fontSize: '9px',
                 color: 'var(--text-muted)', fontWeight: 500, lineHeight: 1.35,
               }}>
-                {mission.desc}
+                {t.season1?.missionDesc?.[mission.desc] ?? mission.desc}
               </p>
             )}
 
-            {/* Barra de progreso — solo nivel activo con misión habilitada */}
+            {/* Mission progress bar */}
             {showProgress && (
               <div style={{ marginTop: 5 }}>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 2 }}>
@@ -202,29 +251,47 @@ export default function RewardCard({
                     width: `${Math.min(100, (missionProgress.current / missionProgress.target) * 100)}%`,
                     background: trackColor, borderRadius: 2,
                     transition: 'width 0.3s ease',
-                    boxShadow: `0 0 4px ${trackColor}66`,
                   }} />
                 </div>
               </div>
             )}
 
-            {/* Próximamente — misiones de Trading Mode */}
-            {hasComingSoon && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 3, marginTop: 4 }}>
-                <Clock size={8} color="var(--text-hint)" strokeWidth={2} />
-                <span style={{
-                  fontFamily: 'var(--font-body)', fontSize: '8px', fontWeight: 600,
-                  color: 'var(--text-hint)', letterSpacing: '0.04em',
-                }}>
-                  {t.traderPass.comingSoon}
-                </span>
-              </div>
-            )}
           </div>
         </div>
+
+        {/* Mission pending label */}
+        {isMissionPending && (
+          <div style={{ marginTop: 5 }}>
+            <StatusText>{t.traderPass?.missionPending ?? 'Mission pending'}</StatusText>
+          </div>
+        )}
+
+        {/* Claim button */}
+        {isClaimable && (
+          <div style={{ marginTop: 6 }}>
+            <button
+              onClick={isClaiming ? undefined : onClaim}
+              disabled={isClaiming}
+              style={{
+                width: '100%',
+                fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 800,
+                color: isClaiming ? 'var(--text-hint)' : trackColor,
+                background: 'none',
+                border: `1px solid ${isClaiming ? 'var(--border-default)' : cardBorder}`,
+                borderRadius: '6px',
+                padding: '4px 0',
+                cursor: isClaiming ? 'default' : 'pointer',
+                letterSpacing: '0.04em',
+                transition: 'color 0.2s, border-color 0.2s',
+              }}
+            >
+              {isClaiming ? '···' : t.traderPass.claim}
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Reclamado: check en círculo (esquina superior derecha) */}
+      {/* Claimed: check circle (top-right corner) */}
       {isClaimed && (
         <div style={{
           position: 'absolute', top: 6, right: 6,
@@ -233,85 +300,17 @@ export default function RewardCard({
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           animation: animate ? 'checkIn 0.35s ease-out' : 'none',
         }}>
-          <span style={{ fontSize: '9px', color: '#000', fontWeight: 900, lineHeight: 1 }}>✓</span>
+          <Check size={10} strokeWidth={2.5} style={{ stroke: '#000' }} />
         </div>
       )}
 
-      {/* Cinta/ribbon RECLAMAR (esquina superior derecha, diagonal) */}
-      {showRibbon && (
-        <div
-          onClick={isClaiming ? undefined : onClaim}
-          style={{
-            position: 'absolute', top: 0, right: 0,
-            overflow: 'hidden', width: 60, height: 60,
-            borderRadius: '0 12px 0 0',
-            cursor: isClaiming ? 'default' : 'pointer',
-          }}
-        >
-          <div style={{
-            position: 'absolute',
-            top: 12,
-            right: -18,
-            width: 72,
-            background: '#e05585',
-            color: '#fff',
-            fontSize: '6.5px',
-            fontWeight: 900,
-            letterSpacing: '0.1em',
-            textAlign: 'center',
-            padding: '4px 0',
-            transform: 'rotate(45deg)',
-            transformOrigin: 'center',
-            opacity: isClaiming ? 0.55 : 1,
-            transition: 'opacity 0.2s',
-          }}>
-            {isClaiming ? '···' : t.traderPass.claim.toUpperCase()}
-          </div>
-        </div>
-      )}
-
-      {/* Bloqueado: icono candado (esquina) */}
+      {/* Locked: lock icon (corner) */}
       {isLocked && (
         <div style={{ position: 'absolute', top: 5, right: 5 }}>
           <Lock size={10} color="rgba(255,255,255,0.2)" strokeWidth={2} />
         </div>
       )}
 
-      {/* Overlay Pro-locked */}
-      {isProLocked && (
-        <div style={{
-          position: 'absolute', inset: 0,
-          display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center',
-          gap: 5,
-          background: 'rgba(13,13,13,0.75)',
-          borderRadius: '12px',
-        }}>
-          {swatchHex && (
-            <div style={{
-              width: 9, height: 9, borderRadius: '50%',
-              background: swatchHex,
-              boxShadow: `0 0 7px ${swatchHex}bb`,
-              flexShrink: 0,
-            }} />
-          )}
-          <Lock size={11} color="#e05585" strokeWidth={2} />
-          {onGoPricing && (
-            <button
-              onClick={onGoPricing}
-              style={{
-                fontSize: '8px', fontFamily: 'var(--font-body)', fontWeight: 800,
-                color: '#e05585', background: 'none',
-                border: '0.5px solid #e05585',
-                borderRadius: '4px', padding: '2px 6px',
-                cursor: 'pointer', letterSpacing: '0.05em',
-              }}
-            >
-              PRO
-            </button>
-          )}
-        </div>
-      )}
     </div>
   );
 }
