@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { useAuth } from './AuthContext';
 import { useLang } from './LangContext.jsx';
-import { Briefcase, Swords, Trophy, BarChart2, Globe, DollarSign, Lightbulb, Inbox, Bell, FileText, Lock, Calendar, ClipboardList, TrendingUp, Bitcoin, Wheat, Clock, ChevronLeft, X } from 'lucide-react';
+import { Briefcase, Swords, Trophy, BarChart2, Globe, DollarSign, Lightbulb, Inbox, Bell, FileText, Lock, Calendar, ClipboardList, TrendingUp, Bitcoin, Wheat, Clock, ChevronLeft, X, Search } from 'lucide-react';
 const Chart = lazy(() => import('./Chart.jsx'));
 import { ASSET_INFO } from './assetInfo.js';
 import BottomSheet from './components/BottomSheet.jsx';
@@ -116,12 +116,9 @@ function LeaderboardList({ entries, userPosition, user, onViewProfile, t }) {
             onClick={() => !isMe && entry.username && onViewProfile && onViewProfile(entry.username)}
             style={{
               display: 'flex', alignItems: 'center', gap: '10px',
-              background: isMe ? 'rgba(255,126,179,0.06)' : 'var(--bg-surface)',
-              border: `0.5px solid ${isMe ? 'var(--border-pink)' : 'var(--border-default)'}`,
-              borderRadius: 'var(--radius-md)',
-              padding: '10px 12px', marginBottom: '6px',
+              padding: '10px 0',
               cursor: !isMe && entry.username && onViewProfile ? 'pointer' : 'default',
-              overflow: 'hidden', width: '100%',
+              width: '100%',
             }}>
             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '13px', color: isMe ? 'var(--pink)' : 'var(--text-muted)', width: '20px', textAlign: 'center', flexShrink: 0 }}>
               {i < 3 ? LB_MEDALS[i] : i + 1}
@@ -153,10 +150,7 @@ function LeaderboardList({ entries, userPosition, user, onViewProfile, t }) {
           </div>
           <div style={{
             display: 'flex', alignItems: 'center', gap: '10px',
-            background: 'rgba(255,126,179,0.06)',
-            border: '0.5px solid var(--border-pink)',
-            borderRadius: 'var(--radius-md)',
-            padding: '10px 12px', marginBottom: '6px', overflow: 'hidden', width: '100%',
+            padding: '10px 0', width: '100%',
           }}>
             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '13px', color: 'var(--pink)', width: '20px', textAlign: 'center', flexShrink: 0 }}>#{userPosition.rank}</div>
             <UserAvatar user={userPosition} size={24} showBadge style={{ marginLeft: '4px' }} />
@@ -182,19 +176,13 @@ function LeaderboardList({ entries, userPosition, user, onViewProfile, t }) {
 
 function PortfolioTabSwitcher({ activeSlot, setActiveSlot }) {
   return (
-    <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+    <div className="text-tabs" style={{ marginBottom: '12px' }}>
       {[0, 1].map(s => (
         <button
           key={s}
+          className={`text-tab${activeSlot === s ? ' active' : ''}`}
           onClick={() => setActiveSlot(s)}
-          style={{
-            flex: 1, padding: '8px', borderRadius: 'var(--radius-md)',
-            border: `1px solid ${activeSlot === s ? 'var(--pink)' : 'var(--border-default)'}`,
-            background: activeSlot === s ? 'rgba(255,126,179,0.10)' : 'var(--bg-surface)',
-            color: activeSlot === s ? 'var(--pink)' : 'var(--text-muted)',
-            fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px',
-            cursor: 'pointer',
-          }}
+          type="button"
         >
           Portfolio {s === 0 ? 'A' : 'B'}
         </button>
@@ -1424,46 +1412,23 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                 )}
               </div>
               {/* Period selector */}
-              <div style={{ display: 'flex', justifyContent: 'space-around', padding: '6px 20px 2px' }}>
-                {PERIOD_KEYS.map((key, idx) => (
-                  <button
-                    key={key}
-                    onClick={() => { setActivePeriod(key); setScrubIdx(null); }}
-                    style={{
-                      background: 'transparent', border: 'none', padding: '4px 8px',
-                      fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer',
-                      fontWeight: activePeriod === key ? 800 : 400,
-                      color: activePeriod === key ? 'var(--t1)' : 'var(--t5)',
-                    }}
-                  >
-                    {pLabels[idx]}
-                  </button>
-                ))}
-              </div>
+              <PeriodSelector
+                periods={PERIOD_KEYS.map((key, idx) => ({ value: key, label: pLabels[idx] }))}
+                active={activePeriod}
+                onChange={key => { setActivePeriod(key); setScrubIdx(null); }}
+                style={{ justifyContent: 'space-around', padding: '6px 20px 2px' }}
+              />
             </>
           );
         })()}
       </div>
 
       {/* Tabs */}
-      <style>{`
-        .portfolio-tab-bar::-webkit-scrollbar { display: none; }
-        @media (max-width: 600px) {
-          .portfolio-tab-btn { padding: 10px 8px !important; font-size: 11px !important; }
-        }
-      `}</style>
       <div style={{ position: 'relative', zIndex: 2, marginTop: '16px' }}>
         <div
           ref={tabBarRef}
-          className="portfolio-tab-bar"
-          style={{
-            display: 'flex',
-            borderBottom: '1px solid var(--bd)',
-            overflowX: 'auto',
-            WebkitOverflowScrolling: 'touch',
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-          }}
+          className="text-tabs"
+          style={{ borderBottom: '0.5px solid var(--border-default)' }}
         >
           {[
             ['market',      t.portfolio.market],
@@ -1475,8 +1440,8 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
             ['leagues',     t.portfolio.leagues],
           ].map(([id, label]) => (
             <button key={id} onClick={() => setTab(id)}
-              className="portfolio-tab-btn"
-              style={{ flexShrink: 0, padding: '12px 10px', background: 'transparent', border: 'none', borderBottom: `2px solid ${tab === id ? 'var(--green)' : 'transparent'}`, color: tab === id ? 'var(--t1)' : 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: tab === id ? 800 : 400, cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
+              className={`text-tab${tab === id ? ' active' : ''}`}
+              type="button">
               {label}
             </button>
           ))}
@@ -1494,7 +1459,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
       {/* ── Mercado ── */}
       {tab === 'market' && (
         <div style={{ position: 'relative', zIndex: 2 }}>
-          <div style={{ display: 'flex', gap: '4px', padding: '10px 20px', overflowX: 'auto' }}>
+          <div className="text-tabs" style={{ padding: '10px 20px' }}>
             {[
               ['all',         t.portfolio.all],
               ['stocks',      t.portfolio.stocks],
@@ -1503,7 +1468,8 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
               ['commodities', t.portfolio.commodities],
             ].map(([id, label]) => (
               <button key={id} onClick={() => setFilter(id)}
-                style={{ padding: '5px 12px', borderRadius: '6px', whiteSpace: 'nowrap', border: 'none', background: filter === id ? 'rgba(255,255,255,0.08)' : 'transparent', color: filter === id ? 'var(--t1)' : 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: filter === id ? 800 : 400, cursor: 'pointer' }}>
+                className={`text-tab${filter === id ? ' active' : ''}`}
+                type="button">
                 {label}
               </button>
             ))}
@@ -1511,14 +1477,14 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
 
           <div style={{ padding: '0 20px 40px' }}>
             {/* Search bar */}
-            <div style={{ position: 'relative', marginBottom: '12px' }}>
-              <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--t5)', pointerEvents: 'none', fontSize: '14px' }}>⌕</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', borderBottom: '1.5px solid var(--border-default)', paddingBottom: '6px' }}>
+              <Search size={16} strokeWidth={2} style={{ color: 'var(--text-muted)', flexShrink: 0 }} aria-hidden />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder={t.portfolio.searchAsset}
-                style={{ width: '100%', boxSizing: 'border-box', padding: '9px 16px 9px 32px', background: 'rgba(255,255,255,0.06)', border: 'none', borderRadius: '20px', color: 'var(--t1)', fontFamily: 'var(--font-body)', fontSize: '13px', outline: 'none' }}
+                style={{ flex: 1, background: 'transparent', border: 'none', color: 'var(--text-primary)', fontFamily: 'var(--font-body)', fontSize: '14px', outline: 'none' }}
               />
             </div>
             {!pricesReady
@@ -1549,42 +1515,31 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                     const isHovered = hoveredSymbol === asset.symbol;
                     const hasPendingOrder = pendingOrders.some(o => o.status === 'pending' && o.symbol === asset.symbol);
                     return (
-                      <div key={asset.symbol} style={{ position: 'relative', marginBottom: '0' }}>
-                        <div onClick={() => openAsset(asset)}
-                          style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', cursor: 'pointer' }}
-                          onMouseEnter={() => setHoveredSymbol(asset.symbol)}
-                          onMouseLeave={() => setHoveredSymbol(null)}
-                        >
-                          <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: TYPE_COLORS[asset.type], fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '10px', letterSpacing: '-0.01em' }}>
+                      <FlatRow
+                        key={asset.symbol}
+                        icon={
+                          <div style={{ width: 40, height: 40, borderRadius: 8, background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: TYPE_COLORS[asset.type], fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 10 }}>
                             {asset.symbol.slice(0, 5)}
                           </div>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--t1)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              {asset.name}
-                              {hasPendingOrder && (
-                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 700, color: 'var(--color-neutral)', background: 'rgba(232,184,75,0.12)', padding: '1px 5px', borderRadius: '4px', flexShrink: 0 }}>
-                                  <Clock size={11} strokeWidth={2} aria-hidden />
-                                  {t.portfolio.pendingOrderBadge}
-                                </span>
-                              )}
+                        }
+                        title={asset.name}
+                        subtitle={[
+                          asset.symbol,
+                          !status.open && asset.type !== 'crypto' ? t.portfolio.marketClosed : null,
+                          asset.type === 'crypto' ? t.portfolio.market247 : null,
+                          hasPendingOrder ? t.portfolio.pendingOrderBadge : null,
+                        ].filter(Boolean).join(' · ')}
+                        value={
+                          <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontWeight: 800, fontSize: 13, color: 'var(--text-primary)' }}>{formatPrice(asset.price, asset.type)}</div>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: asset.change >= 0 ? 'var(--green)' : 'var(--pink)' }}>
+                              {asset.change >= 0 ? '▲' : '▼'} {Math.abs(asset.change ?? 0).toFixed(2)}%
                             </div>
-                            <div style={{ fontSize: '12px', color: 'var(--t5)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              {asset.symbol}
-                              {!status.open && asset.type !== 'crypto' && <span style={{ fontSize: '11px', color: 'var(--t6)' }}>{t.portfolio.marketClosed}</span>}
-                              {asset.type === 'crypto' && <span style={{ fontSize: '11px', color: 'var(--t6)' }}>{t.portfolio.market247}</span>}
-                            </div>
                           </div>
-                          <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>{formatPrice(asset.price, asset.type)}</div>
-                            <div style={{ fontSize: '12px', color: asset.change >= 0 ? 'var(--green)' : 'var(--color-down)', fontWeight: 700 }}>{asset.change >= 0 ? '▲' : '▼'} {Math.abs(asset.change ?? 0).toFixed(2)}%</div>
-                          </div>
-                        </div>
-                        {isHovered && tooltip && (
-                          <div style={{ position: 'absolute', bottom: 'calc(100% + 4px)', left: 0, right: 0, background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '6px', padding: '7px 12px', fontSize: '12px', color: 'var(--t3)', lineHeight: 1.5, zIndex: 50, pointerEvents: 'none' }}>
-                            {tooltip}
-                          </div>
-                        )}
-                      </div>
+                        }
+                        onClick={() => openAsset(asset)}
+                        chevron={false}
+                      />
                     );
                   };
 
@@ -1600,10 +1555,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                       if (!items.length) return null;
                       return (
                         <div key={group.key} style={{ marginBottom: '8px' }}>
-                          <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontWeight: 700, padding: '8px 0 2px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <span>{group.label}</span>
-                            <span style={{ fontSize: '14px' }}>›</span>
-                          </div>
+                          <SectionTitle style={{ padding: '8px 0 2px' }}>{group.label}</SectionTitle>
                           {items.map(renderRow)}
                         </div>
                       );
@@ -1620,10 +1572,9 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
       {tab === 'portfolio' && (
         <div style={{ padding: '16px 20px 40px', position: 'relative', zIndex: 2 }}>
           {positionsWithValue.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-              <div style={{ marginBottom: '12px', color: 'var(--t5)' }}><Inbox size={32} strokeWidth={1.5} aria-hidden /></div>
-              <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>{t.portfolio.noPositions}</div>
-              <button onClick={() => setTab('market')} style={{ marginTop: '16px', padding: '10px 20px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+            <div style={{ padding: '32px 0' }}>
+              <div style={{ fontSize: 14, color: 'var(--text-muted)', fontFamily: 'var(--font-body)' }}>{t.portfolio.noPositions}</div>
+              <button onClick={() => setTab('market')} style={{ marginTop: 12, background: 'none', border: 'none', fontSize: 14, color: 'var(--green)', fontFamily: 'var(--font-body)', fontWeight: 800, cursor: 'pointer', padding: 0 }}>
                 {t.portfolio.goToMarket}
               </button>
             </div>
@@ -1631,71 +1582,66 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
             positionsWithValue.map(pos => {
               const existingAlert = alerts.find(a => a.ticker === pos.symbol);
               return (
-                <div key={pos.symbol}
-                  style={{ marginBottom: '4px', overflow: 'hidden' }}>
-                  {/* Clickable main area */}
-                  <div onClick={() => openAsset(prices.find(p => p.symbol === pos.symbol))} style={{ padding: '10px 0', cursor: 'pointer' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      <div>
-                        <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>{pos.name}</div>
-                        <div style={{ fontSize: '12px', color: 'var(--t5)' }}>{parseFloat(pos.qty.toFixed(4))} {t.portfolio.units} · {t.portfolio.avgPrice} {formatPrice(pos.avgPrice, pos.type)}</div>
+                <div key={pos.symbol}>
+                  <FlatRow
+                    icon={
+                      <div style={{ width: 40, height: 40, borderRadius: 8, background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: TYPE_COLORS[pos.type], fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 10 }}>
+                        {pos.symbol.slice(0, 5)}
                       </div>
+                    }
+                    title={pos.name}
+                    subtitle={`${parseFloat(pos.qty.toFixed(4))} ${t.portfolio.units} · ${t.portfolio.avgPrice} ${formatPrice(pos.avgPrice, pos.type)}`}
+                    value={
                       <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: pos.stalePrice ? 'var(--t5)' : 'var(--t1)' }}>
+                        <div style={{ fontWeight: 800, fontSize: 14, color: pos.stalePrice ? 'var(--text-muted)' : 'var(--text-primary)' }}>
                           {pos.stalePrice ? '~' : ''}{formatCash(pos.value)}
                         </div>
                         {!pos.stalePrice && (
-                          <div style={{ fontSize: '12px', color: pos.pnl >= 0 ? 'var(--green)' : 'var(--color-down)', fontWeight: 700 }}>
-                            {pos.pnl >= 0 ? '▲' : '▼'} {pos.pnl >= 0 ? '+' : ''}{formatCash(pos.pnl)} ({formatChange(pos.pnlPct)})
+                          <div style={{ fontSize: 12, fontWeight: 700, color: pos.pnl >= 0 ? 'var(--green)' : 'var(--pink)' }}>
+                            {pos.pnl >= 0 ? '▲ +' : '▼ '}{formatCash(pos.pnl)} ({formatChange(pos.pnlPct)})
                           </div>
                         )}
                       </div>
-                    </div>
-                    <div style={{ height: '3px', background: 'var(--bd)', borderRadius: '2px', overflow: 'hidden' }}>
-                      {!pos.stalePrice && (
-                        <div style={{ height: '100%', width: `${Math.min(100, Math.abs(pos.pnlPct) * 5)}%`, background: pos.pnl >= 0 ? 'var(--green)' : 'var(--color-down)', borderRadius: '2px' }} />
-                      )}
-                    </div>
-                  </div>
-                  {/* Alert + Note row */}
-                  <div style={{ padding: '4px 0 10px', display: 'flex', alignItems: 'center', gap: '8px', minHeight: '34px' }}>
-                    {/* Alert section */}
-                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      {user?.isPro ? (
-                        existingAlert ? (
-                          <>
-                            <span style={{ fontSize: '12px', color: 'var(--color-neutral)', fontFamily: 'var(--font-body)', flex: 1 }}>
-                              <Bell size={12} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} /> {existingAlert.condition === 'above' ? '↑' : '↓'} {formatPrice(existingAlert.targetPrice, pos.type)}
-                            </span>
-                            <button
-                              onClick={() => deleteAlert(existingAlert._id)}
-                              style={{ background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '4px', color: 'var(--t5)', fontSize: '12px', padding: '2px 8px', cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.04em' }}
-                            >{t.portfolio.delete}</button>
-                          </>
-                        ) : (
-                          <button
-                            onClick={() => openAlertModal(pos)}
-                            style={{ background: 'transparent', border: '1px solid rgba(232,184,75,0.3)', borderRadius: '6px', color: 'var(--color-neutral)', fontSize: '12px', padding: '3px 10px', cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.04em' }}
-                          >{t.portfolio.alertBtn}</button>
-                        )
+                    }
+                    onClick={() => openAsset(prices.find(p => p.symbol === pos.symbol))}
+                    chevron={false}
+                  />
+                  {/* Alert + Note — flat text actions */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', paddingLeft: 52, paddingBottom: 8 }}>
+                    {user?.isPro ? (
+                      existingAlert ? (
+                        <>
+                          <span style={{ fontSize: 12, color: 'var(--color-neutral)', fontFamily: 'var(--font-body)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <Bell size={12} strokeWidth={2} aria-hidden />
+                            {existingAlert.condition === 'above' ? '↑' : '↓'} {formatPrice(existingAlert.targetPrice, pos.type)}
+                          </span>
+                          <button onClick={() => deleteAlert(existingAlert._id)} style={{ background: 'none', border: 'none', fontSize: 12, color: 'var(--pink)', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-body)', fontWeight: 700 }}>
+                            {t.portfolio.delete}
+                          </button>
+                        </>
                       ) : (
-                        <button
-                          onClick={() => onGoPricing?.()}
-                          style={{ background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t6)', fontSize: '12px', padding: '3px 10px', cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.04em', opacity: 0.55 }}
-                        >{t.portfolio.alertPro}</button>
-                      )}
-                    </div>
-                    {/* Note button */}
+                        <button onClick={() => openAlertModal(pos)} style={{ background: 'none', border: 'none', fontSize: 12, color: 'var(--color-neutral)', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-body)', fontWeight: 700 }}>
+                          {t.portfolio.alertBtn}
+                        </button>
+                      )
+                    ) : (
+                      <button onClick={() => onGoPricing?.()} style={{ background: 'none', border: 'none', fontSize: 12, color: 'var(--text-hint)', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-body)', opacity: 0.55 }}>
+                        {t.portfolio.alertPro}
+                      </button>
+                    )}
                     {user?.isPro ? (
                       <button
                         onClick={e => { e.stopPropagation(); setNoteText(notes[pos.symbol] || ''); setNoteModal({ symbol: pos.symbol, name: pos.name }); }}
-                        style={{ flexShrink: 0, background: notes[pos.symbol] ? 'rgba(232,184,75,0.08)' : 'transparent', border: `1px solid ${notes[pos.symbol] ? 'rgba(232,184,75,0.4)' : 'var(--bd2)'}`, borderRadius: '6px', color: notes[pos.symbol] ? 'var(--color-neutral)' : 'var(--t6)', fontSize: '12px', padding: '3px 10px', cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.04em' }}
-                      ><FileText size={12} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} /> {notes[pos.symbol] ? t.portfolio.noteLabel : t.portfolio.addNote}</button>
+                        style={{ background: 'none', border: 'none', fontSize: 12, color: notes[pos.symbol] ? 'var(--color-neutral)' : 'var(--text-hint)', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-body)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 3 }}
+                      >
+                        <FileText size={12} strokeWidth={2} aria-hidden />
+                        {notes[pos.symbol] ? t.portfolio.noteLabel : t.portfolio.addNote}
+                      </button>
                     ) : (
-                      <button
-                        onClick={() => onGoPricing?.()}
-                        style={{ flexShrink: 0, background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t6)', fontSize: '12px', padding: '3px 10px', cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.04em', opacity: 0.45 }}
-                      ><FileText size={12} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} /> <Lock size={12} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} /></button>
+                      <button onClick={() => onGoPricing?.()} style={{ background: 'none', border: 'none', fontSize: 12, color: 'var(--text-hint)', cursor: 'pointer', padding: 0, opacity: 0.4, display: 'flex', alignItems: 'center', gap: 3 }}>
+                        <FileText size={12} strokeWidth={2} aria-hidden />
+                        <Lock size={12} strokeWidth={2} aria-hidden />
+                      </button>
                     )}
                   </div>
                 </div>
@@ -1704,7 +1650,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
           )}
 
           {/* Compare vs #1 del ranking */}
-          <div style={{ marginTop: '20px', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', overflow: 'hidden' }}>
+          <div style={{ marginTop: '20px' }}>
             <div
               onClick={() => {
                 if (!user?.isPro) { onGoPricing?.(); return; }
@@ -1712,55 +1658,46 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                 setCompareExpanded(next);
                 if (next && !compareData && !compareLoading) loadCompare();
               }}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', cursor: 'pointer' }}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 0 8px', cursor: 'pointer' }}
             >
               <div>
-                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: user?.isPro ? 'var(--green)' : 'var(--t4)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: user?.isPro ? 'var(--green)' : 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   {user?.isPro ? <BarChart2 size={14} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} /> : <Lock size={14} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} />} {t.portfolio.vsRanking}
-                  {!user?.isPro && <span style={{ fontSize: '12px', color: 'var(--color-neutral)', background: 'rgba(232,184,75,0.1)', padding: '1px 6px', borderRadius: '4px', fontFamily: 'var(--font-body)', letterSpacing: '0.04em' }}>PRO</span>}
+                  {!user?.isPro && <span style={{ fontSize: '11px', color: 'var(--color-neutral)', fontFamily: 'var(--font-body)', letterSpacing: '0.08em', fontWeight: 800 }}>PRO</span>}
                 </div>
                 {compareData?.top1 && user?.isPro && (
-                  <div style={{ fontSize: '12px', color: 'var(--t5)', marginTop: '2px', fontFamily: 'var(--font-body)' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px', fontFamily: 'var(--font-body)' }}>
                     @{compareData.top1.username} · {compareData.top1.returnPct >= 0 ? '+' : ''}{compareData.top1.returnPct?.toFixed(2)}%
                   </div>
                 )}
               </div>
-              <span style={{ color: 'var(--t5)', fontSize: '12px', fontFamily: 'var(--font-body)' }}>{compareExpanded ? '▲' : '▼'}</span>
+              <span style={{ color: 'var(--text-muted)', fontSize: '12px', fontFamily: 'var(--font-body)' }}>{compareExpanded ? '▲' : '▼'}</span>
             </div>
 
             {!user?.isPro ? (
-              <div style={{ position: 'relative' }}>
-                <div style={{ filter: 'blur(5px)', pointerEvents: 'none', padding: '12px 14px', userSelect: 'none' }}>
-                  {[['AAPL', 'Apple', '+12.4%', '+18.2%'], ['BTC', 'Bitcoin', '—', '+34.1%'], ['MSFT', 'Microsoft', '+5.1%', '+5.1%']].map(([sym, name, myR, top1R]) => (
-                    <div key={sym} style={{ display: 'flex', alignItems: 'center', padding: '7px 0', borderBottom: '1px solid var(--bd)', gap: '8px' }}>
-                      <div style={{ flex: 1, fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: 'var(--t2)' }}>{name}</div>
-                      <div style={{ fontSize: '12px', color: 'var(--green)', fontFamily: 'var(--font-body)', width: '44px', textAlign: 'right' }}>{myR}</div>
-                      <div style={{ fontSize: '12px', color: 'var(--color-neutral)', fontFamily: 'var(--font-body)', width: '44px', textAlign: 'right' }}>{top1R}</div>
-                    </div>
-                  ))}
-                </div>
-                <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-                  <Lock size={20} strokeWidth={2} aria-hidden style={{ stroke: 'var(--t5)' }} />
-                  <button onClick={() => onGoPricing?.()} style={{ padding: '8px 20px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>{t.portfolio.unlockPro}</button>
-                </div>
+              <div style={{ padding: '12px 0' }}>
+                <div style={{ fontSize: 14, color: 'var(--text-muted)', fontFamily: 'var(--font-body)', marginBottom: 10 }}>{t.portfolio.unlockPro}</div>
+                <button onClick={() => onGoPricing?.()} style={{ background: 'none', border: 'none', fontSize: 14, color: 'var(--green)', fontFamily: 'var(--font-body)', fontWeight: 800, cursor: 'pointer', padding: 0 }}>
+                  {t.portfolio.unlockPro}
+                </button>
               </div>
             ) : compareExpanded && (
-              <div style={{ padding: '0 14px 14px' }}>
+              <div style={{ paddingBottom: '14px' }}>
                 {compareLoading ? (
-                  <div style={{ textAlign: 'center', padding: '24px', fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>···</div>
+                  <div style={{ padding: '24px 0', fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)' }}>···</div>
                 ) : !compareData?.top1 ? (
-                  <div style={{ textAlign: 'center', padding: '24px', fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>{t.portfolio.noRankingData}</div>
+                  <div style={{ padding: '24px 0', fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)' }}>{t.portfolio.noRankingData}</div>
                 ) : (
                   <>
                     {/* Me vs #1 header */}
-                    <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', padding: '10px', background: 'var(--bg-page)', borderRadius: '8px' }}>
+                    <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', padding: '10px 0' }}>
                       <div style={{ flex: 1, textAlign: 'center' }}>
-                        <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)', marginBottom: '3px' }}>{t.common.you}</div>
-                        <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: compareData.myReturnPct >= 0 ? 'var(--green)' : 'var(--color-down)' }}>
+                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', marginBottom: '3px' }}>{t.common.you}</div>
+                        <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: compareData.myReturnPct >= 0 ? 'var(--green)' : 'var(--pink)' }}>
                           {compareData.myReturnPct >= 0 ? '+' : ''}{compareData.myReturnPct?.toFixed(2)}%
                         </div>
                       </div>
-                      <div style={{ width: '1px', background: 'var(--bd)' }} />
+                      <div style={{ width: '1px', background: 'var(--border-default)' }} />
                       <div style={{ flex: 1, textAlign: 'center' }}>
                         <div style={{ fontSize: '12px', color: 'var(--color-neutral)', fontFamily: 'var(--font-body)', marginBottom: '3px' }}><span style={{ color: '#FFD700', fontWeight: 900 }}>#1</span> @{compareData.top1.username}</div>
                         <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: 'var(--color-neutral)' }}>
@@ -1772,17 +1709,16 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                     {/* Only in #1 */}
                     {compareData.onlyInTop1.length > 0 && (
                       <>
-                        <div style={{ fontSize: '12px', color: 'var(--color-neutral)', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '6px' }}>{t.portfolio.onlyInTop1}</div>
+                        <div className="micro-label" style={{ color: 'var(--color-neutral)', marginBottom: '6px' }}>{t.portfolio.onlyInTop1}</div>
                         {compareData.onlyInTop1.map(item => (
-                          <div key={item.symbol} style={{ display: 'flex', alignItems: 'center', padding: '6px 8px', background: 'rgba(232,184,75,0.04)', border: '1px solid var(--color-neutral-dim)', borderRadius: '6px', marginBottom: '4px' }}>
-                            <div style={{ flex: 1 }}>
-                              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: 'var(--t1)' }}>{item.name}</div>
-                              <div style={{ fontSize: '12px', color: 'var(--t5)' }}>{item.symbol}</div>
-                            </div>
-                            <div style={{ fontSize: '12px', fontWeight: 700, fontFamily: 'var(--font-body)', color: item.top1Return >= 0 ? 'var(--green)' : 'var(--color-down)' }}>
-                              {item.top1Return >= 0 ? '+' : ''}{item.top1Return?.toFixed(2)}%
-                            </div>
-                          </div>
+                          <FlatRow
+                            key={item.symbol}
+                            title={item.name}
+                            subtitle={item.symbol}
+                            value={`${item.top1Return >= 0 ? '+' : ''}${item.top1Return?.toFixed(2)}%`}
+                            valueColor={item.top1Return >= 0 ? 'up' : 'down'}
+                            chevron={false}
+                          />
                         ))}
                       </>
                     )}
@@ -1790,24 +1726,26 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                     {/* In common */}
                     {compareData.inCommon.length > 0 && (
                       <>
-                        <div style={{ fontSize: '12px', color: 'var(--green)', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginTop: '10px', marginBottom: '6px' }}>{t.portfolio.inCommon}</div>
+                        <div className="micro-label" style={{ color: 'var(--green)', marginTop: '10px', marginBottom: '6px' }}>{t.portfolio.inCommon}</div>
                         {compareData.inCommon.map(item => (
-                          <div key={item.symbol} style={{ display: 'flex', alignItems: 'center', padding: '6px 8px', background: 'rgba(0,229,160,0.04)', border: '1px solid rgba(0,229,160,0.12)', borderRadius: '6px', marginBottom: '4px' }}>
-                            <div style={{ flex: 1 }}>
-                              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: 'var(--t1)' }}>{item.name}</div>
-                              <div style={{ fontSize: '12px', color: 'var(--t5)' }}>{item.symbol}</div>
-                            </div>
-                            <div style={{ display: 'flex', gap: '12px' }}>
-                              <div style={{ textAlign: 'right' }}>
-                                <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>{t.common.you.toLowerCase()}</div>
-                                <div style={{ fontSize: '12px', fontWeight: 700, color: item.myReturn >= 0 ? 'var(--green)' : 'var(--color-down)' }}>{item.myReturn >= 0 ? '+' : ''}{item.myReturn?.toFixed(2)}%</div>
+                          <FlatRow
+                            key={item.symbol}
+                            title={item.name}
+                            subtitle={item.symbol}
+                            value={
+                              <div style={{ display: 'flex', gap: '12px' }}>
+                                <div style={{ textAlign: 'right' }}>
+                                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)' }}>{t.common.you.toLowerCase()}</div>
+                                  <div style={{ fontSize: '12px', fontWeight: 700, color: item.myReturn >= 0 ? 'var(--green)' : 'var(--pink)' }}>{item.myReturn >= 0 ? '+' : ''}{item.myReturn?.toFixed(2)}%</div>
+                                </div>
+                                <div style={{ textAlign: 'right' }}>
+                                  <div style={{ fontSize: '11px', color: 'var(--color-neutral)', fontFamily: 'var(--font-body)' }}>#1</div>
+                                  <div style={{ fontSize: '12px', fontWeight: 700, color: item.top1Return >= 0 ? 'var(--green)' : 'var(--pink)' }}>{item.top1Return >= 0 ? '+' : ''}{item.top1Return?.toFixed(2)}%</div>
+                                </div>
                               </div>
-                              <div style={{ textAlign: 'right' }}>
-                                <div style={{ fontSize: '12px', color: 'var(--color-neutral)', fontFamily: 'var(--font-body)' }}>#1</div>
-                                <div style={{ fontSize: '12px', fontWeight: 700, color: item.top1Return >= 0 ? 'var(--green)' : 'var(--color-down)' }}>{item.top1Return >= 0 ? '+' : ''}{item.top1Return?.toFixed(2)}%</div>
-                              </div>
-                            </div>
-                          </div>
+                            }
+                            chevron={false}
+                          />
                         ))}
                       </>
                     )}
@@ -1815,23 +1753,22 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                     {/* Only in me */}
                     {compareData.onlyInMe.length > 0 && (
                       <>
-                        <div style={{ fontSize: '12px', color: '#378ADD', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginTop: '10px', marginBottom: '6px' }}>{t.portfolio.onlyYours}</div>
+                        <div className="micro-label" style={{ color: '#378ADD', marginTop: '10px', marginBottom: '6px' }}>{t.portfolio.onlyYours}</div>
                         {compareData.onlyInMe.map(item => (
-                          <div key={item.symbol} style={{ display: 'flex', alignItems: 'center', padding: '6px 8px', background: 'rgba(55,138,221,0.04)', border: '1px solid rgba(55,138,221,0.12)', borderRadius: '6px', marginBottom: '4px' }}>
-                            <div style={{ flex: 1 }}>
-                              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: 'var(--t1)' }}>{item.name}</div>
-                              <div style={{ fontSize: '12px', color: 'var(--t5)' }}>{item.symbol}</div>
-                            </div>
-                            <div style={{ fontSize: '12px', fontWeight: 700, fontFamily: 'var(--font-body)', color: item.myReturn >= 0 ? 'var(--green)' : 'var(--color-down)' }}>
-                              {item.myReturn >= 0 ? '+' : ''}{item.myReturn?.toFixed(2)}%
-                            </div>
-                          </div>
+                          <FlatRow
+                            key={item.symbol}
+                            title={item.name}
+                            subtitle={item.symbol}
+                            value={`${item.myReturn >= 0 ? '+' : ''}${item.myReturn?.toFixed(2)}%`}
+                            valueColor={item.myReturn >= 0 ? 'up' : 'down'}
+                            chevron={false}
+                          />
                         ))}
                       </>
                     )}
 
                     {compareData.onlyInTop1.length === 0 && compareData.inCommon.length === 0 && compareData.onlyInMe.length === 0 && (
-                      <div style={{ textAlign: 'center', padding: '20px', fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>{t.portfolio.noPositionsToCompare}</div>
+                      <div style={{ padding: '20px 0', fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)' }}>{t.portfolio.noPositionsToCompare}</div>
                     )}
                   </>
                 )}
@@ -1845,10 +1782,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
       {tab === 'leaderboard' && (
         <div style={{ padding: '16px 20px 40px', position: 'relative', zIndex: 2 }}>
           {leaderboard.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-              <div style={{ marginBottom: '12px' }}><Trophy size={32} strokeWidth={2} aria-hidden style={{ stroke: 'var(--color-neutral)' }} /></div>
-              <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>{t.portfolio.noLeaderboard}</div>
-            </div>
+            <div style={{ padding: '32px 0', fontSize: 14, color: 'var(--text-muted)', fontFamily: 'var(--font-body)' }}>{t.portfolio.noLeaderboard}</div>
           ) : (
             <LeaderboardList entries={leaderboard} userPosition={userPositionGlobal} user={user} onViewProfile={onViewProfile} t={t} />
           )}
@@ -1861,20 +1795,24 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
 
           {/* Duel activo */}
           {activeDuel && (
-            <div style={{ background: 'var(--bg-card)', border: '1px solid rgba(0,229,160,0.3)', borderRadius: '10px', padding: '16px', marginBottom: '16px' }}>
-              <div style={{ fontSize: '12px', color: 'var(--green)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '12px' }}>{t.portfolio.activeDuel} · {activeDuel.daysLeft}{t.portfolio.daysLeft}</div>
+            <div style={{ marginBottom: '16px' }}>
+              <div style={{ fontSize: 12, color: 'var(--green)', fontFamily: 'var(--font-body)', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>
+                {t.portfolio.activeDuel} · {activeDuel.daysLeft}{t.portfolio.daysLeft}
+              </div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 {[activeDuel.challenger, activeDuel.opponent].map((p, i) => (
-                  <div key={i} style={{ flex: 1, background: 'var(--bg-page)', border: `1px solid ${p.returnPct >= 0 ? 'rgba(0,229,160,0.2)' : 'rgba(255,126,179,0.2)'}`, borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '12px', color: 'var(--t5)', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{p.username || p.name}<SpecialBadge specialUser={getSpecialUserByUsername(p.username)} size={9} /></div>
-                    <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: p.returnPct >= 0 ? 'var(--green)' : 'var(--color-down)' }}>
+                  <div key={i} style={{ flex: 1, padding: '12px', textAlign: 'center' }}>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {p.username || p.name}<SpecialBadge specialUser={getSpecialUserByUsername(p.username)} size={9} />
+                    </div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: 18, color: p.returnPct >= 0 ? 'var(--green)' : 'var(--pink)' }}>
                       {p.returnPct >= 0 ? '+' : ''}{p.returnPct.toFixed(2)}%
                     </div>
-                    <div style={{ fontSize: '12px', color: 'var(--t5)', marginTop: '2px' }}>{formatCash(p.currentValue)}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{formatCash(p.currentValue)}</div>
                   </div>
                 ))}
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', fontSize: '12px', color: 'var(--t6)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, fontSize: 12, color: 'var(--text-hint)', fontFamily: 'var(--font-body)' }}>
                 <span>{t.portfolio.start} {activeDuel.startDate}</span>
                 <span>{t.portfolio.end} {activeDuel.endDate}</span>
               </div>
@@ -1884,63 +1822,70 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
           {/* Retos pendientes */}
           {pendingDuels.length > 0 && (
             <div style={{ marginBottom: '16px' }}>
-              <div style={{ fontSize: '12px', color: 'var(--color-neutral)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px' }}>{t.portfolio.pendingDuels}</div>
+              <div className="micro-label" style={{ color: 'var(--color-neutral)', marginBottom: '10px' }}>{t.portfolio.pendingDuels}</div>
               {pendingDuels.map(d => (
-                <div key={d.id} style={{ background: 'var(--bg-card)', border: '1px solid rgba(232,184,75,0.2)', borderRadius: '8px', padding: '12px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: 'var(--t1)' }}>{d.challengerName}</div>
-                    <div style={{ fontSize: '12px', color: 'var(--t5)' }}>{t.portfolio.duelChallenge}</div>
-                  </div>
-                  <button onClick={() => acceptDuel(d.id)} disabled={duelLoading}
-                    style={{ padding: '7px 12px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', opacity: duelLoading ? 0.5 : 1 }}>
-                    {t.challenge.accept}
-                  </button>
-                  <button onClick={() => rejectDuel(d.id)} disabled={duelLoading}
-                    style={{ padding: '7px 12px', background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', opacity: duelLoading ? 0.5 : 1 }}>
-                    {t.challenge.reject}
-                  </button>
-                </div>
+                <FlatRow
+                  key={d.id}
+                  title={d.challengerName}
+                  subtitle={t.portfolio.duelChallenge}
+                  value={
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button onClick={() => acceptDuel(d.id)} disabled={duelLoading}
+                        style={{ background: 'none', border: 'none', fontSize: 13, color: 'var(--green)', fontFamily: 'var(--font-body)', fontWeight: 800, cursor: 'pointer', padding: 0, opacity: duelLoading ? 0.5 : 1 }}>
+                        {t.challenge.accept}
+                      </button>
+                      <button onClick={() => rejectDuel(d.id)} disabled={duelLoading}
+                        style={{ background: 'none', border: 'none', fontSize: 13, color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontWeight: 800, cursor: 'pointer', padding: 0, opacity: duelLoading ? 0.5 : 1 }}>
+                        {t.challenge.reject}
+                      </button>
+                    </div>
+                  }
+                  chevron={false}
+                />
               ))}
             </div>
           )}
 
           {/* Empty state / challenge button */}
           {!activeDuel && (
-            <div style={{ textAlign: 'center', padding: '32px 0 16px' }}>
-              <div style={{ marginBottom: '12px' }}><Swords size={40} strokeWidth={2} aria-hidden style={{ stroke: 'var(--green)' }} /></div>
-              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t1)', marginBottom: '6px' }}>{t.portfolio.duelTitle}</div>
-              <div style={{ fontSize: '12px', color: 'var(--t5)', marginBottom: '24px', lineHeight: 1.6 }}>{t.portfolio.duelDesc}</div>
+            <div style={{ padding: '32px 0 16px' }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: 16, color: 'var(--text-primary)', marginBottom: 6 }}>{t.portfolio.duelTitle}</div>
+              <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 24, lineHeight: 1.6 }}>{t.portfolio.duelDesc}</div>
               <button onClick={() => { setShowFriendPicker(true); loadDuelFriends(); }}
-                style={{ padding: '12px 24px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', cursor: 'pointer' }}>
+                style={{ background: 'none', border: 'none', fontSize: 14, color: 'var(--pink)', fontFamily: 'var(--font-body)', fontWeight: 800, cursor: 'pointer', padding: 0, letterSpacing: '0.02em' }}>
                 {t.portfolio.challengeFriend}
               </button>
             </div>
           )}
 
           {duelMsg && (
-            <div style={{ fontSize: '12px', color: duelMsg.includes('✓') ? 'var(--green)' : 'var(--color-down)', textAlign: 'center', marginTop: '12px' }}>{duelMsg}</div>
+            <div style={{ fontSize: '12px', color: duelMsg.includes('✓') ? 'var(--green)' : 'var(--pink)', marginTop: '12px' }}>{duelMsg}</div>
           )}
 
           {/* Friend picker */}
           {showFriendPicker && (
-            <div style={{ marginTop: '16px', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '16px' }}>
+            <div style={{ marginTop: '16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <div style={{ fontSize: '12px', color: 'var(--t1)', fontFamily: 'var(--font-body)', fontWeight: 700 }}>{t.portfolio.chooseFriend}</div>
+                <SectionTitle>{t.portfolio.chooseFriend}</SectionTitle>
                 <button onClick={() => setShowFriendPicker(false)}
-                  style={{ background: 'transparent', border: 'none', color: 'var(--t5)', fontSize: '16px', cursor: 'pointer', padding: '0' }}>×</button>
+                  style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '20px', cursor: 'pointer', padding: '0', lineHeight: 1 }}>×</button>
               </div>
               {duelFriends.length === 0 ? (
-                <div style={{ fontSize: '12px', color: 'var(--t5)', textAlign: 'center', padding: '16px 0' }}>{t.portfolio.noFriendsYet}</div>
+                <div style={{ fontSize: 14, color: 'var(--text-muted)', fontFamily: 'var(--font-body)', padding: '8px 0' }}>{t.portfolio.noFriendsYet}</div>
               ) : (
                 duelFriends.map(f => (
-                  <div key={f.username} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', borderRadius: '6px', marginBottom: '4px', background: 'var(--bg-page)' }}>
-                    <UserAvatar user={f} size={28} showBadge />
-                    <div style={{ flex: 1, fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: 'var(--t1)', display: 'flex', alignItems: 'center' }}>{f.username || f.name}<SpecialBadge specialUser={getSpecialUserByUsername(f.username)} size={11} /></div>
-                    <button onClick={() => challengeFriendDuel(f.username)} disabled={duelLoading}
-                      style={{ padding: '6px 12px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', opacity: duelLoading ? 0.5 : 1 }}>
-                      {t.portfolio.challengeBtn}
-                    </button>
-                  </div>
+                  <FlatRow
+                    key={f.username}
+                    icon={<UserAvatar user={f} size={28} showBadge />}
+                    title={f.username || f.name}
+                    value={
+                      <button onClick={() => challengeFriendDuel(f.username)} disabled={duelLoading}
+                        style={{ background: 'none', border: 'none', fontSize: 13, color: 'var(--green)', fontFamily: 'var(--font-body)', fontWeight: 800, cursor: 'pointer', padding: 0, opacity: duelLoading ? 0.5 : 1 }}>
+                        {t.portfolio.challengeBtn}
+                      </button>
+                    }
+                    chevron={false}
+                  />
                 ))
               )}
             </div>
@@ -1952,31 +1897,30 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
       {tab === 'history' && (
         <div style={{ padding: '16px 20px 40px', position: 'relative', zIndex: 2 }}>
           {(!portfolio?.transactions || portfolio.transactions.length === 0) ? (
-            <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-              <div style={{ marginBottom: '12px', color: 'var(--t5)' }}><ClipboardList size={32} strokeWidth={1.5} aria-hidden /></div>
-              <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>{t.portfolio.noHistory}</div>
-            </div>
+            <div style={{ padding: '32px 0', fontSize: 14, color: 'var(--text-muted)', fontFamily: 'var(--font-body)' }}>{t.portfolio.noHistory}</div>
           ) : (
             [...portfolio.transactions].reverse().map((tx, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', borderBottom: '1px solid var(--bd)', marginBottom: '0' }}>
-                <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: tx.action === 'buy' ? 'rgba(0,229,160,0.08)' : 'rgba(255,126,179,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', flexShrink: 0, color: tx.action === 'buy' ? 'var(--green)' : 'var(--color-down)' }}>
-                  {tx.action === 'buy' ? '▲' : '▼'}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: 'var(--t1)' }}>{tx.name}</div>
-                  <div style={{ fontSize: '12px', color: 'var(--t5)' }}>
-                    {parseFloat(tx.qty.toFixed(4))} × {formatPrice(tx.price, tx.type)} · {new Date(tx.date).toLocaleDateString()}
+              <FlatRow
+                key={i}
+                icon={
+                  <div style={{ width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: tx.action === 'buy' ? 'var(--green)' : 'var(--pink)', background: tx.action === 'buy' ? 'rgba(0,192,135,0.08)' : 'rgba(224,85,133,0.08)', flexShrink: 0 }}>
+                    {tx.action === 'buy' ? '▲' : '▼'}
                   </div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '12px', fontWeight: 700, color: tx.action === 'buy' ? 'var(--color-down)' : 'var(--green)' }}>
-                    {tx.action === 'buy' ? '-' : '+'}{formatCash(tx.total)}
+                }
+                title={tx.name}
+                subtitle={`${parseFloat(tx.qty.toFixed(4))} × ${formatPrice(tx.price, tx.type)} · ${new Date(tx.date).toLocaleDateString()}`}
+                value={
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: tx.action === 'buy' ? 'var(--pink)' : 'var(--green)' }}>
+                      {tx.action === 'buy' ? '-' : '+'}{formatCash(tx.total)}
+                    </div>
+                    <div style={{ fontSize: 11, color: tx.action === 'buy' ? 'var(--green)' : 'var(--pink)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                      {tx.action === 'buy' ? t.portfolio.purchase : t.portfolio.sale}
+                    </div>
                   </div>
-                  <div style={{ fontSize: '12px', color: tx.action === 'buy' ? 'var(--green)' : 'var(--color-down)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                    {tx.action === 'buy' ? t.portfolio.purchase : t.portfolio.sale}
-                  </div>
-                </div>
-              </div>
+                }
+                chevron={false}
+              />
             ))
           )}
         </div>
@@ -1986,41 +1930,41 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
       {tab === 'orders' && (
         <div style={{ padding: '16px 20px 40px', position: 'relative', zIndex: 2 }}>
           {pendingOrders.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-              <div style={{ marginBottom: '12px', color: 'var(--t5)' }}><Inbox size={32} strokeWidth={1.5} aria-hidden /></div>
-              <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>{t.portfolio.noPendingOrders}</div>
-            </div>
+            <div style={{ padding: '32px 0', fontSize: 14, color: 'var(--text-muted)', fontFamily: 'var(--font-body)' }}>{t.portfolio.noPendingOrders}</div>
           ) : (
             pendingOrders.map(order => {
               const isPending   = order.status === 'pending';
               const isExecuted  = order.status === 'executed';
               const isCancelled = order.status === 'cancelled';
-              const statusColor = isPending ? 'var(--color-neutral)' : isExecuted ? 'var(--green)' : 'var(--t6)';
+              const statusColor = isPending ? 'var(--color-neutral)' : isExecuted ? 'var(--green)' : 'var(--text-muted)';
               const statusLabel = isPending ? t.portfolio.orderPending : isExecuted ? t.portfolio.orderExecuted : t.portfolio.orderCancelled;
               const isBuy = order.type === 'buy';
               return (
-                <div key={order._id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', borderBottom: '1px solid var(--bd)', marginBottom: '0' }}>
-                  <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: isBuy ? 'rgba(0,229,160,0.1)' : 'rgba(255,126,179,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', flexShrink: 0, color: isBuy ? 'var(--green)' : 'var(--color-down)' }}>
-                    {isBuy ? '▲' : '▼'}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: 'var(--t1)' }}>{order.name}</div>
-                    <div style={{ fontSize: '12px', color: 'var(--t5)' }}>
-                      {parseFloat(order.qty.toFixed(4))} {t.portfolio.units}
-                      {isExecuted && order.executedPrice ? ` · ${formatPrice(order.executedPrice, 'stock')}` : ''}
-                      {isCancelled && order.cancelReason ? ` · ${order.cancelReason.replace(/_/g, ' ')}` : ''}
-                      {' · '}{new Date(order.createdAt).toLocaleDateString()}
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-                    <span style={{ fontSize: '11px', color: statusColor, background: `${statusColor}18`, padding: '2px 7px', borderRadius: '4px', letterSpacing: '0.04em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', fontWeight: 700 }}>{statusLabel}</span>
-                    {isPending && (
+                <div key={order._id}>
+                  <FlatRow
+                    icon={
+                      <div style={{ width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: isBuy ? 'var(--green)' : 'var(--pink)', background: isBuy ? 'rgba(0,192,135,0.08)' : 'rgba(224,85,133,0.08)', flexShrink: 0 }}>
+                        {isBuy ? '▲' : '▼'}
+                      </div>
+                    }
+                    title={order.name}
+                    subtitle={[
+                      `${parseFloat(order.qty.toFixed(4))} ${t.portfolio.units}`,
+                      isExecuted && order.executedPrice ? formatPrice(order.executedPrice, 'stock') : null,
+                      isCancelled && order.cancelReason ? order.cancelReason.replace(/_/g, ' ') : null,
+                      new Date(order.createdAt).toLocaleDateString(),
+                    ].filter(Boolean).join(' · ')}
+                    value={<StatusText color={statusColor}>{statusLabel}</StatusText>}
+                    chevron={false}
+                  />
+                  {isPending && (
+                    <div style={{ paddingLeft: 52, paddingBottom: 8 }}>
                       <button onClick={() => handleCancelOrder(order._id)}
-                        style={{ padding: '4px 10px', background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '5px', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', letterSpacing: '0.04em' }}>
+                        style={{ background: 'none', border: 'none', fontSize: 12, color: 'var(--pink)', fontFamily: 'var(--font-body)', fontWeight: 800, cursor: 'pointer', padding: 0, letterSpacing: '0.04em' }}>
                         {t.portfolio.orderModalCancel}
                       </button>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               );
             })
