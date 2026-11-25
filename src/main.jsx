@@ -19,7 +19,7 @@ window.addEventListener('unhandledrejection', (e) => {
   console.error('[unhandledrejection suppressed]', e.reason);
 });
 
-if ('serviceWorker' in navigator) {
+if ('serviceWorker' in navigator && !import.meta.env.DEV) {
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     window.dispatchEvent(new CustomEvent('swUpdated'));
   });
