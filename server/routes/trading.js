@@ -5,6 +5,9 @@ const jwt      = require('jsonwebtoken');
 const mongoose = require('mongoose');
 
 const { priceRouter, SYMBOL_CATALOG, isSymbolTradeable } = require('../trading/priceProvider');
+const { fetchTradingCandles, TRADING_CANDLE_MAP } = require('../utils/tradingCandles');
+
+const VALID_TRADING_INTERVALS = new Set(['M1', 'M5', 'M15', 'H1', 'H4', 'D1']);
 
 const router = express.Router();
 
@@ -879,6 +882,22 @@ router.delete('/leagues/:leagueId', requireAuth, async (req, res) => {
     await TLeague().findByIdAndDelete(req.params.leagueId);
     res.json({ ok: true });
   } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── Historical candles for Trading Mode chart ─────────────────────────────────
+router.get('/candles', async (req, res) => {
+  const { symbol, interval = 'H1' } = req.query;
+  if (!symbol)                             return res.status(400).json({ error: 'symbol is required' });
+  if (!TRADING_CANDLE_MAP.has(symbol))     return res.status(400).json({ error: 'Unknown symbol: ' + symbol });
+  if (!VALID_TRADING_INTERVALS.has(interval)) return res.status(400).json({ error: 'Invalid interval: ' + interval });
+
+  try {
+    const candles = await fetchTradingCandles(symbol, interval);
+    res.json(candles);
+  } catch (err) {
+    console.error('[/api/trading/candles]', symbol, interval, err.message);
+    res.status(502).json({ error: 'Data provider error' });
+  }
 });
 
 // ── Exports for Phase 4 worker + Phase 5 crons ────────────────────────────────

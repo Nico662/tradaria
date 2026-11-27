@@ -1,3 +1,5 @@
+'use strict';
+
 // In-memory OHLC accumulator fed by /api/trading/prices poll ticks.
 // Lives at module scope — data persists for the session, resets on page reload.
 // No server requests; no external providers.
@@ -10,11 +12,9 @@ const _store = new Map();
 
 /**
  * Feed a price tick into the store. Called for every symbol on every poll cycle.
- * @param {string} symbol   e.g. 'BTC/USD'
- * @param {number} price    mid price (the same value shown in the price list)
- * @param {number} [nowMs]  timestamp in ms (default: Date.now())
  */
-export function addTick(symbol, price, nowMs = Date.now()) {
+function addTick(symbol, price, nowMs) {
+  if (nowMs === undefined) nowMs = Date.now();
   if (!symbol || !isFinite(price) || price <= 0) return;
   const nowSec = Math.floor(nowMs / 1000);
 
@@ -40,19 +40,16 @@ export function addTick(symbol, price, nowMs = Date.now()) {
 /**
  * Returns the accumulated candles for a symbol/timeframe.
  * Returns the live array reference — caller reads, never mutates.
- * @param {string} symbol
- * @param {'M1'|'M5'|'M15'} tf
- * @returns {Array<{time:number,open:number,high:number,low:number,close:number}>}
  */
-export function getCandles(symbol, tf) {
+function getCandles(symbol, tf) {
   const sym = _store.get(symbol);
   if (!sym) return [];
   return sym[tf] ?? [];
 }
 
 /** Clears all stored candles (used in tests). */
-export function reset() {
+function reset() {
   _store.clear();
 }
 
-export { INTERVALS_SEC, MAX_CANDLES };
+module.exports = { addTick, getCandles, reset, INTERVALS_SEC, MAX_CANDLES };

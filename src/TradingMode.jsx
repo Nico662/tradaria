@@ -9,6 +9,7 @@ import SimulationNotice from './SimulationNotice.jsx';
 import { SERVER } from './config';
 import { ASSETS } from './assets.js';
 import { addTick, getCandles } from './trading/liveCandles.js';
+import { combineCandles } from './trading/chartHistory.js';
 import {
   ChevronLeft, Lock, TrendingUp, TrendingDown, X, Info,
   Trophy, Users, BarChart3, CandlestickChart, Activity,
@@ -140,7 +141,7 @@ function SlTpHandle({ type, y, dragging, saving, error, onPointerDown, onPointer
 }
 
 // ── Lightweight Charts candlestick ────────────────────────────────────────────
-function TradingChart({ symbol, timeframe, position, chartRef, onPositionSaved, prices, collectingText }) {
+function TradingChart({ symbol, timeframe, position, chartRef, onPositionSaved, prices, histCandles, histStatus, onRetry, collectingText }) {
   const token           = localStorage.getItem('tradaria_token');
   const containerRef    = useRef(null);
   const seriesRef       = useRef(null);
@@ -148,6 +149,7 @@ function TradingChart({ symbol, timeframe, position, chartRef, onPositionSaved, 
   const draggingTypeRef = useRef(null);
   const chartSymbolRef  = useRef(symbol);
   const chartTfRef      = useRef(timeframe);
+  const histCandlesRef  = useRef(histCandles);
 
   const [tick,         setTick]         = useState(0);
   const [draggingType, setDraggingType] = useState(null);
@@ -155,7 +157,8 @@ function TradingChart({ symbol, timeframe, position, chartRef, onPositionSaved, 
   const [saving,       setSaving]       = useState(null);
   const [saveErr,      setSaveErr]      = useState(null);
 
-  useEffect(() => { positionRef.current = position; }, [position]);
+  useEffect(() => { positionRef.current = position;    }, [position]);
+  useEffect(() => { histCandlesRef.current = histCandles; }, [histCandles]);
 
   // ── Chart creation / destruction ──────────────────────────────────────────
   useEffect(() => {
@@ -218,7 +221,8 @@ function TradingChart({ symbol, timeframe, position, chartRef, onPositionSaved, 
       });
       seriesRef.current = series;
 
-      const initCandles = getCandles(symbol, timeframe);
+      const liveCandles = getCandles(symbol, timeframe);
+      const initCandles = combineCandles(histCandlesRef.current, liveCandles);
       series.setData(initCandles);
       if (initCandles.length) chart.timeScale().fitContent();
       applyPriceLines(series, positionRef.current);
@@ -243,6 +247,16 @@ function TradingChart({ symbol, timeframe, position, chartRef, onPositionSaved, 
       seriesRef.current = null;
     };
   }, [symbol, timeframe]);
+
+  // ── Re-render chart data when history arrives ─────────────────────────────
+  useEffect(() => {
+    if (!seriesRef.current) return;
+    const liveCandles = getCandles(chartSymbolRef.current, chartTfRef.current);
+    const combined    = combineCandles(histCandles, liveCandles);
+    seriesRef.current.setData(combined);
+    if (combined.length) chartRef?.current?.timeScale().fitContent();
+    setTick(t => t + 1);
+  }, [histCandles]);
 
   // ── Sync price lines when position changes ────────────────────────────────
   useEffect(() => {
@@ -350,7 +364,27 @@ function TradingChart({ symbol, timeframe, position, chartRef, onPositionSaved, 
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
 
-      {collectingText && (
+      {/* Skeleton overlay — history loading */}
+      {histStatus === 'loading' && (
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(8,8,8,0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 20, pointerEvents: 'none' }}>
+          <div style={{ width: 28, height: 28, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.08)', borderTopColor: 'var(--green)', animation: 'tradingSlSpin 0.7s linear infinite' }} />
+        </div>
+      )}
+
+      {/* Error overlay — history failed */}
+      {histStatus === 'error' && (
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, zIndex: 20, pointerEvents: 'all' }}>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: 'var(--text-hint)' }}>
+            {collectingText}
+          </span>
+          <button onClick={onRetry} style={{ background: 'rgba(0,192,135,0.1)', border: '0.5px solid rgba(0,192,135,0.5)', borderRadius: 6, color: 'var(--green)', fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 11, padding: '5px 14px', cursor: 'pointer' }}>
+            ↺
+          </button>
+        </div>
+      )}
+
+      {/* Collecting overlay — no data yet */}
+      {histStatus !== 'loading' && histStatus !== 'error' && collectingText && (
         <div style={{ position: 'absolute', bottom: 36, left: 0, right: 0, textAlign: 'center', pointerEvents: 'none', zIndex: 10 }}>
           <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: 'var(--text-hint)', opacity: 0.7 }}>
             {collectingText}
@@ -483,7 +517,10 @@ export default function TradingMode({ onBack }) {
   const [prices,         setPrices]         = useState({});
   const [blinks,         setBlinks]         = useState({});
   const [selectedSymbol, setSelectedSymbol] = useState(null);
-  const [timeframe,      setTimeframe]      = useState('M1');
+  const [timeframe,      setTimeframe]      = useState('H1');
+  const [histCandles,    setHistCandles]    = useState([]);
+  const [histStatus,     setHistStatus]     = useState('idle');
+  const [histRetryKey,   setHistRetryKey]   = useState(0);
   const [side,           setSide]           = useState('BUY');
   const [lots,           setLots]           = useState(0.10);
   const [useStopLoss,    setUseStopLoss]    = useState(false);
@@ -589,6 +626,20 @@ export default function TradingMode({ onBack }) {
       })
       .catch(() => {});
   }, []);
+
+  // ── Historical candles fetch ───────────────────────────────────────────────
+  useEffect(() => {
+    if (!selectedSymbol) return;
+    let active = true;
+    setHistStatus('loading');
+    setHistCandles([]);
+    const url = `${SERVER}/api/trading/candles?symbol=${encodeURIComponent(selectedSymbol)}&interval=${timeframe}`;
+    fetch(url)
+      .then(r => r.ok ? r.json() : Promise.reject(new Error(r.status)))
+      .then(candles => { if (active) { setHistCandles(candles); setHistStatus('ok'); } })
+      .catch(() => { if (active) setHistStatus('error'); });
+    return () => { active = false; };
+  }, [selectedSymbol, timeframe, histRetryKey]);
 
   // ── Account summary ───────────────────────────────────────────────────────
   useEffect(() => {
@@ -905,7 +956,7 @@ export default function TradingMode({ onBack }) {
     { id: 'stocks',      label: tr.filterStocks   ?? 'Stocks'      },
   ];
 
-  const TIMEFRAMES = ['M1', 'M5', 'M15'];
+  const TIMEFRAMES = ['M1', 'M5', 'M15', 'H1', 'H4', 'D1'];
 
   const filteredAssets = catFilter === 'all'
     ? ASSETS
@@ -1177,17 +1228,29 @@ export default function TradingMode({ onBack }) {
             </div>
           </div>
           <div style={{ fontFamily: 'var(--font-body)', fontSize: 9, color: 'var(--text-hint)', opacity: 0.55, paddingBottom: 5 }}>
-            {tr.chartLiveLabel ?? 'Live chart from when you open the app.'}
+            {tr.chartLiveLabel ?? 'History: reference data. Live price: Upscale.'}
           </div>
         </div>
 
         {/* ── Chart — elastic, fills all remaining height ── */}
         {(() => {
-          const collecting = getCandles(selectedSymbol, timeframe).length < 2;
-          const collectingText = collecting ? (tr.chartCollecting ?? 'Collecting live data...') : null;
+          const liveCandles   = getCandles(selectedSymbol, timeframe);
+          const noData        = histStatus !== 'loading' && histStatus !== 'error' && histCandles.length === 0 && liveCandles.length < 2;
+          const collectingText = histStatus === 'error'
+            ? (tr.chartHistNotAvailable ?? 'History not available. Live data only.')
+            : (noData ? (tr.chartCollecting ?? 'Collecting live data...') : null);
           return (
             <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
-              <TradingChart symbol={selectedSymbol} timeframe={timeframe} position={activePosition} chartRef={chartRef} onPositionSaved={handlePositionSaved} prices={prices} collectingText={collectingText} />
+              <TradingChart
+                symbol={selectedSymbol} timeframe={timeframe}
+                position={activePosition} chartRef={chartRef}
+                onPositionSaved={handlePositionSaved}
+                prices={prices}
+                histCandles={histCandles}
+                histStatus={histStatus}
+                onRetry={() => setHistRetryKey(k => k + 1)}
+                collectingText={collectingText}
+              />
             </div>
           );
         })()}

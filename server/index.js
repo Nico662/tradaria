@@ -730,6 +730,7 @@ const writeLimiter   = rateLimit({ windowMs: 60 * 1000, max: 10,  message: rateL
 app.use(generalLimiter);
 app.use('/daily',              dailyLimiter);
 app.use('/candles',            candlesLimiter);
+app.use('/api/trading/candles', candlesLimiter);
 app.use('/portfolio/buy',      tradeLimiter);
 app.use('/portfolio/sell',     tradeLimiter);
 app.use('/auth/google',        authLimiter);
@@ -4868,6 +4869,10 @@ app.get('/api/portfolio/compare', async (req, res) => {
 });
 
 app.get('/', (req, res) => res.json({ status: 'ok' }));
+
+// ── Trading Mode candle infrastructure ───────────────────────────
+const { setRedis: setTradingCandlesRedis } = require('./utils/tradingCandles');
+setTradingCandlesRedis(redis);
 
 // ── Trading Mode — price adapter + routes (Fase 1-2) ─────────────
 const { priceRouter }         = require('./trading/priceProvider');
