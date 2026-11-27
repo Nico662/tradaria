@@ -7,9 +7,11 @@
  * No modifica ningún estado del servidor; solo lectura.
  *
  * Uso:
- *   node server/scripts/upscalePricesCheck.js
+ *   node server/scripts/upscalePricesCheck.js              # comprobación normal
+ *   node server/scripts/upscalePricesCheck.js --debug      # + info de cabeceras y clave
+ *   node server/scripts/upscalePricesCheck.js --test-variants  # prueba 3 variantes de auth
  *
- * Requiere que server/.env tenga UPSCALE_API_KEY=<tu_clave> y USE_UPSCALE_PRICES=true.
+ * Requiere que server/.env tenga UPSCALE_API_KEY=<tu_clave>.
  */
 
 const path   = require('path');
@@ -17,6 +19,9 @@ const dotenv = require('dotenv');
 
 // Carga server/.env (una carpeta arriba de scripts/)
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
+
+const DEBUG         = process.argv.includes('--debug') || process.argv.includes('--test-variants');
+const TEST_VARIANTS = process.argv.includes('--test-variants');
 
 // ── Guardas de seguridad ──────────────────────────────────────────────────────
 if (process.env.NODE_ENV === 'production') {
@@ -76,25 +81,101 @@ function fmtPrice(n) {
   return n.toFixed(6);
 }
 
-// ── Petición HTTP (nunca imprime la clave) ────────────────────────────────────
-async function apiFetch(url) {
-  const res = await fetch(url, {
-    headers: { 'X-Api-Key': API_KEY, 'Accept': 'application/json' },
-  });
+// ── Inspección de clave (solo en --debug, nunca imprime el valor) ─────────────
+function debugKeyInfo() {
+  const len     = API_KEY.length;
+  const hasLeadingSpace  = API_KEY !== API_KEY.trimStart();
+  const hasTrailingSpace = API_KEY !== API_KEY.trimEnd();
+  const hasQuotes = API_KEY.startsWith('"') || API_KEY.startsWith("'");
+  console.log('  [debug] Clave cargada:');
+  console.log(`    longitud      : ${len} caracteres`);
+  console.log(`    espacio al inicio: ${hasLeadingSpace}`);
+  console.log(`    espacio al final : ${hasTrailingSpace}`);
+  console.log(`    comillas al inicio: ${hasQuotes}`);
+  console.log(`    prefijo visible: ${API_KEY.slice(0, 4)}… (primeros 4 chars)`);
+}
+
+// ── Petición HTTP (nunca imprime la clave ni su valor en cabeceras) ───────────
+async function apiFetch(url, headersObj) {
+  if (DEBUG) {
+    console.log(`  [debug] Cabeceras enviadas: ${Object.keys(headersObj).join(', ')}`);
+  }
+  const res = await fetch(url, { headers: headersObj });
+  if (DEBUG) {
+    const respHeaders = {};
+    for (const [k, v] of res.headers.entries()) {
+      const lower = k.toLowerCase();
+      if (lower === 'set-cookie' || lower === 'authorization') continue;
+      respHeaders[k] = v;
+    }
+    console.log(`  [debug] Cabeceras de respuesta: ${JSON.stringify(respHeaders)}`);
+  }
   return res;
+}
+
+const DEFAULT_HEADERS = { 'Authorization': `Bearer ${API_KEY}`, 'Accept': 'application/json' };
+
+// ── Modo --test-variants: prueba 3 variantes de autenticación ────────────────
+async function testVariants() {
+  console.log('\n╔══════════════════════════════════════════════════════╗');
+  console.log(  '║     Upscale — test de variantes de autenticación     ║');
+  console.log(  '╚══════════════════════════════════════════════════════╝\n');
+  debugKeyInfo();
+  console.log();
+
+  const VARIANTS = [
+    {
+      label: 'Variante 1 — Authorization: Bearer <key>  (documentación oficial)',
+      headers: { 'Authorization': `Bearer ${API_KEY}`, 'Accept': 'application/json' },
+    },
+    {
+      label: 'Variante 2 — X-Api-Key: <key>             (implementación actual)',
+      headers: { 'X-Api-Key': API_KEY, 'Accept': 'application/json' },
+    },
+    {
+      label: 'Variante 3 — x-api-key: <key>             (lowercase)',
+      headers: { 'x-api-key': API_KEY, 'Accept': 'application/json' },
+    },
+  ];
+
+  for (let i = 0; i < VARIANTS.length; i++) {
+    const { label, headers } = VARIANTS[i];
+    console.log(`▸ ${label}`);
+    console.log(`  Cabeceras enviadas: ${Object.keys(headers).join(', ')}`);
+    try {
+      const res = await fetch(`${API_BASE}/accounts/with-risk-status`, { headers });
+      const body = await res.text().catch(() => '(sin cuerpo)');
+      console.log(`  HTTP ${res.status} — ${body.slice(0, 120)}`);
+    } catch (err) {
+      console.log(`  ERROR de red: ${err.message}`);
+    }
+    if (i < VARIANTS.length - 1) {
+      console.log('  (esperando 2s…)');
+      await new Promise(r => setTimeout(r, 2000));
+    }
+    console.log();
+  }
+  console.log('Test de variantes completado. Revisa arriba qué variante devuelve HTTP 200.');
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 async function main() {
+  if (TEST_VARIANTS) {
+    await testVariants();
+    return;
+  }
+
   console.log('\n╔══════════════════════════════════════════════════════╗');
   console.log(  '║     Upscale Price Check — prueba LOCAL               ║');
   console.log(  '╚══════════════════════════════════════════════════════╝\n');
+
+  if (DEBUG) debugKeyInfo();
 
   // ── 1. Resolver accountId ─────────────────────────────────────────────────
   console.log('▸ GET /accounts/with-risk-status ...');
   let accountId;
   {
-    const res = await apiFetch(`${API_BASE}/accounts/with-risk-status`);
+    const res = await apiFetch(`${API_BASE}/accounts/with-risk-status`, DEFAULT_HEADERS);
     console.log(`  HTTP ${res.status}`);
 
     if (!res.ok) {
@@ -132,7 +213,7 @@ async function main() {
   console.log(`▸ GET /v2/markets?accountId=${accountId} ...`);
   let markets;
   {
-    const res = await apiFetch(`${API_BASE}/v2/markets?accountId=${accountId}`);
+    const res = await apiFetch(`${API_BASE}/v2/markets?accountId=${accountId}`, DEFAULT_HEADERS);
     console.log(`  HTTP ${res.status}`);
 
     if (!res.ok) {

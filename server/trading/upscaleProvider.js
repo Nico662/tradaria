@@ -117,7 +117,7 @@ class UpscalePriceProvider extends PriceProvider {
     let accounts;
     try {
       const res = await this._fetch(`${UPSCALE_API_BASE}/accounts/with-risk-status`, {
-        headers: { 'X-Api-Key': this._apiKey, 'Accept': 'application/json' },
+        headers: { 'Authorization': `Bearer ${this._apiKey}`, 'Accept': 'application/json' },
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       accounts = await res.json();
@@ -149,7 +149,7 @@ class UpscalePriceProvider extends PriceProvider {
     try {
       const res = await this._fetch(
         `${UPSCALE_API_BASE}/v2/markets?accountId=${this._accountId}`,
-        { headers: { 'X-Api-Key': this._apiKey, 'Accept': 'application/json' } }
+        { headers: { 'Authorization': `Bearer ${this._apiKey}`, 'Accept': 'application/json' } }
       );
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
