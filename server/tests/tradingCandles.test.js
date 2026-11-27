@@ -1,16 +1,25 @@
 'use strict';
 
-// Tests for server/utils/tradingCandles.js and src/trading/chartHistory.js.
-// All external I/O is mocked — no network calls, no Redis.
+// Tests for server/utils/tradingCandles.js (CJS) and src/trading/chartHistory.js (ESM).
+// CJS modules loaded with require(); ESM module loaded via dynamic import() in beforeAll.
 
 jest.mock('../providers/kraken');
 jest.mock('../providers/yahoo');
 
 const { fetchKrakenCandles } = require('../providers/kraken');
 const { fetchYahooCandles }  = require('../providers/yahoo');
-
 const { fetchTradingCandles, TRADING_CANDLE_MAP, aggregateH4, setRedis } = require('../utils/tradingCandles');
-const { scaleCandles, computeRatio, combineCandles, MAX_RATIO_DEVIATION } = require('../../src/trading/chartHistory');
+
+// chartHistory.js is ESM — loaded via dynamic import
+let scaleCandles, computeRatio, combineCandles, MAX_RATIO_DEVIATION;
+
+beforeAll(async () => {
+  const m = await import('../../src/trading/chartHistory.js');
+  scaleCandles        = m.scaleCandles;
+  computeRatio        = m.computeRatio;
+  combineCandles      = m.combineCandles;
+  MAX_RATIO_DEVIATION = m.MAX_RATIO_DEVIATION;
+});
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function makeCandles(n, { startTime = 0, intervalSec = 3600, startPrice = 100 } = {}) {
@@ -27,7 +36,7 @@ function makeCandles(n, { startTime = 0, intervalSec = 3600, startPrice = 100 } 
 describe('fetchTradingCandles', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    setRedis(null); // no Redis in tests
+    setRedis(null);
   });
 
   test('throws on unknown symbol', async () => {
@@ -56,7 +65,6 @@ describe('fetchTradingCandles', () => {
   });
 
   test('H4 fetches 1h data and aggregates', async () => {
-    // 8 H1 candles → 2 H4 buckets
     const h1 = makeCandles(8, { startTime: 0, intervalSec: 3600, startPrice: 200 });
     fetchKrakenCandles.mockResolvedValue(h1);
     const result = await fetchTradingCandles('BTC/USD', 'H4');
@@ -65,9 +73,7 @@ describe('fetchTradingCandles', () => {
   });
 
   test('TRADING_CANDLE_MAP covers all expected symbols', () => {
-    const expected = [
-      'BTC/USD', 'ETH/USD', 'EUR/USD', 'S&P 500', 'GOLD', 'AAPL', 'UK100',
-    ];
+    const expected = ['BTC/USD', 'ETH/USD', 'EUR/USD', 'S&P 500', 'GOLD', 'AAPL', 'UK100'];
     for (const sym of expected) {
       expect(TRADING_CANDLE_MAP.has(sym)).toBe(true);
     }
@@ -78,9 +84,9 @@ describe('fetchTradingCandles', () => {
 describe('aggregateH4', () => {
   test('groups four 1h candles into one 4h candle', () => {
     const h1 = [
-      { time: 0,    open: 100, high: 110, low:  95, close: 105 },
-      { time: 3600, open: 105, high: 115, low: 100, close: 108 },
-      { time: 7200, open: 108, high: 120, low: 104, close: 112 },
+      { time: 0,     open: 100, high: 110, low:  95, close: 105 },
+      { time: 3600,  open: 105, high: 115, low: 100, close: 108 },
+      { time: 7200,  open: 108, high: 120, low: 104, close: 112 },
       { time: 10800, open: 112, high: 118, low: 108, close: 115 },
     ];
     const h4 = aggregateH4(h1);
@@ -101,7 +107,7 @@ describe('aggregateH4', () => {
   });
 });
 
-// ── chartHistory — pure logic ─────────────────────────────────────────────────
+// ── chartHistory — pure logic (ESM module via dynamic import) ─────────────────
 describe('chartHistory', () => {
   describe('computeRatio', () => {
     test('returns refPrice / lastHistClose', () => {
@@ -141,10 +147,9 @@ describe('chartHistory', () => {
     });
 
     test('splices with scaled hist when ratio is within tolerance', () => {
-      // hist closes at 100, live opens at 100.5 → ratio 1.005 (within 1.5%)
       const hist = [{ time: 0, open: 95, high: 105, low: 90, close: 100 }];
       const live = [
-        { time: 3600, open: 100.5, high: 102, low: 99, close: 101 },
+        { time: 3600, open: 100.5, high: 102, low: 99,  close: 101 },
         { time: 7200, open: 101,   high: 103, low: 100, close: 102 },
       ];
       const combined = combineCandles(hist, live);
@@ -153,11 +158,8 @@ describe('chartHistory', () => {
     });
 
     test('returns live only when ratio exceeds MAX_RATIO_DEVIATION', () => {
-      // hist closes at 100, live opens at 103 → ratio 1.03 > 1.5%
       const hist = [{ time: 0, open: 95, high: 105, low: 90, close: 100 }];
-      const live = [
-        { time: 3600, open: 103, high: 105, low: 101, close: 104 },
-      ];
+      const live = [{ time: 3600, open: 103, high: 105, low: 101, close: 104 }];
       const result = combineCandles(hist, live);
       expect(result).toBe(live);
     });
@@ -165,13 +167,10 @@ describe('chartHistory', () => {
     test('removes overlapping hist candles before splicing', () => {
       const hist = [
         { time: 0,    open: 100, high: 105, low: 95, close: 100 },
-        { time: 3600, open: 100, high: 106, low: 96, close: 101 }, // overlaps live
+        { time: 3600, open: 100, high: 106, low: 96, close: 101 },
       ];
-      const live = [
-        { time: 3600, open: 101.5, high: 107, low: 97, close: 102 },
-      ];
+      const live = [{ time: 3600, open: 101.5, high: 107, low: 97, close: 102 }];
       const combined = combineCandles(hist, live);
-      // only 1 hist candle should remain (time < 3600)
       expect(combined.length).toBe(2);
       expect(combined[0].time).toBe(0);
       expect(combined[1]).toBe(live[0]);

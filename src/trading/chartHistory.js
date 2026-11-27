@@ -1,8 +1,6 @@
-'use strict';
+export const MAX_RATIO_DEVIATION = 0.015; // 1.5%
 
-const MAX_RATIO_DEVIATION = 0.015; // 1.5%
-
-function scaleCandles(candles, ratio) {
+export function scaleCandles(candles, ratio) {
   if (ratio === 1) return candles;
   return candles.map(c => ({
     time:  c.time,
@@ -13,7 +11,7 @@ function scaleCandles(candles, ratio) {
   }));
 }
 
-function computeRatio(lastHistClose, refPrice) {
+export function computeRatio(lastHistClose, refPrice) {
   if (!isFinite(lastHistClose) || lastHistClose <= 0) return null;
   if (!isFinite(refPrice)      || refPrice <= 0)      return null;
   return refPrice / lastHistClose;
@@ -25,7 +23,7 @@ function computeRatio(lastHistClose, refPrice) {
  * If ratio deviation > MAX_RATIO_DEVIATION, returns live candles only (avoids
  * a visible price jump at the splice that would mislead the user).
  */
-function combineCandles(histCandles, liveCandles) {
+export function combineCandles(histCandles, liveCandles) {
   if (!liveCandles || liveCandles.length === 0) return histCandles || [];
   if (!histCandles || histCandles.length === 0) return liveCandles;
 
@@ -43,5 +41,3 @@ function combineCandles(histCandles, liveCandles) {
 
   return [...scaledHist, ...liveCandles];
 }
-
-module.exports = { scaleCandles, computeRatio, combineCandles, MAX_RATIO_DEVIATION };

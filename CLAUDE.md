@@ -19,10 +19,12 @@ cd server && npm start   # node index.js
 
 ### Tests (`server/tests/`)
 ```bash
-cd server && npx jest              # run all tests (403 as of Block E)
-cd server && npx jest --no-coverage tests/<file>.test.js  # single file
+cd server && npm test              # run all tests (uses --experimental-vm-modules)
+cd server && npm test -- --no-coverage tests/<file>.test.js  # single file
 ```
 Jest + MongoMemoryServer. Test helpers in `server/tests/helpers/testApp.js`. Run tests before each commit.
+
+**Los archivos de `src/` son ESM (`export`/`import`); nunca CJS (`module.exports`/`require`).** Los tests del servidor que necesitan módulos de `src/` los cargan vía dynamic `import()` en un `beforeAll`. El test script usa `--experimental-vm-modules` para habilitar ESM en Jest.
 
 ## Architecture
 

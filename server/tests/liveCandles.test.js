@@ -1,6 +1,17 @@
 'use strict';
 
-const { addTick, getCandles, reset, INTERVALS_SEC, MAX_CANDLES } = require('../../src/trading/liveCandles');
+// Tests for src/trading/liveCandles.js (ESM module loaded via dynamic import).
+
+let addTick, getCandles, reset, INTERVALS_SEC, MAX_CANDLES;
+
+beforeAll(async () => {
+  const m = await import('../../src/trading/liveCandles.js');
+  addTick      = m.addTick;
+  getCandles   = m.getCandles;
+  reset        = m.reset;
+  INTERVALS_SEC = m.INTERVALS_SEC;
+  MAX_CANDLES  = m.MAX_CANDLES;
+});
 
 beforeEach(() => reset());
 
