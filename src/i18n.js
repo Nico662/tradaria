@@ -869,6 +869,8 @@ export const LANGS = {
       upscaleTagline: 'Tradiko is a simulator with no real money. Ready for the real thing? Upscale is an independent prop firm offering real funded trader accounts — this is a paid service, not free.',
       upscaleCta: 'Explore Upscale →',
       upscaleDisclaimer: 'External · Real Money · Affiliate',
+      chartLiveLabel: 'Live chart from when you open the app.',
+      chartCollecting: 'Collecting live data...',
     },
   },
 
@@ -1691,6 +1693,8 @@ export const LANGS = {
       upscaleTagline: 'Tradiko es un simulador sin dinero real. ¿Listo para el salto? Upscale es una prop firm independiente con cuentas de fondeo reales — es un servicio de pago, no gratuito.',
       upscaleCta: 'Ver Upscale →',
       upscaleDisclaimer: 'Externo · Dinero Real · Afiliado',
+      chartLiveLabel: 'Grafico en vivo desde que abres la app.',
+      chartCollecting: 'Recopilando datos en vivo...',
     },
   },
 
@@ -2569,6 +2573,8 @@ export const LANGS = {
       upscaleTagline: 'Tradiko ist ein Simulator ohne echtes Geld. Bereit für den echten Markt? Upscale ist eine unabhängige Prop-Firm mit echten finanzierten Trader-Konten — ein kostenpflichtiger Dienst.',
       upscaleCta: 'Upscale entdecken →',
       upscaleDisclaimer: 'Externer · Echtes Geld · Affiliate',
+      chartLiveLabel: 'Live-Chart ab dem Offnen der App.',
+      chartCollecting: 'Live-Daten werden gesammelt...',
     },
   },
 };

@@ -8,6 +8,7 @@ import { useAuth, isIOSApp } from './AuthContext';
 import SimulationNotice from './SimulationNotice.jsx';
 import { SERVER } from './config';
 import { ASSETS } from './assets.js';
+import { addTick, getCandles } from './trading/liveCandles.js';
 import {
   ChevronLeft, Lock, TrendingUp, TrendingDown, X, Info,
   Trophy, Users, BarChart3, CandlestickChart, Activity,
@@ -15,21 +16,6 @@ import {
   Flame, Swords,
 } from 'lucide-react';
 
-// ── Seed prices for deterministic candle generation (not live; stays fixed) ───
-const CANDLE_PRICES = {
-  'BTC/USD':  64872.50, 'ETH/USD':  3215.80,  'SOL/USD':  152.40,
-  'XRP/USD':  0.61240,  'BNB/USD':  582.30,   'DOGE/USD': 0.13420,
-  'LINK/USD': 14.820,   'AVAX/USD': 38.600,   'ADA/USD':  0.45200,
-  'DOT/USD':  7.3400,   'EUR/USD':  1.08520,  'GBP/USD':  1.27410,
-  'USD/JPY':  155.420,  'USD/CHF':  0.89320,  'AUD/USD':  0.65840,
-  'USD/CAD':  1.36500,  'S&P 500':  5280.40,  'NASDAQ':   18420.30,
-  'DOW':      39540.20, 'GER40':    18105.80,  'UK100':    8185.40,
-  'JPN225':   38240.50, 'GOLD':     2284.50,   'SILVER':   28.540,
-  'OIL/USD':  78.320,   'NGAS':     2.8420,    'COPPER':   4.5200,
-  'AAPL':     189.50,   'TSLA':     178.20,    'MSFT':     415.30,
-  'AMZN':     183.70,   'GOOGL':    172.40,    'META':     508.60,
-  'NVDA':     875.30,
-};
 
 // ── Mock spreads (points) and day ranges ─────────────────────────────────────
 const SPREADS = {
@@ -113,36 +99,6 @@ function fmtPoints(price, changePct, cat) {
   return Math.round(diff * 10000).toString();
 }
 
-// ── Seeded random walk for deterministic mock candles ────────────────────────
-function strHash(str) {
-  let h = 5381;
-  for (let i = 0; i < str.length; i++) h = (h * 33 + str.charCodeAt(i)) & 0x7fffffff;
-  return h;
-}
-function makePRNG(seed) {
-  let s = seed;
-  return () => { s = (s * 1664525 + 1013904223) & 0x7fffffff; return s / 0x7fffffff; };
-}
-
-function generateCandles(symbol, tf, count = 60) {
-  const rng = makePRNG(strHash(symbol + tf));
-  const base = CANDLE_PRICES[symbol] ?? 100;
-  const vol   = ASSETS.find(a => a.name === symbol)?.vol ?? 0.02;
-  let price = base * (0.90 + rng() * 0.20);
-  return Array.from({ length: count }, () => {
-    const dir    = (rng() - 0.49) * 2;
-    const body   = rng() * vol * price * 0.8;
-    const open   = price;
-    const close  = price + dir * body;
-    const wkUp   = rng() * vol * price * 0.4;
-    const wkDn   = rng() * vol * price * 0.4;
-    const high   = Math.max(open, close) + wkUp;
-    const low    = Math.min(open, close) - wkDn;
-    price = close;
-    return { open, close, high, low };
-  });
-}
-
 
 // ── Price-line helper (called outside React render) ───────────────────────────
 function applyPriceLines(series, position) {
@@ -184,12 +140,14 @@ function SlTpHandle({ type, y, dragging, saving, error, onPointerDown, onPointer
 }
 
 // ── Lightweight Charts candlestick ────────────────────────────────────────────
-function TradingChart({ symbol, timeframe, position, chartRef, onPositionSaved }) {
+function TradingChart({ symbol, timeframe, position, chartRef, onPositionSaved, prices, collectingText }) {
   const token           = localStorage.getItem('tradaria_token');
   const containerRef    = useRef(null);
   const seriesRef       = useRef(null);
   const positionRef     = useRef(position);
   const draggingTypeRef = useRef(null);
+  const chartSymbolRef  = useRef(symbol);
+  const chartTfRef      = useRef(timeframe);
 
   const [tick,         setTick]         = useState(0);
   const [draggingType, setDraggingType] = useState(null);
@@ -211,6 +169,9 @@ function TradingChart({ symbol, timeframe, position, chartRef, onPositionSaved }
 
       const isForex = ASSETS.find(a => a.name === symbol)?.cat === 'forex';
 
+      chartSymbolRef.current = symbol;
+      chartTfRef.current     = timeframe;
+
       chart = createChart(el, {
         width:  el.clientWidth,
         height: el.clientHeight,
@@ -227,7 +188,7 @@ function TradingChart({ symbol, timeframe, position, chartRef, onPositionSaved }
           borderColor: 'transparent',
           barSpacing: 6,
           rightOffset: 3,
-          timeVisible: timeframe !== 'D1',
+          timeVisible: true,
           fixLeftEdge: true,
           fixRightEdge: false,
         },
@@ -257,22 +218,9 @@ function TradingChart({ symbol, timeframe, position, chartRef, onPositionSaved }
       });
       seriesRef.current = series;
 
-      const rawCandles = generateCandles(symbol, timeframe, 60);
-      const msMap = { M1: 60e3, M5: 300e3, M15: 900e3, H1: 3600e3, H4: 14400e3, D1: 86400e3 };
-      const intervalSec = (msMap[timeframe] ?? 3600e3) / 1000;
-      const nowSec = Math.floor(Date.now() / 1000);
-      const alignedNow = Math.floor(nowSec / intervalSec) * intervalSec;
-
-      const chartData = rawCandles.map((c, i) => ({
-        time:  alignedNow - (rawCandles.length - 1 - i) * intervalSec,
-        open:  c.open,
-        high:  c.high,
-        low:   c.low,
-        close: c.close,
-      }));
-
-      series.setData(chartData);
-      chart.timeScale().fitContent();
+      const initCandles = getCandles(symbol, timeframe);
+      series.setData(initCandles);
+      if (initCandles.length) chart.timeScale().fitContent();
       applyPriceLines(series, positionRef.current);
 
       chart.timeScale().subscribeVisibleLogicalRangeChange(() => setTick(t => t + 1));
@@ -302,6 +250,16 @@ function TradingChart({ symbol, timeframe, position, chartRef, onPositionSaved }
     applyPriceLines(seriesRef.current, position);
     setTick(t => t + 1);
   }, [position]);
+
+  // ── Live tick update — fires on each price poll cycle ─────────────────────
+  // Uses refs (not state) for symbol/tf so this effect only re-runs on prices.
+  useEffect(() => {
+    if (!seriesRef.current) return;
+    const candles = getCandles(chartSymbolRef.current, chartTfRef.current);
+    if (candles.length === 0) return;
+    seriesRef.current.update(candles[candles.length - 1]);
+    setTick(t => t + 1);
+  }, [prices]);
 
   // ── Coordinate helpers (recalculated on every render via tick) ────────────
   const getY = (price) => (price != null && seriesRef.current) ? seriesRef.current.priceToCoordinate(price) : null;
@@ -391,6 +349,14 @@ function TradingChart({ symbol, timeframe, position, chartRef, onPositionSaved }
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
+
+      {collectingText && (
+        <div style={{ position: 'absolute', bottom: 36, left: 0, right: 0, textAlign: 'center', pointerEvents: 'none', zIndex: 10 }}>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: 'var(--text-hint)', opacity: 0.7 }}>
+            {collectingText}
+          </span>
+        </div>
+      )}
 
       {/* Overlay — default pointer-events:none so chart still gets all events */}
       <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 5 }}>
@@ -517,7 +483,7 @@ export default function TradingMode({ onBack }) {
   const [prices,         setPrices]         = useState({});
   const [blinks,         setBlinks]         = useState({});
   const [selectedSymbol, setSelectedSymbol] = useState(null);
-  const [timeframe,      setTimeframe]      = useState('H1');
+  const [timeframe,      setTimeframe]      = useState('M1');
   const [side,           setSide]           = useState('BUY');
   const [lots,           setLots]           = useState(0.10);
   const [useStopLoss,    setUseStopLoss]    = useState(false);
@@ -592,6 +558,7 @@ export default function TradingMode({ onBack }) {
             newSeq[symbol]    = (prev.blinkSeq ?? 0) + 1;
           }
           next[symbol] = { price, bid, ask, change, blinkSeq: newSeq[symbol] ?? (prevPricesRef.current[symbol]?.blinkSeq ?? 0) };
+          addTick(symbol, price);
         }
 
         if (isFirst) initPricesRef.current = Object.fromEntries(list.map(({ symbol, price }) => [symbol, price]));
@@ -938,7 +905,7 @@ export default function TradingMode({ onBack }) {
     { id: 'stocks',      label: tr.filterStocks   ?? 'Stocks'      },
   ];
 
-  const TIMEFRAMES = ['M1', 'M5', 'M15', 'H1', 'H4', 'D1'];
+  const TIMEFRAMES = ['M1', 'M5', 'M15'];
 
   const filteredAssets = catFilter === 'all'
     ? ASSETS
@@ -1186,7 +1153,7 @@ export default function TradingMode({ onBack }) {
 
         {/* ── Header: symbol info + timeframe selector ── */}
         <div style={{ flexShrink: 0, borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-surface)', padding: '7px 14px 0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
               <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 15, color: 'var(--text-primary)' }}>{selectedSymbol}</span>
               <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 13, color: chgColor }}>{fmtPrice(livePrice)}</span>
@@ -1209,12 +1176,21 @@ export default function TradingMode({ onBack }) {
               ))}
             </div>
           </div>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: 9, color: 'var(--text-hint)', opacity: 0.55, paddingBottom: 5 }}>
+            {tr.chartLiveLabel ?? 'Live chart from when you open the app.'}
+          </div>
         </div>
 
         {/* ── Chart — elastic, fills all remaining height ── */}
-        <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
-          <TradingChart symbol={selectedSymbol} timeframe={timeframe} position={activePosition} chartRef={chartRef} onPositionSaved={handlePositionSaved} />
-        </div>
+        {(() => {
+          const collecting = getCandles(selectedSymbol, timeframe).length < 2;
+          const collectingText = collecting ? (tr.chartCollecting ?? 'Collecting live data...') : null;
+          return (
+            <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+              <TradingChart symbol={selectedSymbol} timeframe={timeframe} position={activePosition} chartRef={chartRef} onPositionSaved={handlePositionSaved} prices={prices} collectingText={collectingText} />
+            </div>
+          );
+        })()}
 
         {/* ── Execution panel: SELL | lots | BUY ── */}
         <div style={{ flexShrink: 0, borderTop: '1px solid var(--border-default)', background: 'var(--bg-surface)', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
