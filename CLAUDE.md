@@ -78,6 +78,35 @@ Single-file Express monolith. Key dependencies:
 
 Required env vars for the server: `JWT_SECRET`, `MONGODB_URI`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `UPSTASH_REDIS_URL`, `UPSTASH_REDIS_TOKEN`, `STRIPE_SECRET_KEY`, `FINNHUB_KEY`, `ADMIN_SECRET`.
 
+### Probar Upscale en local
+
+1. Pon tu clave en `server/.env` (nunca en un archivo versionado):
+   ```
+   UPSCALE_API_KEY=tu_clave_aqui
+   USE_UPSCALE_PRICES=true
+   ```
+2. Verifica la integración con la API real (sin arrancar el servidor):
+   ```bash
+   node server/scripts/upscalePricesCheck.js
+   ```
+   El script muestra: mercados recibidos, precios bid/ask por símbolo, símbolos no mapeados y anomalías de formato.
+3. Arranca el servidor en local:
+   ```bash
+   cd server && npm start
+   ```
+4. Comprueba que los precios son reales:
+   ```bash
+   curl http://localhost:3001/api/trading/prices
+   ```
+   Verifica que el campo `"source"` sea `"upscale"`.
+5. Cuando termines, vuelve al modo stub en `server/.env`:
+   ```
+   USE_UPSCALE_PRICES=false
+   ```
+
+> ⚠ **PROHIBIDO** activar `USE_UPSCALE_PRICES=true` en Railway / producción sin permiso escrito de Upscale.
+> Las variables de Railway las gestiona Nico directamente en el dashboard; no tocar `USE_UPSCALE_PRICES` allí.
+
 ### Legal compliance (audit closed Nov 2026)
 - **Paid tournaments**: all 5 endpoints return 410. `GET /tournaments` does not auto-create. Stripe `tournament_entry` webhooks are ignored gracefully (200 + warn). Audit script: `server/scripts/listPaidTournaments.js`.
 - **Analytics consent**: GA and Vercel Analytics only load after user accepts via cookie banner (`src/CookieBanner.jsx`). Consent stored in `localStorage` as `tradaria_consent`. Module: `src/analytics.js`. Settings has a "Cookies / Privacy" reset link.
